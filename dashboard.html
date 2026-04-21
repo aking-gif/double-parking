@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لوحة إجراءات إدارة المشاريع — أرسان للتشغيل</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="400" fill="#141414"/>
+    <rect x="120" y="120" width="160" height="160" rx="20" fill="#8B6F00"/>
+    <text x="200" y="230" font-family="sans-serif" font-size="90" font-weight="700" fill="#F7F6F2" text-anchor="middle">MA</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ========== TWEAKABLE DEFAULTS ========== */
+  /* (نستخدمها من Tweaks الداخلي لتبديل الوضع الداكن/الفاتح) */
+  :root{
+    --bg:#F7F6F2;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF6;
+    --ink:#111827;
+    --ink-2:#374151;
+    --ink-3:#6B7280;
+    --line:#E7E3D8;
+    --line-2:#EFEBE0;
+    --accent:#8B6F00;         /* ذهبي */
+    --accent-ink:#5E4B00;
+    --accent-soft:#F4EFD9;
+    --accent-softer:#FBF7E6;
+    --header-bg:#141414;
+    --header-ink:#F7F6F2;
+    --header-muted:#A8A39A;
+    --chip-bg:#FFFFFF;
+    --chip-ink:#374151;
+    --chip-active-bg:#111827;
+    --chip-active-ink:#FBF7E6;
+    --shadow-sm:0 1px 2px rgba(17,24,39,.04), 0 1px 1px rgba(17,24,39,.03);
+    --shadow-md:0 6px 20px rgba(17,24,39,.07), 0 2px 6px rgba(17,24,39,.04);
+    --shadow-lg:0 24px 60px rgba(17,24,39,.18), 0 8px 20px rgba(17,24,39,.10);
+    --radius-sm:10px;
+    --radius:14px;
+    --radius-lg:20px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0E0F10;
+    --surface:#18191B;
+    --surface-2:#141517;
+    --ink:#F3F1EA;
+    --ink-2:#D7D3C7;
+    --ink-3:#9A9487;
+    --line:#262729;
+    --line-2:#1E1F21;
+    --accent:#D4B24A;
+    --accent-ink:#F0D88A;
+    --accent-soft:#2A2512;
+    --accent-softer:#1F1C10;
+    --header-bg:#0A0A0B;
+    --header-ink:#F3F1EA;
+    --header-muted:#8F8A7D;
+    --chip-bg:#1C1D1F;
+    --chip-ink:#D7D3C7;
+    --chip-active-bg:#F3F1EA;
+    --chip-active-ink:#111111;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow-md:0 6px 20px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.4);
+    --shadow-lg:0 24px 60px rgba(0,0,0,.55), 0 8px 20px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-feature-settings:"ss01","cv11";
+    line-height:1.6;
+  }
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+  /* ========== HEADER ========== */
+  .header{
+    background:var(--header-bg);
+    color:var(--header-ink);
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid #000;
+  }
+  .header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(1200px 420px at 90% -10%, rgba(139,111,0,.22), transparent 60%),
+      radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.10), transparent 60%);
+    pointer-events:none;
+  }
+  .header-inner{position:relative;padding:40px 0 56px}
+  .brandline{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    color:var(--header-muted);
+    font-size:13px; letter-spacing:.02em;
+  }
+  .brandline .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
+  .brandline .mark{
+    display:inline-flex; align-items:center; gap:10px;
+    color:var(--header-ink); font-weight:600;
+  }
+  .brandline .logo{
+    width:26px;height:26px;border-radius:7px;
+    background:linear-gradient(135deg, #C69C22 0%, #8B6F00 60%, #6B5300 100%);
+    display:inline-flex;align-items:center;justify-content:center;
+    color:#1a1405; font-weight:700; font-size:13px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+  .version{
+    margin-inline-start:auto;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    font-size:12px;
+    color:var(--header-ink);
+    background:rgba(255,255,255,.04);
+  }
+  .version .v-dot{width:6px;height:6px;border-radius:50%;background:#CDA84A}
+
+  .theme-toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    font-size:12px;
+    color:var(--header-ink);
+    background:rgba(255,255,255,.04);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover{background:rgba(255,255,255,.09)}
+
+  .title{
+    margin:28px 0 12px;
+    font-size:clamp(34px, 4.4vw, 54px);
+    line-height:1.12;
+    letter-spacing:-.01em;
+    font-weight:600;
+    max-width:22ch;
+  }
+  .title .accent-underline{
+    background-image:linear-gradient(transparent 72%, rgba(212,178,74,.42) 72% 92%, transparent 92%);
+  }
+  .subtitle{
+    color:var(--header-muted);
+    font-size:16px;
+    max-width:62ch;
+    margin:0 0 34px;
+    font-weight:300;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+    gap:14px;
+    margin-top:6px;
+  }
+  .stat{
+    padding:18px 20px 16px;
+    border-radius:var(--radius);
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+    position:relative;
+    overflow:hidden;
+  }
+  .stat::after{
+    content:"";
+    position:absolute; inset-inline-end:-30px; top:-30px;
+    width:90px; height:90px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(212,178,74,.18), transparent 70%);
+  }
+  .stat .n{
+    font-size:38px; font-weight:600; letter-spacing:-.02em; line-height:1;
+    color:var(--header-ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .n .u{font-size:14px;color:var(--header-muted);margin-inline-start:6px;font-weight:400}
+  .stat .l{color:var(--header-muted);font-size:13px;margin-top:10px}
+  .stat.accent{
+    background:linear-gradient(180deg, rgba(139,111,0,.18), rgba(139,111,0,.05));
+    border-color:rgba(212,178,74,.25);
+  }
+
+  /* ========== TOOLBAR ========== */
+  .toolbar{
+    position:sticky; top:0; z-index:30;
+    background:color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter:saturate(1.2) blur(10px);
+    -webkit-backdrop-filter:saturate(1.2) blur(10px);
+    border-bottom:1px solid var(--line);
+    margin-top:-22px;
+  }
+  .toolbar-inner{
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+    padding:16px 0;
+  }
+  .search{
+    position:relative; flex:1 1 280px; min-width:220px;
+  }
+  .search input{
+    width:100%;
+    padding:12px 44px 12px 16px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:14px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    box-shadow:var(--shadow-sm);
+  }
+  .search input::placeholder{color:var(--ink-3)}
+  .search input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+  }
+  .search .icon{
+    position:absolute; inset-inline-end:14px; top:50%; transform:translateY(-50%);
+    color:var(--ink-3);
+    pointer-events:none;
+  }
+  .search .clear{
+    position:absolute; inset-inline-end:10px; top:50%; transform:translateY(-50%);
+    display:none;
+    padding:4px 8px; border-radius:6px; color:var(--ink-3);
+    font-size:12px;
+  }
+  .search.has-value .clear{display:inline-flex}
+  .search.has-value .icon{display:none}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{
+    padding:8px 14px;
+    border-radius:999px;
+    background:var(--chip-bg);
+    color:var(--chip-ink);
+    border:1px solid var(--line);
+    font-size:13px;
+    transition:all .15s ease;
+    display:inline-flex;align-items:center;gap:8px;
+    font-weight:500;
+  }
+  .chip:hover{border-color:var(--accent); color:var(--accent-ink)}
+  .chip[aria-pressed="true"]{
+    background:var(--chip-active-bg);
+    color:var(--chip-active-ink);
+    border-color:var(--chip-active-bg);
+  }
+  .chip .count{
+    font-size:11px; opacity:.7;
+    font-variant-numeric:tabular-nums;
+    background:color-mix(in oklab, currentColor 12%, transparent);
+    padding:1px 6px; border-radius:999px;
+  }
+
+  /* ========== RESULTS META ========== */
+  .results-meta{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:24px 0 14px;
+    color:var(--ink-3);
+    font-size:13px;
+  }
+  .results-meta strong{color:var(--ink);font-weight:600}
+
+  /* ========== GRID ========== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:18px;
+    padding-bottom:64px;
+  }
+  @media (max-width:900px){ .grid{grid-template-columns:repeat(2, minmax(0,1fr))} }
+  @media (max-width:600px){
+    .grid{grid-template-columns:1fr}
+    .wrap{padding:0 18px}
+    .stats{grid-template-columns:repeat(2, minmax(0,1fr))}
+  }
+
+  .card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:22px 22px 20px;
+    display:flex; flex-direction:column; gap:14px;
+    min-height:230px;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    text-align:start;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset-block:22px auto; inset-inline-start:0;
+    width:3px; height:26px;
+    background:var(--accent);
+    border-radius:0 3px 3px 0;
+    opacity:0;
+    transition:opacity .18s ease, height .18s ease;
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-md);
+    border-color:color-mix(in oklab, var(--accent) 45%, var(--line));
+  }
+  .card:hover::before{opacity:1; height:48px}
+  .card:focus-visible{
+    box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+    border-color:var(--accent);
+  }
+
+  .card-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .sop-code{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:"IBM Plex Sans Arabic", monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    padding:5px 10px;
+    border-radius:7px;
+    background:var(--accent-softer);
+    color:var(--accent-ink);
+    border:1px solid color-mix(in oklab, var(--accent) 25%, transparent);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    direction:ltr;
+  }
+  .phase-tag{
+    font-size:12px;
+    color:var(--ink-3);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .phase-tag::before{
+    content:""; width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+    opacity:.7;
+  }
+
+  .card h3{
+    margin:0;
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:-.005em;
+    line-height:1.35;
+    color:var(--ink);
+    text-wrap:balance;
+  }
+  .card-desc{
+    color:var(--ink-2);
+    font-size:13.5px;
+    line-height:1.65;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    font-weight:300;
+  }
+
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+  .badge{
+    font-size:11.5px;
+    padding:4px 10px;
+    border-radius:7px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    color:var(--ink-2);
+    display:inline-flex;align-items:center;gap:6px;
+    font-weight:500;
+  }
+  .badge svg{opacity:.6}
+
+  .open-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--accent-ink);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 0 2px;
+    border-top:1px dashed var(--line);
+    margin-top:4px;
+    justify-content:space-between;
+  }
+  .open-btn .arrow{transition:transform .18s ease}
+  .card:hover .open-btn .arrow{transform:translateX(-4px)}
+
+  /* Empty state */
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-3);
+    border:1px dashed var(--line);
+    border-radius:var(--radius-lg);
+    background:var(--surface-2);
+  }
+  .empty strong{color:var(--ink);display:block;margin-bottom:6px;font-size:16px}
+
+  /* ========== MODAL ========== */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,10,10,.55);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    display:none;
+    align-items:flex-start; justify-content:center;
+    padding:40px 20px;
+    overflow-y:auto;
+    animation:fadeIn .18s ease;
+  }
+  .modal-backdrop[aria-hidden="false"]{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .modal{
+    background:var(--surface);
+    color:var(--ink);
+    width:min(880px, 100%);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg);
+    border:1px solid var(--line);
+    overflow:hidden;
+    animation:pop .22s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+
+  .modal-head{
+    padding:26px 28px 22px;
+    border-bottom:1px solid var(--line);
+    background:
+      linear-gradient(180deg, var(--accent-softer), transparent 70%),
+      var(--surface);
+    position:relative;
+  }
+  .modal-head .top-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .modal-head h2{
+    margin:0;
+    font-size:26px; font-weight:600; letter-spacing:-.01em; line-height:1.25;
+    text-wrap:balance;
+  }
+  .close-x{
+    position:absolute;
+    inset-inline-end:14px; top:14px;
+    width:36px; height:36px; border-radius:10px;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--ink-2);
+    background:var(--surface);
+    border:1px solid var(--line);
+    transition:all .15s ease;
+  }
+  .close-x:hover{background:var(--ink);color:var(--surface)}
+
+  .modal-body{padding:24px 28px 28px; display:flex; flex-direction:column; gap:22px}
+
+  .section-label{
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--ink-3);
+    font-weight:600;
+    text-transform:uppercase;
+    margin:0 0 10px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-label::after{
+    content:""; flex:1; height:1px; background:var(--line);
+  }
+
+  .purpose-box{
+    padding:16px 18px;
+    background:var(--accent-softer);
+    border:1px solid color-mix(in oklab, var(--accent) 20%, var(--line));
+    border-radius:var(--radius);
+    color:var(--ink-2);
+    line-height:1.8;
+    position:relative;
+  }
+  .purpose-box::before{
+    content:"❝";
+    position:absolute;
+    inset-inline-start:14px; top:-8px;
+    font-size:30px; color:var(--accent); line-height:1;
+    background:var(--surface); padding:0 6px;
+  }
+
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  @media (max-width:560px){ .meta-grid{grid-template-columns:1fr} }
+  .meta-cell{
+    background:var(--surface);
+    padding:14px 16px;
+  }
+  .meta-cell .k{
+    font-size:11.5px;
+    color:var(--ink-3);
+    margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;
+    font-weight:500;
+  }
+  .meta-cell .v{
+    font-size:14px; color:var(--ink);
+    line-height:1.6;
+    font-weight:500;
+  }
+  .meta-cell.full{grid-column:1/-1}
+
+  .steps{
+    list-style:none; padding:0; margin:0;
+    counter-reset:step;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .steps li{
+    counter-increment:step;
+    padding:14px 18px 14px 56px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    border-radius:12px;
+    position:relative;
+    line-height:1.7;
+    color:var(--ink-2);
+  }
+  /* رقم الخطوة في الجهة البادئة (يمين في RTL) */
+  .steps li::before{
+    content:counter(step, decimal);
+    position:absolute;
+    inset-inline-start:auto; inset-inline-end:14px; top:12px;
+    width:30px; height:30px; border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  html[data-theme="dark"] .steps li::before{ color:#1a1405 }
+  .steps li{padding:14px 56px 14px 18px}
+
+  .kpi-box{
+    padding:16px 18px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    border-inline-start:3px solid var(--accent);
+    border-radius:12px;
+    line-height:1.8;
+    color:var(--ink-2);
+  }
+
+  .form-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .form-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    font-size:13px;
+    color:var(--ink-2);
+    font-weight:500;
+  }
+  .form-badge svg{color:var(--accent)}
+
+  .note-box{
+    padding:14px 16px;
+    background:color-mix(in oklab, var(--accent) 6%, var(--surface));
+    border:1px dashed color-mix(in oklab, var(--accent) 30%, var(--line));
+    border-radius:12px;
+    color:var(--ink-2);
+    font-size:13.5px;
+    line-height:1.75;
+    display:flex; gap:10px;
+  }
+  .note-box .n-icon{
+    color:var(--accent); flex-shrink:0; margin-top:2px;
+  }
+
+  .modal-foot{
+    padding:14px 28px;
+    border-top:1px solid var(--line);
+    background:var(--surface-2);
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    flex-wrap:wrap;
+  }
+  .modal-foot .hint{font-size:12px;color:var(--ink-3)}
+  .modal-foot kbd{
+    font-family:"IBM Plex Sans Arabic", monospace;
+    font-size:11px;
+    padding:2px 7px;
+    border:1px solid var(--line);
+    border-bottom-width:2px;
+    border-radius:5px;
+    background:var(--surface);
+    color:var(--ink-2);
+    margin:0 2px;
+  }
+  .btn{
+    padding:10px 18px;
+    border-radius:10px;
+    background:var(--ink);
+    color:var(--surface);
+    font-size:13.5px;
+    font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:hover{opacity:.9; transform:translateY(-1px)}
+  .btn.ghost{
+    background:var(--surface);
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+
+  /* Placeholder styling */
+  .ph{
+    color:var(--ink-3);
+    font-style:italic;
+    font-weight:300;
+  }
+  .ph::before{content:"— "}
+  .ph::after{content:" —"}
+
+  /* ========== FOOTER ========== */
+  .site-foot{
+    border-top:1px solid var(--line);
+    padding:26px 0;
+    color:var(--ink-3);
+    font-size:12.5px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  }
+  .site-foot .muted{opacity:.7}
+
+  /* ========== PRINT ========== */
+  @media print{
+    :root{
+      --bg:#fff; --surface:#fff; --surface-2:#fafafa;
+      --ink:#000; --ink-2:#1a1a1a; --ink-3:#555;
+      --line:#d8d8d8; --line-2:#e6e6e6;
+    }
+    body{background:#fff}
+    .toolbar, .theme-toggle, .open-btn, .modal-backdrop, .site-foot .muted{ display:none !important }
+    .header{background:#fff;color:#000;border-bottom:2px solid #000}
+    .header::before{display:none}
+    .title, .subtitle, .brandline, .brandline .mark{color:#000}
+    .stat{border:1px solid #d8d8d8;background:#fafafa}
+    .stat .n,.stat .l{color:#000}
+    .grid{grid-template-columns:1fr 1fr; gap:10px}
+    .card{
+      break-inside:avoid;
+      page-break-inside:avoid;
+      box-shadow:none !important;
+      transform:none !important;
+    }
+    .card::before{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== HEADER =================== -->
+<header class="header" role="banner">
+  <div class="wrap header-inner">
+    <div class="brandline">
+      <span class="mark">
+        <span class="logo" aria-hidden="true">أ</span>
+        شركة أرسان للتشغيل
+      </span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="deptBreadcrumb">إدارة المشاريع</span>
+      <span class="version" title="إصدار اللوحة">
+        <span class="v-dot" aria-hidden="true"></span>
+        إصدار 1.0
+      </span>
+      <a href="index.html" class="theme-toggle" id="changeDeptBtn" aria-label="تغيير الإدارة" style="text-decoration:none;margin-inline-start:auto">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+        </svg>
+        <span>تغيير الإدارة</span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الداكن/الفاتح" type="button" style="margin-inline-start:0">
+        <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="themeLabel">وضع داكن</span>
+      </button>
+    </div>
+
+    <h1 class="title">
+      مرجع الإجراءات التشغيلية <span class="accent-underline">الموحّدة</span> لإدارة المشاريع
+    </h1>
+    <p class="subtitle">
+      لوحة داخلية تجمع إجراءات العمل القياسية في إدارة المشاريع عبر مراحلها الخمس: التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ — مرجع واحد للموظفين لتنفيذ المهام وفق معيار موحّد.
+    </p>
+
+    <div class="stats" role="list" aria-label="مؤشرات سريعة">
+      <div class="stat accent" role="listitem">
+        <div class="n" id="stat-sops">12</div>
+        <div class="l">إجراء تشغيلي</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-phases">5</div>
+        <div class="l">مراحل عمل</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-forms">0<span class="u">قابل للإضافة</span></div>
+        <div class="l">نموذج مرتبط</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-kpis">0<span class="u">قابل للإضافة</span></div>
+        <div class="l">مؤشر أداء</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =================== TOOLBAR =================== -->
+<div class="toolbar" role="region" aria-label="أدوات البحث والفلترة">
+  <div class="wrap toolbar-inner">
+    <div class="search" id="searchWrap">
+      <input id="searchInput" type="search" placeholder="ابحث في الإجراءات، الأكواد، أو الأوصاف…" aria-label="بحث في الإجراءات" autocomplete="off" />
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <button class="clear" id="searchClear" type="button" aria-label="مسح البحث">مسح ✕</button>
+    </div>
+    <div class="chips" id="chips" role="toolbar" aria-label="فلترة حسب المرحلة">
+      <!-- chips injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- =================== RESULTS =================== -->
+<main class="wrap" id="main">
+  <div class="results-meta">
+    <div>
+      عرض <strong id="visibleCount">12</strong> من أصل <strong id="totalCount">12</strong> إجراءً
+      <span id="filterLabel" style="color:var(--ink-3)"></span>
+    </div>
+    <div style="color:var(--ink-3)">
+      <kbd style="font-family:monospace;font-size:11px;padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:var(--surface)">Enter</kbd>
+      لفتح الإجراء
+    </div>
+  </div>
+
+  <section class="grid" id="grid" aria-live="polite"></section>
+</main>
+
+<!-- =================== MODAL =================== -->
+<div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal" id="modalBox" tabindex="-1">
+    <div class="modal-head">
+      <div class="top-row">
+        <span class="sop-code" id="m-code">SOP-00</span>
+        <span class="phase-tag" id="m-phase">—</span>
+      </div>
+      <h2 id="modal-title">—</h2>
+      <button class="close-x" id="closeX" aria-label="إغلاق" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- الغرض -->
+      <div>
+        <p class="section-label">الغرض من الإجراء</p>
+        <div class="purpose-box" id="m-purpose">—</div>
+      </div>
+
+      <!-- الميتا -->
+      <div>
+        <p class="section-label">المعلومات الأساسية</p>
+        <div class="meta-grid" id="m-meta"></div>
+      </div>
+
+      <!-- الخطوات -->
+      <div>
+        <p class="section-label">خطوات التنفيذ</p>
+        <ol class="steps" id="m-steps"></ol>
+      </div>
+
+      <!-- KPIs -->
+      <div>
+        <p class="section-label">مؤشرات الأداء (KPIs)</p>
+        <div class="kpi-box" id="m-kpis">—</div>
+      </div>
+
+      <!-- النماذج -->
+      <div>
+        <p class="section-label">النماذج المرتبطة</p>
+        <div class="form-badges" id="m-forms"></div>
+      </div>
+
+      <!-- ملاحظة -->
+      <div id="m-note-wrap">
+        <p class="section-label">ملاحظة</p>
+        <div class="note-box">
+          <svg class="n-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span id="m-note">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <div class="hint">
+        اضغط <kbd>Esc</kbd> أو خارج النافذة للإغلاق · <kbd>←</kbd> <kbd>→</kbd> للتنقل بين الإجراءات
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" id="closeBtn" type="button">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== FOOTER =================== -->
+<footer class="site-foot wrap">
+  <div>شركة أرسان للتشغيل · إدارة المشاريع · مرجع الإجراءات التشغيلية الموحّدة</div>
+  <div class="muted">هيكل فارغ قابل للتعبئة — إصدار 1.0 · 2026</div>
+</footer>
+
+<script>
+/* ================= DATA =================
+   هيكل فارغ: 12 إجراء موزّعة على 5 مراحل.
+   جميع الحقول تحمل عناصر نائبة "— يُكمل لاحقاً —" ليتم تعبئتها.
+*/
+const PH = "— يُكمل لاحقاً —";
+const PHASES = [
+  { id:"design",       label:"تصميم" },
+  { id:"planning",     label:"تخطيط" },
+  { id:"procurement",  label:"مشتريات" },
+  { id:"maintenance",  label:"صيانة" },
+  { id:"execution",    label:"تنفيذ" }
+];
+
+function blankSOP(code, phaseId, titleHint){
+  return {
+    code,
+    phase: phaseId,
+    title: titleHint,
+    desc: PH,
+    purpose: PH,
+    scope: PH,
+    owner: PH,
+    inputs: PH,
+    outputs: PH,
+    sla: PH,
+    kpis: PH,
+    forms: [],
+    steps: [PH, PH, PH],
+    note: ""
+  };
+}
+
+/* 12 إجراء — العناوين هنا مجرد مواضع قابلة لإعادة التسمية عند التعبئة */
+const SOPS = [
+  blankSOP("SOP-01","design",      "إجراء تصميم (1)"),
+  blankSOP("SOP-02","design",      "إجراء تصميم (2)"),
+  blankSOP("SOP-03","planning",    "إجراء تخطيط (1)"),
+  blankSOP("SOP-04","planning",    "إجراء تخطيط (2)"),
+  blankSOP("SOP-05","planning",    "إجراء تخطيط (3)"),
+  blankSOP("SOP-06","procurement", "إجراء مشتريات (1)"),
+  blankSOP("SOP-07","procurement", "إجراء مشتريات (2)"),
+  blankSOP("SOP-08","maintenance", "إجراء صيانة (1)"),
+  blankSOP("SOP-09","maintenance", "إجراء صيانة (2)"),
+  blankSOP("SOP-10","execution",   "إجراء تنفيذ (1)"),
+  blankSOP("SOP-11","execution",   "إجراء تنفيذ (2)"),
+  blankSOP("SOP-12","execution",   "إجراء تنفيذ (3)")
+];
+
+/* ================= STATE ================= */
+const state = {
+  q: "",
+  phase: "all",
+  openIdx: -1
+};
+
+/* ================= HELPERS ================= */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const phaseLabel = id => (PHASES.find(p=>p.id===id)||{}).label || id;
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+function isPH(v){ return !v || v === PH; }
+function renderVal(v){
+  if(isPH(v)) return `<span class="ph">يُكمل لاحقاً</span>`;
+  return escapeHtml(v);
+}
+
+/* ================= CHIPS ================= */
+function renderChips(){
+  const chips = $("#chips");
+  const counts = { all: SOPS.length };
+  PHASES.forEach(p => counts[p.id] = SOPS.filter(s=>s.phase===p.id).length);
+
+  const items = [{id:"all", label:"الكل"}, ...PHASES];
+  chips.innerHTML = items.map(it => `
+    <button class="chip" data-phase="${it.id}" aria-pressed="${state.phase===it.id}" type="button">
+      <span>${escapeHtml(it.label)}</span>
+      <span class="count">${counts[it.id]}</span>
+    </button>
+  `).join("");
+
+  chips.addEventListener("click", e => {
+    const btn = e.target.closest(".chip");
+    if(!btn) return;
+    state.phase = btn.dataset.phase;
+    $$(".chip", chips).forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
+    renderGrid();
+  }, { once:true });
+}
+
+/* ================= GRID ================= */
+function filteredSOPs(){
+  const q = state.q.trim().toLowerCase();
+  return SOPS.filter(s => {
+    if(state.phase !== "all" && s.phase !== state.phase) return false;
+    if(!q) return true;
+    const hay = [s.code, s.title, s.desc, s.purpose, phaseLabel(s.phase), s.owner, s.sla, s.scope, ...(s.steps||[])]
+      .filter(x=>!isPH(x)).join(" ").toLowerCase();
+    // الكود والعنوان دائماً في البحث حتى لو placeholder
+    const hay2 = [s.code, s.title, phaseLabel(s.phase)].join(" ").toLowerCase();
+    return hay.includes(q) || hay2.includes(q);
+  });
+}
+
+function renderGrid(){
+  const grid = $("#grid");
+  const list = filteredSOPs();
+  $("#visibleCount").textContent = list.length;
+  $("#totalCount").textContent = SOPS.length;
+  $("#filterLabel").textContent = state.phase==="all" && !state.q ? "" :
+    ` · ${state.phase!=="all" ? "مرحلة "+phaseLabel(state.phase) : ""}${state.q ? ` · بحث "${state.q}"` : ""}`;
+
+  if(list.length === 0){
+    grid.innerHTML = `
+      <div class="empty">
+        <strong>لا توجد نتائج مطابقة</strong>
+        جرّب مسح البحث أو اختيار فلتر مختلف.
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(s => {
+    const idx = SOPS.indexOf(s);
+    const descHtml = isPH(s.desc)
+      ? `<span class="ph">وصف الإجراء سيُضاف لاحقاً عند تعبئة المحتوى.</span>`
+      : escapeHtml(s.desc);
+    const ownerHtml = isPH(s.owner) ? `<span class="ph">المالك</span>` : escapeHtml(s.owner);
+    const slaHtml   = isPH(s.sla)   ? `<span class="ph">SLA</span>`    : escapeHtml(s.sla);
+    return `
+      <article class="card" tabindex="0" role="button" data-idx="${idx}" aria-label="فتح تفاصيل ${escapeHtml(s.code)} — ${escapeHtml(s.title)}">
+        <div class="card-top">
+          <span class="sop-code">${escapeHtml(s.code)}</span>
+          <span class="phase-tag">${escapeHtml(phaseLabel(s.phase))}</span>
+        </div>
+        <h3>${escapeHtml(s.title)}</h3>
+        <p class="card-desc">${descHtml}</p>
+        <div class="badges">
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            ${ownerHtml}
+          </span>
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            ${slaHtml}
+          </span>
+        </div>
+        <div class="open-btn">
+          <span>افتح تفاصيل الإجراء</span>
+          <span class="arrow" aria-hidden="true">←</span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+/* ================= MODAL ================= */
+function openModal(idx){
+  const s = SOPS[idx];
+  if(!s) return;
+  state.openIdx = idx;
+
+  $("#m-code").textContent = s.code;
+  $("#m-phase").textContent = phaseLabel(s.phase);
+  $("#modal-title").textContent = s.title;
+
+  $("#m-purpose").innerHTML = isPH(s.purpose)
+    ? `<span class="ph">اشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.</span>`
+    : escapeHtml(s.purpose);
+
+  const metaItems = [
+    { k:"الجهة المالكة", v:s.owner, icon:"user"  },
+    { k:"الإطار الزمني (SLA)", v:s.sla, icon:"clock" },
+    { k:"النطاق", v:s.scope, icon:"target" },
+    { k:"المدخلات", v:s.inputs, icon:"in" },
+    { k:"المخرجات", v:s.outputs, icon:"out", full:true }
+  ];
+  $("#m-meta").innerHTML = metaItems.map(m => `
+    <div class="meta-cell${m.full?" full":""}">
+      <div class="k">${escapeHtml(m.k)}</div>
+      <div class="v">${renderVal(m.v)}</div>
+    </div>
+  `).join("");
+
+  const steps = (s.steps && s.steps.length) ? s.steps : [PH,PH,PH];
+  $("#m-steps").innerHTML = steps.map(st =>
+    `<li>${isPH(st) ? `<span class="ph">تُعبّأ الخطوة لاحقاً</span>` : escapeHtml(st)}</li>`
+  ).join("");
+
+  $("#m-kpis").innerHTML = isPH(s.kpis)
+    ? `<span class="ph">حدّد هنا كيف نقيس نجاح تنفيذ هذا الإجراء — مثل نسب الإنجاز، زمن الاستجابة، أو معدلات الأخطاء.</span>`
+    : escapeHtml(s.kpis);
+
+  if(!s.forms || s.forms.length===0){
+    $("#m-forms").innerHTML = `<span class="ph">لا توجد نماذج مربوطة حتى الآن</span>`;
+  } else {
+    $("#m-forms").innerHTML = s.forms.map(f => `
+      <span class="form-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+        ${escapeHtml(f)}
+      </span>
+    `).join("");
+  }
+
+  if(s.note && !isPH(s.note)){
+    $("#m-note-wrap").style.display = "";
+    $("#m-note").textContent = s.note;
+  } else {
+    $("#m-note-wrap").style.display = "none";
+  }
+
+  const m = $("#modal");
+  m.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+  setTimeout(()=> $("#modalBox").focus(), 30);
+}
+function closeModal(){
+  $("#modal").setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+  if(state.openIdx >= 0){
+    const card = document.querySelector(`.card[data-idx="${state.openIdx}"]`);
+    if(card) card.focus();
+  }
+  state.openIdx = -1;
+}
+function navModal(dir){
+  const visible = filteredSOPs();
+  if(!visible.length) return;
+  const cur = SOPS[state.openIdx];
+  let i = visible.indexOf(cur);
+  if(i<0) i = 0;
+  /* في RTL، ← يعني التالي و → يعني السابق بصرياً — نحافظ على المنطق الطبيعي للقارئ */
+  i = (i + dir + visible.length) % visible.length;
+  openModal(SOPS.indexOf(visible[i]));
+}
+
+/* ================= SEARCH ================= */
+const searchWrap = $("#searchWrap");
+const searchInput = $("#searchInput");
+searchInput.addEventListener("input", e => {
+  state.q = e.target.value;
+  searchWrap.classList.toggle("has-value", !!state.q);
+  renderGrid();
+});
+$("#searchClear").addEventListener("click", () => {
+  searchInput.value = ""; state.q = "";
+  searchWrap.classList.remove("has-value");
+  renderGrid(); searchInput.focus();
+});
+
+/* ================= EVENTS ================= */
+document.addEventListener("click", e => {
+  const card = e.target.closest(".card");
+  if(card) openModal(+card.dataset.idx);
+});
+document.addEventListener("keydown", e => {
+  if(e.key === "/" && document.activeElement !== searchInput){
+    e.preventDefault(); searchInput.focus();
+  }
+  const modalOpen = $("#modal").getAttribute("aria-hidden") === "false";
+  if(modalOpen){
+    if(e.key === "Escape") closeModal();
+    if(e.key === "ArrowLeft")  navModal(+1);
+    if(e.key === "ArrowRight") navModal(-1);
+    return;
+  }
+  // Enter/Space على الكارد
+  const active = document.activeElement;
+  if(active && active.classList.contains("card") && (e.key === "Enter" || e.key === " ")){
+    e.preventDefault();
+    openModal(+active.dataset.idx);
+  }
+});
+$("#closeX").addEventListener("click", closeModal);
+$("#closeBtn").addEventListener("click", closeModal);
+$("#modal").addEventListener("click", e => {
+  if(e.target.id === "modal") closeModal();
+});
+
+/* ================= THEME TOGGLE ================= */
+const themeBtn = $("#themeToggle");
+const themeLabel = $("#themeLabel");
+const themeIcon = $("#themeIcon");
+function applyTheme(mode){
+  document.documentElement.setAttribute("data-theme", mode);
+  localStorage.setItem("arsaan_pm_theme", mode);
+  themeLabel.textContent = mode === "dark" ? "وضع فاتح" : "وضع داكن";
+  themeIcon.innerHTML = mode === "dark"
+    ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+const savedTheme = localStorage.getItem("arsaan_pm_theme") || "light";
+applyTheme(savedTheme);
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  applyTheme(cur === "dark" ? "light" : "dark");
+});
+
+/* ================= STATS ================= */
+function updateStats(){
+  $("#stat-sops").textContent = SOPS.length;
+  $("#stat-phases").textContent = PHASES.length;
+  const forms = new Set(); SOPS.forEach(s => (s.forms||[]).forEach(f => forms.add(f)));
+  const formsN = forms.size;
+  const kpisN  = SOPS.filter(s => !isPH(s.kpis)).length;
+  $("#stat-forms").innerHTML = formsN === 0
+    ? `0<span class="u">قابل للإضافة</span>` : String(formsN);
+  $("#stat-kpis").innerHTML = kpisN === 0
+    ? `0<span class="u">قابل للإضافة</span>` : String(kpisN);
+}
+
+/* ================= INIT ================= */
+renderChips();
+renderGrid();
+updateStats();
+
+/* ================= TWEAKS (host integration) ================= */
+/* يسمح لمحرّر Tweaks الخارجي بتفعيل التبديل عبر postMessage */
+window.addEventListener("message", e => {
+  const d = e.data || {};
+  if(d.type === "__activate_edit_mode" || d.type === "__deactivate_edit_mode"){
+    /* لا توجد لوحة Tweaks منفصلة — التبديل متاح داخل الهيدر */
+  }
+});
+try{
+  window.parent && window.parent.postMessage({type:"__edit_mode_available"}, "*");
+}catch(_){}
+
+/* ===== تحديث اسم الإدارة في الرأس ===== */
+(function(){
+  const DEPT_NAMES = {
+    projects: "إدارة المشاريع",
+    finance: "الإدارة المالية",
+    operations: "الإدارة التشغيلية",
+    legal: "الإدارة القانونية",
+    hr: "إدارة الموارد البشرية",
+    bizdev: "إدارة تطوير الأعمال"
+  };
+  // أولوية: query param، ثم localStorage، ثم افتراضي
+  const params = new URLSearchParams(window.location.search);
+  let deptId = params.get('dept');
+  let deptName = null;
+  if (deptId && DEPT_NAMES[deptId]) {
+    deptName = DEPT_NAMES[deptId];
+  } else {
+    try {
+      const saved = JSON.parse(localStorage.getItem('arsan_department') || 'null');
+      if (saved && saved.name) { deptName = saved.name; deptId = saved.id; }
+    } catch(_){}
+  }
+  // إذا لم يختر المستخدم إدارة، أعِده لصفحة الاختيار
+  if (!deptName) {
+    // السماح بالعرض المباشر للاختبار؛ لا نعيد التوجيه
+    deptName = "إدارة المشاريع";
+  }
+  const bc = document.getElementById('deptBreadcrumb');
+  if (bc) bc.textContent = deptName;
+  // تحديث العنوان في المتصفح
+  document.title = "لوحة إجراءات " + deptName + " — أرسان للتشغيل";
+  // إذا كانت الإدارة غير "projects"، أضف شارة "قيد التجهيز"
+  if (deptId && deptId !== 'projects') {
+    const sub = document.querySelector('.subtitle');
+    if (sub) {
+      const note = document.createElement('div');
+      note.style.cssText = 'margin-top:14px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(212,178,74,.12);border:1px solid rgba(212,178,74,.35);border-radius:10px;color:var(--header-ink);font-size:13px';
+      note.innerHTML = '⚠️ مرجع <strong style="margin:0 4px">' + deptName + '</strong> قيد التجهيز — يتم عرض مرجع إدارة المشاريع مؤقتاً.';
+      sub.insertAdjacentElement('afterend', note);
+    }
+  }
+})();
+</script>
+</body>
+</html>

@@ -669,6 +669,106 @@
     }
     .card::before{display:none}
   }
+
+  /* ===== View Switcher ===== */
+  .view-switcher{display:inline-flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .view-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;font-size:13px;color:var(--ink-3);border-radius:7px;transition:.15s}
+  .view-btn.active{background:var(--ink);color:var(--bg)}
+  html[data-theme="dark"] .view-btn.active{background:var(--accent);color:#111}
+
+  /* ===== Brain Map ===== */
+  .brain-map{
+    position:relative;min-height:600px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:40px;overflow:hidden;
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+    background-size:24px 24px;
+  }
+  .bm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+  .bm-center{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:var(--ink);color:var(--bg);
+    padding:16px 24px;border-radius:14px;font-weight:700;font-size:16px;
+    box-shadow:var(--shadow-lg);z-index:3;text-align:center;
+    min-width:180px;
+  }
+  html[data-theme="dark"] .bm-center{background:var(--accent);color:#111}
+  .bm-group{
+    position:absolute;z-index:3;
+    background:var(--accent-soft);color:var(--accent-ink);
+    padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;
+    border:2px solid var(--accent);cursor:pointer;transition:.15s;
+    white-space:nowrap;box-shadow:var(--shadow-sm);
+  }
+  .bm-group:hover{transform:translate(-50%,-50%) scale(1.05);box-shadow:var(--shadow-md)}
+  .bm-sop{
+    position:absolute;z-index:2;
+    background:var(--surface);color:var(--ink);
+    padding:6px 12px;border-radius:8px;font-size:12px;
+    border:1px solid var(--line);cursor:pointer;transition:.15s;
+    max-width:160px;text-align:center;line-height:1.3;
+    box-shadow:var(--shadow-sm);
+  }
+  .bm-sop:hover{border-color:var(--accent);box-shadow:var(--shadow-md);z-index:4}
+  .bm-sop .bm-code{display:block;font-size:10px;color:var(--ink-3);font-family:monospace;margin-bottom:2px}
+
+  /* ===== AI Assistant ===== */
+  .fab{
+    position:fixed;bottom:24px;inset-inline-end:24px;z-index:50;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:12px 18px;border-radius:999px;
+    background:var(--ink);color:var(--bg);
+    box-shadow:var(--shadow-lg);font-weight:600;font-size:14px;
+    border:1px solid var(--ink);transition:.2s;
+  }
+  html[data-theme="dark"] .fab{background:var(--accent);color:#111;border-color:var(--accent)}
+  .fab:hover{transform:translateY(-2px);box-shadow:0 30px 60px rgba(139,111,0,.3)}
+
+  .ai-panel{
+    position:fixed;bottom:24px;inset-inline-end:24px;z-index:60;
+    width:min(420px, calc(100vw - 32px));height:min(620px, calc(100vh - 48px));
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    display:flex;flex-direction:column;overflow:hidden;
+    transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s;
+  }
+  .ai-panel[aria-hidden="false"]{transform:translateY(0);opacity:1;pointer-events:auto}
+  .ai-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--header-bg);color:var(--header-ink)}
+  .ai-title{font-weight:700;font-size:15px}
+  .ai-sub{font-size:12px;color:var(--header-muted);margin-top:2px}
+  .ai-close{width:28px;height:28px;border-radius:8px;color:var(--header-ink);font-size:14px;transition:.15s}
+  .ai-close:hover{background:rgba(255,255,255,.1)}
+  .ai-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .ai-msg{padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;max-width:90%}
+  .ai-bot{background:var(--accent-softer);color:var(--ink);border:1px solid var(--accent-soft);align-self:flex-start}
+  .ai-user{background:var(--ink);color:var(--bg);align-self:flex-end}
+  html[data-theme="dark"] .ai-user{background:var(--accent);color:#111}
+  .ai-msg.loading{opacity:.7;font-style:italic}
+  .ai-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px;border-top:1px solid var(--line);padding-top:10px}
+  .ai-quick button{font-size:11px;padding:5px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);transition:.15s}
+  .ai-quick button:hover{border-color:var(--accent);color:var(--accent-ink)}
+  html[data-theme="dark"] .ai-quick button:hover{color:var(--accent)}
+  .ai-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+  .ai-input textarea{flex:1;resize:none;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;line-height:1.5}
+  .ai-input textarea:focus{border-color:var(--accent)}
+  .ai-send{width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+  html[data-theme="dark"] .ai-send{background:var(--accent);color:#111}
+  .ai-send:hover{transform:scale(1.05)}
+
+  /* ===== Comments ===== */
+  .comments-section{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+  .comments-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .comment{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  .comment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px;color:var(--ink-3)}
+  .comment-author{color:var(--ink);font-weight:600}
+  .comment-body{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .comment-empty{color:var(--ink-3);font-size:13px;padding:10px;text-align:center}
+  .comment-form{display:flex;gap:8px;align-items:flex-start}
+  .comment-form input[type="text"]{width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:12px;flex-shrink:0}
+  .comment-form textarea{flex:1;resize:none;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;min-height:38px;line-height:1.4}
+  .comment-form button{padding:8px 14px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;align-self:stretch}
+  html[data-theme="dark"] .comment-form button{background:var(--accent);color:#111}
 </style>
 </head>
 <body>
@@ -691,8 +791,14 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
         </svg>
-        <span>تغيير الإدارة</span>
+        <span id="changeDeptLabel">تغيير الإدارة</span>
       </a>
+      <button class="theme-toggle" id="langToggle" aria-label="تبديل اللغة" type="button" style="margin-inline-start:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span id="langLabel">EN</span>
+      </button>
       <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الداكن/الفاتح" type="button" style="margin-inline-start:0">
         <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -750,14 +856,59 @@
       عرض <strong id="visibleCount">12</strong> من أصل <strong id="totalCount">12</strong> إجراءً
       <span id="filterLabel" style="color:var(--ink-3)"></span>
     </div>
-    <div style="color:var(--ink-3)">
-      <kbd style="font-family:monospace;font-size:11px;padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:var(--surface)">Enter</kbd>
-      لفتح الإجراء
+    <div class="view-switcher" role="tablist" aria-label="طريقة العرض">
+      <button class="view-btn active" data-view="grid" type="button" role="tab" aria-selected="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        شبكة
+      </button>
+      <button class="view-btn" data-view="map" type="button" role="tab" aria-selected="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m7 7 3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg>
+        خريطة ذهنية
+      </button>
     </div>
   </div>
 
   <section class="grid" id="grid" aria-live="polite"></section>
+  <section class="brain-map" id="brainMap" style="display:none" aria-live="polite"></section>
 </main>
+
+<!-- =================== AI ASSISTANT (floating) =================== -->
+<button id="aiFab" class="fab" type="button" aria-label="مساعد الذكاء الاصطناعي">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+  <span>مساعد الذكاء</span>
+</button>
+
+<div class="ai-panel" id="aiPanel" aria-hidden="true">
+  <div class="ai-head">
+    <div>
+      <div class="ai-title">مساعد الذكاء الاصطناعي</div>
+      <div class="ai-sub">لتوليد وتحسين محتوى الإجراءات</div>
+    </div>
+    <button class="ai-close" id="aiClose" type="button" aria-label="إغلاق">✕</button>
+  </div>
+  <div class="ai-body" id="aiBody">
+    <div class="ai-msg ai-bot">
+      مرحباً! يمكنني مساعدتك في:
+      <ul style="margin:8px 0 0;padding-inline-start:18px">
+        <li>توليد خطوات إجراء معيّن</li>
+        <li>صياغة الغرض أو النطاق</li>
+        <li>اقتراح مؤشرات أداء (KPIs)</li>
+        <li>تحسين لغة إجراء مكتوب</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ai-quick" id="aiQuick">
+    <button type="button" data-prompt="اقترح خطوات تنفيذية لإجراء عن %TITLE% في %DEPT%">اقتراح خطوات</button>
+    <button type="button" data-prompt="اقترح 3 مؤشرات أداء (KPIs) لإجراء %TITLE%">اقتراح KPIs</button>
+    <button type="button" data-prompt="صغ غرضاً واضحاً لإجراء %TITLE% في %DEPT%">صياغة الغرض</button>
+  </div>
+  <form class="ai-input" id="aiForm">
+    <textarea id="aiInput" placeholder="اكتب طلبك هنا… مثلاً: اقترح خطوات لتنفيذ الصيانة الوقائية" rows="2"></textarea>
+    <button type="submit" class="ai-send" aria-label="إرسال">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </form>
+</div>
 
 <!-- =================== MODAL =================== -->
 <div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -812,6 +963,17 @@
           <span id="m-note">—</span>
         </div>
       </div>
+
+      <!-- التعليقات -->
+      <div class="comments-section">
+        <p class="section-label">النقاش والتعليقات</p>
+        <div class="comments-list" id="m-comments"></div>
+        <form class="comment-form" id="commentForm">
+          <input type="text" id="commentAuthor" placeholder="اسمك" maxlength="40" />
+          <textarea id="commentBody" placeholder="اكتب ملاحظتك أو اقتراحك…" rows="1"></textarea>
+          <button type="submit">إضافة</button>
+        </form>
+      </div>
     </div>
 
     <div class="modal-foot">
@@ -843,6 +1005,32 @@ const PH = "— يُكمل لاحقاً —";
    الهيكل موحّد، فقط الأسماء والمصطلحات تختلف.
 */
 const DEPARTMENTS_CONFIG = {
+  executive: {
+    name: "الإدارة التنفيذية",
+    groupTerm: "محور",
+    groupTermPlural: "محاور",
+    groupVerb: "المحاور التنفيذية",
+    subtitle: "مرجع الإجراءات التنفيذية العليا: الاستراتيجية، الحوكمة، اتخاذ القرار، متابعة الأداء الكلي، والعلاقات المؤسسية.",
+    titleHighlight: "التنفيذية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة التنفيذية",
+    groups: [
+      { id:"strategy",    label:"الاستراتيجية" },
+      { id:"governance",  label:"الحوكمة" },
+      { id:"decisions",   label:"اتخاذ القرار" },
+      { id:"performance", label:"الأداء المؤسسي" },
+      { id:"relations",   label:"العلاقات المؤسسية" }
+    ],
+    sops: [
+      ["EXE-01","strategy",    "صياغة الخطة الاستراتيجية"],
+      ["EXE-02","strategy",    "مراجعة الخطة السنوية"],
+      ["EXE-03","governance",  "انعقاد مجلس الإدارة"],
+      ["EXE-04","governance",  "إقرار السياسات العليا"],
+      ["EXE-05","decisions",   "آلية اتخاذ القرارات التنفيذية"],
+      ["EXE-06","performance", "مراجعة الأداء المؤسسي الربعية"],
+      ["EXE-07","relations",   "إدارة علاقات أصحاب المصلحة"]
+    ]
+  },
   projects: {
     name: "إدارة المشاريع",
     groupTerm: "مرحلة",        // "مرحلة التصميم"
@@ -1084,7 +1272,7 @@ const state = {
 /* ================= HELPERS ================= */
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-const phaseLabel = id => (PHASES.find(p=>p.id===id)||{}).label || id;
+const phaseLabel = id => (typeof gLabel==='function' ? gLabel(id) : ((PHASES.find(p=>p.id===id)||{}).label || id));
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
 function isPH(v){ return !v || v === PH; }
@@ -1099,7 +1287,7 @@ function renderChips(){
   const counts = { all: SOPS.length };
   PHASES.forEach(p => counts[p.id] = SOPS.filter(s=>s.phase===p.id).length);
 
-  const items = [{id:"all", label:"الكل"}, ...PHASES];
+  const items = [{id:"all", label: (typeof T==='function' ? T('all') : 'الكل')}, ...PHASES.map(p => ({id: p.id, label: phaseLabel(p.id)}))];
   chips.innerHTML = items.map(it => `
     <button class="chip" data-phase="${it.id}" aria-pressed="${state.phase===it.id}" type="button">
       <span>${escapeHtml(it.label)}</span>
@@ -1107,13 +1295,16 @@ function renderChips(){
     </button>
   `).join("");
 
-  chips.addEventListener("click", e => {
-    const btn = e.target.closest(".chip");
-    if(!btn) return;
-    state.phase = btn.dataset.phase;
-    $$(".chip", chips).forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
-    renderGrid();
-  }, { once:true });
+  if (!chips._bound) {
+    chips._bound = true;
+    chips.addEventListener("click", e => {
+      const btn = e.target.closest(".chip");
+      if(!btn) return;
+      state.phase = btn.dataset.phase;
+      $$(".chip", chips).forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
+      renderGrid();
+    });
+  }
 }
 
 /* ================= GRID ================= */
@@ -1135,32 +1326,42 @@ function renderGrid(){
   const list = filteredSOPs();
   $("#visibleCount").textContent = list.length;
   $("#totalCount").textContent = SOPS.length;
+  const phaseWord = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'Category ' : 'مرحلة ';
+  const searchWord = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'search' : 'بحث';
   $("#filterLabel").textContent = state.phase==="all" && !state.q ? "" :
-    ` · ${state.phase!=="all" ? "مرحلة "+phaseLabel(state.phase) : ""}${state.q ? ` · بحث "${state.q}"` : ""}`;
+    ` · ${state.phase!=="all" ? phaseWord+phaseLabel(state.phase) : ""}${state.q ? ` · ${searchWord} "${state.q}"` : ""}`;
 
   if(list.length === 0){
+    const emptyTitle = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'No matching results' : 'لا توجد نتائج مطابقة';
+    const emptyHint  = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'Try clearing the search or selecting a different filter.' : 'جرّب مسح البحث أو اختيار فلتر مختلف.';
     grid.innerHTML = `
       <div class="empty">
-        <strong>لا توجد نتائج مطابقة</strong>
-        جرّب مسح البحث أو اختيار فلتر مختلف.
+        <strong>${emptyTitle}</strong>
+        ${emptyHint}
       </div>`;
     return;
   }
 
   grid.innerHTML = list.map(s => {
     const idx = SOPS.indexOf(s);
+    const titleLoc = (typeof sopTitle==='function') ? sopTitle(s) : s.title;
+    const descFallbackEn = 'Description will be added later.';
+    const descFallbackAr = 'وصف الإجراء سيُضاف لاحقاً عند تعبئة المحتوى.';
+    const descFallback = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? descFallbackEn : descFallbackAr;
     const descHtml = isPH(s.desc)
-      ? `<span class="ph">وصف الإجراء سيُضاف لاحقاً عند تعبئة المحتوى.</span>`
+      ? `<span class="ph">${descFallback}</span>`
       : escapeHtml(s.desc);
-    const ownerHtml = isPH(s.owner) ? `<span class="ph">المالك</span>` : escapeHtml(s.owner);
-    const slaHtml   = isPH(s.sla)   ? `<span class="ph">SLA</span>`    : escapeHtml(s.sla);
+    const ownerHtml = isPH(s.owner) ? `<span class="ph">${(typeof T==='function'?T('owner'):'المالك')}</span>` : escapeHtml(s.owner);
+    const slaHtml   = isPH(s.sla)   ? `<span class="ph">${(typeof T==='function'?T('sla'):'SLA')}</span>`    : escapeHtml(s.sla);
+    const openLabel = (typeof T==='function') ? T('openSop') : 'افتح تفاصيل الإجراء';
+    const arrow = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? '→' : '←';
     return `
-      <article class="card" tabindex="0" role="button" data-idx="${idx}" aria-label="فتح تفاصيل ${escapeHtml(s.code)} — ${escapeHtml(s.title)}">
+      <article class="card" tabindex="0" role="button" data-idx="${idx}" aria-label="${escapeHtml(openLabel)} — ${escapeHtml(s.code)}">
         <div class="card-top">
           <span class="sop-code">${escapeHtml(s.code)}</span>
           <span class="phase-tag">${escapeHtml(phaseLabel(s.phase))}</span>
         </div>
-        <h3>${escapeHtml(s.title)}</h3>
+        <h3>${escapeHtml(titleLoc)}</h3>
         <p class="card-desc">${descHtml}</p>
         <div class="badges">
           <span class="badge">
@@ -1173,8 +1374,8 @@ function renderGrid(){
           </span>
         </div>
         <div class="open-btn">
-          <span>افتح تفاصيل الإجراء</span>
-          <span class="arrow" aria-hidden="true">←</span>
+          <span>${escapeHtml(openLabel)}</span>
+          <span class="arrow" aria-hidden="true">${arrow}</span>
         </div>
       </article>`;
   }).join("");
@@ -1188,18 +1389,19 @@ function openModal(idx){
 
   $("#m-code").textContent = s.code;
   $("#m-phase").textContent = phaseLabel(s.phase);
-  $("#modal-title").textContent = s.title;
+  $("#modal-title").textContent = (typeof sopTitle==='function') ? sopTitle(s) : s.title;
 
+  const isEn = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en');
   $("#m-purpose").innerHTML = isPH(s.purpose)
-    ? `<span class="ph">اشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.</span>`
+    ? `<span class="ph">${isEn ? 'Explain here why this procedure exists and what problem it solves.' : 'اشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.'}</span>`
     : escapeHtml(s.purpose);
 
   const metaItems = [
-    { k:"الجهة المالكة", v:s.owner, icon:"user"  },
-    { k:"الإطار الزمني (SLA)", v:s.sla, icon:"clock" },
-    { k:"النطاق", v:s.scope, icon:"target" },
-    { k:"المدخلات", v:s.inputs, icon:"in" },
-    { k:"المخرجات", v:s.outputs, icon:"out", full:true }
+    { k: isEn?'Owner':'الجهة المالكة', v:s.owner, icon:"user"  },
+    { k: isEn?'SLA':'الإطار الزمني (SLA)', v:s.sla, icon:"clock" },
+    { k: isEn?'Scope':'النطاق', v:s.scope, icon:"target" },
+    { k: isEn?'Inputs':'المدخلات', v:s.inputs, icon:"in" },
+    { k: isEn?'Outputs':'المخرجات', v:s.outputs, icon:"out", full:true }
   ];
   $("#m-meta").innerHTML = metaItems.map(m => `
     <div class="meta-cell${m.full?" full":""}">
@@ -1209,16 +1411,17 @@ function openModal(idx){
   `).join("");
 
   const steps = (s.steps && s.steps.length) ? s.steps : [PH,PH,PH];
+  const stepPh = isEn ? 'Step to be added later' : 'تُعبّأ الخطوة لاحقاً';
   $("#m-steps").innerHTML = steps.map(st =>
-    `<li>${isPH(st) ? `<span class="ph">تُعبّأ الخطوة لاحقاً</span>` : escapeHtml(st)}</li>`
+    `<li>${isPH(st) ? `<span class="ph">${stepPh}</span>` : escapeHtml(st)}</li>`
   ).join("");
 
   $("#m-kpis").innerHTML = isPH(s.kpis)
-    ? `<span class="ph">حدّد هنا كيف نقيس نجاح تنفيذ هذا الإجراء — مثل نسب الإنجاز، زمن الاستجابة، أو معدلات الأخطاء.</span>`
+    ? `<span class="ph">${isEn ? 'Define here how we measure the success of this procedure — e.g. completion rate, response time, or error rates.' : 'حدّد هنا كيف نقيس نجاح تنفيذ هذا الإجراء — مثل نسب الإنجاز، زمن الاستجابة، أو معدلات الأخطاء.'}</span>`
     : escapeHtml(s.kpis);
 
   if(!s.forms || s.forms.length===0){
-    $("#m-forms").innerHTML = `<span class="ph">لا توجد نماذج مربوطة حتى الآن</span>`;
+    $("#m-forms").innerHTML = `<span class="ph">${isEn ? 'No linked forms yet' : 'لا توجد نماذج مربوطة حتى الآن'}</span>`;
   } else {
     $("#m-forms").innerHTML = s.forms.map(f => `
       <span class="form-badge">
@@ -1227,6 +1430,23 @@ function openModal(idx){
       </span>
     `).join("");
   }
+
+  // Localize section labels in modal body
+  const labelMap = {
+    'الغرض من الإجراء': 'Purpose',
+    'المعلومات الأساسية': 'Basic Information',
+    'خطوات التنفيذ': 'Execution Steps',
+    'مؤشرات الأداء (KPIs)': 'Key Performance Indicators (KPIs)',
+    'النماذج المرتبطة': 'Linked Forms',
+    'ملاحظة': 'Note',
+    'النقاش والتعليقات': 'Discussion & Comments'
+  };
+  const reverseMap = Object.fromEntries(Object.entries(labelMap).map(([a,b])=>[b,a]));
+  document.querySelectorAll('.modal-body .section-label').forEach(el => {
+    const t = el.textContent.trim();
+    if (isEn && labelMap[t]) el.textContent = labelMap[t];
+    else if (!isEn && reverseMap[t]) el.textContent = reverseMap[t];
+  });
 
   if(s.note && !isPH(s.note)){
     $("#m-note-wrap").style.display = "";
@@ -1239,6 +1459,8 @@ function openModal(idx){
   m.setAttribute("aria-hidden","false");
   document.body.style.overflow = "hidden";
   setTimeout(()=> $("#modalBox").focus(), 30);
+  // load comments for this SOP
+  if (typeof renderComments === 'function') renderComments(s.code);
 }
 function closeModal(){
   $("#modal").setAttribute("aria-hidden","true");
@@ -1340,6 +1562,246 @@ renderChips();
 renderGrid();
 updateStats();
 
+/* ================= VIEW SWITCHER ================= */
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const v = btn.dataset.view;
+    document.querySelectorAll('.view-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+    });
+    $("#grid").style.display = v === 'grid' ? '' : 'none';
+    $("#brainMap").style.display = v === 'map' ? '' : 'none';
+    if (v === 'map') renderBrainMap();
+  });
+});
+
+/* ================= BRAIN MAP ================= */
+function renderBrainMap(){
+  const map = $("#brainMap");
+  const W = map.clientWidth || 900;
+  const H = 640;
+  map.style.height = H + 'px';
+  map.innerHTML = '';
+  // SVG for edges
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','bm-svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  map.appendChild(svg);
+
+  // Center
+  const cx = W/2, cy = H/2;
+  const center = document.createElement('div');
+  center.className = 'bm-center';
+  center.textContent = DEPT.name;
+  map.appendChild(center);
+
+  // Groups around center
+  const groups = DEPT.groups;
+  const groupRadius = Math.min(W,H) * 0.28;
+  const groupPositions = {};
+  groups.forEach((g, i) => {
+    const angle = (i / groups.length) * Math.PI * 2 - Math.PI/2;
+    const gx = cx + Math.cos(angle) * groupRadius;
+    const gy = cy + Math.sin(angle) * groupRadius;
+    groupPositions[g.id] = { x: gx, y: gy, angle };
+    const el = document.createElement('div');
+    el.className = 'bm-group';
+    el.textContent = g.label;
+    el.style.left = gx + 'px';
+    el.style.top = gy + 'px';
+    el.style.transform = 'translate(-50%,-50%)';
+    el.addEventListener('click', () => {
+      state.phase = g.id;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view==='grid'));
+      document.querySelectorAll('.view-btn').forEach(b => b.setAttribute('aria-selected', b.dataset.view==='grid' ? 'true':'false'));
+      $("#grid").style.display = '';
+      $("#brainMap").style.display = 'none';
+      $$(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
+      renderGrid();
+      window.scrollTo({ top: 0, behavior:'smooth' });
+    });
+    map.appendChild(el);
+
+    // Edge center → group
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', gx); line.setAttribute('y2', gy);
+    line.setAttribute('stroke', 'currentColor');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('opacity', '.35');
+    svg.appendChild(line);
+  });
+
+  // SOPs around each group
+  groups.forEach(g => {
+    const sopsIn = SOPS.filter(s => s.phase === g.id);
+    const gp = groupPositions[g.id];
+    const spread = Math.PI / 3;
+    const sopRadius = 130;
+    sopsIn.forEach((s, j) => {
+      const t = sopsIn.length === 1 ? 0 : (j / (sopsIn.length - 1) - 0.5);
+      const a = gp.angle + t * spread;
+      const sx = gp.x + Math.cos(a) * sopRadius;
+      const sy = gp.y + Math.sin(a) * sopRadius;
+      const clampedX = Math.max(80, Math.min(W - 80, sx));
+      const clampedY = Math.max(30, Math.min(H - 30, sy));
+      const el = document.createElement('div');
+      el.className = 'bm-sop';
+      el.innerHTML = `<span class="bm-code">${escapeHtml(s.code)}</span>${escapeHtml(s.title)}`;
+      el.style.left = clampedX + 'px';
+      el.style.top = clampedY + 'px';
+      el.style.transform = 'translate(-50%,-50%)';
+      el.addEventListener('click', () => openModal(SOPS.indexOf(s)));
+      map.appendChild(el);
+
+      // Edge group → sop
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', gp.x); line.setAttribute('y1', gp.y);
+      line.setAttribute('x2', clampedX); line.setAttribute('y2', clampedY);
+      line.setAttribute('stroke', 'currentColor');
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('opacity', '.2');
+      svg.appendChild(line);
+    });
+  });
+}
+window.addEventListener('resize', () => {
+  if ($("#brainMap").style.display !== 'none') renderBrainMap();
+});
+
+/* ================= COMMENTS ================= */
+const COMMENTS_KEY = `arsan_comments_${CURRENT_DEPT_ID}`;
+function loadComments(code){
+  try {
+    const all = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}');
+    return all[code] || [];
+  } catch(_) { return []; }
+}
+function saveComment(code, author, body){
+  try {
+    const all = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}');
+    all[code] = all[code] || [];
+    all[code].push({ author, body, ts: Date.now() });
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(all));
+  } catch(_){}
+}
+function renderComments(code){
+  const list = loadComments(code);
+  const box = $("#m-comments");
+  if (!box) return;
+  if (list.length === 0) {
+    box.innerHTML = `<div class="comment-empty">لا توجد تعليقات بعد — كن أول من يبدأ النقاش.</div>`;
+    return;
+  }
+  box.innerHTML = list.map(c => {
+    const d = new Date(c.ts);
+    const when = d.toLocaleString('ar', { dateStyle:'medium', timeStyle:'short' });
+    return `
+      <div class="comment">
+        <div class="comment-head">
+          <span class="comment-author">${escapeHtml(c.author || 'مجهول')}</span>
+          <span>·</span>
+          <span>${escapeHtml(when)}</span>
+        </div>
+        <div class="comment-body">${escapeHtml(c.body)}</div>
+      </div>`;
+  }).join('');
+}
+// hook submit
+(function(){
+  const form = document.getElementById('commentForm');
+  if (!form) return;
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (state.openIdx < 0) return;
+    const author = document.getElementById('commentAuthor').value.trim() || 'مجهول';
+    const body = document.getElementById('commentBody').value.trim();
+    if (!body) return;
+    const code = SOPS[state.openIdx].code;
+    saveComment(code, author, body);
+    document.getElementById('commentBody').value = '';
+    // remember author
+    try { localStorage.setItem('arsan_last_author', author); } catch(_){}
+    renderComments(code);
+  });
+  // restore last author
+  try {
+    const last = localStorage.getItem('arsan_last_author');
+    if (last) document.getElementById('commentAuthor').value = last;
+  } catch(_){}
+})();
+
+/* ================= AI ASSISTANT ================= */
+const aiFab = $("#aiFab");
+const aiPanel = $("#aiPanel");
+const aiBody = $("#aiBody");
+const aiForm = $("#aiForm");
+const aiInput = $("#aiInput");
+const aiClose = $("#aiClose");
+
+aiFab.addEventListener('click', () => {
+  const open = aiPanel.getAttribute('aria-hidden') === 'false';
+  aiPanel.setAttribute('aria-hidden', open ? 'true' : 'false');
+  if (!open) setTimeout(() => aiInput.focus(), 200);
+});
+aiClose.addEventListener('click', () => aiPanel.setAttribute('aria-hidden','true'));
+
+function aiAddMsg(text, cls){
+  const el = document.createElement('div');
+  el.className = 'ai-msg ' + (cls || 'ai-bot');
+  el.textContent = text;
+  aiBody.appendChild(el);
+  aiBody.scrollTop = aiBody.scrollHeight;
+  return el;
+}
+
+async function aiAsk(prompt){
+  aiAddMsg(prompt, 'ai-user');
+  const loading = aiAddMsg('يفكّر…', 'ai-bot loading');
+  const context = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
+  const contextStr = context
+    ? `السياق الحالي:\n- الإدارة: ${DEPT.name}\n- الإجراء: ${context.code} — ${context.title}\n- الفئة: ${phaseLabel(context.phase)}\n- الغرض: ${isPH(context.purpose) ? '(غير مكتوب)' : context.purpose}\n- الخطوات الحالية: ${(context.steps||[]).map(s=>isPH(s)?'(فارغ)':s).join(' | ')}`
+    : `السياق: لوحة مرجع الإجراءات لـ ${DEPT.name} (${DEPT.groupVerb}).`;
+  const fullPrompt = `أنت مساعد خبير في صياغة إجراءات العمل القياسية (SOPs) باللغة العربية لشركة "أرسان للتشغيل". أجب بشكل عملي ومباشر وباللغة العربية الفصحى، مع ترقيم عند الحاجة.\n\n${contextStr}\n\nطلب المستخدم: ${prompt}`;
+  try {
+    const reply = await window.claude.complete(fullPrompt);
+    loading.remove();
+    const el = aiAddMsg(reply, 'ai-bot');
+    el.style.whiteSpace = 'pre-wrap';
+  } catch(err) {
+    loading.remove();
+    aiAddMsg('تعذّر الاتصال بالمساعد. حاول مرة أخرى بعد قليل.', 'ai-bot');
+    console.error(err);
+  }
+}
+
+aiForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const q = aiInput.value.trim();
+  if (!q) return;
+  aiInput.value = '';
+  aiAsk(q);
+});
+aiInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    aiForm.requestSubmit();
+  }
+});
+
+// Quick prompts
+document.querySelectorAll('.ai-quick button').forEach(b => {
+  b.addEventListener('click', () => {
+    const current = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
+    const title = current ? current.title : DEPT.name;
+    const prompt = b.dataset.prompt
+      .replace('%TITLE%', title)
+      .replace('%DEPT%', DEPT.name);
+    aiAsk(prompt);
+  });
+});
+
 /* ================= TWEAKS (host integration) ================= */
 /* يسمح لمحرّر Tweaks الخارجي بتفعيل التبديل عبر postMessage */
 window.addEventListener("message", e => {
@@ -1351,6 +1813,358 @@ window.addEventListener("message", e => {
 try{
   window.parent && window.parent.postMessage({type:"__edit_mode_available"}, "*");
 }catch(_){}
+
+/* ================= i18n — Arabic / English ================= */
+const I18N = {
+  ar: {
+    brand: "شركة أرسان للتشغيل",
+    changeDept: "تغيير الإدارة",
+    darkMode: "وضع داكن",
+    lightMode: "وضع فاتح",
+    sopsLabel: "إجراء تشغيلي",
+    formsLabel: "نموذج مرتبط",
+    kpisLabel: "مؤشر أداء",
+    addable: "قابل للإضافة",
+    searchPlaceholder: "ابحث في الإجراءات، الأكواد، أو الأوصاف…",
+    clearSearch: "مسح ✕",
+    all: "الكل",
+    gridView: "شبكة",
+    mapView: "خريطة ذهنية",
+    viewingOf: (v, t) => `عرض <strong id="visibleCount">${v}</strong> من أصل <strong id="totalCount">${t}</strong> إجراءً`,
+    openSop: "افتح تفاصيل الإجراء",
+    owner: "المالك",
+    sla: "SLA",
+    purpose: "الغرض من الإجراء",
+    basicInfo: "المعلومات الأساسية",
+    steps: "خطوات التنفيذ",
+    kpis: "مؤشرات الأداء (KPIs)",
+    forms: "النماذج المرتبطة",
+    note: "ملاحظة",
+    comments: "النقاش والتعليقات",
+    noComments: "لا توجد تعليقات بعد — كن أول من يبدأ النقاش.",
+    commentAuthor: "اسمك",
+    commentBody: "اكتب ملاحظتك أو اقتراحك…",
+    commentSubmit: "إضافة",
+    close: "إغلاق",
+    aiTitle: "مساعد الذكاء الاصطناعي",
+    aiSub: "لتوليد وتحسين محتوى الإجراءات",
+    aiHello: "مرحباً! يمكنني مساعدتك في:",
+    aiHelp: ["توليد خطوات إجراء معيّن", "صياغة الغرض أو النطاق", "اقتراح مؤشرات أداء (KPIs)", "تحسين لغة إجراء مكتوب"],
+    aiInputPh: "اكتب طلبك هنا… مثلاً: اقترح خطوات لتنفيذ الصيانة الوقائية",
+    aiSuggestSteps: "اقتراح خطوات",
+    aiSuggestKpis: "اقتراح KPIs",
+    aiWritePurpose: "صياغة الغرض",
+    aiThinking: "يفكّر…",
+    aiError: "تعذّر الاتصال بالمساعد. حاول مرة أخرى بعد قليل.",
+    aiFab: "مساعد الذكاء",
+    fillLater: "يُكمل لاحقاً",
+    modalHint: "اضغط <kbd>Esc</kbd> أو خارج النافذة للإغلاق · <kbd>←</kbd> <kbd>→</kbd> للتنقل بين الإجراءات",
+    footerRight: "الإدارة التنفيذية · إصدار 1.1",
+    footerMiddle: "مرجع الإجراءات التشغيلية الموحّدة",
+    ownerLabel: "الجهة المالكة",
+    slaLabel: "الإطار الزمني (SLA)",
+    scopeLabel: "النطاق",
+    inputsLabel: "المدخلات",
+    outputsLabel: "المخرجات",
+    noForms: "لا توجد نماذج مربوطة حتى الآن",
+    langSwitch: "EN",
+    unknown: "مجهول"
+  },
+  en: {
+    brand: "Arsan Operations Co.",
+    changeDept: "Change Department",
+    darkMode: "Dark mode",
+    lightMode: "Light mode",
+    sopsLabel: "SOPs",
+    formsLabel: "Linked forms",
+    kpisLabel: "KPIs",
+    addable: "addable",
+    searchPlaceholder: "Search procedures, codes, or descriptions…",
+    clearSearch: "Clear ✕",
+    all: "All",
+    gridView: "Grid",
+    mapView: "Mind Map",
+    viewingOf: (v, t) => `Showing <strong id="visibleCount">${v}</strong> of <strong id="totalCount">${t}</strong> procedures`,
+    openSop: "Open procedure details",
+    owner: "Owner",
+    sla: "SLA",
+    purpose: "Purpose",
+    basicInfo: "Basic Information",
+    steps: "Execution Steps",
+    kpis: "Key Performance Indicators (KPIs)",
+    forms: "Linked Forms",
+    note: "Note",
+    comments: "Discussion & Comments",
+    noComments: "No comments yet — be the first to start the discussion.",
+    commentAuthor: "Your name",
+    commentBody: "Write your note or suggestion…",
+    commentSubmit: "Add",
+    close: "Close",
+    aiTitle: "AI Assistant",
+    aiSub: "Generate & improve procedure content",
+    aiHello: "Hello! I can help with:",
+    aiHelp: ["Generating steps for a procedure", "Drafting purpose or scope", "Suggesting KPIs", "Improving procedure wording"],
+    aiInputPh: "Type your request here… e.g. Suggest steps for preventive maintenance",
+    aiSuggestSteps: "Suggest steps",
+    aiSuggestKpis: "Suggest KPIs",
+    aiWritePurpose: "Draft purpose",
+    aiThinking: "Thinking…",
+    aiError: "Could not reach the assistant. Please try again shortly.",
+    aiFab: "AI Assistant",
+    fillLater: "to be filled",
+    modalHint: "Press <kbd>Esc</kbd> or click outside to close · <kbd>←</kbd> <kbd>→</kbd> to navigate",
+    footerRight: "Executive Management · v1.1",
+    footerMiddle: "Unified Standard Operating Procedures reference",
+    ownerLabel: "Owner",
+    slaLabel: "SLA",
+    scopeLabel: "Scope",
+    inputsLabel: "Inputs",
+    outputsLabel: "Outputs",
+    noForms: "No linked forms yet",
+    langSwitch: "ع",
+    unknown: "Anonymous"
+  }
+};
+
+/* English names for departments and groups (mapped by id) */
+const DEPT_EN = {
+  executive: {
+    name: "Executive Management",
+    subtitle: "Reference for top-level executive procedures: strategy, governance, decision-making, corporate performance, and stakeholder relations.",
+    titlePrefix: "Procedure Reference",
+    titleHighlight: "Executive",
+    titleSuffix: "for Executive Management",
+    groupVerb: "executive pillars",
+    groups: { strategy:"Strategy", governance:"Governance", decisions:"Decision-making", performance:"Corporate Performance", relations:"Stakeholder Relations" },
+    sops: { "EXE-01":"Strategic Plan Drafting","EXE-02":"Annual Plan Review","EXE-03":"Board Meeting","EXE-04":"Top-level Policy Approval","EXE-05":"Executive Decision Protocol","EXE-06":"Quarterly Corporate Performance Review","EXE-07":"Stakeholder Relations Management" }
+  },
+  projects: {
+    name: "Project Management",
+    subtitle: "Internal dashboard of standard operating procedures across the five project phases: design, planning, procurement, maintenance, and execution — a unified reference for staff.",
+    titlePrefix: "Standard Operating",
+    titleHighlight: "Unified",
+    titleSuffix: "Project Procedures Reference",
+    groupVerb: "project phases",
+    groups: { design:"Design", planning:"Planning", procurement:"Procurement", maintenance:"Maintenance", execution:"Execution" },
+    sops: { "SOP-01":"Design Procedure 1","SOP-02":"Design Procedure 2","SOP-03":"Planning Procedure 1","SOP-04":"Planning Procedure 2","SOP-05":"Planning Procedure 3","SOP-06":"Procurement Procedure 1","SOP-07":"Procurement Procedure 2","SOP-08":"Maintenance Procedure 1","SOP-09":"Maintenance Procedure 2","SOP-10":"Execution Procedure 1","SOP-11":"Execution Procedure 2","SOP-12":"Execution Procedure 3" }
+  },
+  finance: {
+    name: "Finance Department",
+    subtitle: "Standard financial procedures: budgeting, revenue, expenses, claims, reporting, and audit — template ready to fill.",
+    titlePrefix: "Finance",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "financial cycles",
+    groups: { budget:"Budget", revenue:"Revenue", expenses:"Expenses", claims:"Claims", reporting:"Reporting", audit:"Internal Audit" },
+    sops: { "FIN-01":"Annual Budget Preparation","FIN-02":"Variance Review","FIN-03":"Revenue Recording","FIN-04":"Expense Approval","FIN-05":"Payment Disbursement","FIN-06":"Financial Claims Processing","FIN-07":"Monthly Reporting","FIN-08":"Annual Financial Closing","FIN-09":"Periodic Internal Audit" }
+  },
+  operations: {
+    name: "Operations Department",
+    subtitle: "Daily operational procedures: scheduling, daily ops, maintenance, safety, and performance tracking — template ready to fill.",
+    titlePrefix: "Operations",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "operations pillars",
+    groups: { scheduling:"Scheduling", operations:"Daily Operations", maintenance:"Maintenance", safety:"Safety & Quality", performance:"Performance Tracking" },
+    sops: { "OPS-01":"Weekly Ops Plan","OPS-02":"Shift Scheduling","OPS-03":"Start of Day","OPS-04":"End of Day","OPS-05":"Preventive Maintenance","OPS-06":"Emergency Breakdowns","OPS-07":"Daily Safety Checks","OPS-08":"Incident Reports","OPS-09":"Weekly KPI Review" }
+  },
+  legal: {
+    name: "Legal Department",
+    subtitle: "Legal procedures: contracts, compliance, disputes, and licensing — template ready to fill.",
+    titlePrefix: "Legal",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "legal divisions",
+    groups: { contracts:"Contracts", compliance:"Compliance", disputes:"Disputes", licenses:"Licenses", advisory:"Legal Advisory" },
+    sops: { "LGL-01":"Draft New Contract","LGL-02":"Review Incoming Contracts","LGL-03":"Renew/Terminate Contracts","LGL-04":"Periodic Compliance Review","LGL-05":"Regulatory Update Tracking","LGL-06":"Disputes & Claims Handling","LGL-07":"License Issuance & Renewal","LGL-08":"Internal Legal Advisory" }
+  },
+  hr: {
+    name: "Human Resources",
+    subtitle: "HR procedures: recruitment, onboarding, performance, training, leaves, and offboarding — template ready to fill.",
+    titlePrefix: "Human Resources",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "HR divisions",
+    groups: { recruitment:"Recruitment", onboarding:"Onboarding", performance:"Performance", training:"Training", leaves:"Leaves", offboarding:"Offboarding" },
+    sops: { "HR-01":"Post Vacancy & Receive Applications","HR-02":"Interviews & Selection","HR-03":"New Employee Onboarding","HR-04":"Annual Performance Review","HR-05":"Individual Improvement Plans","HR-06":"Training Needs Assessment","HR-07":"Training Program Delivery","HR-08":"Leave Request & Approval","HR-09":"Separation & Clearance" }
+  },
+  bizdev: {
+    name: "Business Development",
+    subtitle: "Business development procedures: opportunity discovery, proposals, negotiation, partnerships, and relationship management — template ready to fill.",
+    titlePrefix: "Business Development",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "business development stages",
+    groups: { discovery:"Opportunity Discovery", proposals:"Proposals", negotiation:"Negotiation", partnerships:"Partnerships", relationships:"Relationship Management" },
+    sops: { "BD-01":"Commercial Opportunity Scouting","BD-02":"Preliminary Feasibility","BD-03":"Technical & Financial Proposal","BD-04":"Proposal Submission","BD-05":"Negotiation Rounds","BD-06":"Strategic Partnership Setup","BD-07":"Client Relations Follow-up","BD-08":"Satisfaction Review & Growth" }
+  }
+};
+
+let CURRENT_LANG = localStorage.getItem('arsan_lang') || 'ar';
+
+function T(key){ return (I18N[CURRENT_LANG]||I18N.ar)[key]; }
+
+function applyLang(lang){
+  CURRENT_LANG = lang;
+  localStorage.setItem('arsan_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  // lang toggle label shows the OTHER language
+  const langLabel = document.getElementById('langLabel');
+  if (langLabel) langLabel.textContent = lang === 'ar' ? 'EN' : 'ع';
+
+  // Dept display name
+  const deptNameDisplay = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID]
+    ? DEPT_EN[CURRENT_DEPT_ID].name
+    : DEPT.name;
+
+  // Breadcrumb + brand
+  const brandMark = document.querySelector('.brandline .mark');
+  if (brandMark) {
+    const logo = brandMark.querySelector('.logo').outerHTML;
+    brandMark.innerHTML = logo + ' ' + T('brand');
+  }
+  const bc = document.getElementById('deptBreadcrumb');
+  if (bc) bc.textContent = deptNameDisplay;
+
+  // Change dept + theme + language labels
+  const cd = document.getElementById('changeDeptLabel');
+  if (cd) cd.textContent = T('changeDept');
+  const themeLbl = document.getElementById('themeLabel');
+  if (themeLbl) themeLbl.textContent = document.documentElement.getAttribute('data-theme')==='dark' ? T('lightMode') : T('darkMode');
+
+  // Title + subtitle
+  const h1 = document.querySelector('h1.title');
+  if (h1) {
+    const cfg = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID] ? DEPT_EN[CURRENT_DEPT_ID] : DEPT;
+    h1.innerHTML = `${cfg.titlePrefix} <span class="accent-underline">${cfg.titleHighlight}</span> ${cfg.titleSuffix}`;
+  }
+  const sub = document.querySelector('.subtitle');
+  if (sub) {
+    sub.textContent = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID]
+      ? DEPT_EN[CURRENT_DEPT_ID].subtitle
+      : DEPT.subtitle;
+  }
+
+  // Stats labels
+  const statLabels = document.querySelectorAll('.stat .l');
+  if (statLabels.length >= 4) {
+    statLabels[0].textContent = T('sopsLabel');
+    statLabels[1].textContent = lang==='en' && DEPT_EN[CURRENT_DEPT_ID] ? DEPT_EN[CURRENT_DEPT_ID].groupVerb : DEPT.groupVerb;
+    statLabels[2].textContent = T('formsLabel');
+    statLabels[3].textContent = T('kpisLabel');
+  }
+  // 0-addable text inside stats
+  ['#stat-forms', '#stat-kpis'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el && el.textContent.trim().startsWith('0')) {
+      el.innerHTML = `0<span class="u">${T('addable')}</span>`;
+    }
+  });
+
+  // Search placeholder + clear
+  const si = document.getElementById('searchInput');
+  if (si) si.placeholder = T('searchPlaceholder');
+  const sc = document.getElementById('searchClear');
+  if (sc) sc.textContent = T('clearSearch');
+
+  // View switcher labels
+  document.querySelectorAll('.view-btn').forEach(b => {
+    const span = b.lastChild;
+    // Actually there's SVG + text node; replace by keeping svg
+    const v = b.dataset.view;
+    const svg = b.querySelector('svg').outerHTML;
+    b.innerHTML = svg + ' ' + (v==='grid' ? T('gridView') : T('mapView'));
+  });
+
+  // Re-render chips (with labels)
+  state.chipLang = lang;
+  renderChips();
+  renderGrid();
+
+  // Footer
+  const fd = document.getElementById('footer-dept');
+  if (fd) fd.textContent = deptNameDisplay;
+  const fRight = document.querySelector('footer .muted');
+  if (fRight) fRight.textContent = T('footerRight');
+  const fLine = document.getElementById('footer-line');
+  if (fLine) {
+    fLine.innerHTML = `${T('brand')} · <span id="footer-dept">${deptNameDisplay}</span> · ${T('footerMiddle')}`;
+  }
+
+  // AI panel
+  const aiT = document.querySelector('.ai-title');
+  if (aiT) aiT.textContent = T('aiTitle');
+  const aiS = document.querySelector('.ai-sub');
+  if (aiS) aiS.textContent = T('aiSub');
+  const aiInputEl = document.getElementById('aiInput');
+  if (aiInputEl) aiInputEl.placeholder = T('aiInputPh');
+  const aiFabLabel = document.querySelector('#aiFab span');
+  if (aiFabLabel) aiFabLabel.textContent = T('aiFab');
+  document.querySelectorAll('.ai-quick button').forEach((b, i) => {
+    const txts = [T('aiSuggestSteps'), T('aiSuggestKpis'), T('aiWritePurpose')];
+    if (txts[i]) b.textContent = txts[i];
+  });
+  // Update first bot msg if it's the default one
+  const firstBot = document.querySelector('.ai-body .ai-msg.ai-bot');
+  if (firstBot && document.querySelectorAll('.ai-body .ai-msg').length === 1) {
+    const helpItems = T('aiHelp').map(h => `<li>${h}</li>`).join('');
+    firstBot.innerHTML = `${T('aiHello')}<ul style="margin:8px 0 0;padding-inline-start:18px">${helpItems}</ul>`;
+  }
+
+  // Comments form
+  const ca = document.getElementById('commentAuthor');
+  if (ca) ca.placeholder = T('commentAuthor');
+  const cb = document.getElementById('commentBody');
+  if (cb) cb.placeholder = T('commentBody');
+  const csb = document.querySelector('#commentForm button[type="submit"]');
+  if (csb) csb.textContent = T('commentSubmit');
+
+  // Modal hint + close btn
+  const mh = document.querySelector('.modal-foot .hint');
+  if (mh) mh.innerHTML = T('modalHint');
+  const closeBtn = document.getElementById('closeBtn');
+  if (closeBtn) closeBtn.textContent = T('close');
+
+  // Title bar
+  document.title = (lang==='en' ? `${deptNameDisplay} — Arsan Operations` : `لوحة إجراءات ${deptNameDisplay} — أرسان للتشغيل`);
+
+  // Trigger results-meta label refresh
+  const vc = document.getElementById('visibleCount');
+  const tc = document.getElementById('totalCount');
+  const rm = document.querySelector('.results-meta > div:first-child');
+  if (rm && vc && tc) {
+    rm.innerHTML = T('viewingOf')(vc.textContent, tc.textContent) + ` <span id="filterLabel" style="color:var(--ink-3)"></span>`;
+  }
+}
+
+/* helper to localize a group id */
+function gLabel(id){
+  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].groups[id]) {
+    return DEPT_EN[CURRENT_DEPT_ID].groups[id];
+  }
+  const g = DEPT.groups.find(x => x.id === id);
+  return g ? g.label : id;
+}
+/* helper to localize SOP title */
+function sopTitle(sop){
+  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].sops[sop.code]) {
+    return DEPT_EN[CURRENT_DEPT_ID].sops[sop.code];
+  }
+  return sop.title;
+}
+
+// Wire up language toggle
+const langBtn = document.getElementById('langToggle');
+if (langBtn) {
+  langBtn.addEventListener('click', () => {
+    applyLang(CURRENT_LANG === 'ar' ? 'en' : 'ar');
+  });
+}
+
+// Apply initial language (deferred slightly so DOM refs resolve)
+setTimeout(() => applyLang(CURRENT_LANG), 0);
 
 /* ===== تحديث اسم الإدارة + العنوان + العنوان الفرعي + الذيل ===== */
 (function(){

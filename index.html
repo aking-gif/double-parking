@@ -357,35 +357,35 @@
       name: "الإدارة المالية",
       desc: "الموازنات، الصرف، المطالبات، والتقارير المالية.",
       icon: "₹",
-      available: false
+      available: true
     },
     {
       id: "operations",
       name: "الإدارة التشغيلية",
       desc: "العمليات اليومية، الجدولة، ومتابعة الأداء.",
       icon: "◆",
-      available: false
+      available: true
     },
     {
       id: "legal",
       name: "الإدارة القانونية",
       desc: "العقود، الامتثال، والمراجعات القانونية.",
       icon: "§",
-      available: false
+      available: true
     },
     {
       id: "hr",
       name: "إدارة الموارد البشرية",
       desc: "التوظيف، الأداء، التدريب، ورحلة الموظف.",
       icon: "☺",
-      available: false
+      available: true
     },
     {
       id: "bizdev",
       name: "إدارة تطوير الأعمال",
       desc: "الفرص التجارية، العروض، والعلاقات الاستراتيجية.",
       icon: "↗",
-      available: false
+      available: true
     }
   ];
 
@@ -422,15 +422,9 @@
     btn.setAttribute('data-id', dept.id);
     btn.innerHTML = `
       <span class="dept-icon" aria-hidden="true">${dept.icon}</span>
-      <h3 class="dept-name">${dept.name}${dept.available ? '' : ' <span style="font-size:11px;color:var(--ink-3);font-weight:500">· متوفّرة</span>'}</h3>
+      <h3 class="dept-name">${dept.name}</h3>
       <p class="dept-desc">${dept.desc}</p>
     `;
-    // Mark the primary (available) one visually
-    if (dept.available) {
-      btn.querySelector('.dept-name').innerHTML = dept.name + ' <span style="font-size:11px;color:var(--accent-ink);background:var(--accent-soft);padding:2px 8px;border-radius:999px;font-weight:600;margin-inline-start:4px">جاهزة</span>';
-    } else {
-      btn.querySelector('.dept-name').innerHTML = dept.name + ' <span style="font-size:11px;color:var(--ink-3);background:var(--line-2);padding:2px 8px;border-radius:999px;font-weight:500;margin-inline-start:4px">قريباً</span>';
-    }
     btn.addEventListener('click', () => selectDept(dept));
     grid.appendChild(btn);
   });
@@ -441,7 +435,7 @@
       c.setAttribute('aria-pressed', c.getAttribute('data-id') === dept.id ? 'true' : 'false');
     });
     document.getElementById('selectedLabel').innerHTML =
-      `تم اختيار: <strong>${dept.name}</strong>${dept.available ? '' : ' — هذه الإدارة قيد التجهيز، سيتم توجيهك للمرجع المتوفّر حالياً.'}`;
+      `تم اختيار: <strong>${dept.name}</strong>`;
     document.getElementById('continueBtn').disabled = false;
   }
 

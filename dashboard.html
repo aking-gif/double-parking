@@ -827,8 +827,8 @@
 
 <!-- =================== FOOTER =================== -->
 <footer class="site-foot wrap">
-  <div>شركة أرسان للتشغيل · إدارة المشاريع · مرجع الإجراءات التشغيلية الموحّدة</div>
-  <div class="muted">هيكل فارغ قابل للتعبئة — إصدار 1.0 · 2026</div>
+  <div id="footer-line">شركة أرسان للتشغيل · <span id="footer-dept">إدارة المشاريع</span> · مرجع الإجراءات التشغيلية الموحّدة</div>
+  <div class="muted">الإدارة التنفيذية · إصدار 1.1</div>
 </footer>
 
 <script>
@@ -837,13 +837,203 @@
    جميع الحقول تحمل عناصر نائبة "— يُكمل لاحقاً —" ليتم تعبئتها.
 */
 const PH = "— يُكمل لاحقاً —";
-const PHASES = [
-  { id:"design",       label:"تصميم" },
-  { id:"planning",     label:"تخطيط" },
-  { id:"procurement",  label:"مشتريات" },
-  { id:"maintenance",  label:"صيانة" },
-  { id:"execution",    label:"تنفيذ" }
-];
+
+/* ================= إعدادات جميع الإدارات =================
+   كل إدارة لها: اسم + مصطلح التصنيف (مرحلة/دورة/محور/قسم) + قائمة الفئات + قائمة الإجراءات.
+   الهيكل موحّد، فقط الأسماء والمصطلحات تختلف.
+*/
+const DEPARTMENTS_CONFIG = {
+  projects: {
+    name: "إدارة المشاريع",
+    groupTerm: "مرحلة",        // "مرحلة التصميم"
+    groupTermPlural: "مراحل",
+    groupVerb: "المراحل الخمس",
+    subtitle: "لوحة داخلية تجمع إجراءات العمل القياسية في إدارة المشاريع عبر مراحلها الخمس: التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ — مرجع واحد للموظفين لتنفيذ المهام وفق معيار موحّد.",
+    titleHighlight: "الموحّدة",
+    titlePrefix: "مرجع الإجراءات التشغيلية",
+    titleSuffix: "لإدارة المشاريع",
+    groups: [
+      { id:"design",       label:"تصميم" },
+      { id:"planning",     label:"تخطيط" },
+      { id:"procurement",  label:"مشتريات" },
+      { id:"maintenance",  label:"صيانة" },
+      { id:"execution",    label:"تنفيذ" }
+    ],
+    sops: [
+      ["SOP-01","design",      "إجراء تصميم (1)"],
+      ["SOP-02","design",      "إجراء تصميم (2)"],
+      ["SOP-03","planning",    "إجراء تخطيط (1)"],
+      ["SOP-04","planning",    "إجراء تخطيط (2)"],
+      ["SOP-05","planning",    "إجراء تخطيط (3)"],
+      ["SOP-06","procurement", "إجراء مشتريات (1)"],
+      ["SOP-07","procurement", "إجراء مشتريات (2)"],
+      ["SOP-08","maintenance", "إجراء صيانة (1)"],
+      ["SOP-09","maintenance", "إجراء صيانة (2)"],
+      ["SOP-10","execution",   "إجراء تنفيذ (1)"],
+      ["SOP-11","execution",   "إجراء تنفيذ (2)"],
+      ["SOP-12","execution",   "إجراء تنفيذ (3)"]
+    ]
+  },
+  finance: {
+    name: "الإدارة المالية",
+    groupTerm: "دورة",
+    groupTermPlural: "دورات",
+    groupVerb: "الدورات المالية",
+    subtitle: "مرجع الإجراءات المالية القياسية: الموازنة، الإيرادات، المصروفات، المطالبات، التقارير، والمراجعة — قالب جاهز للتعبئة.",
+    titleHighlight: "المالية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة المالية",
+    groups: [
+      { id:"budget",      label:"الموازنة" },
+      { id:"revenue",     label:"الإيرادات" },
+      { id:"expenses",    label:"المصروفات" },
+      { id:"claims",      label:"المطالبات" },
+      { id:"reporting",   label:"التقارير" },
+      { id:"audit",       label:"المراجعة الداخلية" }
+    ],
+    sops: [
+      ["FIN-01","budget",    "إعداد الموازنة السنوية"],
+      ["FIN-02","budget",    "مراجعة الانحرافات"],
+      ["FIN-03","revenue",   "تسجيل الإيرادات"],
+      ["FIN-04","expenses",  "اعتماد المصروفات"],
+      ["FIN-05","expenses",  "صرف المستحقات"],
+      ["FIN-06","claims",    "معالجة المطالبات المالية"],
+      ["FIN-07","reporting", "إعداد التقارير الشهرية"],
+      ["FIN-08","reporting", "الإقفال المالي السنوي"],
+      ["FIN-09","audit",     "المراجعة الداخلية الدورية"]
+    ]
+  },
+  operations: {
+    name: "الإدارة التشغيلية",
+    groupTerm: "محور",
+    groupTermPlural: "محاور",
+    groupVerb: "محاور التشغيل",
+    subtitle: "مرجع الإجراءات التشغيلية اليومية: الجدولة، التنفيذ، الصيانة، السلامة، ومتابعة الأداء — قالب جاهز للتعبئة.",
+    titleHighlight: "التشغيلية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة التشغيلية",
+    groups: [
+      { id:"scheduling",  label:"الجدولة" },
+      { id:"operations",  label:"التشغيل اليومي" },
+      { id:"maintenance", label:"الصيانة" },
+      { id:"safety",      label:"السلامة والجودة" },
+      { id:"performance", label:"متابعة الأداء" }
+    ],
+    sops: [
+      ["OPS-01","scheduling",  "إعداد خطة التشغيل الأسبوعية"],
+      ["OPS-02","scheduling",  "جدولة المناوبات"],
+      ["OPS-03","operations",  "بدء عمليات اليوم"],
+      ["OPS-04","operations",  "إغلاق عمليات اليوم"],
+      ["OPS-05","maintenance", "الصيانة الوقائية الدورية"],
+      ["OPS-06","maintenance", "التعامل مع الأعطال الطارئة"],
+      ["OPS-07","safety",      "فحوصات السلامة اليومية"],
+      ["OPS-08","safety",      "تقرير الحوادث"],
+      ["OPS-09","performance", "مراجعة مؤشرات الأداء الأسبوعية"]
+    ]
+  },
+  legal: {
+    name: "الإدارة القانونية",
+    groupTerm: "قسم",
+    groupTermPlural: "أقسام",
+    groupVerb: "الأقسام القانونية",
+    subtitle: "مرجع الإجراءات القانونية: العقود، الامتثال، النزاعات، والتراخيص — قالب جاهز للتعبئة.",
+    titleHighlight: "القانونية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة القانونية",
+    groups: [
+      { id:"contracts",   label:"العقود" },
+      { id:"compliance",  label:"الامتثال" },
+      { id:"disputes",    label:"النزاعات" },
+      { id:"licenses",    label:"التراخيص" },
+      { id:"advisory",    label:"الاستشارات القانونية" }
+    ],
+    sops: [
+      ["LGL-01","contracts",  "صياغة عقد جديد"],
+      ["LGL-02","contracts",  "مراجعة العقود الواردة"],
+      ["LGL-03","contracts",  "تجديد/إنهاء العقود"],
+      ["LGL-04","compliance", "مراجعة الامتثال الدورية"],
+      ["LGL-05","compliance", "متابعة التحديثات التنظيمية"],
+      ["LGL-06","disputes",   "معالجة النزاعات والمطالبات"],
+      ["LGL-07","licenses",   "استخراج وتجديد التراخيص"],
+      ["LGL-08","advisory",   "تقديم استشارة قانونية داخلية"]
+    ]
+  },
+  hr: {
+    name: "إدارة الموارد البشرية",
+    groupTerm: "قسم",
+    groupTermPlural: "أقسام",
+    groupVerb: "أقسام الموارد البشرية",
+    subtitle: "مرجع إجراءات الموارد البشرية: التوظيف، الإدخال، الأداء، التدريب، الإجازات، والخروج — قالب جاهز للتعبئة.",
+    titleHighlight: "البشرية",
+    titlePrefix: "مرجع إجراءات الموارد",
+    titleSuffix: "لإدارة الموارد البشرية",
+    groups: [
+      { id:"recruitment", label:"التوظيف" },
+      { id:"onboarding",  label:"الإدخال" },
+      { id:"performance", label:"الأداء" },
+      { id:"training",    label:"التدريب" },
+      { id:"leaves",      label:"الإجازات" },
+      { id:"offboarding", label:"الخروج" }
+    ],
+    sops: [
+      ["HR-01","recruitment", "نشر الشاغر واستقبال الطلبات"],
+      ["HR-02","recruitment", "المقابلات والاختيار"],
+      ["HR-03","onboarding",  "إجراءات إدخال الموظف الجديد"],
+      ["HR-04","performance", "تقييم الأداء السنوي"],
+      ["HR-05","performance", "خطط التحسين الفردية"],
+      ["HR-06","training",    "تحديد الاحتياجات التدريبية"],
+      ["HR-07","training",    "تنفيذ البرامج التدريبية"],
+      ["HR-08","leaves",      "طلب واعتماد الإجازات"],
+      ["HR-09","offboarding", "إنهاء الخدمة وإخلاء الطرف"]
+    ]
+  },
+  bizdev: {
+    name: "إدارة تطوير الأعمال",
+    groupTerm: "مرحلة",
+    groupTermPlural: "مراحل",
+    groupVerb: "مراحل تطوير الأعمال",
+    subtitle: "مرجع إجراءات تطوير الأعمال: استكشاف الفرص، العروض، التفاوض، الشراكات، وإدارة العلاقات — قالب جاهز للتعبئة.",
+    titleHighlight: "الأعمال",
+    titlePrefix: "مرجع إجراءات تطوير",
+    titleSuffix: "لإدارة تطوير الأعمال",
+    groups: [
+      { id:"discovery",     label:"استكشاف الفرص" },
+      { id:"proposals",     label:"إعداد العروض" },
+      { id:"negotiation",   label:"التفاوض" },
+      { id:"partnerships",  label:"الشراكات" },
+      { id:"relationships", label:"إدارة العلاقات" }
+    ],
+    sops: [
+      ["BD-01","discovery",     "رصد وتقييم الفرص التجارية"],
+      ["BD-02","discovery",     "دراسة الجدوى الأولية"],
+      ["BD-03","proposals",     "إعداد العرض الفني والمالي"],
+      ["BD-04","proposals",     "تقديم العرض للعميل"],
+      ["BD-05","negotiation",   "إدارة جولات التفاوض"],
+      ["BD-06","partnerships",  "تأسيس الشراكات الاستراتيجية"],
+      ["BD-07","relationships", "متابعة علاقات العملاء"],
+      ["BD-08","relationships", "تقييم الرضا وتطوير العلاقة"]
+    ]
+  }
+};
+
+/* === تحديد الإدارة الحالية من URL أو localStorage === */
+function getCurrentDept(){
+  const params = new URLSearchParams(window.location.search);
+  let id = params.get('dept');
+  if (!id) {
+    try {
+      const saved = JSON.parse(localStorage.getItem('arsan_department') || 'null');
+      if (saved && saved.id) id = saved.id;
+    } catch(_){}
+  }
+  if (!id || !DEPARTMENTS_CONFIG[id]) id = 'projects';
+  return id;
+}
+const CURRENT_DEPT_ID = getCurrentDept();
+const DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
+
+/* متوافق مع الكود القديم: PHASES = groups الخاصة بالإدارة */
+const PHASES = DEPT.groups;
 
 function blankSOP(code, phaseId, titleHint){
   return {
@@ -864,21 +1054,25 @@ function blankSOP(code, phaseId, titleHint){
   };
 }
 
-/* 12 إجراء — العناوين هنا مجرد مواضع قابلة لإعادة التسمية عند التعبئة */
-const SOPS = [
-  blankSOP("SOP-01","design",      "إجراء تصميم (1)"),
-  blankSOP("SOP-02","design",      "إجراء تصميم (2)"),
-  blankSOP("SOP-03","planning",    "إجراء تخطيط (1)"),
-  blankSOP("SOP-04","planning",    "إجراء تخطيط (2)"),
-  blankSOP("SOP-05","planning",    "إجراء تخطيط (3)"),
-  blankSOP("SOP-06","procurement", "إجراء مشتريات (1)"),
-  blankSOP("SOP-07","procurement", "إجراء مشتريات (2)"),
-  blankSOP("SOP-08","maintenance", "إجراء صيانة (1)"),
-  blankSOP("SOP-09","maintenance", "إجراء صيانة (2)"),
-  blankSOP("SOP-10","execution",   "إجراء تنفيذ (1)"),
-  blankSOP("SOP-11","execution",   "إجراء تنفيذ (2)"),
-  blankSOP("SOP-12","execution",   "إجراء تنفيذ (3)")
-];
+/* إنشاء الإجراءات من إعدادات الإدارة الحالية */
+const SOPS = DEPT.sops.map(([code, phase, title]) => blankSOP(code, phase, title));
+
+/* تحميل التعديلات المحفوظة من localStorage (لكل إدارة مفتاح منفصل) */
+const STORAGE_KEY = `arsan_sops_${CURRENT_DEPT_ID}`;
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  SOPS.forEach(s => {
+    if (saved[s.code]) Object.assign(s, saved[s.code]);
+  });
+} catch(_){}
+
+function saveSOP(sop){
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved[sop.code] = sop;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  } catch(_){}
+}
 
 /* ================= STATE ================= */
 const state = {
@@ -1158,47 +1352,36 @@ try{
   window.parent && window.parent.postMessage({type:"__edit_mode_available"}, "*");
 }catch(_){}
 
-/* ===== تحديث اسم الإدارة في الرأس ===== */
+/* ===== تحديث اسم الإدارة + العنوان + العنوان الفرعي + الذيل ===== */
 (function(){
-  const DEPT_NAMES = {
-    projects: "إدارة المشاريع",
-    finance: "الإدارة المالية",
-    operations: "الإدارة التشغيلية",
-    legal: "الإدارة القانونية",
-    hr: "إدارة الموارد البشرية",
-    bizdev: "إدارة تطوير الأعمال"
-  };
-  // أولوية: query param، ثم localStorage، ثم افتراضي
-  const params = new URLSearchParams(window.location.search);
-  let deptId = params.get('dept');
-  let deptName = null;
-  if (deptId && DEPT_NAMES[deptId]) {
-    deptName = DEPT_NAMES[deptId];
-  } else {
-    try {
-      const saved = JSON.parse(localStorage.getItem('arsan_department') || 'null');
-      if (saved && saved.name) { deptName = saved.name; deptId = saved.id; }
-    } catch(_){}
-  }
-  // إذا لم يختر المستخدم إدارة، أعِده لصفحة الاختيار
-  if (!deptName) {
-    // السماح بالعرض المباشر للاختبار؛ لا نعيد التوجيه
-    deptName = "إدارة المشاريع";
-  }
+  // breadcrumb
   const bc = document.getElementById('deptBreadcrumb');
-  if (bc) bc.textContent = deptName;
-  // تحديث العنوان في المتصفح
-  document.title = "لوحة إجراءات " + deptName + " — أرسان للتشغيل";
-  // إذا كانت الإدارة غير "projects"، أضف شارة "قيد التجهيز"
-  if (deptId && deptId !== 'projects') {
-    const sub = document.querySelector('.subtitle');
-    if (sub) {
-      const note = document.createElement('div');
-      note.style.cssText = 'margin-top:14px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(212,178,74,.12);border:1px solid rgba(212,178,74,.35);border-radius:10px;color:var(--header-ink);font-size:13px';
-      note.innerHTML = '⚠️ مرجع <strong style="margin:0 4px">' + deptName + '</strong> قيد التجهيز — يتم عرض مرجع إدارة المشاريع مؤقتاً.';
-      sub.insertAdjacentElement('afterend', note);
+  if (bc) bc.textContent = DEPT.name;
+  // document title
+  document.title = "لوحة إجراءات " + DEPT.name + " — أرسان للتشغيل";
+  // main title (h1)
+  const h1 = document.querySelector('h1.title');
+  if (h1) {
+    h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix}`;
+  }
+  // subtitle
+  const sub = document.querySelector('.subtitle');
+  if (sub) sub.textContent = DEPT.subtitle;
+  // footer dept name
+  const fd = document.getElementById('footer-dept');
+  if (fd) fd.textContent = DEPT.name;
+  // stats: phases count label (مراحل عمل → مصطلح الإدارة)
+  const phasesStat = document.getElementById('stat-phases');
+  if (phasesStat) {
+    phasesStat.textContent = DEPT.groups.length;
+    const labelEl = phasesStat.nextElementSibling;
+    if (labelEl && labelEl.classList.contains('l')) {
+      labelEl.textContent = DEPT.groupVerb;
     }
   }
+  // stats: sops count
+  const sopsStat = document.getElementById('stat-sops');
+  if (sopsStat) sopsStat.textContent = SOPS.length;
 })();
 </script>
 </body>

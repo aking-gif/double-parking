@@ -1558,6 +1558,9 @@ function updateStats(){
 }
 
 /* ================= INIT ================= */
+// Bootstrap language vars early (real I18N dict assigned later)
+var CURRENT_LANG = (typeof CURRENT_LANG !== 'undefined' ? CURRENT_LANG : (localStorage.getItem('arsan_lang') || 'ar'));
+var I18N = (typeof I18N !== 'undefined' && I18N) ? I18N : { ar:{}, en:{} };
 renderChips();
 renderGrid();
 updateStats();
@@ -1815,7 +1818,7 @@ try{
 }catch(_){}
 
 /* ================= i18n — Arabic / English ================= */
-const I18N = {
+var I18N = {
   ar: {
     brand: "شركة أرسان للتشغيل",
     changeDept: "تغيير الإدارة",
@@ -1927,7 +1930,7 @@ const I18N = {
 };
 
 /* English names for departments and groups (mapped by id) */
-const DEPT_EN = {
+var DEPT_EN = {
   executive: {
     name: "Executive Management",
     subtitle: "Reference for top-level executive procedures: strategy, governance, decision-making, corporate performance, and stakeholder relations.",
@@ -2000,9 +2003,12 @@ const DEPT_EN = {
   }
 };
 
-let CURRENT_LANG = localStorage.getItem('arsan_lang') || 'ar';
+var CURRENT_LANG = localStorage.getItem('arsan_lang') || 'ar';
 
-function T(key){ return (I18N[CURRENT_LANG]||I18N.ar)[key]; }
+function T(key){
+  if (typeof I18N === 'undefined' || !I18N) return '';
+  return (I18N[CURRENT_LANG]||I18N.ar)[key];
+}
 
 function applyLang(lang){
   CURRENT_LANG = lang;
@@ -2083,14 +2089,15 @@ function applyLang(lang){
   renderChips();
   renderGrid();
 
-  // Footer
+  // Footer — الجهة المُصدِرة دائماً الإدارة التنفيذية
+  const execName = lang === 'en' ? 'Executive Management' : 'الإدارة التنفيذية';
   const fd = document.getElementById('footer-dept');
-  if (fd) fd.textContent = deptNameDisplay;
+  if (fd) fd.textContent = execName;
   const fRight = document.querySelector('footer .muted');
   if (fRight) fRight.textContent = T('footerRight');
   const fLine = document.getElementById('footer-line');
   if (fLine) {
-    fLine.innerHTML = `${T('brand')} · <span id="footer-dept">${deptNameDisplay}</span> · ${T('footerMiddle')}`;
+    fLine.innerHTML = `${T('brand')} · <span id="footer-dept">${execName}</span> · ${T('footerMiddle')}`;
   }
 
   // AI panel
@@ -2181,9 +2188,9 @@ setTimeout(() => applyLang(CURRENT_LANG), 0);
   // subtitle
   const sub = document.querySelector('.subtitle');
   if (sub) sub.textContent = DEPT.subtitle;
-  // footer dept name
+  // footer dept name — الجهة المُصدِرة دائماً الإدارة التنفيذية
   const fd = document.getElementById('footer-dept');
-  if (fd) fd.textContent = DEPT.name;
+  if (fd) fd.textContent = "الإدارة التنفيذية";
   // stats: phases count label (مراحل عمل → مصطلح الإدارة)
   const phasesStat = document.getElementById('stat-phases');
   if (phasesStat) {

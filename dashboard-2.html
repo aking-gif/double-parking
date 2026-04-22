@@ -1794,25 +1794,15 @@ async function aiAsk(prompt){
    3) Anthropic API مباشرة باستخدام مفتاح محفوظ في localStorage
 */
 async function callAI(prompt){
-  // 1. Claude artifacts runtime
+  // 1. ArsanAPI.ai — Worker with auth token (preferred when logged in)
+  if (window.ArsanAPI && typeof window.ArsanAPI.ai === 'function' && window.ArsanAPI.getToken && window.ArsanAPI.getToken()) {
+    try { return await window.ArsanAPI.ai(prompt); } catch(e) { console.warn('ArsanAPI.ai failed:', e); }
+  }
+  // 2. Claude artifacts runtime (inside claude.ai preview only)
   if (typeof window.claude === 'object' && window.claude && typeof window.claude.complete === 'function') {
     return await window.claude.complete(prompt);
   }
-  // 2. Cloudflare Worker
-  if (window.API_BASE && typeof window.API_BASE === 'string' && window.API_BASE.length > 0) {
-    try {
-      const res = await fetch(window.API_BASE.replace(/\/$/, '') + '/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.text) return data.text;
-      }
-    } catch(_){}
-  }
-  // 3. Direct Anthropic with user-supplied key
+  // 3. Direct Anthropic with user-supplied key (localStorage fallback)
   const key = localStorage.getItem('arsan_anthropic_key');
   if (key) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1833,7 +1823,7 @@ async function callAI(prompt){
     const data = await res.json();
     return (data.content && data.content[0] && data.content[0].text) || 'لا رد.';
   }
-  throw new Error('لا يوجد مزوّد AI مُفعّل');
+  throw new Error('يجب تسجيل الدخول لاستخدام مساعد الذكاء');
 }
 
 /* إعداد مفتاح Anthropic من الواجهة */
@@ -2401,7 +2391,7 @@ window.Arsan = Object.assign(window.Arsan || {}, {
    ================================================================ */
 
 // ضع رابط Cloudflare Worker هنا بعد نشره (أو اتركه فارغاً للوضع المحلي)
-window.API_BASE = window.API_BASE || "";
+window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
 (function(){
   const TOKEN_KEY = "arsan_token_v1";
@@ -2583,6 +2573,29 @@ window.API_BASE = window.API_BASE || "";
     return { ok: true };
   }
 
+  /* ---------- AI ---------- */
+  async function ai(message, opts = {}) {
+    const history = opts.history || [];
+    const system  = opts.system;
+    // Prefer Worker if backend + logged in
+    if (hasBackend() && getToken()) {
+      try {
+        const r = await apiFetch("/api/ai", { method:"POST", body: { message, history, system } });
+        return r.reply || "";
+      } catch (e) {
+        console.warn("worker AI failed, falling back:", e);
+      }
+    }
+    // Fallback: claude.ai artifact runtime (only works inside claude.ai preview)
+    if (window.claude && typeof window.claude.complete === "function") {
+      try {
+        const msgs = [...history, { role: "user", content: message }];
+        return await window.claude.complete({ messages: msgs, system });
+      } catch (e) { console.warn("window.claude fallback failed:", e); }
+    }
+    throw new Error("ai-unavailable");
+  }
+
   /* ---------- Expose ---------- */
   window.ArsanAPI = {
     hasBackend, getToken, me, isEditor, isAdmin,
@@ -2594,6 +2607,7 @@ window.API_BASE = window.API_BASE || "";
     getActivity,
     getUsers, addUser, removeUser,
     getSlackWebhook, setSlackWebhook,
+    ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };
 })();

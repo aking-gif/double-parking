@@ -1126,6 +1126,21 @@
     </div>
 
     <div class="modal-body">
+      <!-- شريط أدوات التحرير (للمحررين فقط) -->
+      <div id="m-editbar" style="display:none;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#f9f6ef 0%,#f9f6ef 80%,transparent 100%);padding:6px 2px 14px;margin:-6px 0 8px;border-bottom:1px dashed #d8cba8">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:12px;color:#7a6b45;font-weight:600;margin-inline-end:4px">✏️ وضع التحرير:</span>
+          <button type="button" id="m-edit-inline" class="mini-edit-btn" style="background:#d4a83c;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✏️ تحرير مباشر</button>
+          <button type="button" id="m-edit-upload" class="mini-edit-btn" style="background:#fff;color:#6d5a1e;border:1px solid #d4a83c;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📎 رفع ملف</button>
+          <button type="button" id="m-edit-ai" class="mini-edit-btn" style="background:#fff;color:#6d5a1e;border:1px solid #d4a83c;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✨ توليد بالذكاء</button>
+          <span id="m-edit-status" style="margin-inline-start:auto;font-size:12px;color:#8e7c4f"></span>
+        </div>
+        <div id="m-edit-actions" style="display:none;margin-top:10px;gap:8px">
+          <button type="button" id="m-save-btn" style="background:#2d7a3e;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 حفظ التغييرات</button>
+          <button type="button" id="m-cancel-btn" style="background:#fff;color:#555;border:1px solid #ccc;padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer">إلغاء</button>
+        </div>
+      </div>
+
       <!-- الغرض -->
       <div>
         <p class="section-label">الغرض من الإجراء</p>
@@ -1669,7 +1684,187 @@ function openModal(idx){
   setTimeout(()=> $("#modalBox").focus(), 30);
   // load comments for this SOP
   if (typeof renderComments === 'function') renderComments(s.code);
+
+  // show edit bar for editors
+  const canEdit = !!(window.ArsanAPI && window.ArsanAPI.isEditor && window.ArsanAPI.isEditor());
+  const editBar = document.getElementById('m-editbar');
+  if (editBar) {
+    editBar.style.display = canEdit ? '' : 'none';
+    exitEditMode();
+  }
 }
+
+/* ===================== Inline Edit Mode for SOP Modal ===================== */
+let _editOriginal = null;
+function setStatus(msg, ok){
+  const el = document.getElementById('m-edit-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = ok === false ? '#b85450' : '#2d7a3e';
+}
+function makeEditable(el, multiline){
+  if (!el) return;
+  el.setAttribute('contenteditable','true');
+  el.setAttribute('data-editing','1');
+  el.style.outline = '2px dashed #d4a83c';
+  el.style.outlineOffset = '4px';
+  el.style.borderRadius = '6px';
+  el.style.padding = (el.style.padding||'') + ' 6px';
+  el.style.background = '#fffdf5';
+  el.style.cursor = 'text';
+  el.style.minHeight = multiline ? '60px' : '28px';
+  // clear placeholder if empty
+  const ph = el.querySelector('.ph');
+  if (ph) ph.remove();
+}
+function stopEditable(el){
+  if (!el) return;
+  el.removeAttribute('contenteditable');
+  el.removeAttribute('data-editing');
+  el.style.outline = '';
+  el.style.outlineOffset = '';
+  el.style.background = '';
+  el.style.cursor = '';
+}
+function enterEditMode(){
+  const s = SOPS[state.openIdx];
+  if (!s) return;
+  _editOriginal = JSON.parse(JSON.stringify(s));
+  // purpose
+  makeEditable(document.getElementById('m-purpose'), true);
+  // meta cells
+  document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
+    makeEditable(el, false);
+    el.setAttribute('data-meta-idx', i);
+  });
+  // steps
+  document.querySelectorAll('#m-steps li').forEach(li=> makeEditable(li, false));
+  // kpis
+  makeEditable(document.getElementById('m-kpis'), true);
+  // show save/cancel
+  const acts = document.getElementById('m-edit-actions');
+  if (acts) acts.style.display = 'flex';
+  setStatus('وضع التحرير مفعّل — عدّل الحقول مباشرة', true);
+}
+function exitEditMode(){
+  ['m-purpose','m-kpis'].forEach(id=> stopEditable(document.getElementById(id)));
+  document.querySelectorAll('#m-meta .meta-cell .v').forEach(stopEditable);
+  document.querySelectorAll('#m-steps li').forEach(stopEditable);
+  const acts = document.getElementById('m-edit-actions');
+  if (acts) acts.style.display = 'none';
+  _editOriginal = null;
+}
+async function saveEdits(){
+  const s = SOPS[state.openIdx];
+  if (!s) return;
+  const txt = (el)=> (el?.innerText || '').trim();
+  const patch = {
+    purpose: txt(document.getElementById('m-purpose')),
+    kpis: txt(document.getElementById('m-kpis')),
+  };
+  // meta fields in order: owner, sla, scope, inputs, outputs
+  const metaKeys = ['owner','sla','scope','inputs','outputs'];
+  document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
+    if (metaKeys[i]) patch[metaKeys[i]] = txt(el);
+  });
+  // steps
+  const steps = [...document.querySelectorAll('#m-steps li')].map(li=>txt(li)).filter(Boolean);
+  patch.steps = steps;
+
+  Object.assign(s, patch);
+  setStatus('جاري الحفظ…', true);
+  try {
+    if (window.ArsanAPI && window.ArsanAPI.hasBackend && window.ArsanAPI.hasBackend()) {
+      await window.ArsanAPI.updateSop(DEPT.id, s.code, patch);
+    } else {
+      const key = 'arsan_sops_' + DEPT.id;
+      const arr = JSON.parse(localStorage.getItem(key) || '{}');
+      arr[s.code] = { ...(arr[s.code]||{}), ...patch };
+      localStorage.setItem(key, JSON.stringify(arr));
+    }
+    setStatus('✓ تم الحفظ', true);
+    exitEditMode();
+    openModal(state.openIdx); // reload view
+  } catch(e){
+    setStatus('خطأ: ' + (e.message||e), false);
+  }
+}
+function cancelEdits(){
+  if (_editOriginal) Object.assign(SOPS[state.openIdx], _editOriginal);
+  exitEditMode();
+  openModal(state.openIdx);
+}
+async function handleUpload(){
+  const s = SOPS[state.openIdx];
+  if (!s) return;
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.pdf,.docx,.doc,.txt,.md';
+  inp.onchange = async () => {
+    const f = inp.files[0];
+    if (!f) return;
+    setStatus('جاري قراءة الملف…', true);
+    try {
+      const text = await f.text();
+      const content = text.slice(0, 8000);
+      setStatus('جاري استخراج الحقول بالذكاء…', true);
+      const prompt = `استخرج من النص التالي حقول الإجراء بصيغة JSON فقط (purpose, owner, sla, scope, inputs, outputs, steps[], kpis). النص:\n\n${content}`;
+      const res = await window.claude.complete(prompt);
+      const m = res.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error('لم يتمكن الذكاء من استخراج JSON');
+      const parsed = JSON.parse(m[0]);
+      fillFieldsFromObject(parsed);
+      setStatus('✓ تم استخراج الحقول — راجعها ثم احفظ', true);
+    } catch(e){
+      setStatus('فشل: ' + (e.message||e), false);
+    }
+  };
+  inp.click();
+}
+async function handleAIGen(){
+  const s = SOPS[state.openIdx];
+  if (!s) return;
+  setStatus('جاري التوليد بالذكاء…', true);
+  try {
+    const prompt = `أنا أصيغ إجراءً تشغيلياً بعنوان "${s.title}" في "${DEPT.name}". اكتب لي JSON فقط يحتوي الحقول: purpose (الغرض), owner (الجهة المالكة), sla (الإطار الزمني), scope (النطاق), inputs (المدخلات), outputs (المخرجات), steps (مصفوفة 5 خطوات), kpis (3 مؤشرات أداء). لا شيء غير JSON.`;
+    const res = await window.claude.complete(prompt);
+    const m = res.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('لم يتمكن الذكاء من التوليد');
+    const parsed = JSON.parse(m[0]);
+    if (!document.getElementById('m-purpose').getAttribute('data-editing')) enterEditMode();
+    fillFieldsFromObject(parsed);
+    setStatus('✓ تم التوليد — راجع الحقول ثم احفظ', true);
+  } catch(e){
+    setStatus('فشل: ' + (e.message||e), false);
+  }
+}
+function fillFieldsFromObject(obj){
+  if (!obj) return;
+  if (!document.getElementById('m-purpose').getAttribute('data-editing')) enterEditMode();
+  const setText = (id,v)=>{ const el=document.getElementById(id); if(el && v) el.innerText = v; };
+  setText('m-purpose', obj.purpose);
+  setText('m-kpis', Array.isArray(obj.kpis) ? obj.kpis.join('\n') : obj.kpis);
+  const metaKeys = ['owner','sla','scope','inputs','outputs'];
+  document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
+    const k = metaKeys[i];
+    if (k && obj[k]) el.innerText = Array.isArray(obj[k]) ? obj[k].join('، ') : obj[k];
+  });
+  if (Array.isArray(obj.steps)) {
+    const ol = document.getElementById('m-steps');
+    ol.innerHTML = obj.steps.map(st=>`<li>${escapeHtml(st)}</li>`).join('');
+    document.querySelectorAll('#m-steps li').forEach(li=> makeEditable(li, false));
+  }
+}
+// wire edit-bar buttons once DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const byId = (id)=> document.getElementById(id);
+  byId('m-edit-inline')?.addEventListener('click', enterEditMode);
+  byId('m-edit-upload')?.addEventListener('click', handleUpload);
+  byId('m-edit-ai')?.addEventListener('click', handleAIGen);
+  byId('m-save-btn')?.addEventListener('click', saveEdits);
+  byId('m-cancel-btn')?.addEventListener('click', cancelEdits);
+});
+
 function closeModal(){
   $("#modal").setAttribute("aria-hidden","true");
   document.body.style.overflow = "";

@@ -1245,6 +1245,12 @@ function blankSOP(code, phaseId, titleHint){
 /* إنشاء الإجراءات من إعدادات الإدارة الحالية */
 const SOPS = DEPT.sops.map(([code, phase, title]) => blankSOP(code, phase, title));
 
+/* Expose globals for extensions */
+window.DEPARTMENTS_CONFIG = DEPARTMENTS_CONFIG;
+window.CURRENT_DEPT_ID = CURRENT_DEPT_ID;
+window.DEPT = DEPT;
+window.SOPS = SOPS;
+
 /* تحميل التعديلات المحفوظة من localStorage (لكل إدارة مفتاح منفصل) */
 const STORAGE_KEY = `arsan_sops_${CURRENT_DEPT_ID}`;
 try {
@@ -1268,6 +1274,7 @@ const state = {
   phase: "all",
   openIdx: -1
 };
+window.state = state;
 
 /* ================= HELPERS ================= */
 const $  = (s, r=document) => r.querySelector(s);
@@ -2205,5 +2212,17 @@ setTimeout(() => applyLang(CURRENT_LANG), 0);
   if (sopsStat) sopsStat.textContent = SOPS.length;
 })();
 </script>
+<!-- ===== Arsan Backend Integration ===== -->
+<script>
+  /* ضع رابط Cloudflare Worker هنا بعد النشر، مثل:
+     window.API_BASE = "https://arsan-sops.xxxx.workers.dev";
+     اتركه فارغاً للوضع المحلي (يعمل على كل جهاز منفرداً). */
+  window.API_BASE = "";
+  // Expose renderGrid to extensions
+  try { window.renderGrid = renderGrid; } catch(_){}
+</script>
+<script src="api.js"></script>
+<script src="ui-extensions.js"></script>
+
 </body>
 </html>

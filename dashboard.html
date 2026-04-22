@@ -1,0 +1,4025 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لوحة إجراءات إدارة المشاريع — أرسان للتشغيل</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="400" fill="#141414"/>
+    <rect x="120" y="120" width="160" height="160" rx="20" fill="#8B6F00"/>
+    <text x="200" y="230" font-family="sans-serif" font-size="90" font-weight="700" fill="#F7F6F2" text-anchor="middle">MA</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ========== TWEAKABLE DEFAULTS ========== */
+  /* (نستخدمها من Tweaks الداخلي لتبديل الوضع الداكن/الفاتح) */
+  :root{
+    --bg:#F7F6F2;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF6;
+    --ink:#111827;
+    --ink-2:#374151;
+    --ink-3:#6B7280;
+    --line:#E7E3D8;
+    --line-2:#EFEBE0;
+    --accent:#8B6F00;         /* ذهبي */
+    --accent-ink:#5E4B00;
+    --accent-soft:#F4EFD9;
+    --accent-softer:#FBF7E6;
+    --header-bg:#141414;
+    --header-ink:#F7F6F2;
+    --header-muted:#A8A39A;
+    --chip-bg:#FFFFFF;
+    --chip-ink:#374151;
+    --chip-active-bg:#111827;
+    --chip-active-ink:#FBF7E6;
+    --shadow-sm:0 1px 2px rgba(17,24,39,.04), 0 1px 1px rgba(17,24,39,.03);
+    --shadow-md:0 6px 20px rgba(17,24,39,.07), 0 2px 6px rgba(17,24,39,.04);
+    --shadow-lg:0 24px 60px rgba(17,24,39,.18), 0 8px 20px rgba(17,24,39,.10);
+    --radius-sm:10px;
+    --radius:14px;
+    --radius-lg:20px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0E0F10;
+    --surface:#18191B;
+    --surface-2:#141517;
+    --ink:#F3F1EA;
+    --ink-2:#D7D3C7;
+    --ink-3:#9A9487;
+    --line:#262729;
+    --line-2:#1E1F21;
+    --accent:#D4B24A;
+    --accent-ink:#F0D88A;
+    --accent-soft:#2A2512;
+    --accent-softer:#1F1C10;
+    --header-bg:#0A0A0B;
+    --header-ink:#F3F1EA;
+    --header-muted:#8F8A7D;
+    --chip-bg:#1C1D1F;
+    --chip-ink:#D7D3C7;
+    --chip-active-bg:#F3F1EA;
+    --chip-active-ink:#111111;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow-md:0 6px 20px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.4);
+    --shadow-lg:0 24px 60px rgba(0,0,0,.55), 0 8px 20px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-feature-settings:"ss01","cv11";
+    line-height:1.6;
+  }
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+  /* ========== HEADER ========== */
+  .header{
+    background:var(--header-bg);
+    color:var(--header-ink);
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid #000;
+  }
+  .header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(1200px 420px at 90% -10%, rgba(139,111,0,.22), transparent 60%),
+      radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.10), transparent 60%);
+    pointer-events:none;
+  }
+  .header-inner{position:relative;padding:40px 0 56px}
+  .brandline{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    color:var(--header-muted);
+    font-size:13px; letter-spacing:.02em;
+  }
+  .brandline .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
+  .brandline .mark{
+    display:inline-flex; align-items:center; gap:10px;
+    color:var(--header-ink); font-weight:600;
+  }
+  .brandline .logo{
+    width:26px;height:26px;border-radius:7px;
+    background:linear-gradient(135deg, #C69C22 0%, #8B6F00 60%, #6B5300 100%);
+    display:inline-flex;align-items:center;justify-content:center;
+    color:#1a1405; font-weight:700; font-size:13px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+  .version{
+    margin-inline-start:auto;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    font-size:12px;
+    color:var(--header-ink);
+    background:rgba(255,255,255,.04);
+  }
+  .version .v-dot{width:6px;height:6px;border-radius:50%;background:#CDA84A}
+
+  .theme-toggle{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    font-size:12px;
+    color:var(--header-ink);
+    background:rgba(255,255,255,.04);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover{background:rgba(255,255,255,.09)}
+
+  .title{
+    margin:28px 0 12px;
+    font-size:clamp(34px, 4.4vw, 54px);
+    line-height:1.12;
+    letter-spacing:-.01em;
+    font-weight:600;
+    max-width:22ch;
+  }
+  .title .accent-underline{
+    background-image:linear-gradient(transparent 72%, rgba(212,178,74,.42) 72% 92%, transparent 92%);
+  }
+  .subtitle{
+    color:var(--header-muted);
+    font-size:16px;
+    max-width:62ch;
+    margin:0 0 34px;
+    font-weight:300;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+    gap:14px;
+    margin-top:6px;
+  }
+  .stat{
+    padding:18px 20px 16px;
+    border-radius:var(--radius);
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+    position:relative;
+    overflow:hidden;
+  }
+  .stat::after{
+    content:"";
+    position:absolute; inset-inline-end:-30px; top:-30px;
+    width:90px; height:90px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(212,178,74,.18), transparent 70%);
+  }
+  .stat .n{
+    font-size:38px; font-weight:600; letter-spacing:-.02em; line-height:1;
+    color:var(--header-ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .n .u{font-size:14px;color:var(--header-muted);margin-inline-start:6px;font-weight:400}
+  .stat .l{color:var(--header-muted);font-size:13px;margin-top:10px}
+  .stat.accent{
+    background:linear-gradient(180deg, rgba(139,111,0,.18), rgba(139,111,0,.05));
+    border-color:rgba(212,178,74,.25);
+  }
+
+  /* ========== TOOLBAR ========== */
+  .toolbar{
+    position:sticky; top:0; z-index:30;
+    background:color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter:saturate(1.2) blur(10px);
+    -webkit-backdrop-filter:saturate(1.2) blur(10px);
+    border-bottom:1px solid var(--line);
+    margin-top:-22px;
+  }
+  .toolbar-inner{
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+    padding:16px 0;
+  }
+  .search{
+    position:relative; flex:1 1 280px; min-width:220px;
+  }
+  .search input{
+    width:100%;
+    padding:12px 44px 12px 16px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:14px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    box-shadow:var(--shadow-sm);
+  }
+  .search input::placeholder{color:var(--ink-3)}
+  .search input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+  }
+  .search .icon{
+    position:absolute; inset-inline-end:14px; top:50%; transform:translateY(-50%);
+    color:var(--ink-3);
+    pointer-events:none;
+  }
+  .search .clear{
+    position:absolute; inset-inline-end:10px; top:50%; transform:translateY(-50%);
+    display:none;
+    padding:4px 8px; border-radius:6px; color:var(--ink-3);
+    font-size:12px;
+  }
+  .search.has-value .clear{display:inline-flex}
+  .search.has-value .icon{display:none}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{
+    padding:8px 14px;
+    border-radius:999px;
+    background:var(--chip-bg);
+    color:var(--chip-ink);
+    border:1px solid var(--line);
+    font-size:13px;
+    transition:all .15s ease;
+    display:inline-flex;align-items:center;gap:8px;
+    font-weight:500;
+  }
+  .chip:hover{border-color:var(--accent); color:var(--accent-ink)}
+  .chip[aria-pressed="true"]{
+    background:var(--chip-active-bg);
+    color:var(--chip-active-ink);
+    border-color:var(--chip-active-bg);
+  }
+  .chip .count{
+    font-size:11px; opacity:.7;
+    font-variant-numeric:tabular-nums;
+    background:color-mix(in oklab, currentColor 12%, transparent);
+    padding:1px 6px; border-radius:999px;
+  }
+
+  /* ========== RESULTS META ========== */
+  .results-meta{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:24px 0 14px;
+    color:var(--ink-3);
+    font-size:13px;
+  }
+  .results-meta strong{color:var(--ink);font-weight:600}
+
+  /* ========== GRID ========== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:18px;
+    padding-bottom:64px;
+  }
+  @media (max-width:900px){ .grid{grid-template-columns:repeat(2, minmax(0,1fr))} }
+  @media (max-width:600px){
+    .grid{grid-template-columns:1fr}
+    .wrap{padding:0 18px}
+    .stats{grid-template-columns:repeat(2, minmax(0,1fr))}
+  }
+
+  .card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:22px 22px 20px;
+    display:flex; flex-direction:column; gap:14px;
+    min-height:230px;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    text-align:start;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset-block:22px auto; inset-inline-start:0;
+    width:3px; height:26px;
+    background:var(--accent);
+    border-radius:0 3px 3px 0;
+    opacity:0;
+    transition:opacity .18s ease, height .18s ease;
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-md);
+    border-color:color-mix(in oklab, var(--accent) 45%, var(--line));
+  }
+  .card:hover::before{opacity:1; height:48px}
+  .card:focus-visible{
+    box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+    border-color:var(--accent);
+  }
+
+  .card-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .sop-code{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:"IBM Plex Sans Arabic", monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    padding:5px 10px;
+    border-radius:7px;
+    background:var(--accent-softer);
+    color:var(--accent-ink);
+    border:1px solid color-mix(in oklab, var(--accent) 25%, transparent);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    direction:ltr;
+  }
+  .phase-tag{
+    font-size:12px;
+    color:var(--ink-3);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .phase-tag::before{
+    content:""; width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+    opacity:.7;
+  }
+
+  .card h3{
+    margin:0;
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:-.005em;
+    line-height:1.35;
+    color:var(--ink);
+    text-wrap:balance;
+  }
+  .card-desc{
+    color:var(--ink-2);
+    font-size:13.5px;
+    line-height:1.65;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    font-weight:300;
+  }
+
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+  .badge{
+    font-size:11.5px;
+    padding:4px 10px;
+    border-radius:7px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    color:var(--ink-2);
+    display:inline-flex;align-items:center;gap:6px;
+    font-weight:500;
+  }
+  .badge svg{opacity:.6}
+
+  .open-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--accent-ink);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 0 2px;
+    border-top:1px dashed var(--line);
+    margin-top:4px;
+    justify-content:space-between;
+  }
+  .open-btn .arrow{transition:transform .18s ease}
+  .card:hover .open-btn .arrow{transform:translateX(-4px)}
+
+  /* Empty state */
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-3);
+    border:1px dashed var(--line);
+    border-radius:var(--radius-lg);
+    background:var(--surface-2);
+  }
+  .empty strong{color:var(--ink);display:block;margin-bottom:6px;font-size:16px}
+
+  /* ========== MODAL ========== */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,10,10,.55);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    display:none;
+    align-items:flex-start; justify-content:center;
+    padding:40px 20px;
+    overflow-y:auto;
+    animation:fadeIn .18s ease;
+  }
+  .modal-backdrop[aria-hidden="false"]{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .modal{
+    background:var(--surface);
+    color:var(--ink);
+    width:min(880px, 100%);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg);
+    border:1px solid var(--line);
+    overflow:hidden;
+    animation:pop .22s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+
+  .modal-head{
+    padding:26px 28px 22px;
+    border-bottom:1px solid var(--line);
+    background:
+      linear-gradient(180deg, var(--accent-softer), transparent 70%),
+      var(--surface);
+    position:relative;
+  }
+  .modal-head .top-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .modal-head h2{
+    margin:0;
+    font-size:26px; font-weight:600; letter-spacing:-.01em; line-height:1.25;
+    text-wrap:balance;
+  }
+  .close-x{
+    position:absolute;
+    inset-inline-end:14px; top:14px;
+    width:36px; height:36px; border-radius:10px;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--ink-2);
+    background:var(--surface);
+    border:1px solid var(--line);
+    transition:all .15s ease;
+  }
+  .close-x:hover{background:var(--ink);color:var(--surface)}
+
+  .modal-body{padding:24px 28px 28px; display:flex; flex-direction:column; gap:22px}
+
+  .section-label{
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--ink-3);
+    font-weight:600;
+    text-transform:uppercase;
+    margin:0 0 10px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-label::after{
+    content:""; flex:1; height:1px; background:var(--line);
+  }
+
+  .purpose-box{
+    padding:16px 18px;
+    background:var(--accent-softer);
+    border:1px solid color-mix(in oklab, var(--accent) 20%, var(--line));
+    border-radius:var(--radius);
+    color:var(--ink-2);
+    line-height:1.8;
+    position:relative;
+  }
+  .purpose-box::before{
+    content:"❝";
+    position:absolute;
+    inset-inline-start:14px; top:-8px;
+    font-size:30px; color:var(--accent); line-height:1;
+    background:var(--surface); padding:0 6px;
+  }
+
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  @media (max-width:560px){ .meta-grid{grid-template-columns:1fr} }
+  .meta-cell{
+    background:var(--surface);
+    padding:14px 16px;
+  }
+  .meta-cell .k{
+    font-size:11.5px;
+    color:var(--ink-3);
+    margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;
+    font-weight:500;
+  }
+  .meta-cell .v{
+    font-size:14px; color:var(--ink);
+    line-height:1.6;
+    font-weight:500;
+  }
+  .meta-cell.full{grid-column:1/-1}
+
+  .steps{
+    list-style:none; padding:0; margin:0;
+    counter-reset:step;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .steps li{
+    counter-increment:step;
+    padding:14px 18px 14px 56px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    border-radius:12px;
+    position:relative;
+    line-height:1.7;
+    color:var(--ink-2);
+  }
+  /* رقم الخطوة في الجهة البادئة (يمين في RTL) */
+  .steps li::before{
+    content:counter(step, decimal);
+    position:absolute;
+    inset-inline-start:auto; inset-inline-end:14px; top:12px;
+    width:30px; height:30px; border-radius:50%;
+    background:var(--accent);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  html[data-theme="dark"] .steps li::before{ color:#1a1405 }
+  .steps li{padding:14px 56px 14px 18px}
+
+  .kpi-box{
+    padding:16px 18px;
+    background:var(--surface-2);
+    border:1px solid var(--line-2);
+    border-inline-start:3px solid var(--accent);
+    border-radius:12px;
+    line-height:1.8;
+    color:var(--ink-2);
+  }
+
+  .form-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .form-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    font-size:13px;
+    color:var(--ink-2);
+    font-weight:500;
+  }
+  .form-badge svg{color:var(--accent)}
+
+  .note-box{
+    padding:14px 16px;
+    background:color-mix(in oklab, var(--accent) 6%, var(--surface));
+    border:1px dashed color-mix(in oklab, var(--accent) 30%, var(--line));
+    border-radius:12px;
+    color:var(--ink-2);
+    font-size:13.5px;
+    line-height:1.75;
+    display:flex; gap:10px;
+  }
+  .note-box .n-icon{
+    color:var(--accent); flex-shrink:0; margin-top:2px;
+  }
+
+  .modal-foot{
+    padding:14px 28px;
+    border-top:1px solid var(--line);
+    background:var(--surface-2);
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    flex-wrap:wrap;
+  }
+  .modal-foot .hint{font-size:12px;color:var(--ink-3)}
+  .modal-foot kbd{
+    font-family:"IBM Plex Sans Arabic", monospace;
+    font-size:11px;
+    padding:2px 7px;
+    border:1px solid var(--line);
+    border-bottom-width:2px;
+    border-radius:5px;
+    background:var(--surface);
+    color:var(--ink-2);
+    margin:0 2px;
+  }
+  .btn{
+    padding:10px 18px;
+    border-radius:10px;
+    background:var(--ink);
+    color:var(--surface);
+    font-size:13.5px;
+    font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:hover{opacity:.9; transform:translateY(-1px)}
+  .btn.ghost{
+    background:var(--surface);
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+
+  /* Placeholder styling */
+  .ph{
+    color:var(--ink-3);
+    font-style:italic;
+    font-weight:300;
+  }
+  .ph::before{content:"— "}
+  .ph::after{content:" —"}
+
+  /* ========== FOOTER ========== */
+  .site-foot{
+    border-top:1px solid var(--line);
+    padding:26px 0;
+    color:var(--ink-3);
+    font-size:12.5px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  }
+  .site-foot .muted{opacity:.7}
+
+  /* ========== PRINT ========== */
+  @media print{
+    :root{
+      --bg:#fff; --surface:#fff; --surface-2:#fafafa;
+      --ink:#000; --ink-2:#1a1a1a; --ink-3:#555;
+      --line:#d8d8d8; --line-2:#e6e6e6;
+    }
+    body{background:#fff}
+    .toolbar, .theme-toggle, .open-btn, .modal-backdrop, .site-foot .muted{ display:none !important }
+    .header{background:#fff;color:#000;border-bottom:2px solid #000}
+    .header::before{display:none}
+    .title, .subtitle, .brandline, .brandline .mark{color:#000}
+    .stat{border:1px solid #d8d8d8;background:#fafafa}
+    .stat .n,.stat .l{color:#000}
+    .grid{grid-template-columns:1fr 1fr; gap:10px}
+    .card{
+      break-inside:avoid;
+      page-break-inside:avoid;
+      box-shadow:none !important;
+      transform:none !important;
+    }
+    .card::before{display:none}
+  }
+
+  /* ===== View Switcher ===== */
+  .view-switcher{display:inline-flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .view-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;font-size:13px;color:var(--ink-3);border-radius:7px;transition:.15s}
+  .view-btn.active{background:var(--ink);color:var(--bg)}
+  html[data-theme="dark"] .view-btn.active{background:var(--accent);color:#111}
+
+  /* ===== Brain Map ===== */
+  .brain-map{
+    position:relative;min-height:600px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:40px;overflow:hidden;
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+    background-size:24px 24px;
+  }
+  .bm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+  .bm-center{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:var(--ink);color:var(--bg);
+    padding:16px 24px;border-radius:14px;font-weight:700;font-size:16px;
+    box-shadow:var(--shadow-lg);z-index:3;text-align:center;
+    min-width:180px;
+  }
+  html[data-theme="dark"] .bm-center{background:var(--accent);color:#111}
+  .bm-group{
+    position:absolute;z-index:3;
+    background:var(--accent-soft);color:var(--accent-ink);
+    padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;
+    border:2px solid var(--accent);cursor:pointer;transition:.15s;
+    white-space:nowrap;box-shadow:var(--shadow-sm);
+  }
+  .bm-group:hover{transform:translate(-50%,-50%) scale(1.05);box-shadow:var(--shadow-md)}
+  .bm-sop{
+    position:absolute;z-index:2;
+    background:var(--surface);color:var(--ink);
+    padding:6px 12px;border-radius:8px;font-size:12px;
+    border:1px solid var(--line);cursor:pointer;transition:.15s;
+    max-width:160px;text-align:center;line-height:1.3;
+    box-shadow:var(--shadow-sm);
+  }
+  .bm-sop:hover{border-color:var(--accent);box-shadow:var(--shadow-md);z-index:4}
+  .bm-sop .bm-code{display:block;font-size:10px;color:var(--ink-3);font-family:monospace;margin-bottom:2px}
+
+  /* ===== AI Assistant ===== */
+  .fab{
+    position:fixed;bottom:86px;inset-inline-end:24px;z-index:50;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:12px 18px;border-radius:999px;
+    background:var(--ink);color:var(--bg);
+    box-shadow:var(--shadow-lg);font-weight:600;font-size:14px;
+    border:1px solid var(--ink);transition:.2s;
+  }
+  html[data-theme="dark"] .fab{background:var(--accent);color:#111;border-color:var(--accent)}
+  .fab:hover{transform:translateY(-2px);box-shadow:0 30px 60px rgba(139,111,0,.3)}
+
+  .ai-panel{
+    position:fixed;bottom:24px;inset-inline-end:24px;z-index:60;
+    width:min(420px, calc(100vw - 32px));height:min(620px, calc(100vh - 48px));
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    display:flex;flex-direction:column;overflow:hidden;
+    transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s;
+  }
+  .ai-panel[aria-hidden="false"]{transform:translateY(0);opacity:1;pointer-events:auto}
+  .ai-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--header-bg);color:var(--header-ink)}
+  .ai-title{font-weight:700;font-size:15px}
+  .ai-sub{font-size:12px;color:var(--header-muted);margin-top:2px}
+  .ai-close{width:28px;height:28px;border-radius:8px;color:var(--header-ink);font-size:14px;transition:.15s}
+  .ai-close:hover{background:rgba(255,255,255,.1)}
+  .ai-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .ai-msg{padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;max-width:90%}
+  .ai-bot{background:var(--accent-softer);color:var(--ink);border:1px solid var(--accent-soft);align-self:flex-start}
+  .ai-user{background:var(--ink);color:var(--bg);align-self:flex-end}
+  html[data-theme="dark"] .ai-user{background:var(--accent);color:#111}
+  .ai-msg.loading{opacity:.7;font-style:italic}
+  .ai-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px;border-top:1px solid var(--line);padding-top:10px}
+  .ai-quick button{font-size:11px;padding:5px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);transition:.15s}
+  .ai-quick button:hover{border-color:var(--accent);color:var(--accent-ink)}
+  html[data-theme="dark"] .ai-quick button:hover{color:var(--accent)}
+  .ai-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2)}
+  .ai-input textarea{flex:1;resize:none;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;line-height:1.5}
+  .ai-input textarea:focus{border-color:var(--accent)}
+  .ai-send{width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+  html[data-theme="dark"] .ai-send{background:var(--accent);color:#111}
+  .ai-send:hover{transform:scale(1.05)}
+
+  /* ===== Comments ===== */
+  .comments-section{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+  .comments-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .comment{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  .comment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px;color:var(--ink-3)}
+  .comment-author{color:var(--ink);font-weight:600}
+  .comment-body{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .comment-empty{color:var(--ink-3);font-size:13px;padding:10px;text-align:center}
+  .comment-form{display:flex;gap:8px;align-items:flex-start}
+  .comment-form input[type="text"]{width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:12px;flex-shrink:0}
+  .comment-form textarea{flex:1;resize:none;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-family:inherit;font-size:13px;min-height:38px;line-height:1.4}
+  .comment-form button{padding:8px 14px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;align-self:stretch}
+  html[data-theme="dark"] .comment-form button{background:var(--accent);color:#111}
+</style>
+
+<style>
+/* ARSAN-WHITE-OVERRIDE */
+/* Force all Arsan floating surfaces and AI panel to white + black ink */
+.arsan-topbar{
+  background:#ffffff !important;
+  backdrop-filter:none !important;
+  border:1px solid #d0d0d0 !important;
+  color:#000 !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.12) !important;
+}
+.arsan-topbar-btn{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #d0d0d0 !important;
+}
+.arsan-topbar-btn:hover{
+  background:#f3f3f3 !important;
+  border-color:#111 !important;
+  color:#000 !important;
+}
+.arsan-topbar-btn.primary{
+  background:#111 !important;
+  color:#fff !important;
+  border-color:#111 !important;
+}
+.arsan-topbar .arsan-role,
+.arsan-topbar span{ color:#111 !important; }
+
+/* Modals: solid white sheet */
+.arsan-modal{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #d0d0d0 !important;
+}
+.arsan-modal h2,
+.arsan-modal label,
+.arsan-modal .arsan-tab,
+.arsan-modal .arsan-tab.active,
+.arsan-modal .arsan-log-row,
+.arsan-modal .arsan-log-actor{
+  color:#111 !important;
+}
+.arsan-modal .sub,
+.arsan-modal .arsan-log-time{ color:#555 !important; }
+.arsan-modal .arsan-tab.active{ border-bottom-color:#111 !important; }
+.arsan-modal input,
+.arsan-modal textarea,
+.arsan-modal select{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #c9c9c9 !important;
+}
+.arsan-modal .arsan-btn{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #c9c9c9 !important;
+}
+.arsan-modal .arsan-btn.primary{
+  background:#111 !important;
+  color:#fff !important;
+  border-color:#111 !important;
+}
+.arsan-modal .arsan-btn.danger{
+  background:#b85450 !important;
+  color:#fff !important;
+  border-color:#b85450 !important;
+}
+.arsan-modal .arsan-log{ border-color:#d0d0d0 !important; }
+.arsan-modal .arsan-log-row{ border-bottom-color:#e5e5e5 !important; }
+.arsan-modal .arsan-log-action{ background:#f0f0f0 !important; color:#111 !important; }
+.arsan-modal .arsan-tabs{ border-bottom-color:#d0d0d0 !important; }
+
+/* Chat panel */
+.arsan-chat-panel{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #d0d0d0 !important;
+}
+.arsan-chat-head{ border-bottom-color:#e5e5e5 !important; color:#111 !important; }
+.arsan-chat-head select{ background:#fff !important; color:#111 !important; border-color:#c9c9c9 !important; }
+.arsan-chat-head button,
+.arsan-chat-head .close-x,
+.arsan-chat-head [aria-label]{
+  color:#111 !important;
+  background:#ffffff !important;
+  border:1px solid #c9c9c9 !important;
+}
+.arsan-chat-body{ background:#ffffff !important; }
+.arsan-chat-body .arsan-msg{
+  background:#f0f0f0 !important;
+  color:#111 !important;
+  border:1px solid #e0e0e0 !important;
+}
+.arsan-chat-body .arsan-msg .author{ color:#555 !important; }
+.arsan-chat-body .arsan-msg.mine{
+  background:#111 !important;
+  color:#ffffff !important;
+  border-color:#111 !important;
+}
+.arsan-chat-body .arsan-msg.mine .author{ color:#e5e5e5 !important; }
+.arsan-chat-foot,
+.arsan-chat-panel textarea,
+.arsan-chat-panel input[type="text"]{
+  background:#ffffff !important;
+  color:#111 !important;
+  border-color:#c9c9c9 !important;
+}
+.arsan-chat-panel button{ color:#111 !important; }
+.arsan-chat-panel button.primary,
+.arsan-chat-panel .send,
+.arsan-chat-panel button[type="submit"]{
+  background:#111 !important;
+  color:#ffffff !important;
+  border-color:#111 !important;
+}
+
+/* AI assistant panel (legacy chat) */
+.ai-panel, .ai-chat, #aiPanel, #ai-panel{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #d0d0d0 !important;
+}
+.ai-head{
+  background:#ffffff !important;
+  color:#111 !important;
+  border-bottom:1px solid #e5e5e5 !important;
+}
+.ai-title{ color:#111 !important; }
+.ai-sub{ color:#555 !important; }
+.ai-close{ color:#111 !important; background:transparent !important; border:1px solid #d0d0d0 !important; }
+.ai-close:hover{ background:#f3f3f3 !important; }
+.ai-body{ background:#ffffff !important; }
+.ai-bot{
+  background:#f4f4f4 !important;
+  color:#111 !important;
+  border:1px solid #e0e0e0 !important;
+}
+.ai-user{
+  background:#111 !important;
+  color:#ffffff !important;
+  border:1px solid #111 !important;
+}
+.ai-quick{ background:#ffffff !important; border-top:1px solid #e5e5e5 !important; }
+.ai-quick button{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #c9c9c9 !important;
+}
+.ai-quick button:hover{ border-color:#111 !important; color:#111 !important; }
+.ai-input{
+  background:#ffffff !important;
+  border-top:1px solid #e5e5e5 !important;
+}
+.ai-input textarea{
+  background:#ffffff !important;
+  color:#111 !important;
+  border:1px solid #c9c9c9 !important;
+}
+.ai-input textarea:focus{ border-color:#111 !important; }
+.ai-send{
+  background:#111 !important;
+  color:#ffffff !important;
+}
+
+/* FAB (AI floating button) — keep brand color but ensure contrast */
+.fab{ color:#fff !important; }
+
+/* Modal backdrop: keep it a dim layer, not fully transparent (readability) */
+.arsan-modal-backdrop{
+  background:rgba(0,0,0,.45) !important;
+  backdrop-filter:none !important;
+}
+
+/* Kill browser autofill yellow/cream tint on modal inputs */
+.arsan-modal input:-webkit-autofill,
+.arsan-modal input:-webkit-autofill:hover,
+.arsan-modal input:-webkit-autofill:focus,
+.arsan-modal input:-webkit-autofill:active,
+.arsan-chat-panel input:-webkit-autofill,
+.arsan-chat-panel textarea:-webkit-autofill{
+  -webkit-box-shadow:0 0 0 1000px #ffffff inset !important;
+  box-shadow:0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color:#111 !important;
+  caret-color:#111 !important;
+  background-color:#ffffff !important;
+  background-clip:content-box !important;
+  transition:background-color 9999s ease-in-out 0s !important;
+}
+
+/* Belt-and-suspenders: force backgrounds on every input type inside Arsan surfaces */
+.arsan-modal input[type="text"],
+.arsan-modal input[type="email"],
+.arsan-modal input[type="password"],
+.arsan-modal input[type="url"],
+.arsan-modal input[type="number"],
+.arsan-modal input[type="search"]{
+  background:#ffffff !important;
+  color:#111 !important;
+}
+</style>
+</head>
+<body>
+
+<!-- =================== HEADER =================== -->
+<header class="header" role="banner">
+  <div class="wrap header-inner">
+    <div class="brandline">
+      <span class="mark">
+        <span class="logo" aria-hidden="true">أ</span>
+        شركة أرسان للتشغيل
+      </span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="deptBreadcrumb">إدارة المشاريع</span>
+      <span class="version" title="إصدار اللوحة">
+        <span class="v-dot" aria-hidden="true"></span>
+        إصدار 1.0
+      </span>
+      <a href="index.html" class="theme-toggle" id="changeDeptBtn" aria-label="تغيير الإدارة" style="text-decoration:none;margin-inline-start:auto">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+        </svg>
+        <span id="changeDeptLabel">تغيير الإدارة</span>
+      </a>
+      <button class="theme-toggle" id="langToggle" aria-label="تبديل اللغة" type="button" style="margin-inline-start:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span id="langLabel">EN</span>
+      </button>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الداكن/الفاتح" type="button" style="margin-inline-start:0">
+        <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="themeLabel">وضع داكن</span>
+      </button>
+    </div>
+
+    <h1 class="title">
+      مرجع الإجراءات التشغيلية <span class="accent-underline">الموحّدة</span> لإدارة المشاريع
+    </h1>
+    <p class="subtitle">
+      لوحة داخلية تجمع إجراءات العمل القياسية في إدارة المشاريع عبر مراحلها الخمس: التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ — مرجع واحد للموظفين لتنفيذ المهام وفق معيار موحّد.
+    </p>
+
+    <div class="stats" role="list" aria-label="مؤشرات سريعة">
+      <div class="stat accent" role="listitem">
+        <div class="n" id="stat-sops">12</div>
+        <div class="l">إجراء تشغيلي</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-phases">5</div>
+        <div class="l">مراحل عمل</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-forms">0<span class="u">قابل للإضافة</span></div>
+        <div class="l">نموذج مرتبط</div>
+      </div>
+      <div class="stat" role="listitem">
+        <div class="n" id="stat-kpis">0<span class="u">قابل للإضافة</span></div>
+        <div class="l">مؤشر أداء</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- =================== TOOLBAR =================== -->
+<div class="toolbar" role="region" aria-label="أدوات البحث والفلترة">
+  <div class="wrap toolbar-inner">
+    <div class="search" id="searchWrap">
+      <input id="searchInput" type="search" placeholder="ابحث في الإجراءات، الأكواد، أو الأوصاف…" aria-label="بحث في الإجراءات" autocomplete="off" />
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <button class="clear" id="searchClear" type="button" aria-label="مسح البحث">مسح ✕</button>
+    </div>
+    <div class="chips" id="chips" role="toolbar" aria-label="فلترة حسب المرحلة">
+      <!-- chips injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- =================== RESULTS =================== -->
+<main class="wrap" id="main">
+  <div class="results-meta">
+    <div>
+      عرض <strong id="visibleCount">12</strong> من أصل <strong id="totalCount">12</strong> إجراءً
+      <span id="filterLabel" style="color:var(--ink-3)"></span>
+    </div>
+    <div class="view-switcher" role="tablist" aria-label="طريقة العرض">
+      <button class="view-btn active" data-view="grid" type="button" role="tab" aria-selected="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        شبكة
+      </button>
+      <button class="view-btn" data-view="map" type="button" role="tab" aria-selected="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m7 7 3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg>
+        خريطة ذهنية
+      </button>
+    </div>
+  </div>
+
+  <section class="grid" id="grid" aria-live="polite"></section>
+  <section class="brain-map" id="brainMap" style="display:none" aria-live="polite"></section>
+</main>
+
+<!-- =================== AI ASSISTANT (floating) =================== -->
+<button id="aiFab" class="fab" type="button" aria-label="مساعد الذكاء الاصطناعي">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+  <span>مساعد الذكاء</span>
+</button>
+
+<div class="ai-panel" id="aiPanel" aria-hidden="true">
+  <div class="ai-head">
+    <div>
+      <div class="ai-title">مساعد الذكاء الاصطناعي</div>
+      <div class="ai-sub">لتوليد وتحسين محتوى الإجراءات</div>
+    </div>
+    <button class="ai-close" id="aiClose" type="button" aria-label="إغلاق">✕</button>
+  </div>
+  <div class="ai-body" id="aiBody">
+    <div class="ai-msg ai-bot">
+      مرحباً! يمكنني مساعدتك في:
+      <ul style="margin:8px 0 0;padding-inline-start:18px">
+        <li>توليد خطوات إجراء معيّن</li>
+        <li>صياغة الغرض أو النطاق</li>
+        <li>اقتراح مؤشرات أداء (KPIs)</li>
+        <li>تحسين لغة إجراء مكتوب</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ai-quick" id="aiQuick">
+    <button type="button" data-prompt="اقترح خطوات تنفيذية لإجراء عن %TITLE% في %DEPT%">اقتراح خطوات</button>
+    <button type="button" data-prompt="اقترح 3 مؤشرات أداء (KPIs) لإجراء %TITLE%">اقتراح KPIs</button>
+    <button type="button" data-prompt="صغ غرضاً واضحاً لإجراء %TITLE% في %DEPT%">صياغة الغرض</button>
+  </div>
+  <form class="ai-input" id="aiForm">
+    <textarea id="aiInput" placeholder="اكتب طلبك هنا… مثلاً: اقترح خطوات لتنفيذ الصيانة الوقائية" rows="2"></textarea>
+    <button type="submit" class="ai-send" aria-label="إرسال">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </form>
+</div>
+
+<!-- =================== MODAL =================== -->
+<div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal" id="modalBox" tabindex="-1">
+    <div class="modal-head">
+      <div class="top-row">
+        <span class="sop-code" id="m-code">SOP-00</span>
+        <span class="phase-tag" id="m-phase">—</span>
+      </div>
+      <h2 id="modal-title">—</h2>
+      <button class="close-x" id="closeX" aria-label="إغلاق" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- الغرض -->
+      <div>
+        <p class="section-label">الغرض من الإجراء</p>
+        <div class="purpose-box" id="m-purpose">—</div>
+      </div>
+
+      <!-- الميتا -->
+      <div>
+        <p class="section-label">المعلومات الأساسية</p>
+        <div class="meta-grid" id="m-meta"></div>
+      </div>
+
+      <!-- الخطوات -->
+      <div>
+        <p class="section-label">خطوات التنفيذ</p>
+        <ol class="steps" id="m-steps"></ol>
+      </div>
+
+      <!-- KPIs -->
+      <div>
+        <p class="section-label">مؤشرات الأداء (KPIs)</p>
+        <div class="kpi-box" id="m-kpis">—</div>
+      </div>
+
+      <!-- النماذج -->
+      <div>
+        <p class="section-label">النماذج المرتبطة</p>
+        <div class="form-badges" id="m-forms"></div>
+      </div>
+
+      <!-- ملاحظة -->
+      <div id="m-note-wrap">
+        <p class="section-label">ملاحظة</p>
+        <div class="note-box">
+          <svg class="n-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span id="m-note">—</span>
+        </div>
+      </div>
+
+      <!-- التعليقات -->
+      <div class="comments-section">
+        <p class="section-label">النقاش والتعليقات</p>
+        <div class="comments-list" id="m-comments"></div>
+        <form class="comment-form" id="commentForm">
+          <input type="text" id="commentAuthor" placeholder="اسمك" maxlength="40" />
+          <textarea id="commentBody" placeholder="اكتب ملاحظتك أو اقتراحك…" rows="1"></textarea>
+          <button type="submit">إضافة</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <div class="hint">
+        اضغط <kbd>Esc</kbd> أو خارج النافذة للإغلاق · <kbd>←</kbd> <kbd>→</kbd> للتنقل بين الإجراءات
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" id="closeBtn" type="button">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== FOOTER =================== -->
+<footer class="site-foot wrap">
+  <div id="footer-line">شركة أرسان للتشغيل · <span id="footer-dept">إدارة المشاريع</span> · مرجع الإجراءات التشغيلية الموحّدة</div>
+  <div class="muted">الإدارة التنفيذية · إصدار 1.1</div>
+</footer>
+
+<script>
+/* ================= DATA =================
+   هيكل فارغ: 12 إجراء موزّعة على 5 مراحل.
+   جميع الحقول تحمل عناصر نائبة "— يُكمل لاحقاً —" ليتم تعبئتها.
+*/
+const PH = "— يُكمل لاحقاً —";
+
+/* ================= إعدادات جميع الإدارات =================
+   كل إدارة لها: اسم + مصطلح التصنيف (مرحلة/دورة/محور/قسم) + قائمة الفئات + قائمة الإجراءات.
+   الهيكل موحّد، فقط الأسماء والمصطلحات تختلف.
+*/
+const DEPARTMENTS_CONFIG = {
+  executive: {
+    name: "الإدارة التنفيذية",
+    groupTerm: "محور",
+    groupTermPlural: "محاور",
+    groupVerb: "المحاور التنفيذية",
+    subtitle: "مرجع الإجراءات التنفيذية العليا: الاستراتيجية، الحوكمة، اتخاذ القرار، متابعة الأداء الكلي، والعلاقات المؤسسية.",
+    titleHighlight: "التنفيذية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة التنفيذية",
+    groups: [
+      { id:"strategy",    label:"الاستراتيجية" },
+      { id:"governance",  label:"الحوكمة" },
+      { id:"decisions",   label:"اتخاذ القرار" },
+      { id:"performance", label:"الأداء المؤسسي" },
+      { id:"relations",   label:"العلاقات المؤسسية" }
+    ],
+    sops: [
+      ["EXE-01","strategy",    "صياغة الخطة الاستراتيجية"],
+      ["EXE-02","strategy",    "مراجعة الخطة السنوية"],
+      ["EXE-03","governance",  "انعقاد مجلس الإدارة"],
+      ["EXE-04","governance",  "إقرار السياسات العليا"],
+      ["EXE-05","decisions",   "آلية اتخاذ القرارات التنفيذية"],
+      ["EXE-06","performance", "مراجعة الأداء المؤسسي الربعية"],
+      ["EXE-07","relations",   "إدارة علاقات أصحاب المصلحة"]
+    ]
+  },
+  projects: {
+    name: "إدارة المشاريع",
+    groupTerm: "مرحلة",        // "مرحلة التصميم"
+    groupTermPlural: "مراحل",
+    groupVerb: "المراحل الخمس",
+    subtitle: "لوحة داخلية تجمع إجراءات العمل القياسية في إدارة المشاريع عبر مراحلها الخمس: التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ — مرجع واحد للموظفين لتنفيذ المهام وفق معيار موحّد.",
+    titleHighlight: "الموحّدة",
+    titlePrefix: "مرجع الإجراءات التشغيلية",
+    titleSuffix: "لإدارة المشاريع",
+    groups: [
+      { id:"design",       label:"تصميم" },
+      { id:"planning",     label:"تخطيط" },
+      { id:"procurement",  label:"مشتريات" },
+      { id:"maintenance",  label:"صيانة" },
+      { id:"execution",    label:"تنفيذ" }
+    ],
+    sops: [
+      ["SOP-01","design",      "إجراء تصميم (1)"],
+      ["SOP-02","design",      "إجراء تصميم (2)"],
+      ["SOP-03","planning",    "إجراء تخطيط (1)"],
+      ["SOP-04","planning",    "إجراء تخطيط (2)"],
+      ["SOP-05","planning",    "إجراء تخطيط (3)"],
+      ["SOP-06","procurement", "إجراء مشتريات (1)"],
+      ["SOP-07","procurement", "إجراء مشتريات (2)"],
+      ["SOP-08","maintenance", "إجراء صيانة (1)"],
+      ["SOP-09","maintenance", "إجراء صيانة (2)"],
+      ["SOP-10","execution",   "إجراء تنفيذ (1)"],
+      ["SOP-11","execution",   "إجراء تنفيذ (2)"],
+      ["SOP-12","execution",   "إجراء تنفيذ (3)"]
+    ]
+  },
+  finance: {
+    name: "الإدارة المالية",
+    groupTerm: "دورة",
+    groupTermPlural: "دورات",
+    groupVerb: "الدورات المالية",
+    subtitle: "مرجع الإجراءات المالية القياسية: الموازنة، الإيرادات، المصروفات، المطالبات، التقارير، والمراجعة — قالب جاهز للتعبئة.",
+    titleHighlight: "المالية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة المالية",
+    groups: [
+      { id:"budget",      label:"الموازنة" },
+      { id:"revenue",     label:"الإيرادات" },
+      { id:"expenses",    label:"المصروفات" },
+      { id:"claims",      label:"المطالبات" },
+      { id:"reporting",   label:"التقارير" },
+      { id:"audit",       label:"المراجعة الداخلية" }
+    ],
+    sops: [
+      ["FIN-01","budget",    "إعداد الموازنة السنوية"],
+      ["FIN-02","budget",    "مراجعة الانحرافات"],
+      ["FIN-03","revenue",   "تسجيل الإيرادات"],
+      ["FIN-04","expenses",  "اعتماد المصروفات"],
+      ["FIN-05","expenses",  "صرف المستحقات"],
+      ["FIN-06","claims",    "معالجة المطالبات المالية"],
+      ["FIN-07","reporting", "إعداد التقارير الشهرية"],
+      ["FIN-08","reporting", "الإقفال المالي السنوي"],
+      ["FIN-09","audit",     "المراجعة الداخلية الدورية"]
+    ]
+  },
+  operations: {
+    name: "الإدارة التشغيلية",
+    groupTerm: "محور",
+    groupTermPlural: "محاور",
+    groupVerb: "محاور التشغيل",
+    subtitle: "مرجع الإجراءات التشغيلية اليومية: الجدولة، التنفيذ، الصيانة، السلامة، ومتابعة الأداء — قالب جاهز للتعبئة.",
+    titleHighlight: "التشغيلية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة التشغيلية",
+    groups: [
+      { id:"scheduling",  label:"الجدولة" },
+      { id:"operations",  label:"التشغيل اليومي" },
+      { id:"maintenance", label:"الصيانة" },
+      { id:"safety",      label:"السلامة والجودة" },
+      { id:"performance", label:"متابعة الأداء" }
+    ],
+    sops: [
+      ["OPS-01","scheduling",  "إعداد خطة التشغيل الأسبوعية"],
+      ["OPS-02","scheduling",  "جدولة المناوبات"],
+      ["OPS-03","operations",  "بدء عمليات اليوم"],
+      ["OPS-04","operations",  "إغلاق عمليات اليوم"],
+      ["OPS-05","maintenance", "الصيانة الوقائية الدورية"],
+      ["OPS-06","maintenance", "التعامل مع الأعطال الطارئة"],
+      ["OPS-07","safety",      "فحوصات السلامة اليومية"],
+      ["OPS-08","safety",      "تقرير الحوادث"],
+      ["OPS-09","performance", "مراجعة مؤشرات الأداء الأسبوعية"]
+    ]
+  },
+  legal: {
+    name: "الإدارة القانونية",
+    groupTerm: "قسم",
+    groupTermPlural: "أقسام",
+    groupVerb: "الأقسام القانونية",
+    subtitle: "مرجع الإجراءات القانونية: العقود، الامتثال، النزاعات، والتراخيص — قالب جاهز للتعبئة.",
+    titleHighlight: "القانونية",
+    titlePrefix: "مرجع الإجراءات",
+    titleSuffix: "للإدارة القانونية",
+    groups: [
+      { id:"contracts",   label:"العقود" },
+      { id:"compliance",  label:"الامتثال" },
+      { id:"disputes",    label:"النزاعات" },
+      { id:"licenses",    label:"التراخيص" },
+      { id:"advisory",    label:"الاستشارات القانونية" }
+    ],
+    sops: [
+      ["LGL-01","contracts",  "صياغة عقد جديد"],
+      ["LGL-02","contracts",  "مراجعة العقود الواردة"],
+      ["LGL-03","contracts",  "تجديد/إنهاء العقود"],
+      ["LGL-04","compliance", "مراجعة الامتثال الدورية"],
+      ["LGL-05","compliance", "متابعة التحديثات التنظيمية"],
+      ["LGL-06","disputes",   "معالجة النزاعات والمطالبات"],
+      ["LGL-07","licenses",   "استخراج وتجديد التراخيص"],
+      ["LGL-08","advisory",   "تقديم استشارة قانونية داخلية"]
+    ]
+  },
+  hr: {
+    name: "إدارة الموارد البشرية",
+    groupTerm: "قسم",
+    groupTermPlural: "أقسام",
+    groupVerb: "أقسام الموارد البشرية",
+    subtitle: "مرجع إجراءات الموارد البشرية: التوظيف، الإدخال، الأداء، التدريب، الإجازات، والخروج — قالب جاهز للتعبئة.",
+    titleHighlight: "البشرية",
+    titlePrefix: "مرجع إجراءات الموارد",
+    titleSuffix: "لإدارة الموارد البشرية",
+    groups: [
+      { id:"recruitment", label:"التوظيف" },
+      { id:"onboarding",  label:"الإدخال" },
+      { id:"performance", label:"الأداء" },
+      { id:"training",    label:"التدريب" },
+      { id:"leaves",      label:"الإجازات" },
+      { id:"offboarding", label:"الخروج" }
+    ],
+    sops: [
+      ["HR-01","recruitment", "نشر الشاغر واستقبال الطلبات"],
+      ["HR-02","recruitment", "المقابلات والاختيار"],
+      ["HR-03","onboarding",  "إجراءات إدخال الموظف الجديد"],
+      ["HR-04","performance", "تقييم الأداء السنوي"],
+      ["HR-05","performance", "خطط التحسين الفردية"],
+      ["HR-06","training",    "تحديد الاحتياجات التدريبية"],
+      ["HR-07","training",    "تنفيذ البرامج التدريبية"],
+      ["HR-08","leaves",      "طلب واعتماد الإجازات"],
+      ["HR-09","offboarding", "إنهاء الخدمة وإخلاء الطرف"]
+    ]
+  },
+  bizdev: {
+    name: "إدارة تطوير الأعمال",
+    groupTerm: "مرحلة",
+    groupTermPlural: "مراحل",
+    groupVerb: "مراحل تطوير الأعمال",
+    subtitle: "مرجع إجراءات تطوير الأعمال: استكشاف الفرص، العروض، التفاوض، الشراكات، وإدارة العلاقات — قالب جاهز للتعبئة.",
+    titleHighlight: "الأعمال",
+    titlePrefix: "مرجع إجراءات تطوير",
+    titleSuffix: "لإدارة تطوير الأعمال",
+    groups: [
+      { id:"discovery",     label:"استكشاف الفرص" },
+      { id:"proposals",     label:"إعداد العروض" },
+      { id:"negotiation",   label:"التفاوض" },
+      { id:"partnerships",  label:"الشراكات" },
+      { id:"relationships", label:"إدارة العلاقات" }
+    ],
+    sops: [
+      ["BD-01","discovery",     "رصد وتقييم الفرص التجارية"],
+      ["BD-02","discovery",     "دراسة الجدوى الأولية"],
+      ["BD-03","proposals",     "إعداد العرض الفني والمالي"],
+      ["BD-04","proposals",     "تقديم العرض للعميل"],
+      ["BD-05","negotiation",   "إدارة جولات التفاوض"],
+      ["BD-06","partnerships",  "تأسيس الشراكات الاستراتيجية"],
+      ["BD-07","relationships", "متابعة علاقات العملاء"],
+      ["BD-08","relationships", "تقييم الرضا وتطوير العلاقة"]
+    ]
+  }
+};
+
+/* === تحديد الإدارة الحالية من URL أو localStorage === */
+function getCurrentDept(){
+  const params = new URLSearchParams(window.location.search);
+  let id = params.get('dept');
+  if (!id) {
+    try {
+      const saved = JSON.parse(localStorage.getItem('arsan_department') || 'null');
+      if (saved && saved.id) id = saved.id;
+    } catch(_){}
+  }
+  if (!id || !DEPARTMENTS_CONFIG[id]) id = 'projects';
+  return id;
+}
+const CURRENT_DEPT_ID = getCurrentDept();
+const DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
+
+/* متوافق مع الكود القديم: PHASES = groups الخاصة بالإدارة */
+const PHASES = DEPT.groups;
+
+function blankSOP(code, phaseId, titleHint){
+  return {
+    code,
+    phase: phaseId,
+    title: titleHint,
+    desc: PH,
+    purpose: PH,
+    scope: PH,
+    owner: PH,
+    inputs: PH,
+    outputs: PH,
+    sla: PH,
+    kpis: PH,
+    forms: [],
+    steps: [PH, PH, PH],
+    note: ""
+  };
+}
+
+/* إنشاء الإجراءات من إعدادات الإدارة الحالية */
+const SOPS = DEPT.sops.map(([code, phase, title]) => blankSOP(code, phase, title));
+
+/* Expose globals for extensions */
+window.DEPARTMENTS_CONFIG = DEPARTMENTS_CONFIG;
+window.CURRENT_DEPT_ID = CURRENT_DEPT_ID;
+window.DEPT = DEPT;
+window.SOPS = SOPS;
+
+/* تحميل التعديلات المحفوظة من localStorage (لكل إدارة مفتاح منفصل) */
+const STORAGE_KEY = `arsan_sops_${CURRENT_DEPT_ID}`;
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  SOPS.forEach(s => {
+    if (saved[s.code]) Object.assign(s, saved[s.code]);
+  });
+} catch(_){}
+
+function saveSOP(sop){
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    saved[sop.code] = sop;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  } catch(_){}
+}
+
+/* ================= STATE ================= */
+const state = {
+  q: "",
+  phase: "all",
+  openIdx: -1
+};
+window.state = state;
+
+/* ================= HELPERS ================= */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const phaseLabel = id => (typeof gLabel==='function' ? gLabel(id) : ((PHASES.find(p=>p.id===id)||{}).label || id));
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+function isPH(v){ return !v || v === PH; }
+function renderVal(v){
+  if(isPH(v)) return `<span class="ph">يُكمل لاحقاً</span>`;
+  return escapeHtml(v);
+}
+
+/* ================= CHIPS ================= */
+function renderChips(){
+  const chips = $("#chips");
+  const counts = { all: SOPS.length };
+  PHASES.forEach(p => counts[p.id] = SOPS.filter(s=>s.phase===p.id).length);
+
+  const items = [{id:"all", label: (typeof T==='function' ? T('all') : 'الكل')}, ...PHASES.map(p => ({id: p.id, label: phaseLabel(p.id)}))];
+  chips.innerHTML = items.map(it => `
+    <button class="chip" data-phase="${it.id}" aria-pressed="${state.phase===it.id}" type="button">
+      <span>${escapeHtml(it.label)}</span>
+      <span class="count">${counts[it.id]}</span>
+    </button>
+  `).join("");
+
+  if (!chips._bound) {
+    chips._bound = true;
+    chips.addEventListener("click", e => {
+      const btn = e.target.closest(".chip");
+      if(!btn) return;
+      state.phase = btn.dataset.phase;
+      $$(".chip", chips).forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
+      renderGrid();
+    });
+  }
+}
+
+/* ================= GRID ================= */
+function filteredSOPs(){
+  const q = state.q.trim().toLowerCase();
+  return SOPS.filter(s => {
+    if(state.phase !== "all" && s.phase !== state.phase) return false;
+    if(!q) return true;
+    const hay = [s.code, s.title, s.desc, s.purpose, phaseLabel(s.phase), s.owner, s.sla, s.scope, ...(s.steps||[])]
+      .filter(x=>!isPH(x)).join(" ").toLowerCase();
+    // الكود والعنوان دائماً في البحث حتى لو placeholder
+    const hay2 = [s.code, s.title, phaseLabel(s.phase)].join(" ").toLowerCase();
+    return hay.includes(q) || hay2.includes(q);
+  });
+}
+
+function renderGrid(){
+  const grid = $("#grid");
+  const list = filteredSOPs();
+  $("#visibleCount").textContent = list.length;
+  $("#totalCount").textContent = SOPS.length;
+  const phaseWord = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'Category ' : 'مرحلة ';
+  const searchWord = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'search' : 'بحث';
+  $("#filterLabel").textContent = state.phase==="all" && !state.q ? "" :
+    ` · ${state.phase!=="all" ? phaseWord+phaseLabel(state.phase) : ""}${state.q ? ` · ${searchWord} "${state.q}"` : ""}`;
+
+  if(list.length === 0){
+    const emptyTitle = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'No matching results' : 'لا توجد نتائج مطابقة';
+    const emptyHint  = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'Try clearing the search or selecting a different filter.' : 'جرّب مسح البحث أو اختيار فلتر مختلف.';
+    grid.innerHTML = `
+      <div class="empty">
+        <strong>${emptyTitle}</strong>
+        ${emptyHint}
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(s => {
+    const idx = SOPS.indexOf(s);
+    const titleLoc = (typeof sopTitle==='function') ? sopTitle(s) : s.title;
+    const descFallbackEn = 'Description will be added later.';
+    const descFallbackAr = 'وصف الإجراء سيُضاف لاحقاً عند تعبئة المحتوى.';
+    const descFallback = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? descFallbackEn : descFallbackAr;
+    const descHtml = isPH(s.desc)
+      ? `<span class="ph">${descFallback}</span>`
+      : escapeHtml(s.desc);
+    const ownerHtml = isPH(s.owner) ? `<span class="ph">${(typeof T==='function'?T('owner'):'المالك')}</span>` : escapeHtml(s.owner);
+    const slaHtml   = isPH(s.sla)   ? `<span class="ph">${(typeof T==='function'?T('sla'):'SLA')}</span>`    : escapeHtml(s.sla);
+    const openLabel = (typeof T==='function') ? T('openSop') : 'افتح تفاصيل الإجراء';
+    const arrow = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? '→' : '←';
+    return `
+      <article class="card" tabindex="0" role="button" data-idx="${idx}" aria-label="${escapeHtml(openLabel)} — ${escapeHtml(s.code)}">
+        <div class="card-top">
+          <span class="sop-code">${escapeHtml(s.code)}</span>
+          <span class="phase-tag">${escapeHtml(phaseLabel(s.phase))}</span>
+        </div>
+        <h3>${escapeHtml(titleLoc)}</h3>
+        <p class="card-desc">${descHtml}</p>
+        <div class="badges">
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            ${ownerHtml}
+          </span>
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            ${slaHtml}
+          </span>
+        </div>
+        <div class="open-btn">
+          <span>${escapeHtml(openLabel)}</span>
+          <span class="arrow" aria-hidden="true">${arrow}</span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+/* ================= MODAL ================= */
+function openModal(idx){
+  const s = SOPS[idx];
+  if(!s) return;
+  state.openIdx = idx;
+
+  $("#m-code").textContent = s.code;
+  $("#m-phase").textContent = phaseLabel(s.phase);
+  $("#modal-title").textContent = (typeof sopTitle==='function') ? sopTitle(s) : s.title;
+
+  const isEn = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en');
+  $("#m-purpose").innerHTML = isPH(s.purpose)
+    ? `<span class="ph">${isEn ? 'Explain here why this procedure exists and what problem it solves.' : 'اشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.'}</span>`
+    : escapeHtml(s.purpose);
+
+  const metaItems = [
+    { k: isEn?'Owner':'الجهة المالكة', v:s.owner, icon:"user"  },
+    { k: isEn?'SLA':'الإطار الزمني (SLA)', v:s.sla, icon:"clock" },
+    { k: isEn?'Scope':'النطاق', v:s.scope, icon:"target" },
+    { k: isEn?'Inputs':'المدخلات', v:s.inputs, icon:"in" },
+    { k: isEn?'Outputs':'المخرجات', v:s.outputs, icon:"out", full:true }
+  ];
+  $("#m-meta").innerHTML = metaItems.map(m => `
+    <div class="meta-cell${m.full?" full":""}">
+      <div class="k">${escapeHtml(m.k)}</div>
+      <div class="v">${renderVal(m.v)}</div>
+    </div>
+  `).join("");
+
+  const steps = (s.steps && s.steps.length) ? s.steps : [PH,PH,PH];
+  const stepPh = isEn ? 'Step to be added later' : 'تُعبّأ الخطوة لاحقاً';
+  $("#m-steps").innerHTML = steps.map(st =>
+    `<li>${isPH(st) ? `<span class="ph">${stepPh}</span>` : escapeHtml(st)}</li>`
+  ).join("");
+
+  $("#m-kpis").innerHTML = isPH(s.kpis)
+    ? `<span class="ph">${isEn ? 'Define here how we measure the success of this procedure — e.g. completion rate, response time, or error rates.' : 'حدّد هنا كيف نقيس نجاح تنفيذ هذا الإجراء — مثل نسب الإنجاز، زمن الاستجابة، أو معدلات الأخطاء.'}</span>`
+    : escapeHtml(s.kpis);
+
+  if(!s.forms || s.forms.length===0){
+    $("#m-forms").innerHTML = `<span class="ph">${isEn ? 'No linked forms yet' : 'لا توجد نماذج مربوطة حتى الآن'}</span>`;
+  } else {
+    $("#m-forms").innerHTML = s.forms.map(f => `
+      <span class="form-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+        ${escapeHtml(f)}
+      </span>
+    `).join("");
+  }
+
+  // Localize section labels in modal body
+  const labelMap = {
+    'الغرض من الإجراء': 'Purpose',
+    'المعلومات الأساسية': 'Basic Information',
+    'خطوات التنفيذ': 'Execution Steps',
+    'مؤشرات الأداء (KPIs)': 'Key Performance Indicators (KPIs)',
+    'النماذج المرتبطة': 'Linked Forms',
+    'ملاحظة': 'Note',
+    'النقاش والتعليقات': 'Discussion & Comments'
+  };
+  const reverseMap = Object.fromEntries(Object.entries(labelMap).map(([a,b])=>[b,a]));
+  document.querySelectorAll('.modal-body .section-label').forEach(el => {
+    const t = el.textContent.trim();
+    if (isEn && labelMap[t]) el.textContent = labelMap[t];
+    else if (!isEn && reverseMap[t]) el.textContent = reverseMap[t];
+  });
+
+  if(s.note && !isPH(s.note)){
+    $("#m-note-wrap").style.display = "";
+    $("#m-note").textContent = s.note;
+  } else {
+    $("#m-note-wrap").style.display = "none";
+  }
+
+  const m = $("#modal");
+  m.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+  setTimeout(()=> $("#modalBox").focus(), 30);
+  // load comments for this SOP
+  if (typeof renderComments === 'function') renderComments(s.code);
+}
+function closeModal(){
+  $("#modal").setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+  if(state.openIdx >= 0){
+    const card = document.querySelector(`.card[data-idx="${state.openIdx}"]`);
+    if(card) card.focus();
+  }
+  state.openIdx = -1;
+}
+function navModal(dir){
+  const visible = filteredSOPs();
+  if(!visible.length) return;
+  const cur = SOPS[state.openIdx];
+  let i = visible.indexOf(cur);
+  if(i<0) i = 0;
+  /* في RTL، ← يعني التالي و → يعني السابق بصرياً — نحافظ على المنطق الطبيعي للقارئ */
+  i = (i + dir + visible.length) % visible.length;
+  openModal(SOPS.indexOf(visible[i]));
+}
+
+/* ================= SEARCH ================= */
+const searchWrap = $("#searchWrap");
+const searchInput = $("#searchInput");
+searchInput.addEventListener("input", e => {
+  state.q = e.target.value;
+  searchWrap.classList.toggle("has-value", !!state.q);
+  renderGrid();
+});
+$("#searchClear").addEventListener("click", () => {
+  searchInput.value = ""; state.q = "";
+  searchWrap.classList.remove("has-value");
+  renderGrid(); searchInput.focus();
+});
+
+/* ================= EVENTS ================= */
+document.addEventListener("click", e => {
+  const card = e.target.closest(".card");
+  if(card) openModal(+card.dataset.idx);
+});
+document.addEventListener("keydown", e => {
+  if(e.key === "/" && document.activeElement !== searchInput){
+    e.preventDefault(); searchInput.focus();
+  }
+  const modalOpen = $("#modal").getAttribute("aria-hidden") === "false";
+  if(modalOpen){
+    if(e.key === "Escape") closeModal();
+    if(e.key === "ArrowLeft")  navModal(+1);
+    if(e.key === "ArrowRight") navModal(-1);
+    return;
+  }
+  // Enter/Space على الكارد
+  const active = document.activeElement;
+  if(active && active.classList.contains("card") && (e.key === "Enter" || e.key === " ")){
+    e.preventDefault();
+    openModal(+active.dataset.idx);
+  }
+});
+$("#closeX").addEventListener("click", closeModal);
+$("#closeBtn").addEventListener("click", closeModal);
+$("#modal").addEventListener("click", e => {
+  if(e.target.id === "modal") closeModal();
+});
+
+/* ================= THEME TOGGLE ================= */
+const themeBtn = $("#themeToggle");
+const themeLabel = $("#themeLabel");
+const themeIcon = $("#themeIcon");
+function applyTheme(mode){
+  document.documentElement.setAttribute("data-theme", mode);
+  localStorage.setItem("arsaan_pm_theme", mode);
+  themeLabel.textContent = mode === "dark" ? "وضع فاتح" : "وضع داكن";
+  themeIcon.innerHTML = mode === "dark"
+    ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+const savedTheme = localStorage.getItem("arsaan_pm_theme") || "light";
+applyTheme(savedTheme);
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  applyTheme(cur === "dark" ? "light" : "dark");
+});
+
+/* ================= STATS ================= */
+function updateStats(){
+  $("#stat-sops").textContent = SOPS.length;
+  $("#stat-phases").textContent = PHASES.length;
+  const forms = new Set(); SOPS.forEach(s => (s.forms||[]).forEach(f => forms.add(f)));
+  const formsN = forms.size;
+  const kpisN  = SOPS.filter(s => !isPH(s.kpis)).length;
+  $("#stat-forms").innerHTML = formsN === 0
+    ? `0<span class="u">قابل للإضافة</span>` : String(formsN);
+  $("#stat-kpis").innerHTML = kpisN === 0
+    ? `0<span class="u">قابل للإضافة</span>` : String(kpisN);
+}
+
+/* ================= INIT ================= */
+// Bootstrap language vars early (real I18N dict assigned later)
+var CURRENT_LANG = (typeof CURRENT_LANG !== 'undefined' ? CURRENT_LANG : (localStorage.getItem('arsan_lang') || 'ar'));
+var I18N = (typeof I18N !== 'undefined' && I18N) ? I18N : { ar:{}, en:{} };
+renderChips();
+renderGrid();
+updateStats();
+
+/* ================= VIEW SWITCHER ================= */
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const v = btn.dataset.view;
+    document.querySelectorAll('.view-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+    });
+    $("#grid").style.display = v === 'grid' ? '' : 'none';
+    $("#brainMap").style.display = v === 'map' ? '' : 'none';
+    if (v === 'map') renderBrainMap();
+  });
+});
+
+/* ================= BRAIN MAP ================= */
+function renderBrainMap(){
+  const map = $("#brainMap");
+  const W = map.clientWidth || 900;
+  const H = 640;
+  map.style.height = H + 'px';
+  map.innerHTML = '';
+  // SVG for edges
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('class','bm-svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  map.appendChild(svg);
+
+  // Center
+  const cx = W/2, cy = H/2;
+  const center = document.createElement('div');
+  center.className = 'bm-center';
+  center.textContent = DEPT.name;
+  map.appendChild(center);
+
+  // Groups around center
+  const groups = DEPT.groups;
+  const groupRadius = Math.min(W,H) * 0.28;
+  const groupPositions = {};
+  groups.forEach((g, i) => {
+    const angle = (i / groups.length) * Math.PI * 2 - Math.PI/2;
+    const gx = cx + Math.cos(angle) * groupRadius;
+    const gy = cy + Math.sin(angle) * groupRadius;
+    groupPositions[g.id] = { x: gx, y: gy, angle };
+    const el = document.createElement('div');
+    el.className = 'bm-group';
+    el.textContent = g.label;
+    el.style.left = gx + 'px';
+    el.style.top = gy + 'px';
+    el.style.transform = 'translate(-50%,-50%)';
+    el.addEventListener('click', () => {
+      state.phase = g.id;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view==='grid'));
+      document.querySelectorAll('.view-btn').forEach(b => b.setAttribute('aria-selected', b.dataset.view==='grid' ? 'true':'false'));
+      $("#grid").style.display = '';
+      $("#brainMap").style.display = 'none';
+      $$(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.phase===state.phase));
+      renderGrid();
+      window.scrollTo({ top: 0, behavior:'smooth' });
+    });
+    map.appendChild(el);
+
+    // Edge center → group
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', gx); line.setAttribute('y2', gy);
+    line.setAttribute('stroke', 'currentColor');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('opacity', '.35');
+    svg.appendChild(line);
+  });
+
+  // SOPs around each group
+  groups.forEach(g => {
+    const sopsIn = SOPS.filter(s => s.phase === g.id);
+    const gp = groupPositions[g.id];
+    const spread = Math.PI / 3;
+    const sopRadius = 130;
+    sopsIn.forEach((s, j) => {
+      const t = sopsIn.length === 1 ? 0 : (j / (sopsIn.length - 1) - 0.5);
+      const a = gp.angle + t * spread;
+      const sx = gp.x + Math.cos(a) * sopRadius;
+      const sy = gp.y + Math.sin(a) * sopRadius;
+      const clampedX = Math.max(80, Math.min(W - 80, sx));
+      const clampedY = Math.max(30, Math.min(H - 30, sy));
+      const el = document.createElement('div');
+      el.className = 'bm-sop';
+      el.innerHTML = `<span class="bm-code">${escapeHtml(s.code)}</span>${escapeHtml(s.title)}`;
+      el.style.left = clampedX + 'px';
+      el.style.top = clampedY + 'px';
+      el.style.transform = 'translate(-50%,-50%)';
+      el.addEventListener('click', () => openModal(SOPS.indexOf(s)));
+      map.appendChild(el);
+
+      // Edge group → sop
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', gp.x); line.setAttribute('y1', gp.y);
+      line.setAttribute('x2', clampedX); line.setAttribute('y2', clampedY);
+      line.setAttribute('stroke', 'currentColor');
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('opacity', '.2');
+      svg.appendChild(line);
+    });
+  });
+}
+window.addEventListener('resize', () => {
+  if ($("#brainMap").style.display !== 'none') renderBrainMap();
+});
+
+/* ================= COMMENTS ================= */
+const COMMENTS_KEY = `arsan_comments_${CURRENT_DEPT_ID}`;
+function loadComments(code){
+  try {
+    const all = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}');
+    return all[code] || [];
+  } catch(_) { return []; }
+}
+function saveComment(code, author, body){
+  try {
+    const all = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}');
+    all[code] = all[code] || [];
+    all[code].push({ author, body, ts: Date.now() });
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(all));
+  } catch(_){}
+}
+function renderComments(code){
+  const list = loadComments(code);
+  const box = $("#m-comments");
+  if (!box) return;
+  if (list.length === 0) {
+    box.innerHTML = `<div class="comment-empty">لا توجد تعليقات بعد — كن أول من يبدأ النقاش.</div>`;
+    return;
+  }
+  box.innerHTML = list.map(c => {
+    const d = new Date(c.ts);
+    const when = d.toLocaleString('ar', { dateStyle:'medium', timeStyle:'short' });
+    return `
+      <div class="comment">
+        <div class="comment-head">
+          <span class="comment-author">${escapeHtml(c.author || 'مجهول')}</span>
+          <span>·</span>
+          <span>${escapeHtml(when)}</span>
+        </div>
+        <div class="comment-body">${escapeHtml(c.body)}</div>
+      </div>`;
+  }).join('');
+}
+// hook submit
+(function(){
+  const form = document.getElementById('commentForm');
+  if (!form) return;
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (state.openIdx < 0) return;
+    const author = document.getElementById('commentAuthor').value.trim() || 'مجهول';
+    const body = document.getElementById('commentBody').value.trim();
+    if (!body) return;
+    const code = SOPS[state.openIdx].code;
+    saveComment(code, author, body);
+    document.getElementById('commentBody').value = '';
+    // remember author
+    try { localStorage.setItem('arsan_last_author', author); } catch(_){}
+    renderComments(code);
+  });
+  // restore last author
+  try {
+    const last = localStorage.getItem('arsan_last_author');
+    if (last) document.getElementById('commentAuthor').value = last;
+  } catch(_){}
+})();
+
+/* ================= AI ASSISTANT ================= */
+const aiFab = $("#aiFab");
+const aiPanel = $("#aiPanel");
+const aiBody = $("#aiBody");
+const aiForm = $("#aiForm");
+const aiInput = $("#aiInput");
+const aiClose = $("#aiClose");
+
+aiFab.addEventListener('click', () => {
+  const open = aiPanel.getAttribute('aria-hidden') === 'false';
+  aiPanel.setAttribute('aria-hidden', open ? 'true' : 'false');
+  if (!open) setTimeout(() => aiInput.focus(), 200);
+});
+aiClose.addEventListener('click', () => aiPanel.setAttribute('aria-hidden','true'));
+
+function aiAddMsg(text, cls){
+  const el = document.createElement('div');
+  el.className = 'ai-msg ' + (cls || 'ai-bot');
+  el.textContent = text;
+  aiBody.appendChild(el);
+  aiBody.scrollTop = aiBody.scrollHeight;
+  return el;
+}
+
+async function aiAsk(prompt){
+  aiAddMsg(prompt, 'ai-user');
+  const loading = aiAddMsg('يفكّر…', 'ai-bot loading');
+  const context = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
+  const contextStr = context
+    ? `السياق الحالي:\n- الإدارة: ${DEPT.name}\n- الإجراء: ${context.code} — ${context.title}\n- الفئة: ${phaseLabel(context.phase)}\n- الغرض: ${isPH(context.purpose) ? '(غير مكتوب)' : context.purpose}\n- الخطوات الحالية: ${(context.steps||[]).map(s=>isPH(s)?'(فارغ)':s).join(' | ')}`
+    : `السياق: لوحة مرجع الإجراءات لـ ${DEPT.name} (${DEPT.groupVerb}).`;
+  const fullPrompt = `أنت مساعد خبير في صياغة إجراءات العمل القياسية (SOPs) باللغة العربية لشركة "أرسان للتشغيل". أجب بشكل عملي ومباشر وباللغة العربية الفصحى، مع ترقيم عند الحاجة.\n\n${contextStr}\n\nطلب المستخدم: ${prompt}`;
+  try {
+    const reply = await callAI(fullPrompt);
+    loading.remove();
+    const el = aiAddMsg(reply, 'ai-bot');
+    el.style.whiteSpace = 'pre-wrap';
+  } catch(err) {
+    loading.remove();
+    const msg = err && err.message ? err.message : String(err);
+    aiAddMsg('تعذّر الاتصال بالمساعد: ' + msg + '\n\nلتفعيل المساعد على GitHub Pages، يمكنك:\n• ضبط رابط Cloudflare Worker في window.API_BASE\n• أو إدخال مفتاح Anthropic API بالنقر على زر "إعداد AI" أسفل المحادثة.', 'ai-bot');
+    console.error(err);
+  }
+}
+
+/* ====== AI Provider Router ======
+   يحاول بالترتيب:
+   1) window.claude.complete  (داخل معاينة Claude فقط)
+   2) API_BASE + /api/ai       (Cloudflare Worker)
+   3) Anthropic API مباشرة باستخدام مفتاح محفوظ في localStorage
+*/
+async function callAI(prompt){
+  // 1. ArsanAPI.ai — Worker with auth token (preferred when logged in)
+  if (window.ArsanAPI && typeof window.ArsanAPI.ai === 'function' && window.ArsanAPI.getToken && window.ArsanAPI.getToken()) {
+    try { return await window.ArsanAPI.ai(prompt); } catch(e) { console.warn('ArsanAPI.ai failed:', e); }
+  }
+  // 2. Claude artifacts runtime (inside claude.ai preview only)
+  if (typeof window.claude === 'object' && window.claude && typeof window.claude.complete === 'function') {
+    return await window.claude.complete(prompt);
+  }
+  // 3. Direct Anthropic with user-supplied key (localStorage fallback)
+  const key = localStorage.getItem('arsan_anthropic_key');
+  if (key) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error('Anthropic ' + res.status);
+    const data = await res.json();
+    return (data.content && data.content[0] && data.content[0].text) || 'لا رد.';
+  }
+  throw new Error('يجب تسجيل الدخول لاستخدام مساعد الذكاء');
+}
+
+/* إعداد مفتاح Anthropic من الواجهة */
+window.setupAIKey = function(){
+  const cur = localStorage.getItem('arsan_anthropic_key') || '';
+  const k = prompt('أدخل Anthropic API key (يبدأ بـ sk-ant-...):\n\nيُحفظ محلياً في متصفحك فقط، لا يُرسل لأي خادم.\n\nللحذف: اترك الحقل فارغاً.', cur);
+  if (k === null) return;
+  if (k.trim() === '') { localStorage.removeItem('arsan_anthropic_key'); alert('تم حذف المفتاح.'); }
+  else { localStorage.setItem('arsan_anthropic_key', k.trim()); alert('تم حفظ المفتاح. جرّب المساعد الآن.'); }
+};
+
+aiForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const q = aiInput.value.trim();
+  if (!q) return;
+  aiInput.value = '';
+  aiAsk(q);
+});
+aiInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    aiForm.requestSubmit();
+  }
+});
+
+// Quick prompts
+document.querySelectorAll('.ai-quick button').forEach(b => {
+  b.addEventListener('click', () => {
+    const current = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
+    const title = current ? current.title : DEPT.name;
+    const prompt = b.dataset.prompt
+      .replace('%TITLE%', title)
+      .replace('%DEPT%', DEPT.name);
+    aiAsk(prompt);
+  });
+});
+
+/* ================= TWEAKS (host integration) ================= */
+/* يسمح لمحرّر Tweaks الخارجي بتفعيل التبديل عبر postMessage */
+window.addEventListener("message", e => {
+  const d = e.data || {};
+  if(d.type === "__activate_edit_mode" || d.type === "__deactivate_edit_mode"){
+    /* لا توجد لوحة Tweaks منفصلة — التبديل متاح داخل الهيدر */
+  }
+});
+try{
+  window.parent && window.parent.postMessage({type:"__edit_mode_available"}, "*");
+}catch(_){}
+
+/* ================= i18n — Arabic / English ================= */
+var I18N = {
+  ar: {
+    brand: "شركة أرسان للتشغيل",
+    changeDept: "تغيير الإدارة",
+    darkMode: "وضع داكن",
+    lightMode: "وضع فاتح",
+    sopsLabel: "إجراء تشغيلي",
+    formsLabel: "نموذج مرتبط",
+    kpisLabel: "مؤشر أداء",
+    addable: "قابل للإضافة",
+    searchPlaceholder: "ابحث في الإجراءات، الأكواد، أو الأوصاف…",
+    clearSearch: "مسح ✕",
+    all: "الكل",
+    gridView: "شبكة",
+    mapView: "خريطة ذهنية",
+    viewingOf: (v, t) => `عرض <strong id="visibleCount">${v}</strong> من أصل <strong id="totalCount">${t}</strong> إجراءً`,
+    openSop: "افتح تفاصيل الإجراء",
+    owner: "المالك",
+    sla: "SLA",
+    purpose: "الغرض من الإجراء",
+    basicInfo: "المعلومات الأساسية",
+    steps: "خطوات التنفيذ",
+    kpis: "مؤشرات الأداء (KPIs)",
+    forms: "النماذج المرتبطة",
+    note: "ملاحظة",
+    comments: "النقاش والتعليقات",
+    noComments: "لا توجد تعليقات بعد — كن أول من يبدأ النقاش.",
+    commentAuthor: "اسمك",
+    commentBody: "اكتب ملاحظتك أو اقتراحك…",
+    commentSubmit: "إضافة",
+    close: "إغلاق",
+    aiTitle: "مساعد الذكاء الاصطناعي",
+    aiSub: "لتوليد وتحسين محتوى الإجراءات",
+    aiHello: "مرحباً! يمكنني مساعدتك في:",
+    aiHelp: ["توليد خطوات إجراء معيّن", "صياغة الغرض أو النطاق", "اقتراح مؤشرات أداء (KPIs)", "تحسين لغة إجراء مكتوب"],
+    aiInputPh: "اكتب طلبك هنا… مثلاً: اقترح خطوات لتنفيذ الصيانة الوقائية",
+    aiSuggestSteps: "اقتراح خطوات",
+    aiSuggestKpis: "اقتراح KPIs",
+    aiWritePurpose: "صياغة الغرض",
+    aiThinking: "يفكّر…",
+    aiError: "تعذّر الاتصال بالمساعد. حاول مرة أخرى بعد قليل.",
+    aiFab: "مساعد الذكاء",
+    fillLater: "يُكمل لاحقاً",
+    modalHint: "اضغط <kbd>Esc</kbd> أو خارج النافذة للإغلاق · <kbd>←</kbd> <kbd>→</kbd> للتنقل بين الإجراءات",
+    footerRight: "الإدارة التنفيذية · إصدار 1.1",
+    footerMiddle: "مرجع الإجراءات التشغيلية الموحّدة",
+    ownerLabel: "الجهة المالكة",
+    slaLabel: "الإطار الزمني (SLA)",
+    scopeLabel: "النطاق",
+    inputsLabel: "المدخلات",
+    outputsLabel: "المخرجات",
+    noForms: "لا توجد نماذج مربوطة حتى الآن",
+    langSwitch: "EN",
+    unknown: "مجهول"
+  },
+  en: {
+    brand: "Arsan Operations Co.",
+    changeDept: "Change Department",
+    darkMode: "Dark mode",
+    lightMode: "Light mode",
+    sopsLabel: "SOPs",
+    formsLabel: "Linked forms",
+    kpisLabel: "KPIs",
+    addable: "addable",
+    searchPlaceholder: "Search procedures, codes, or descriptions…",
+    clearSearch: "Clear ✕",
+    all: "All",
+    gridView: "Grid",
+    mapView: "Mind Map",
+    viewingOf: (v, t) => `Showing <strong id="visibleCount">${v}</strong> of <strong id="totalCount">${t}</strong> procedures`,
+    openSop: "Open procedure details",
+    owner: "Owner",
+    sla: "SLA",
+    purpose: "Purpose",
+    basicInfo: "Basic Information",
+    steps: "Execution Steps",
+    kpis: "Key Performance Indicators (KPIs)",
+    forms: "Linked Forms",
+    note: "Note",
+    comments: "Discussion & Comments",
+    noComments: "No comments yet — be the first to start the discussion.",
+    commentAuthor: "Your name",
+    commentBody: "Write your note or suggestion…",
+    commentSubmit: "Add",
+    close: "Close",
+    aiTitle: "AI Assistant",
+    aiSub: "Generate & improve procedure content",
+    aiHello: "Hello! I can help with:",
+    aiHelp: ["Generating steps for a procedure", "Drafting purpose or scope", "Suggesting KPIs", "Improving procedure wording"],
+    aiInputPh: "Type your request here… e.g. Suggest steps for preventive maintenance",
+    aiSuggestSteps: "Suggest steps",
+    aiSuggestKpis: "Suggest KPIs",
+    aiWritePurpose: "Draft purpose",
+    aiThinking: "Thinking…",
+    aiError: "Could not reach the assistant. Please try again shortly.",
+    aiFab: "AI Assistant",
+    fillLater: "to be filled",
+    modalHint: "Press <kbd>Esc</kbd> or click outside to close · <kbd>←</kbd> <kbd>→</kbd> to navigate",
+    footerRight: "Executive Management · v1.1",
+    footerMiddle: "Unified Standard Operating Procedures reference",
+    ownerLabel: "Owner",
+    slaLabel: "SLA",
+    scopeLabel: "Scope",
+    inputsLabel: "Inputs",
+    outputsLabel: "Outputs",
+    noForms: "No linked forms yet",
+    langSwitch: "ع",
+    unknown: "Anonymous"
+  }
+};
+
+/* English names for departments and groups (mapped by id) */
+var DEPT_EN = {
+  executive: {
+    name: "Executive Management",
+    subtitle: "Reference for top-level executive procedures: strategy, governance, decision-making, corporate performance, and stakeholder relations.",
+    titlePrefix: "Procedure Reference",
+    titleHighlight: "Executive",
+    titleSuffix: "for Executive Management",
+    groupVerb: "executive pillars",
+    groups: { strategy:"Strategy", governance:"Governance", decisions:"Decision-making", performance:"Corporate Performance", relations:"Stakeholder Relations" },
+    sops: { "EXE-01":"Strategic Plan Drafting","EXE-02":"Annual Plan Review","EXE-03":"Board Meeting","EXE-04":"Top-level Policy Approval","EXE-05":"Executive Decision Protocol","EXE-06":"Quarterly Corporate Performance Review","EXE-07":"Stakeholder Relations Management" }
+  },
+  projects: {
+    name: "Project Management",
+    subtitle: "Internal dashboard of standard operating procedures across the five project phases: design, planning, procurement, maintenance, and execution — a unified reference for staff.",
+    titlePrefix: "Standard Operating",
+    titleHighlight: "Unified",
+    titleSuffix: "Project Procedures Reference",
+    groupVerb: "project phases",
+    groups: { design:"Design", planning:"Planning", procurement:"Procurement", maintenance:"Maintenance", execution:"Execution" },
+    sops: { "SOP-01":"Design Procedure 1","SOP-02":"Design Procedure 2","SOP-03":"Planning Procedure 1","SOP-04":"Planning Procedure 2","SOP-05":"Planning Procedure 3","SOP-06":"Procurement Procedure 1","SOP-07":"Procurement Procedure 2","SOP-08":"Maintenance Procedure 1","SOP-09":"Maintenance Procedure 2","SOP-10":"Execution Procedure 1","SOP-11":"Execution Procedure 2","SOP-12":"Execution Procedure 3" }
+  },
+  finance: {
+    name: "Finance Department",
+    subtitle: "Standard financial procedures: budgeting, revenue, expenses, claims, reporting, and audit — template ready to fill.",
+    titlePrefix: "Finance",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "financial cycles",
+    groups: { budget:"Budget", revenue:"Revenue", expenses:"Expenses", claims:"Claims", reporting:"Reporting", audit:"Internal Audit" },
+    sops: { "FIN-01":"Annual Budget Preparation","FIN-02":"Variance Review","FIN-03":"Revenue Recording","FIN-04":"Expense Approval","FIN-05":"Payment Disbursement","FIN-06":"Financial Claims Processing","FIN-07":"Monthly Reporting","FIN-08":"Annual Financial Closing","FIN-09":"Periodic Internal Audit" }
+  },
+  operations: {
+    name: "Operations Department",
+    subtitle: "Daily operational procedures: scheduling, daily ops, maintenance, safety, and performance tracking — template ready to fill.",
+    titlePrefix: "Operations",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "operations pillars",
+    groups: { scheduling:"Scheduling", operations:"Daily Operations", maintenance:"Maintenance", safety:"Safety & Quality", performance:"Performance Tracking" },
+    sops: { "OPS-01":"Weekly Ops Plan","OPS-02":"Shift Scheduling","OPS-03":"Start of Day","OPS-04":"End of Day","OPS-05":"Preventive Maintenance","OPS-06":"Emergency Breakdowns","OPS-07":"Daily Safety Checks","OPS-08":"Incident Reports","OPS-09":"Weekly KPI Review" }
+  },
+  legal: {
+    name: "Legal Department",
+    subtitle: "Legal procedures: contracts, compliance, disputes, and licensing — template ready to fill.",
+    titlePrefix: "Legal",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "legal divisions",
+    groups: { contracts:"Contracts", compliance:"Compliance", disputes:"Disputes", licenses:"Licenses", advisory:"Legal Advisory" },
+    sops: { "LGL-01":"Draft New Contract","LGL-02":"Review Incoming Contracts","LGL-03":"Renew/Terminate Contracts","LGL-04":"Periodic Compliance Review","LGL-05":"Regulatory Update Tracking","LGL-06":"Disputes & Claims Handling","LGL-07":"License Issuance & Renewal","LGL-08":"Internal Legal Advisory" }
+  },
+  hr: {
+    name: "Human Resources",
+    subtitle: "HR procedures: recruitment, onboarding, performance, training, leaves, and offboarding — template ready to fill.",
+    titlePrefix: "Human Resources",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "HR divisions",
+    groups: { recruitment:"Recruitment", onboarding:"Onboarding", performance:"Performance", training:"Training", leaves:"Leaves", offboarding:"Offboarding" },
+    sops: { "HR-01":"Post Vacancy & Receive Applications","HR-02":"Interviews & Selection","HR-03":"New Employee Onboarding","HR-04":"Annual Performance Review","HR-05":"Individual Improvement Plans","HR-06":"Training Needs Assessment","HR-07":"Training Program Delivery","HR-08":"Leave Request & Approval","HR-09":"Separation & Clearance" }
+  },
+  bizdev: {
+    name: "Business Development",
+    subtitle: "Business development procedures: opportunity discovery, proposals, negotiation, partnerships, and relationship management — template ready to fill.",
+    titlePrefix: "Business Development",
+    titleHighlight: "Procedures",
+    titleSuffix: "Reference",
+    groupVerb: "business development stages",
+    groups: { discovery:"Opportunity Discovery", proposals:"Proposals", negotiation:"Negotiation", partnerships:"Partnerships", relationships:"Relationship Management" },
+    sops: { "BD-01":"Commercial Opportunity Scouting","BD-02":"Preliminary Feasibility","BD-03":"Technical & Financial Proposal","BD-04":"Proposal Submission","BD-05":"Negotiation Rounds","BD-06":"Strategic Partnership Setup","BD-07":"Client Relations Follow-up","BD-08":"Satisfaction Review & Growth" }
+  }
+};
+
+var CURRENT_LANG = localStorage.getItem('arsan_lang') || 'ar';
+
+function T(key){
+  if (typeof I18N === 'undefined' || !I18N) return '';
+  return (I18N[CURRENT_LANG]||I18N.ar)[key];
+}
+
+function applyLang(lang){
+  CURRENT_LANG = lang;
+  localStorage.setItem('arsan_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  // lang toggle label shows the OTHER language
+  const langLabel = document.getElementById('langLabel');
+  if (langLabel) langLabel.textContent = lang === 'ar' ? 'EN' : 'ع';
+
+  // Dept display name
+  const deptNameDisplay = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID]
+    ? DEPT_EN[CURRENT_DEPT_ID].name
+    : DEPT.name;
+
+  // Breadcrumb + brand
+  const brandMark = document.querySelector('.brandline .mark');
+  if (brandMark) {
+    const logo = brandMark.querySelector('.logo').outerHTML;
+    brandMark.innerHTML = logo + ' ' + T('brand');
+  }
+  const bc = document.getElementById('deptBreadcrumb');
+  if (bc) bc.textContent = deptNameDisplay;
+
+  // Change dept + theme + language labels
+  const cd = document.getElementById('changeDeptLabel');
+  if (cd) cd.textContent = T('changeDept');
+  const themeLbl = document.getElementById('themeLabel');
+  if (themeLbl) themeLbl.textContent = document.documentElement.getAttribute('data-theme')==='dark' ? T('lightMode') : T('darkMode');
+
+  // Title + subtitle
+  const h1 = document.querySelector('h1.title');
+  if (h1) {
+    const cfg = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID] ? DEPT_EN[CURRENT_DEPT_ID] : DEPT;
+    h1.innerHTML = `${cfg.titlePrefix} <span class="accent-underline">${cfg.titleHighlight}</span> ${cfg.titleSuffix}`;
+  }
+  const sub = document.querySelector('.subtitle');
+  if (sub) {
+    sub.textContent = lang === 'en' && DEPT_EN[CURRENT_DEPT_ID]
+      ? DEPT_EN[CURRENT_DEPT_ID].subtitle
+      : DEPT.subtitle;
+  }
+
+  // Stats labels
+  const statLabels = document.querySelectorAll('.stat .l');
+  if (statLabels.length >= 4) {
+    statLabels[0].textContent = T('sopsLabel');
+    statLabels[1].textContent = lang==='en' && DEPT_EN[CURRENT_DEPT_ID] ? DEPT_EN[CURRENT_DEPT_ID].groupVerb : DEPT.groupVerb;
+    statLabels[2].textContent = T('formsLabel');
+    statLabels[3].textContent = T('kpisLabel');
+  }
+  // 0-addable text inside stats
+  ['#stat-forms', '#stat-kpis'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el && el.textContent.trim().startsWith('0')) {
+      el.innerHTML = `0<span class="u">${T('addable')}</span>`;
+    }
+  });
+
+  // Search placeholder + clear
+  const si = document.getElementById('searchInput');
+  if (si) si.placeholder = T('searchPlaceholder');
+  const sc = document.getElementById('searchClear');
+  if (sc) sc.textContent = T('clearSearch');
+
+  // View switcher labels
+  document.querySelectorAll('.view-btn').forEach(b => {
+    const span = b.lastChild;
+    // Actually there's SVG + text node; replace by keeping svg
+    const v = b.dataset.view;
+    const svg = b.querySelector('svg').outerHTML;
+    b.innerHTML = svg + ' ' + (v==='grid' ? T('gridView') : T('mapView'));
+  });
+
+  // Re-render chips (with labels)
+  state.chipLang = lang;
+  renderChips();
+  renderGrid();
+
+  // Footer — الجهة المُصدِرة دائماً الإدارة التنفيذية
+  const execName = lang === 'en' ? 'Executive Management' : 'الإدارة التنفيذية';
+  const fd = document.getElementById('footer-dept');
+  if (fd) fd.textContent = execName;
+  const fRight = document.querySelector('footer .muted');
+  if (fRight) fRight.textContent = T('footerRight');
+  const fLine = document.getElementById('footer-line');
+  if (fLine) {
+    fLine.innerHTML = `${T('brand')} · <span id="footer-dept">${execName}</span> · ${T('footerMiddle')}`;
+  }
+
+  // AI panel
+  const aiT = document.querySelector('.ai-title');
+  if (aiT) aiT.textContent = T('aiTitle');
+  const aiS = document.querySelector('.ai-sub');
+  if (aiS) aiS.textContent = T('aiSub');
+  const aiInputEl = document.getElementById('aiInput');
+  if (aiInputEl) aiInputEl.placeholder = T('aiInputPh');
+  const aiFabLabel = document.querySelector('#aiFab span');
+  if (aiFabLabel) aiFabLabel.textContent = T('aiFab');
+  document.querySelectorAll('.ai-quick button').forEach((b, i) => {
+    const txts = [T('aiSuggestSteps'), T('aiSuggestKpis'), T('aiWritePurpose')];
+    if (txts[i]) b.textContent = txts[i];
+  });
+  // Update first bot msg if it's the default one
+  const firstBot = document.querySelector('.ai-body .ai-msg.ai-bot');
+  if (firstBot && document.querySelectorAll('.ai-body .ai-msg').length === 1) {
+    const helpItems = T('aiHelp').map(h => `<li>${h}</li>`).join('');
+    firstBot.innerHTML = `${T('aiHello')}<ul style="margin:8px 0 0;padding-inline-start:18px">${helpItems}</ul>`;
+  }
+
+  // Comments form
+  const ca = document.getElementById('commentAuthor');
+  if (ca) ca.placeholder = T('commentAuthor');
+  const cb = document.getElementById('commentBody');
+  if (cb) cb.placeholder = T('commentBody');
+  const csb = document.querySelector('#commentForm button[type="submit"]');
+  if (csb) csb.textContent = T('commentSubmit');
+
+  // Modal hint + close btn
+  const mh = document.querySelector('.modal-foot .hint');
+  if (mh) mh.innerHTML = T('modalHint');
+  const closeBtn = document.getElementById('closeBtn');
+  if (closeBtn) closeBtn.textContent = T('close');
+
+  // Title bar
+  document.title = (lang==='en' ? `${deptNameDisplay} — Arsan Operations` : `لوحة إجراءات ${deptNameDisplay} — أرسان للتشغيل`);
+
+  // Trigger results-meta label refresh
+  const vc = document.getElementById('visibleCount');
+  const tc = document.getElementById('totalCount');
+  const rm = document.querySelector('.results-meta > div:first-child');
+  if (rm && vc && tc) {
+    rm.innerHTML = T('viewingOf')(vc.textContent, tc.textContent) + ` <span id="filterLabel" style="color:var(--ink-3)"></span>`;
+  }
+}
+
+/* helper to localize a group id */
+function gLabel(id){
+  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].groups[id]) {
+    return DEPT_EN[CURRENT_DEPT_ID].groups[id];
+  }
+  const g = DEPT.groups.find(x => x.id === id);
+  return g ? g.label : id;
+}
+/* helper to localize SOP title */
+function sopTitle(sop){
+  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].sops[sop.code]) {
+    return DEPT_EN[CURRENT_DEPT_ID].sops[sop.code];
+  }
+  return sop.title;
+}
+
+// Wire up language toggle
+const langBtn = document.getElementById('langToggle');
+if (langBtn) {
+  langBtn.addEventListener('click', () => {
+    applyLang(CURRENT_LANG === 'ar' ? 'en' : 'ar');
+  });
+}
+
+// Apply initial language (deferred slightly so DOM refs resolve)
+setTimeout(() => applyLang(CURRENT_LANG), 0);
+
+/* ===== تحديث اسم الإدارة + العنوان + العنوان الفرعي + الذيل ===== */
+(function(){
+  // breadcrumb
+  const bc = document.getElementById('deptBreadcrumb');
+  if (bc) bc.textContent = DEPT.name;
+  // document title
+  document.title = "لوحة إجراءات " + DEPT.name + " — أرسان للتشغيل";
+  // main title (h1)
+  const h1 = document.querySelector('h1.title');
+  if (h1) {
+    h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix}`;
+  }
+  // subtitle
+  const sub = document.querySelector('.subtitle');
+  if (sub) sub.textContent = DEPT.subtitle;
+  // footer dept name — الجهة المُصدِرة دائماً الإدارة التنفيذية
+  const fd = document.getElementById('footer-dept');
+  if (fd) fd.textContent = "الإدارة التنفيذية";
+  // stats: phases count label (مراحل عمل → مصطلح الإدارة)
+  const phasesStat = document.getElementById('stat-phases');
+  if (phasesStat) {
+    phasesStat.textContent = DEPT.groups.length;
+    const labelEl = phasesStat.nextElementSibling;
+    if (labelEl && labelEl.classList.contains('l')) {
+      labelEl.textContent = DEPT.groupVerb;
+    }
+  }
+  // stats: sops count
+  const sopsStat = document.getElementById('stat-sops');
+  if (sopsStat) sopsStat.textContent = SOPS.length;
+})();
+</script>
+<!-- ===== Arsan Backend Integration ===== -->
+<script>
+  /* ضع رابط Cloudflare Worker هنا بعد النشر، مثل:
+     window.API_BASE = "https://arsan-sops.xxxx.workers.dev";
+     اتركه فارغاً للوضع المحلي (يعمل على كل جهاز منفرداً). */
+  window.API_BASE = "";
+  // Expose renderGrid to extensions
+  try { window.renderGrid = renderGrid; } catch(_){}
+</script>
+<script>
+// ===== auth-edit.js =====
+/* ================================================================
+   Auth + Edit Mode + Dependencies + Unified Map
+   ملحق جديد — يعتمد على المتغيرات العالمية:
+   DEPARTMENTS_CONFIG, DEPT_EN, DEPT, CURRENT_DEPT_ID, SOPS, STORAGE_KEY
+   renderGrid, renderChips, updateStats, renderBrainMap
+   ================================================================ */
+
+/* ---------- AUTH ---------- */
+const AUTH_PASSWORD = "arsan2026"; // كلمة السر المطلوبة للتحرير
+const AUTH_DOMAIN   = "@arsann.com";
+const AUTH_KEY      = "arsan_auth_v1";
+
+function loadAuth(){
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); }
+  catch(_){ return null; }
+}
+function saveAuth(obj){
+  try { localStorage.setItem(AUTH_KEY, JSON.stringify(obj)); } catch(_){}
+}
+function isEditor(){
+  const a = loadAuth();
+  return !!(a && a.email && a.email.toLowerCase().endsWith(AUTH_DOMAIN) && a.ok);
+}
+function currentEditor(){
+  const a = loadAuth();
+  return a ? a.email : null;
+}
+function logout(){
+  localStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+/* ---------- DEPENDENCIES ---------- */
+/* كل تبعية: { id, from:{dept,code}, to:{dept,code}, type, note } */
+const DEPS_KEY = "arsan_deps_v1";
+
+// التبعيات المبدئية — أوامر Senior Management: كل مشتريات → موافقة التنفيذي + المالية
+const DEFAULT_DEPS = [
+  // كل المشتريات تتطلب موافقة التنفيذي والمالية
+  { id:"d-001", from:{dept:"projects", code:"SOP-06"}, to:{dept:"executive", code:"EXE-05"}, type:"approval", note:"موافقة الرئيس التنفيذي على قرارات المشتريات" },
+  { id:"d-002", from:{dept:"projects", code:"SOP-06"}, to:{dept:"finance",   code:"FIN-04"}, type:"approval", note:"موافقة المالية على صرف المشتريات" },
+  { id:"d-003", from:{dept:"projects", code:"SOP-07"}, to:{dept:"executive", code:"EXE-05"}, type:"approval", note:"موافقة الرئيس التنفيذي" },
+  { id:"d-004", from:{dept:"projects", code:"SOP-07"}, to:{dept:"finance",   code:"FIN-04"}, type:"approval", note:"إقرار الميزانية للمشتريات" },
+
+  // مراجعة قانونية لعقود المشتريات
+  { id:"d-010", from:{dept:"projects", code:"SOP-06"}, to:{dept:"legal",     code:"LGL-02"}, type:"review",   note:"مراجعة عقود الموردين" },
+
+  // تعيين HR يحتاج ميزانية مالية
+  { id:"d-020", from:{dept:"hr",       code:"HR-01"},  to:{dept:"finance",   code:"FIN-01"}, type:"budget",   note:"يتطلب إقرار الميزانية السنوية" },
+  { id:"d-021", from:{dept:"hr",       code:"HR-02"},  to:{dept:"executive", code:"EXE-05"}, type:"approval", note:"موافقة التنفيذي على التعيين" },
+
+  // تطوير الأعمال: الشراكات تحتاج قانوني + تنفيذي
+  { id:"d-030", from:{dept:"bizdev",   code:"BD-06"},  to:{dept:"legal",     code:"LGL-01"}, type:"contract", note:"صياغة عقد الشراكة" },
+  { id:"d-031", from:{dept:"bizdev",   code:"BD-06"},  to:{dept:"executive", code:"EXE-05"}, type:"approval", note:"موافقة التنفيذي على الشراكة" },
+  { id:"d-032", from:{dept:"bizdev",   code:"BD-03"},  to:{dept:"finance",   code:"FIN-01"}, type:"budget",   note:"تسعير العرض يتطلب مدخلات مالية" },
+
+  // التشغيل: الخطة الأسبوعية تغذّي المشاريع
+  { id:"d-040", from:{dept:"operations", code:"OPS-01"}, to:{dept:"projects", code:"SOP-10"}, type:"input", note:"الخطة الأسبوعية مدخل للتنفيذ" },
+
+  // المشاريع: التخطيط يحتاج ميزانية
+  { id:"d-050", from:{dept:"projects", code:"SOP-03"}, to:{dept:"finance",   code:"FIN-01"}, type:"budget", note:"خطة المشروع تتطلب ميزانية" },
+
+  // التنفيذية: مراجعة الأداء تعتمد على تقارير المالية
+  { id:"d-060", from:{dept:"executive", code:"EXE-06"}, to:{dept:"finance",  code:"FIN-07"}, type:"input",    note:"تقارير مالية شهرية لمراجعة الأداء" },
+];
+
+function loadDeps(){
+  try {
+    const raw = localStorage.getItem(DEPS_KEY);
+    if (!raw) return [...DEFAULT_DEPS];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [...DEFAULT_DEPS];
+  } catch(_){ return [...DEFAULT_DEPS]; }
+}
+function saveDeps(deps){
+  try { localStorage.setItem(DEPS_KEY, JSON.stringify(deps)); } catch(_){}
+}
+function addDep(dep){
+  const deps = loadDeps();
+  dep.id = dep.id || ('d-' + Date.now());
+  deps.push(dep);
+  saveDeps(deps);
+  return dep;
+}
+function removeDep(id){
+  const deps = loadDeps().filter(d => d.id !== id);
+  saveDeps(deps);
+}
+function depsForDept(deptId){
+  return loadDeps().filter(d => d.from.dept === deptId || d.to.dept === deptId);
+}
+
+const DEP_TYPES = {
+  approval: { ar:"موافقة",   en:"Approval", color:"#b85450" },
+  review:   { ar:"مراجعة",   en:"Review",   color:"#ea9a3e" },
+  budget:   { ar:"ميزانية",  en:"Budget",   color:"#5b8def" },
+  contract: { ar:"عقد",      en:"Contract", color:"#7c5ab8" },
+  input:    { ar:"مدخلات",   en:"Input",    color:"#3a8f66" },
+  other:    { ar:"أخرى",     en:"Other",    color:"#6b7280" }
+};
+
+/* ---------- Expose as window.Arsan ---------- */
+window.Arsan = Object.assign(window.Arsan || {}, {
+  AUTH_PASSWORD, AUTH_DOMAIN, AUTH_KEY,
+  loadAuth, saveAuth, isEditor, currentEditor, logout,
+  DEPS_KEY, DEFAULT_DEPS,
+  loadDeps, saveDeps, addDep, removeDep, depsForDept,
+  DEP_TYPES
+});
+
+</script>
+<script>
+// ===== api.js =====
+/* ================================================================
+   Arsan API Layer
+   يتصل بـ Cloudflare Worker. لو ما فيه API_BASE، كل شيء محلي.
+   ================================================================ */
+
+// ضع رابط Cloudflare Worker هنا بعد نشره (أو اتركه فارغاً للوضع المحلي)
+window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
+
+(function(){
+  const TOKEN_KEY = "arsan_token_v1";
+  const ME_KEY    = "arsan_me_v1";
+  const ADMIN_EMAIL = "a.king@arsann.com";
+  const EDITOR_DOMAIN = "@arsann.com";
+  const DEFAULT_PASSWORD = "arsan2026";
+
+  function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+  function setToken(t){ t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
+  function getMe(){ try { return JSON.parse(localStorage.getItem(ME_KEY) || 'null'); } catch(_){ return null; } }
+  function setMe(m){ m ? localStorage.setItem(ME_KEY, JSON.stringify(m)) : localStorage.removeItem(ME_KEY); }
+  function hasBackend(){ return !!window.API_BASE; }
+
+  async function apiFetch(path, opts = {}) {
+    if (!hasBackend()) throw new Error("no-backend");
+    const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+    const token = getToken();
+    if (token) headers["Authorization"] = "Bearer " + token;
+    const res = await fetch(window.API_BASE.replace(/\/$/,"") + path, {
+      ...opts, headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.error || "api-error"), { status: res.status, data });
+    return data;
+  }
+
+  /* ---------- Auth (local fallback if no backend) ---------- */
+  async function login(email, password) {
+    email = (email || "").trim().toLowerCase();
+    if (!email.endsWith(EDITOR_DOMAIN)) throw new Error("invalid-domain");
+    if (hasBackend()) {
+      const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
+      setToken(r.token); setMe({ email: r.email, role: r.role });
+      return r;
+    }
+    // local fallback
+    if (password !== DEFAULT_PASSWORD) throw new Error("wrong-password");
+    const role = email === ADMIN_EMAIL ? "admin" : "editor";
+    const me = { email, role };
+    setToken("local-" + Date.now()); setMe(me);
+    return me;
+  }
+  async function logout() {
+    if (hasBackend() && getToken()) {
+      try { await apiFetch("/api/logout", { method: "POST" }); } catch(_) {}
+    }
+    setToken(null); setMe(null);
+  }
+  function me() { return getMe() || { role: "viewer" }; }
+  function isEditor() { const m = me(); return m.role === "editor" || m.role === "admin"; }
+  function isAdmin()  { return me().role === "admin"; }
+
+  /* ---------- Remote + Local merge helpers ---------- */
+  async function bootstrap() {
+    if (!hasBackend()) return { sops:{}, deps: loadLocalDeps() };
+    try { return await apiFetch("/api/bootstrap"); }
+    catch(e) { console.warn("bootstrap failed, using local:", e); return { sops:{}, deps: loadLocalDeps() }; }
+  }
+
+  /* ---------- SOP edits ---------- */
+  async function updateSOP(dept, code, patch) {
+    const me_ = me();
+    if (!isEditor()) throw new Error("forbidden");
+    if (hasBackend()) return apiFetch(`/api/sops/${dept}/${code}`, { method: "PUT", body: patch });
+    // local: store in arsan_sops_<dept>
+    const key = `arsan_sops_${dept}`;
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : {};
+    arr[code] = { ...(arr[code]||{}), ...patch, updatedAt: Date.now(), updatedBy: me_.email };
+    localStorage.setItem(key, JSON.stringify(arr));
+    logLocalActivity({ actor: me_.email, action: "edit-sop", target: `${dept}/${code}`, fields: Object.keys(patch) });
+    return { ok: true };
+  }
+
+  async function addSOP(dept, sop) {
+    if (!isEditor()) throw new Error("forbidden");
+    if (hasBackend()) return apiFetch(`/api/sops/${dept}`, { method: "POST", body: sop });
+    const key = `arsan_sops_${dept}`;
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : {};
+    arr[sop.code] = { ...sop, createdAt: Date.now(), createdBy: me().email };
+    localStorage.setItem(key, JSON.stringify(arr));
+    logLocalActivity({ actor: me().email, action: "add-sop", target: `${dept}/${sop.code}`, title: sop.title });
+    return { ok: true };
+  }
+
+  async function renameSOP(dept, code, changes) {
+    // changes: { newDept?, newCode?, newTitle? }
+    if (!isEditor()) throw new Error("forbidden");
+    if (hasBackend()) return apiFetch(`/api/sops/${dept}/${code}/rename`, { method: "POST", body: changes });
+    // local mode
+    const key = `arsan_sops_${dept}`;
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : {};
+    if (!arr[code]) throw new Error("not-found");
+    const cur = arr[code];
+    const newDept = changes.newDept || dept;
+    const newCode = changes.newCode || code;
+    const newTitle = changes.newTitle !== undefined ? changes.newTitle : cur.title;
+    const moved = { ...cur, code: newCode, title: newTitle, updatedAt: Date.now(), updatedBy: me().email };
+    if (newDept === dept) {
+      delete arr[code]; arr[newCode] = moved;
+      localStorage.setItem(key, JSON.stringify(arr));
+    } else {
+      delete arr[code]; localStorage.setItem(key, JSON.stringify(arr));
+      const newKey = `arsan_sops_${newDept}`;
+      const dst = JSON.parse(localStorage.getItem(newKey) || '{}');
+      dst[newCode] = moved;
+      localStorage.setItem(newKey, JSON.stringify(dst));
+    }
+    logLocalActivity({ actor: me().email, action: "rename-sop", target: `${dept}/${code} → ${newDept}/${newCode}` });
+    return { ok: true, sop: moved, dept: newDept, code: newCode };
+  }
+
+  async function aiParseSOP(text, opts = {}) {
+    // ask backend to turn raw text into a structured SOP
+    if (!hasBackend() || !getToken()) throw new Error("backend-required");
+    return apiFetch("/api/ai/parse-sop", { method: "POST", body: { text, source: opts.source || "", dept: opts.dept || "" } });
+  }
+
+  /* ---------- Dependencies ---------- */
+  const DEPS_LOCAL_KEY = "arsan_deps_v1";
+  function loadLocalDeps(){ try { return JSON.parse(localStorage.getItem(DEPS_LOCAL_KEY) || '[]'); } catch(_){ return []; } }
+  function saveLocalDeps(deps){ localStorage.setItem(DEPS_LOCAL_KEY, JSON.stringify(deps)); }
+
+  async function getDeps() {
+    if (hasBackend()) { try { return await apiFetch("/api/deps"); } catch(_) { return loadLocalDeps(); } }
+    return loadLocalDeps();
+  }
+  async function addDep(dep) {
+    if (!isEditor()) throw new Error("forbidden");
+    if (hasBackend()) return apiFetch("/api/deps", { method: "POST", body: dep });
+    const deps = loadLocalDeps();
+    dep.id = dep.id || ("d-" + Date.now());
+    dep.createdBy = me().email; dep.createdAt = Date.now();
+    deps.push(dep); saveLocalDeps(deps);
+    logLocalActivity({ actor: me().email, action: "add-dep", target: `${dep.from.dept}/${dep.from.code} → ${dep.to.dept}/${dep.to.code}` });
+    return { ok: true, dep };
+  }
+  async function removeDep(id) {
+    if (!isEditor()) throw new Error("forbidden");
+    if (hasBackend()) return apiFetch(`/api/deps/${id}`, { method: "DELETE" });
+    const deps = loadLocalDeps().filter(d => d.id !== id);
+    saveLocalDeps(deps);
+    logLocalActivity({ actor: me().email, action: "delete-dep", target: id });
+    return { ok: true };
+  }
+
+  /* ---------- Chat ---------- */
+  const CHAT_LOCAL_PREFIX = "arsan_chat_";
+  async function getChat(channel) {
+    if (hasBackend()) { try { return await apiFetch(`/api/chat/${channel}`); } catch(_){} }
+    try { return JSON.parse(localStorage.getItem(CHAT_LOCAL_PREFIX + channel) || '[]'); } catch(_){ return []; }
+  }
+  async function postChat(channel, text) {
+    if (!isEditor()) throw new Error("login-required");
+    if (hasBackend()) return apiFetch(`/api/chat/${channel}`, { method: "POST", body: { text } });
+    const msg = { id: "m-" + Date.now(), ts: Date.now(), author: me().email, role: me().role, text };
+    const raw = localStorage.getItem(CHAT_LOCAL_PREFIX + channel);
+    const list = raw ? JSON.parse(raw) : [];
+    list.push(msg);
+    localStorage.setItem(CHAT_LOCAL_PREFIX + channel, JSON.stringify(list));
+    logLocalActivity({ actor: me().email, action: "chat", target: `#${channel}`, preview: text.slice(0,80) });
+    return { ok: true, msg };
+  }
+
+  /* ---------- Activity Log (admin only sees all) ---------- */
+  const ACT_LOCAL_KEY = "arsan_activity_local";
+  function logLocalActivity(entry){
+    try {
+      const list = JSON.parse(localStorage.getItem(ACT_LOCAL_KEY) || '[]');
+      list.unshift({ ts: Date.now(), ...entry });
+      if (list.length > 500) list.length = 500;
+      localStorage.setItem(ACT_LOCAL_KEY, JSON.stringify(list));
+    } catch(_){}
+  }
+  async function getActivity() {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) { try { return await apiFetch("/api/activity"); } catch(_){} }
+    try { return JSON.parse(localStorage.getItem(ACT_LOCAL_KEY) || '[]'); } catch(_){ return []; }
+  }
+
+  /* ---------- Users (admin only) ---------- */
+  async function getUsers() {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch("/api/users");
+    return [];
+  }
+  async function addUser(email, password) {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch("/api/users", { method:"POST", body: { email, password } });
+    return { ok: true, note: "local mode — no shared users" };
+  }
+  async function removeUser(email) {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch(`/api/users/${encodeURIComponent(email)}`, { method:"DELETE" });
+    return { ok: true };
+  }
+
+  /* ---------- Slack webhook (admin only) ---------- */
+  const SLACK_LOCAL_KEY = "arsan_slack_webhook";
+  async function getSlackWebhook() {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) { const r = await apiFetch("/api/slack-webhook"); return r.url || ""; }
+    return localStorage.getItem(SLACK_LOCAL_KEY) || "";
+  }
+  async function setSlackWebhook(url) {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch("/api/slack-webhook", { method:"POST", body: { url } });
+    localStorage.setItem(SLACK_LOCAL_KEY, url || "");
+    return { ok: true };
+  }
+
+  /* ---------- AI ---------- */
+  async function ai(message, opts = {}) {
+    const history = opts.history || [];
+    const system  = opts.system;
+    // Prefer Worker if backend + logged in
+    if (hasBackend() && getToken()) {
+      try {
+        const r = await apiFetch("/api/ai", { method:"POST", body: { message, history, system } });
+        return r.reply || "";
+      } catch (e) {
+        console.warn("worker AI failed, falling back:", e);
+      }
+    }
+    // Fallback: claude.ai artifact runtime (only works inside claude.ai preview)
+    if (window.claude && typeof window.claude.complete === "function") {
+      try {
+        const msgs = [...history, { role: "user", content: message }];
+        return await window.claude.complete({ messages: msgs, system });
+      } catch (e) { console.warn("window.claude fallback failed:", e); }
+    }
+    throw new Error("ai-unavailable");
+  }
+
+  /* ---------- Expose ---------- */
+  window.ArsanAPI = {
+    hasBackend, getToken, me, isEditor, isAdmin,
+    login, logout,
+    bootstrap,
+    updateSOP, addSOP, renameSOP, aiParseSOP,
+    getDeps, addDep, removeDep,
+    getChat, postChat,
+    getActivity,
+    getUsers, addUser, removeUser,
+    getSlackWebhook, setSlackWebhook,
+    ai,
+    ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
+  };
+})();
+
+</script>
+<script>
+// ===== ui-extensions.js =====
+/* ================================================================
+   Arsan UI Extensions
+   - Auth modal
+   - Admin panel (activity log, users, slack webhook)
+   - Team chat
+   - Dependencies editor
+   - Unified cross-department map
+   - Inline SOP editing
+   يعتمد على window.ArsanAPI و window.DEPARTMENTS_CONFIG
+   ================================================================ */
+
+(function(){
+  const API = window.ArsanAPI;
+  if (!API) { console.error("[Arsan UI] ArsanAPI not loaded"); return; }
+
+  // ================= STYLE =================
+  const css = `
+    .arsan-topbar{
+      position:fixed;bottom:18px;right:18px;z-index:9000;
+      display:inline-flex;gap:6px;flex-wrap:wrap-reverse;
+      padding:8px;border-radius:14px;
+      background:rgba(20,18,12,.75);backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 8px 24px rgba(0,0,0,.35);
+      max-width:calc(100vw - 36px);
+    }
+    @media (max-width: 700px){
+      .arsan-topbar{bottom:12px;left:12px;right:12px;max-width:none;justify-content:center}
+    
+    }
+    [data-theme="light"] .arsan-topbar{background:rgba(250,248,240,.85);border-color:rgba(0,0,0,.08)}
+    .arsan-topbar-btn{
+      display:inline-flex;align-items:center;gap:6px;padding:6px 10px;
+      border:1px solid rgba(255,255,255,.08);border-radius:8px;
+      background:rgba(255,255,255,.04);
+      color:var(--ink);font:inherit;font-size:12px;cursor:pointer;transition:all .15s;
+      white-space:nowrap;
+    }
+    .arsan-topbar-btn:hover{background:var(--bg-2);border-color:var(--brand)}
+    .arsan-topbar-btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .arsan-topbar-btn.primary:hover{filter:brightness(1.1)}
+    .arsan-topbar-btn .dot{width:7px;height:7px;border-radius:50%;background:#3a8f66;display:inline-block}
+    .arsan-topbar-btn .dot.offline{background:#aaa}
+
+    /* Modal base */
+    .arsan-modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+      display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;
+    }
+    .arsan-modal-backdrop.open{display:flex}
+    .arsan-modal{
+      background:var(--bg-0);border:1px solid var(--line);border-radius:14px;
+      width:100%;max-width:520px;max-height:90vh;overflow:auto;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px;
+    }
+    .arsan-modal.wide{max-width:920px}
+    .arsan-modal h2{margin:0 0 4px;font-size:20px}
+    .arsan-modal .sub{color:var(--ink-3);font-size:13px;margin-bottom:20px}
+    .arsan-field{margin-bottom:14px}
+    .arsan-field label{display:block;font-size:13px;margin-bottom:4px;color:var(--ink-2)}
+    .arsan-field input,.arsan-field textarea,.arsan-field select{
+      width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+      background:var(--bg-1);color:var(--ink-1);font:inherit;
+    }
+    .arsan-field input:focus,.arsan-field textarea:focus{outline:2px solid var(--brand);border-color:transparent}
+    .arsan-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+    .arsan-btn{padding:9px 16px;border:1px solid var(--line);background:var(--bg-1);border-radius:8px;cursor:pointer;font:inherit;color:var(--ink-1)}
+    .arsan-btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .arsan-btn.danger{background:#b85450;color:#fff;border-color:#b85450}
+    .arsan-btn:hover{filter:brightness(1.08)}
+    .arsan-err{color:#b85450;font-size:13px;margin-top:8px;min-height:18px}
+
+    /* Tabs */
+    .arsan-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px}
+    .arsan-tab{padding:10px 14px;cursor:pointer;border:none;background:none;color:var(--ink-2);font:inherit;border-bottom:2px solid transparent}
+    .arsan-tab.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+    .arsan-pane{display:none}
+    .arsan-pane.active{display:block}
+
+    /* Activity log */
+    .arsan-log{max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+    .arsan-log-row{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;display:grid;grid-template-columns:140px 1fr;gap:10px}
+    .arsan-log-row:last-child{border:none}
+    .arsan-log-time{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:12px}
+    .arsan-log-actor{font-weight:600}
+    .arsan-log-action{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;background:var(--bg-2);margin-inline-end:6px}
+
+    /* Chat */
+    .arsan-chat-panel{
+      position:fixed;bottom:20px;left:20px;width:340px;height:480px;
+      background:var(--bg-0);border:1px solid var(--line);border-radius:14px;
+      box-shadow:0 12px 40px rgba(0,0,0,.3);display:none;flex-direction:column;z-index:900;
+    }
+    [dir="ltr"] .arsan-chat-panel{left:auto;right:20px}
+    .arsan-chat-panel.open{display:flex}
+    .arsan-chat-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+    .arsan-chat-head select{flex:1;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg-1);color:var(--ink-1);font:inherit;font-size:13px}
+    .arsan-chat-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+    .arsan-msg{padding:8px 10px;border-radius:10px;background:var(--bg-2);font-size:13px;line-height:1.5;max-width:90%;align-self:flex-start}
+    .arsan-msg.mine{align-self:flex-end;background:var(--brand);color:#fff}
+    .arsan-msg .author{font-size:11px;opacity:.8;margin-bottom:2px;font-weight:600}
+    .arsan-msg .time{font-size:10px;opacity:.6;margin-top:2px}
+    .arsan-chat-form{padding:10px;border-top:1px solid var(--line);display:flex;gap:6px}
+    .arsan-chat-form input{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg-1);color:var(--ink-1);font:inherit;font-size:13px}
+    .arsan-chat-form button{padding:8px 14px;background:var(--brand);color:#fff;border:none;border-radius:8px;cursor:pointer;font:inherit;font-size:13px}
+    .arsan-chat-guest{padding:30px 16px;text-align:center;color:var(--ink-3);font-size:13px}
+
+    /* Unified Map */
+    .arsan-unified{width:100%;height:70vh;min-height:500px;border:1px solid var(--line);border-radius:12px;background:var(--bg-1);position:relative;overflow:hidden}
+    .arsan-unified svg{width:100%;height:100%}
+    .arsan-unified .legend{position:absolute;top:12px;inset-inline-start:12px;background:var(--bg-0);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;z-index:2}
+    .arsan-unified .legend .ent{display:flex;align-items:center;gap:6px}
+    .arsan-unified .legend .sw{width:16px;height:3px;border-radius:2px}
+
+    /* Deps editor */
+    .arsan-deps-table{width:100%;border-collapse:collapse;font-size:13px}
+    .arsan-deps-table th,.arsan-deps-table td{padding:8px;border-bottom:1px solid var(--line);text-align:start}
+    .arsan-deps-table th{background:var(--bg-2);font-weight:600}
+    .arsan-dep-type{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;color:#fff}
+
+    /* Inline edit */
+    .arsan-editable{cursor:pointer;position:relative;padding:2px 4px;border-radius:4px;transition:background .15s}
+    body.editor-mode .arsan-editable:hover{background:rgba(var(--brand-rgb,139,45,60),.08);outline:1px dashed var(--brand);outline-offset:2px}
+    body.editor-mode .arsan-editable::after{
+      content:"✎";position:absolute;top:-4px;inset-inline-end:-4px;font-size:11px;
+      opacity:0;transition:opacity .15s;color:var(--brand);
+    }
+    body.editor-mode .arsan-editable:hover::after{opacity:1}
+
+    /* Badge role */
+    .arsan-role{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+    .arsan-role.admin{background:#b85450;color:#fff}
+    .arsan-role.editor{background:#3a8f66;color:#fff}
+    .arsan-role.viewer{background:var(--bg-2);color:var(--ink-2)}
+  `;
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  // ================= UTIL =================
+  const h = (tag, attrs = {}, ...children) => {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') el.className = v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else el.setAttribute(k, v);
+    }
+    for (const c of children.flat()) {
+      if (c == null || c === false) continue;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+    return el;
+  };
+  const fmt = (ts) => {
+    const d = new Date(ts);
+    return d.toLocaleString('ar-SA', { dateStyle:'short', timeStyle:'short' });
+  };
+  const esc = (s) => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function openModal(node) {
+    const bd = h('div', { class: 'arsan-modal-backdrop open' });
+    bd.appendChild(node);
+    bd.addEventListener('click', e => { if (e.target === bd) bd.remove(); });
+    document.body.appendChild(bd);
+    return bd;
+  }
+
+  // ================= AUTH UI =================
+  function showLogin() {
+    const err = h('div', { class: 'arsan-err' });
+    const emailInput = h('input', { type:'email', placeholder:'name@arsann.com', autocomplete:'email' });
+    const pwInput = h('input', { type:'password', placeholder:'كلمة السر', autocomplete:'current-password' });
+    const submit = h('button', { class:'arsan-btn primary', onclick: async () => {
+      err.textContent = '';
+      try {
+        await API.login(emailInput.value, pwInput.value);
+        bd.remove();
+        location.reload();
+      } catch(e) {
+        err.textContent = e.message === 'invalid-domain' ? 'البريد يجب أن ينتهي بـ @arsann.com' :
+                          e.message === 'wrong-password' ? 'كلمة السر غير صحيحة' :
+                          e.message === 'no-backend' ? 'الوضع المحلي مفعّل' :
+                          'خطأ: ' + (e.message || e);
+      }
+    }}, 'تسجيل دخول');
+
+    [emailInput, pwInput].forEach(i => i.addEventListener('keydown', e => { if (e.key==='Enter') submit.click(); }));
+
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, 'تسجيل دخول'),
+      h('div', { class:'sub' }, 'للمحررين والمسؤول فقط. البريد يجب أن ينتهي بـ @arsann.com'),
+      h('div', { class:'arsan-field' }, h('label', {}, 'البريد الإلكتروني'), emailInput),
+      h('div', { class:'arsan-field' }, h('label', {}, 'كلمة السر'), pwInput),
+      err,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        submit
+      ),
+      API.hasBackend() ? null : h('div', { class:'sub', style:'margin-top:12px;padding:10px;background:var(--bg-2);border-radius:8px' },
+        '⚠️ لم يتم ربط Worker — يعمل في الوضع المحلي فقط (لن يتم مزامنة التعديلات).')
+    );
+    const bd = openModal(modal);
+    setTimeout(() => emailInput.focus(), 50);
+  }
+
+  // ================= ADMIN PANEL =================
+  function showAdmin() {
+    if (!API.isAdmin()) return alert('صلاحيات المسؤول فقط');
+
+    const logPane   = h('div', { class:'arsan-pane active' });
+    const usersPane = h('div', { class:'arsan-pane' });
+    const slackPane = h('div', { class:'arsan-pane' });
+
+    const tabs = [
+      { id:'log',    label:'سجل النشاط',       pane: logPane   },
+      { id:'users',  label:'المستخدمون',        pane: usersPane },
+      { id:'slack',  label:'Slack',            pane: slackPane },
+    ];
+    const tabBar = h('div', { class:'arsan-tabs' });
+    tabs.forEach(t => {
+      const b = h('button', { class: 'arsan-tab' + (t.id==='log'?' active':''), onclick: () => {
+        tabs.forEach(x => { x.pane.classList.remove('active'); });
+        tabBar.querySelectorAll('.arsan-tab').forEach(x => x.classList.remove('active'));
+        t.pane.classList.add('active'); b.classList.add('active');
+      }}, t.label);
+      tabBar.appendChild(b);
+    });
+
+    // Activity log
+    logPane.appendChild(h('div', { class:'sub' }, 'آخر 1000 نشاط على النظام.'));
+    const logList = h('div', { class:'arsan-log' });
+    logPane.appendChild(logList);
+    logPane.appendChild(h('div', { class:'arsan-actions' },
+      h('button', { class:'arsan-btn', onclick: () => exportActivityCSV() }, 'تصدير CSV')
+    ));
+    (async () => {
+      try {
+        const items = await API.getActivity();
+        if (!items.length) { logList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-3)">لا توجد أنشطة بعد.</div>'; return; }
+        logList.innerHTML = items.map(it => `
+          <div class="arsan-log-row">
+            <div class="arsan-log-time">${fmt(it.ts)}</div>
+            <div>
+              <span class="arsan-log-action">${esc(it.action)}</span>
+              <span class="arsan-log-actor">${esc(it.actor || '—')}</span>
+              ${it.target ? ` <span style="color:var(--ink-3)">→ ${esc(it.target)}</span>` : ''}
+              ${it.preview ? `<div style="color:var(--ink-3);margin-top:2px">${esc(it.preview)}</div>` : ''}
+            </div>
+          </div>`).join('');
+        logPane._items = items;
+      } catch(e) {
+        logList.innerHTML = `<div style="padding:20px;text-align:center;color:#b85450">خطأ: ${esc(e.message||e)}</div>`;
+      }
+    })();
+    async function exportActivityCSV() {
+      const items = logPane._items || await API.getActivity();
+      const rows = [['time','actor','action','target','preview','fields']];
+      items.forEach(it => rows.push([fmt(it.ts), it.actor||'', it.action||'', it.target||'', it.preview||'', (it.fields||[]).join('|')]));
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `arsan-activity-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // Users
+    const emailI = h('input', { type:'email', placeholder:'user@arsann.com' });
+    const pwI    = h('input', { type:'text', placeholder:'كلمة سر (اختياري — الافتراضية arsan2026)' });
+    const usersList = h('div', { class:'arsan-log' });
+    async function reloadUsers(){
+      try {
+        const users = await API.getUsers();
+        usersList.innerHTML = users.length ? users.map(u => `
+          <div class="arsan-log-row">
+            <div>${esc(u.email)}</div>
+            <div>
+              <span class="arsan-log-time">أضيف ${u.addedAt?fmt(u.addedAt):'—'}</span>
+              <button class="arsan-btn danger" style="padding:4px 10px;font-size:12px;margin-inline-start:8px" data-email="${esc(u.email)}">حذف</button>
+            </div>
+          </div>`).join('') : '<div style="padding:20px;text-align:center;color:var(--ink-3)">لا مستخدمون مُخصّصون. أي بريد @arsann.com يدخل بكلمة السر الافتراضية.</div>';
+        usersList.querySelectorAll('button[data-email]').forEach(b => b.addEventListener('click', async () => {
+          if (!confirm('حذف ' + b.dataset.email + '؟')) return;
+          await API.removeUser(b.dataset.email); reloadUsers();
+        }));
+      } catch(e){ usersList.innerHTML = `<div style="padding:20px;color:#b85450">${esc(e.message||e)}</div>`; }
+    }
+    usersPane.appendChild(h('div', { class:'sub' }, 'أضف مستخدمين معتمدين بكلمات سر مخصصة. أي بريد @arsann.com يدخل افتراضياً بالكلمة العامة.'));
+    usersPane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'البريد'), emailI));
+    usersPane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'كلمة السر'), pwI));
+    usersPane.appendChild(h('div', { class:'arsan-actions' },
+      h('button', { class:'arsan-btn primary', onclick: async () => {
+        try { await API.addUser(emailI.value.trim(), pwI.value.trim() || undefined); emailI.value=''; pwI.value=''; reloadUsers(); }
+        catch(e){ alert('خطأ: ' + e.message); }
+      }}, 'إضافة')));
+    usersPane.appendChild(usersList);
+    reloadUsers();
+
+    // Slack
+    const slackI = h('input', { type:'url', placeholder:'https://hooks.slack.com/services/...' });
+    slackPane.appendChild(h('div', { class:'sub' }, 'إن أضفت Incoming Webhook URL من Slack، كل نشاط (تسجيل دخول، تعديل، رسالة...) سيُرسل تلقائياً للقناة.'));
+    slackPane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'Webhook URL'), slackI));
+    slackPane.appendChild(h('div', { class:'arsan-actions' },
+      h('button', { class:'arsan-btn primary', onclick: async () => {
+        try { await API.setSlackWebhook(slackI.value.trim()); alert('تم الحفظ ✓'); }
+        catch(e){ alert('خطأ: ' + e.message); }
+      }}, 'حفظ')));
+    (async()=>{ try { slackI.value = await API.getSlackWebhook(); } catch(_){} })();
+
+    const modal = h('div', { class:'arsan-modal wide' },
+      h('h2', {}, '🛡️ لوحة المسؤول'),
+      h('div', { class:'sub' }, 'المستخدم الحالي: ' + API.me().email + ' (admin)'),
+      tabBar, logPane, usersPane, slackPane,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إغلاق'))
+    );
+    const bd = openModal(modal);
+  }
+
+  // ================= CHAT =================
+  const channels = [
+    { id:'general',    label:'عام' },
+    { id:'executive',  label:'الإدارة التنفيذية' },
+    { id:'projects',   label:'إدارة المشاريع' },
+    { id:'finance',    label:'المالية' },
+    { id:'operations', label:'التشغيل' },
+    { id:'legal',      label:'القانونية' },
+    { id:'hr',         label:'الموارد البشرية' },
+    { id:'bizdev',     label:'تطوير الأعمال' },
+  ];
+  let chatPanel = null, currentChannel = 'general', chatPoll = null;
+
+  function buildChat() {
+    if (chatPanel) return chatPanel;
+    const sel = h('select', {});
+    channels.forEach(c => sel.appendChild(h('option', { value: c.id }, '#' + c.label)));
+    sel.value = currentChannel;
+    sel.addEventListener('change', () => { currentChannel = sel.value; loadMessages(); });
+    const closeBtn = h('button', { class:'arsan-btn', style:'padding:4px 10px;font-size:13px', onclick: () => chatPanel.classList.remove('open') }, '✕');
+    const body = h('div', { class:'arsan-chat-body' });
+    const input = h('input', { type:'text', placeholder:'اكتب رسالة...' });
+    const sendBtn = h('button', { type:'submit' }, 'إرسال');
+    const form = h('form', { class:'arsan-chat-form', onsubmit: async e => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      if (!API.isEditor()) { alert('يجب تسجيل الدخول للكتابة في الشات.'); return; }
+      input.value = '';
+      try { await API.postChat(currentChannel, text); loadMessages(); }
+      catch(err) { alert('خطأ: ' + err.message); }
+    }}, input, sendBtn);
+
+    chatPanel = h('div', { class:'arsan-chat-panel' },
+      h('div', { class:'arsan-chat-head' }, sel, closeBtn),
+      body, form);
+    document.body.appendChild(chatPanel);
+
+    async function loadMessages(){
+      try {
+        const msgs = await API.getChat(currentChannel);
+        body.innerHTML = '';
+        const myEmail = API.me().email;
+        if (!msgs.length) body.appendChild(h('div', { class:'arsan-chat-guest' }, 'لا رسائل بعد. كُن أول من يكتب.'));
+        msgs.forEach(m => {
+          const mine = m.author === myEmail;
+          body.appendChild(h('div', { class: 'arsan-msg' + (mine?' mine':'') },
+            h('div', { class:'author' }, m.author),
+            h('div', {}, m.text),
+            h('div', { class:'time' }, fmt(m.ts))));
+        });
+        body.scrollTop = body.scrollHeight;
+      } catch(e){}
+    }
+    chatPanel._load = loadMessages;
+    loadMessages();
+    // poll every 10s while open
+    setInterval(() => { if (chatPanel.classList.contains('open')) loadMessages(); }, 10000);
+    return chatPanel;
+  }
+  function toggleChat() {
+    const p = buildChat();
+    p.classList.toggle('open');
+    if (p.classList.contains('open')) p._load();
+  }
+
+  // ================= DEPS EDITOR =================
+  function showDepsEditor() {
+    const tbody = h('tbody');
+    const addBtn = h('button', { class:'arsan-btn primary', onclick: () => showAddDep(reload) }, '+ إضافة تبعية');
+    async function reload(){
+      try {
+        const deps = await API.getDeps();
+        tbody.innerHTML = '';
+        if (!deps.length) { tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--ink-3)">لا توجد تبعيات.</td></tr>'; return; }
+        const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
+        deps.forEach(d => {
+          const fromName = (DEPT_CFG[d.from.dept]||{}).name || d.from.dept;
+          const toName   = (DEPT_CFG[d.to.dept]||{}).name   || d.to.dept;
+          const typeInfo = (window.DEP_TYPES_UI || {})[d.type] || { ar: d.type, color:'#6b7280' };
+          const tr = h('tr');
+          tr.innerHTML = `
+            <td>${esc(fromName)}<br><small style="color:var(--ink-3)">${esc(d.from.code)}</small></td>
+            <td style="text-align:center;font-size:18px;color:var(--brand)">←</td>
+            <td>${esc(toName)}<br><small style="color:var(--ink-3)">${esc(d.to.code)}</small></td>
+            <td><span class="arsan-dep-type" style="background:${typeInfo.color}">${esc(typeInfo.ar)}</span><br><small style="color:var(--ink-3)">${esc(d.note||'')}</small></td>
+            <td></td>`;
+          if (API.isEditor()) {
+            const delBtn = h('button', { class:'arsan-btn danger', style:'padding:4px 10px;font-size:12px', onclick: async () => {
+              if (!confirm('حذف هذه التبعية؟')) return;
+              await API.removeDep(d.id); reload();
+            }}, 'حذف');
+            tr.lastElementChild.appendChild(delBtn);
+          }
+          tbody.appendChild(tr);
+        });
+      } catch(e){ tbody.innerHTML = `<tr><td colspan="5" style="padding:20px;color:#b85450">${esc(e.message||e)}</td></tr>`; }
+    }
+    const modal = h('div', { class:'arsan-modal wide' },
+      h('h2', {}, 'التبعيّات بين الإدارات'),
+      h('div', { class:'sub' }, 'جميع الروابط والاعتمادات بين إجراءات الإدارات.'),
+      API.isEditor() ? h('div', { style:'margin-bottom:12px' }, addBtn) : null,
+      h('table', { class:'arsan-deps-table' },
+        h('thead', {}, h('tr', {},
+          h('th',{},'المصدر'), h('th',{}), h('th',{},'الهدف'), h('th',{},'النوع / ملاحظة'), h('th',{},''))),
+        tbody),
+      h('div', { class:'arsan-actions' }, h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إغلاق'))
+    );
+    const bd = openModal(modal);
+    reload();
+  }
+
+  function showAddDep(onDone) {
+    const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
+    const deptIds = Object.keys(DEPT_CFG);
+
+    const mkDeptSel = (selected) => {
+      const s = h('select', {});
+      deptIds.forEach(id => s.appendChild(h('option', { value:id }, DEPT_CFG[id].name)));
+      if (selected) s.value = selected;
+      return s;
+    };
+    const mkSopSel = (deptId) => {
+      const s = h('select', {});
+      const cfg = DEPT_CFG[deptId];
+      if (cfg && Array.isArray(cfg.sops)) {
+        cfg.sops.forEach(([code, _phase, title]) => s.appendChild(h('option', { value:code }, code + ' — ' + title)));
+      }
+      return s;
+    };
+
+    const fromDept = mkDeptSel();
+    let fromSop = mkSopSel(fromDept.value);
+    fromDept.addEventListener('change', () => {
+      const n = mkSopSel(fromDept.value);
+      fromSop.replaceWith(n); fromSop = n;
+    });
+    const toDept = mkDeptSel();
+    let toSop = mkSopSel(toDept.value);
+    toDept.addEventListener('change', () => {
+      const n = mkSopSel(toDept.value);
+      toSop.replaceWith(n); toSop = n;
+    });
+
+    const typeSel = h('select', {});
+    ['approval','review','budget','contract','input','other'].forEach(t => {
+      const info = (window.DEP_TYPES_UI||{})[t] || { ar: t };
+      typeSel.appendChild(h('option', { value:t }, info.ar));
+    });
+    const noteI = h('input', { type:'text', placeholder:'ملاحظة قصيرة' });
+
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, 'إضافة تبعية'),
+      h('div', { class:'arsan-field' }, h('label',{},'إدارة المصدر'), fromDept),
+      h('div', { class:'arsan-field' }, h('label',{},'إجراء المصدر'), fromSop),
+      h('div', { class:'arsan-field' }, h('label',{},'إدارة الهدف (تعتمد عليه)'), toDept),
+      h('div', { class:'arsan-field' }, h('label',{},'إجراء الهدف'), toSop),
+      h('div', { class:'arsan-field' }, h('label',{},'نوع التبعية'), typeSel),
+      h('div', { class:'arsan-field' }, h('label',{},'ملاحظة'), noteI),
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        h('button', { class:'arsan-btn primary', onclick: async () => {
+          try {
+            await API.addDep({
+              from: { dept: fromDept.value, code: fromSop.value },
+              to:   { dept: toDept.value,   code: toSop.value   },
+              type: typeSel.value,
+              note: noteI.value.trim()
+            });
+            bd.remove(); onDone && onDone();
+          } catch(e) { alert('خطأ: ' + e.message); }
+        }}, 'إضافة'))
+    );
+    const bd = openModal(modal);
+  }
+
+  window.DEP_TYPES_UI = {
+    approval: { ar:"موافقة",   color:"#b85450" },
+    review:   { ar:"مراجعة",   color:"#ea9a3e" },
+    budget:   { ar:"ميزانية",  color:"#5b8def" },
+    contract: { ar:"عقد",      color:"#7c5ab8" },
+    input:    { ar:"مدخلات",   color:"#3a8f66" },
+    other:    { ar:"أخرى",     color:"#6b7280" }
+  };
+
+  // ================= UNIFIED MAP =================
+  function showUnifiedMap() {
+    const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
+    const deptIds = Object.keys(DEPT_CFG);
+    const W = 1200, H = 700;
+    const cx = W/2, cy = H/2;
+    const R_DEPT = 260; // distance from center for department hubs
+    const R_SOP  = 90;  // distance of SOPs around their dept hub
+
+    const container = h('div', { class:'arsan-unified' });
+    const legend = h('div', { class:'legend' });
+    Object.entries(window.DEP_TYPES_UI).forEach(([_,info]) => {
+      legend.appendChild(h('div', { class:'ent' },
+        h('span', { class:'sw', style:`background:${info.color}` }), info.ar));
+    });
+    container.appendChild(legend);
+
+    // Positions
+    const positions = {}; // deptId → {x,y}
+    deptIds.forEach((id, i) => {
+      const a = (i / deptIds.length) * Math.PI * 2 - Math.PI/2;
+      positions[id] = { x: cx + R_DEPT * Math.cos(a), y: cy + R_DEPT * Math.sin(a), angle: a };
+    });
+    // SOP positions around each dept
+    const sopPos = {}; // `${dept}/${code}` → {x,y}
+    deptIds.forEach(id => {
+      const cfg = DEPT_CFG[id];
+      const center = positions[id];
+      const sops = cfg.sops || [];
+      sops.forEach(([code], j) => {
+        const a = (j / sops.length) * Math.PI * 2;
+        sopPos[`${id}/${code}`] = { x: center.x + R_SOP * Math.cos(a), y: center.y + R_SOP * Math.sin(a) };
+      });
+    });
+
+    (async () => {
+      const deps = await API.getDeps();
+      const svg = [];
+      svg.push(`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`);
+      svg.push(`<defs>
+        ${Object.entries(window.DEP_TYPES_UI).map(([k,v]) => `
+          <marker id="arrow-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="${v.color}"/>
+          </marker>`).join('')}
+      </defs>`);
+
+      // dependency lines
+      deps.forEach(d => {
+        const f = sopPos[`${d.from.dept}/${d.from.code}`];
+        const t = sopPos[`${d.to.dept}/${d.to.code}`];
+        if (!f || !t) return;
+        const color = (window.DEP_TYPES_UI[d.type]||{}).color || '#6b7280';
+        const mx = (f.x+t.x)/2, my = (f.y+t.y)/2 - 30;
+        svg.push(`<path d="M ${f.x} ${f.y} Q ${mx} ${my} ${t.x} ${t.y}" fill="none" stroke="${color}" stroke-width="1.5" stroke-opacity="0.6" marker-end="url(#arrow-${d.type||'other'})"/>`);
+      });
+
+      // dept hubs + SOPs
+      deptIds.forEach(id => {
+        const cfg = DEPT_CFG[id];
+        const p = positions[id];
+        const isExec = id === 'executive';
+        // dept node
+        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="42" fill="${isExec?'#b85450':'var(--bg-0)'}" stroke="${isExec?'#b85450':'var(--brand)'}" stroke-width="${isExec?3:2}"/>`);
+        svg.push(`<text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="${isExec?'#fff':'var(--ink-1)'}">${esc(cfg.name.split(' ')[0])}</text>`);
+        svg.push(`<text x="${p.x}" y="${p.y+18}" text-anchor="middle" font-size="10" fill="${isExec?'#fff':'var(--ink-3)'}">${cfg.sops.length}</text>`);
+
+        // SOP mini nodes
+        (cfg.sops||[]).forEach(([code]) => {
+          const sp = sopPos[`${id}/${code}`];
+          svg.push(`<circle cx="${sp.x}" cy="${sp.y}" r="10" fill="var(--bg-0)" stroke="var(--line)" stroke-width="1"/>`);
+          svg.push(`<text x="${sp.x}" y="${sp.y+3}" text-anchor="middle" font-size="7" fill="var(--ink-2)">${esc(code.split('-')[1]||code)}</text>`);
+          // line from SOP to dept hub
+          svg.push(`<line x1="${sp.x}" y1="${sp.y}" x2="${p.x}" y2="${p.y}" stroke="var(--line)" stroke-width="0.5"/>`);
+        });
+      });
+
+      svg.push('</svg>');
+      container.insertAdjacentHTML('beforeend', svg.join(''));
+    })();
+
+    const modal = h('div', { class:'arsan-modal wide', style:'max-width:1280px' },
+      h('h2', {}, '🌐 الخريطة الشاملة — كل الإدارات'),
+      h('div', { class:'sub' }, 'النقاط الحمراء = الإدارة التنفيذية. الخطوط تمثّل التبعيات بين الإجراءات. الألوان في الأسفل.'),
+      container,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => showDepsEditor() }, 'محرر التبعيات'),
+        h('button', { class:'arsan-btn primary', onclick: () => bd.remove() }, 'إغلاق'))
+    );
+    const bd = openModal(modal);
+  }
+
+  // ================= TOPBAR BUTTONS =================
+  function injectTopBar() {
+    document.querySelectorAll('.arsan-topbar').forEach(n => n.remove());
+    const host = document.body;
+
+    const me = API.me();
+    const bar = h('div', { class:'arsan-topbar' });
+
+    // Unified map button (visible to all)
+    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showUnifiedMap }, '🌐 الخريطة الشاملة'));
+    // Deps editor
+    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showDepsEditor }, '🔗 التبعيّات'));
+    // Chat
+    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: toggleChat }, '💬 التواصل'));
+
+    if (me.role === 'viewer') {
+      bar.appendChild(h('button', { class:'arsan-topbar-btn primary', onclick: showLogin }, '🔑 دخول'));
+    } else {
+      bar.appendChild(h('span', { class:`arsan-role ${me.role}`, style:'align-self:center' }, me.role === 'admin' ? 'مسؤول' : 'محرر'));
+      bar.appendChild(h('span', { style:'align-self:center;font-size:12px;color:var(--ink-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, me.email));
+
+      // Create new SOP (any editor, only when inside a dept page)
+      if (window.CURRENT_DEPT_ID) {
+        bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showNewSopModal }, '➕ إجراء جديد'));
+        bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showImportModal }, '📥 استيراد'));
+      }
+
+      if (me.role === 'admin') {
+        bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showAdmin }, '🛡️ Admin'));
+      }
+      bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: async () => { await API.logout(); location.reload(); }}, 'خروج'));
+
+      document.body.classList.add('editor-mode');
+    }
+
+    host.appendChild(bar);
+  }
+
+  // ================= NEW SOP =================
+  async function showNewSopModal() {
+    if (!API.isEditor()) { showLogin(); return; }
+    const deptId = window.CURRENT_DEPT_ID;
+    if (!deptId) { alert('افتح صفحة إدارة أولاً'); return; }
+    const deptCfg = (window.DEPARTMENTS_CONFIG||{})[deptId] || { name: deptId, sops: [] };
+    const existingCodes = new Set((window.SOPS||[]).map(s => s.code));
+    // suggest a code: take the 2-letter prefix of an existing one, or dept id upper
+    let prefix = 'PR';
+    if ((window.SOPS||[])[0]) {
+      const m = String(window.SOPS[0].code).match(/^([A-Z]+)-/);
+      if (m) prefix = m[1];
+    } else {
+      prefix = deptId.slice(0,2).toUpperCase();
+    }
+    let n = 1;
+    while (existingCodes.has(`${prefix}-${String(n).padStart(2,'0')}`)) n++;
+    const suggestedCode = `${prefix}-${String(n).padStart(2,'0')}`;
+
+    const titleInput = h('input', { type:'text', placeholder: 'مثال: إدارة عروض الأسعار', maxlength:'80' });
+    const codeInput  = h('input', { type:'text', value: suggestedCode, maxlength:'12', style:'text-transform:uppercase;max-width:140px' });
+    const purposeTa  = h('textarea', { rows:'2', placeholder:'اختياري — اتركه للذكاء يقترحه من العنوان' });
+    const errDiv     = h('div', { class:'arsan-err' });
+    const aiBtn      = h('button', { class:'arsan-btn', type:'button' }, '✨ اقترح بالذكاء');
+
+    aiBtn.onclick = async () => {
+      const title = titleInput.value.trim();
+      if (!title) { errDiv.textContent = 'اكتب عنواناً أولاً'; return; }
+      aiBtn.disabled = true; aiBtn.textContent = '...يقترح';
+      try {
+        const r = await API.aiParseSOP(
+          `اسم الإجراء: ${title}\nالإدارة: ${deptCfg.name}\n\nاقترح غرض الإجراء ونطاقه وخطواته الرئيسية.`,
+          { dept: deptId, source: 'template-suggestion' }
+        );
+        const sop = r.sop || {};
+        openReviewModal({
+          dept: deptId,
+          prefilled: {
+            code: codeInput.value.trim().toUpperCase() || suggestedCode,
+            title: sop.title || title,
+            purpose: sop.purpose || '',
+            scope: sop.scope || '',
+            steps: sop.steps || [],
+            kpis: sop.kpis || [],
+            roles: sop.roles || [],
+            inputs: sop.inputs || [],
+            outputs: sop.outputs || [],
+            tools: sop.tools || [],
+            risks: sop.risks || [],
+            notes: sop.notes || '',
+          },
+          source: 'قالب ذكاء اصطناعي',
+          onClose: () => bd.remove()
+        });
+      } catch(e) {
+        errDiv.textContent = 'تعذّر الاقتراح: ' + (e.data?.message || e.message);
+      } finally { aiBtn.disabled = false; aiBtn.textContent = '✨ اقترح بالذكاء'; }
+    };
+
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, '➕ إجراء جديد'),
+      h('div', { class:'sub' }, `في إدارة: ${deptCfg.name}`),
+      h('div', { class:'arsan-field' },
+        h('label', {}, 'العنوان *'), titleInput),
+      h('div', { class:'arsan-field' },
+        h('label', {}, 'الكود'), codeInput,
+        h('div', { style:'font-size:11px;color:var(--ink-3);margin-top:4px' }, `مقترح: ${suggestedCode}`)),
+      h('div', { class:'arsan-field' },
+        h('label', {}, 'الغرض (اختياري)'), purposeTa),
+      errDiv,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        aiBtn,
+        h('button', { class:'arsan-btn primary', onclick: async () => {
+          const title = titleInput.value.trim();
+          const code  = codeInput.value.trim().toUpperCase();
+          if (!title) { errDiv.textContent = 'العنوان مطلوب'; return; }
+          if (!/^[A-Z]{1,5}-\d{1,3}$/.test(code)) { errDiv.textContent = 'الكود غير صحيح (مثال: PM-03)'; return; }
+          if (existingCodes.has(code)) { errDiv.textContent = 'هذا الكود مستخدم'; return; }
+          try {
+            await API.addSOP(deptId, {
+              code, title,
+              purpose: purposeTa.value.trim() || '— يُكمل لاحقاً —',
+              kpis: '— يُكمل لاحقاً —',
+            });
+            bd.remove();
+            location.reload();
+          } catch(e) { errDiv.textContent = 'خطأ: ' + (e.data?.message || e.message); }
+        }}, 'إنشاء فارغ'))
+    );
+    const bd = openModal(modal);
+    setTimeout(() => titleInput.focus(), 50);
+  }
+
+  // ================= IMPORT =================
+  async function showImportModal() {
+    if (!API.isEditor()) { showLogin(); return; }
+    const deptId = window.CURRENT_DEPT_ID;
+    if (!deptId) { alert('افتح صفحة إدارة أولاً'); return; }
+    const deptCfg = (window.DEPARTMENTS_CONFIG||{})[deptId] || { name: deptId };
+
+    const tabs = [
+      { id:'paste',  label:'📋 لصق نص' },
+      { id:'pdf',    label:'📄 PDF' },
+      { id:'docx',   label:'📝 Word' },
+      { id:'google', label:'🔗 Google Docs/Sheets' },
+    ];
+    const pane = h('div', { class:'arsan-pane active' });
+    const tabBar = h('div', { class:'arsan-tabs' });
+    const panes = {};
+    tabs.forEach((t, i) => {
+      const btn = h('button', { class:'arsan-tab' + (i===0?' active':''), onclick: () => switchTab(t.id) }, t.label);
+      tabBar.appendChild(btn);
+      panes[t.id] = { btn, content: h('div', { class:'arsan-pane' + (i===0?' active':'') }) };
+    });
+    function switchTab(id) {
+      Object.entries(panes).forEach(([k,p]) => {
+        p.btn.classList.toggle('active', k===id);
+        p.content.classList.toggle('active', k===id);
+      });
+    }
+
+    const errDiv = h('div', { class:'arsan-err' });
+    const sourceInfo = h('div', { style:'font-size:12px;color:var(--ink-3);margin:8px 0;min-height:16px' });
+
+    // --- PASTE ---
+    const pasteTa = h('textarea', { rows:'10', placeholder:'ألصق نص الإجراء هنا...', style:'width:100%;font-family:monospace;font-size:13px' });
+    panes.paste.content.appendChild(h('div', { class:'arsan-field' },
+      h('label', {}, 'ألصق النص الكامل (إجراء، نموذج، دليل، محضر...)'),
+      pasteTa));
+
+    // --- PDF ---
+    const pdfInput = h('input', { type:'file', accept:'.pdf' });
+    const pdfStatus = h('div', { style:'font-size:12px;color:var(--ink-3);margin-top:6px' });
+    panes.pdf.content.appendChild(h('div', { class:'arsan-field' },
+      h('label', {}, 'اختر ملف PDF (يُستخرج النص تلقائياً)'),
+      pdfInput, pdfStatus));
+
+    // --- DOCX ---
+    const docxInput = h('input', { type:'file', accept:'.docx' });
+    const docxStatus = h('div', { style:'font-size:12px;color:var(--ink-3);margin-top:6px' });
+    panes.docx.content.appendChild(h('div', { class:'arsan-field' },
+      h('label', {}, 'اختر ملف Word (.docx)'),
+      docxInput, docxStatus));
+
+    // --- GOOGLE ---
+    const gUrl = h('input', { type:'url', placeholder:'https://docs.google.com/...' });
+    const gStatus = h('div', { style:'font-size:12px;color:var(--ink-3);margin-top:6px' });
+    panes.google.content.appendChild(h('div', { class:'arsan-field' },
+      h('label', {}, 'الصق رابط Google Docs أو Sheets (يجب أن يكون "Anyone with the link")'),
+      gUrl,
+      h('div', { style:'font-size:11px;color:var(--ink-3);margin-top:4px' },
+        'في Google Docs: File → Share → Anyone with the link (Viewer)'),
+      gStatus));
+
+    let currentText = '';
+    let currentSource = '';
+
+    async function collectText() {
+      const activeId = Object.entries(panes).find(([k,p]) => p.content.classList.contains('active'))[0];
+      if (activeId === 'paste') {
+        currentText = pasteTa.value.trim();
+        currentSource = 'نص مُلصق';
+        return;
+      }
+      if (activeId === 'pdf') {
+        if (!pdfInput.files[0]) throw new Error('اختر ملف PDF');
+        pdfStatus.textContent = '...جارٍ استخراج النص (قد يأخذ ثوانٍ)';
+        currentText = await extractPDFText(pdfInput.files[0]);
+        currentSource = 'PDF: ' + pdfInput.files[0].name;
+        pdfStatus.textContent = `✓ استُخرج ${currentText.length} حرفاً`;
+        return;
+      }
+      if (activeId === 'docx') {
+        if (!docxInput.files[0]) throw new Error('اختر ملف Word');
+        docxStatus.textContent = '...جارٍ استخراج النص';
+        currentText = await extractDOCXText(docxInput.files[0]);
+        currentSource = 'DOCX: ' + docxInput.files[0].name;
+        docxStatus.textContent = `✓ استُخرج ${currentText.length} حرفاً`;
+        return;
+      }
+      if (activeId === 'google') {
+        const u = gUrl.value.trim();
+        if (!u) throw new Error('الصق الرابط');
+        gStatus.textContent = '...جارٍ جلب المحتوى';
+        const r = await fetchGoogleDoc(u);
+        currentText = r.text;
+        currentSource = 'Google: ' + r.kind;
+        gStatus.textContent = `✓ ${currentText.length} حرف (${r.kind})`;
+        return;
+      }
+    }
+
+    const parseBtn = h('button', { class:'arsan-btn primary' }, '✨ تحويل إلى إجراء');
+    parseBtn.onclick = async () => {
+      errDiv.textContent = '';
+      try {
+        await collectText();
+        if (!currentText || currentText.length < 30) throw new Error('النص قصير جداً');
+        sourceInfo.textContent = `المصدر: ${currentSource} — ${currentText.length} حرف`;
+        parseBtn.disabled = true; parseBtn.textContent = '...يحلّل';
+        const r = await API.aiParseSOP(currentText, { dept: deptId, source: currentSource });
+        const sop = r.sop || {};
+        bd.remove();
+        openReviewModal({
+          dept: deptId,
+          prefilled: {
+            code: sop.code || '',
+            title: sop.title || 'إجراء جديد',
+            purpose: sop.purpose || '',
+            scope: sop.scope || '',
+            steps: Array.isArray(sop.steps)?sop.steps:[],
+            kpis: Array.isArray(sop.kpis)?sop.kpis:[],
+            roles: Array.isArray(sop.roles)?sop.roles:[],
+            inputs: Array.isArray(sop.inputs)?sop.inputs:[],
+            outputs: Array.isArray(sop.outputs)?sop.outputs:[],
+            tools: Array.isArray(sop.tools)?sop.tools:[],
+            risks: Array.isArray(sop.risks)?sop.risks:[],
+            notes: sop.notes || '',
+          },
+          source: currentSource,
+        });
+      } catch(e) {
+        errDiv.textContent = 'فشل: ' + (e.data?.message || e.message);
+      } finally { parseBtn.disabled = false; parseBtn.textContent = '✨ تحويل إلى إجراء'; }
+    };
+
+    const modal = h('div', { class:'arsan-modal wide' },
+      h('h2', {}, '📥 استيراد إجراء'),
+      h('div', { class:'sub' }, `إلى: ${deptCfg.name} — الذكاء سيستخرج الهيكل، وستراجعه قبل الحفظ`),
+      tabBar,
+      ...Object.values(panes).map(p => p.content),
+      sourceInfo,
+      errDiv,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        parseBtn)
+    );
+    const bd = openModal(modal);
+  }
+
+  // ================= REVIEW =================
+  function openReviewModal({ dept, prefilled, source }) {
+    const deptCfg = (window.DEPARTMENTS_CONFIG||{})[dept] || { name: dept };
+    const existing = new Set((window.SOPS||[]).map(s => s.code));
+    // ensure code is unique
+    let code = (prefilled.code || '').toUpperCase();
+    if (!code || existing.has(code)) {
+      let base = (code.split('-')[0]) || dept.slice(0,2).toUpperCase();
+      let n=1;
+      while (existing.has(`${base}-${String(n).padStart(2,'0')}`)) n++;
+      code = `${base}-${String(n).padStart(2,'0')}`;
+    }
+
+    const f = { ...prefilled, code };
+    const mkInput = (val) => h('input', { type:'text', value: val || '' });
+    const mkTa = (val, rows=3) => h('textarea', { rows: String(rows) }, val || '');
+    const listTa = (arr, rows=4) => h('textarea', { rows: String(rows), placeholder:'سطر لكل عنصر' },
+      Array.isArray(arr) ? arr.join('\n') : (arr || ''));
+    const rolesTa = (arr, rows=3) => h('textarea', { rows: String(rows), placeholder:'الدور: المسؤوليات (سطر لكل دور)' },
+      (arr||[]).map(r => typeof r === 'string' ? r : `${r.name || ''}: ${r.duties || ''}`).join('\n'));
+
+    const titleI = mkInput(f.title);
+    const codeI = mkInput(f.code);
+    const purposeI = mkTa(f.purpose, 2);
+    const scopeI = mkTa(f.scope, 2);
+    const stepsI = listTa(f.steps, 6);
+    const kpisI = listTa(f.kpis, 3);
+    const rolesI = rolesTa(f.roles, 3);
+    const inputsI = listTa(f.inputs, 2);
+    const outputsI = listTa(f.outputs, 2);
+    const toolsI = listTa(f.tools, 2);
+    const risksI = listTa(f.risks, 2);
+    const notesI = mkTa(f.notes, 2);
+    const errDiv = h('div', { class:'arsan-err' });
+
+    function row(label, el) {
+      return h('div', { class:'arsan-field' }, h('label', {}, label), el);
+    }
+
+    const modal = h('div', { class:'arsan-modal wide' },
+      h('h2', {}, '✅ مراجعة قبل الحفظ'),
+      h('div', { class:'sub' }, `إلى: ${deptCfg.name} • المصدر: ${source}`),
+      h('div', { style:'display:grid;grid-template-columns:2fr 1fr;gap:12px' },
+        row('العنوان', titleI),
+        row('الكود', codeI)),
+      row('الغرض', purposeI),
+      row('النطاق', scopeI),
+      row('الخطوات (سطر لكل خطوة)', stepsI),
+      row('مؤشرات الأداء (KPIs)', kpisI),
+      row('الأدوار (الدور: المسؤوليات)', rolesI),
+      h('div', { style:'display:grid;grid-template-columns:1fr 1fr;gap:12px' },
+        row('المدخلات', inputsI),
+        row('المخرجات', outputsI)),
+      h('div', { style:'display:grid;grid-template-columns:1fr 1fr;gap:12px' },
+        row('الأدوات', toolsI),
+        row('المخاطر', risksI)),
+      row('ملاحظات', notesI),
+      errDiv,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        h('button', { class:'arsan-btn primary', onclick: async () => {
+          const title = titleI.value.trim();
+          const cd = codeI.value.trim().toUpperCase();
+          if (!title) { errDiv.textContent = 'العنوان مطلوب'; return; }
+          if (!/^[A-Z]{1,5}-\d{1,3}$/.test(cd)) { errDiv.textContent = 'الكود غير صحيح'; return; }
+          if (existing.has(cd)) { errDiv.textContent = 'هذا الكود مستخدم'; return; }
+          const splitLines = (t) => t.split('\n').map(x => x.trim()).filter(Boolean);
+          const sopBody = {
+            code: cd, title,
+            purpose: purposeI.value.trim() || '— يُكمل لاحقاً —',
+            scope: scopeI.value.trim(),
+            steps: splitLines(stepsI.value),
+            kpis: splitLines(kpisI.value).join(' • ') || '— يُكمل لاحقاً —',
+            roles: splitLines(rolesI.value).map(line => {
+              const m = line.match(/^(.+?)[:：]\s*(.+)$/);
+              return m ? { name: m[1].trim(), duties: m[2].trim() } : { name: line, duties: '' };
+            }),
+            inputs: splitLines(inputsI.value),
+            outputs: splitLines(outputsI.value),
+            tools: splitLines(toolsI.value),
+            risks: splitLines(risksI.value),
+            notes: notesI.value.trim(),
+            importedFrom: source,
+          };
+          try {
+            await API.addSOP(dept, sopBody);
+            bd.remove();
+            location.reload();
+          } catch(e) { errDiv.textContent = 'خطأ: ' + (e.data?.message || e.message); }
+        }}, '💾 حفظ الإجراء'))
+    );
+    const bd = openModal(modal);
+  }
+
+  // ================= FILE TEXT EXTRACTION =================
+  async function loadScript(src, check) {
+    if (check && check()) return;
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = res;
+      s.onerror = () => rej(new Error('فشل تحميل: '+src));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function extractPDFText(file) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+      () => window.pdfjsLib);
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    let out = '';
+    for (let i=1; i<=pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      out += tc.items.map(it => it.str).join(' ') + '\n\n';
+      if (out.length > 30000) break;
+    }
+    return out.trim();
+  }
+
+  async function extractDOCXText(file) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+      () => window.mammoth);
+    const buf = await file.arrayBuffer();
+    const r = await window.mammoth.extractRawText({ arrayBuffer: buf });
+    return (r.value || '').trim();
+  }
+
+  async function fetchGoogleDoc(url) {
+    // Google Docs → export as txt
+    // Google Sheets → export as csv
+    let u;
+    try { u = new URL(url); } catch(_) { throw new Error('رابط غير صحيح'); }
+    const parts = u.pathname.split('/');
+    const dIdx = parts.indexOf('d');
+    if (dIdx < 0 || !parts[dIdx+1]) throw new Error('رابط Google غير متوقع');
+    const id = parts[dIdx+1];
+    let exportUrl, kind;
+    if (u.pathname.includes('/document/')) {
+      exportUrl = `https://docs.google.com/document/d/${id}/export?format=txt`;
+      kind = 'Docs';
+    } else if (u.pathname.includes('/spreadsheets/')) {
+      exportUrl = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
+      kind = 'Sheets';
+    } else {
+      throw new Error('استخدم رابط Docs أو Sheets');
+    }
+    const res = await fetch(exportUrl);
+    if (!res.ok) throw new Error('يجب أن يكون المستند مشاركةً "Anyone with the link"');
+    const text = await res.text();
+    return { text: text.trim(), kind };
+  }
+
+  // ================= INLINE EDITING =================
+  // wrap modal fields with editable markers
+  function enableInlineEditing() {
+    if (!API.isEditor()) return;
+    // Find m-purpose, m-kpis, m-steps, etc, once modal is opened
+    const observer = new MutationObserver(() => {
+      ['m-purpose','m-kpis'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.classList.contains('arsan-editable') && el.textContent) {
+          el.classList.add('arsan-editable');
+          el.addEventListener('click', () => editField(id));
+        }
+      });
+      // rename: title + code
+      const titleEl = document.getElementById('modal-title');
+      const codeEl  = document.getElementById('m-code');
+      if (titleEl && !titleEl.classList.contains('arsan-rename-bound')) {
+        titleEl.classList.add('arsan-rename-bound');
+        titleEl.style.cursor = 'pointer';
+        titleEl.title = 'اضغط لإعادة التسمية';
+        titleEl.addEventListener('click', () => showRenameModal());
+      }
+      if (codeEl && !codeEl.classList.contains('arsan-rename-bound')) {
+        codeEl.classList.add('arsan-rename-bound');
+        codeEl.style.cursor = 'pointer';
+        codeEl.title = 'اضغط لتغيير الكود';
+        codeEl.addEventListener('click', () => showRenameModal());
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function showRenameModal() {
+    if (!API.isEditor() || !window.SOPS || window.state == null) return;
+    const sop = window.SOPS[window.state.openIdx];
+    if (!sop) return;
+    const dept = window.CURRENT_DEPT_ID;
+    const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
+    const titleI = h('input', { type:'text', value: sop.title || '' });
+    const codeI  = h('input', { type:'text', value: sop.code || '', style:'text-transform:uppercase;max-width:160px' });
+    // move between departments? build a select
+    const deptSel = h('select', {},
+      ...Object.entries(DEPT_CFG).map(([id,cfg]) =>
+        h('option', { value:id, ...(id===dept?{selected:'selected'}:{}) }, cfg.name || id))
+    );
+    const errDiv = h('div', { class:'arsan-err' });
+
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, '✏️ إعادة تسمية الإجراء'),
+      h('div', { class:'sub' }, `الحالي: ${sop.code} — ${sop.title}`),
+      h('div', { class:'arsan-field' }, h('label', {}, 'العنوان'), titleI),
+      h('div', { style:'display:grid;grid-template-columns:1fr 1fr;gap:12px' },
+        h('div', { class:'arsan-field' }, h('label', {}, 'الكود'), codeI),
+        h('div', { class:'arsan-field' }, h('label', {}, 'الإدارة'), deptSel)),
+      errDiv,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        h('button', { class:'arsan-btn primary', onclick: async () => {
+          const newTitle = titleI.value.trim();
+          const newCode  = codeI.value.trim().toUpperCase();
+          const newDept  = deptSel.value;
+          if (!newTitle) { errDiv.textContent = 'العنوان مطلوب'; return; }
+          if (!/^[A-Z]{1,5}-\d{1,3}$/.test(newCode)) { errDiv.textContent = 'الكود غير صحيح'; return; }
+          if (newDept === dept && newCode === sop.code && newTitle === sop.title) {
+            bd.remove(); return;
+          }
+          try {
+            await API.renameSOP(dept, sop.code, {
+              newTitle: newTitle !== sop.title ? newTitle : undefined,
+              newCode: newCode !== sop.code ? newCode : undefined,
+              newDept: newDept !== dept ? newDept : undefined,
+            });
+            bd.remove();
+            location.reload();
+          } catch(e) { errDiv.textContent = 'خطأ: ' + (e.data?.message || e.message); }
+        }}, '💾 حفظ'))
+    );
+    const bd = openModal(modal);
+    setTimeout(() => titleI.focus(), 50);
+  }
+
+  async function editField(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el || !window.SOPS || window.state == null) return;
+    const sop = window.SOPS[window.state.openIdx];
+    if (!sop) return;
+    const labelMap = { 'm-purpose':'الغرض','m-kpis':'مؤشرات الأداء' };
+    const keyMap = { 'm-purpose':'purpose','m-kpis':'kpis' };
+    const ta = h('textarea', { rows:'5', style:'width:100%' }, sop[keyMap[fieldId]] === '— يُكمل لاحقاً —' ? '' : (sop[keyMap[fieldId]] || ''));
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, 'تعديل: ' + labelMap[fieldId]),
+      h('div', { class:'sub' }, sop.code + ' — ' + sop.title),
+      h('div', { class:'arsan-field' }, ta),
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
+        h('button', { class:'arsan-btn primary', onclick: async () => {
+          const patch = {}; patch[keyMap[fieldId]] = ta.value.trim();
+          try {
+            await API.updateSOP(window.CURRENT_DEPT_ID, sop.code, patch);
+            Object.assign(sop, patch);
+            el.textContent = patch[keyMap[fieldId]] || '— يُكمل لاحقاً —';
+            bd.remove();
+          } catch(e){ alert('خطأ: ' + e.message); }
+        }}, 'حفظ'))
+    );
+    const bd = openModal(modal);
+    setTimeout(() => ta.focus(), 50);
+  }
+
+  // ================= BOOT =================
+  function boot() {
+    injectTopBar();
+    enableInlineEditing();
+
+    // load server data and merge with local SOPs
+    (async () => {
+      try {
+        const data = await API.bootstrap();
+        if (data && data.sops && window.SOPS && window.CURRENT_DEPT_ID) {
+          const deptData = data.sops[window.CURRENT_DEPT_ID];
+          if (deptData) {
+            window.SOPS.forEach(s => {
+              if (deptData[s.code]) Object.assign(s, deptData[s.code]);
+            });
+            if (typeof window.renderGrid === 'function') window.renderGrid();
+          }
+        }
+      } catch(e) { /* offline ok */ }
+    })();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 50);
+
+  window.ArsanUI = { showLogin, showAdmin, showUnifiedMap, showDepsEditor, toggleChat };
+})();
+
+</script>
+
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 /**
- * Arsan SOPs — Cloudflare Worker (Backend)
+ * Arsann SOPs — Cloudflare Worker (Backend)
  * =========================================
  * ينسخ هذا الملف كاملاً في Cloudflare Worker جديد.
  * تعليمات الإعداد في README.md.
@@ -103,7 +103,7 @@ async function logActivity(env, entry) {
   try {
     const webhook = await env.ARSAN.get(KEYS.slack);
     if (webhook) {
-      const text = `*[Arsan SOPs]* ${entry.actor || "?"} → *${entry.action}* ${entry.target || ""}`;
+      const text = `*[Arsann SOPs]* ${entry.actor || "?"} → *${entry.action}* ${entry.target || ""}`;
       await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +198,7 @@ async function sendUserNotification(env, opts) {
             ` : ''}
           </div>
           <div style="text-align:center;margin-top:16px;font-size:12px;color:#999">
-            أرسان للتشغيل · Arsan Operations
+            أرسان للتشغيل · Arsann Operations
           </div>
         </div>
       `;
@@ -209,7 +209,7 @@ async function sendUserNotification(env, opts) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: `Arsan Operations <${fromEmail}>`,
+          from: `Arsann Operations <${fromEmail}>`,
           to: [email],
           subject: subject,
           html: htmlBody,
@@ -917,7 +917,7 @@ export default {
             },
             body: JSON.stringify({
               channel: dmChannel,
-              text: `🧪 *اختبار Slack من Arsan SOPs*\n\nإذا وصلتك هذه الرسالة، نظام الإشعارات يعمل بنجاح.\n\nالوقت: ${new Date().toISOString()}`
+              text: `🧪 *اختبار Slack من Arsann SOPs*\n\nإذا وصلتك هذه الرسالة، نظام الإشعارات يعمل بنجاح.\n\nالوقت: ${new Date().toISOString()}`
             })
           });
           const j = await r.json();

@@ -104,12 +104,12 @@
     color:var(--header-ink); font-weight:600;
   }
   .brandline .logo{
-    width:28px;height:28px;border-radius:8px;
-    background:linear-gradient(135deg, #C69C22 0%, #8B6F00 60%, #6B5300 100%);
+    width:auto;height:44px;
+    background:transparent;
     display:inline-flex;align-items:center;justify-content:center;
-    color:#1a1405; font-weight:700; font-size:14px;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
+    filter: drop-shadow(0 2px 6px rgba(212,168,60,.35));
   }
+  .brandline .logo img{ width:auto; height:100%; display:block; }
   .brandline .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
   .theme-toggle{
     margin-inline-start:auto;
@@ -379,7 +379,7 @@
   <div class="hero-inner">
     <div class="brandline">
       <span class="mark">
-        <span class="logo" aria-hidden="true">أ</span>
+        <span class="logo" aria-hidden="true"><img src="brand-mark.png" alt="أرسان"></span>
         شركة أرسان للتشغيل
       </span>
       <span class="dot" aria-hidden="true"></span>
@@ -577,8 +577,9 @@
 
 <script>window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";</script>
 <script src="updates-banner.js?v=1"></script>
-<script src="auth-gate.js?v=1"></script>
+<script src="auth-gate.js?v=7"></script>
 <script src="i18n.js?v=4"></script>
+<script src="themes.js?v=2"></script>
 
 </body>
 </html>

@@ -162,11 +162,12 @@
         flex:1; pointer-events:none;
       }
       .arsan-sb-head .logo{
-        width:32px;height:32px;border-radius:8px;
-        background:linear-gradient(135deg, #d4a83c, #b89030);
-        color:#fff;font-weight:700;font-size:15px;
+        width:auto;height:48px;
+        background:transparent;
         display:grid;place-items:center;
+        filter: drop-shadow(0 2px 6px rgba(212,168,60,.3));
       }
+      .arsan-sb-head .logo img{ width:auto; height:100%; display:block; }
       .arsan-sb-head .title{
         font-size:14px;font-weight:600;color:#f3e9c9;
       }
@@ -283,8 +284,8 @@
     head.className = 'arsan-sb-head';
     head.innerHTML = `
       <div class="brand-wrap">
-        <div class="logo">A</div>
-        <div class="title">Arsan SOPs<small>منصة الإجراءات التشغيلية</small></div>
+        <div class="logo"><img src="brand-mark.png" alt="أرسان"></div>
+        <div class="title">Arsann SOPs<small>منصة الإجراءات التشغيلية</small></div>
       </div>
     `;
     topbar.appendChild(head);
@@ -337,9 +338,26 @@
         }
       } catch(err) {}
 
-      // Force reload with cache-buster query param
+      // Pre-warm all <script src> and <link rel=stylesheet> with fresh query so browser discards the stale ones
+      const stamp = Date.now().toString(36);
+      try {
+        const assets = [...document.querySelectorAll('script[src], link[rel="stylesheet"][href]')];
+        await Promise.all(assets.map(node => {
+          const attr = node.tagName === 'SCRIPT' ? 'src' : 'href';
+          const u = new URL(node.getAttribute(attr), location.href);
+          // only same-origin
+          if (u.origin !== location.origin) return Promise.resolve();
+          u.searchParams.set('_rb', stamp);
+          return fetch(u.toString(), { cache:'reload', mode:'no-cors' }).catch(()=>{});
+        }));
+      } catch(err) {}
+
+      // Force a hard reload with a global cache-buster that the page itself reads
+      // (we intercept this in boot to append _rb to every script/link)
+      localStorage.setItem('arsan_cache_bust', stamp);
       const url = new URL(location.href);
-      url.searchParams.set('_r', Date.now().toString(36));
+      url.searchParams.set('_r', stamp);
+      // Use location.reload(true) on older browsers, but location.replace is more reliable
       location.replace(url.toString());
     });
 

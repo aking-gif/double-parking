@@ -63,29 +63,45 @@
     const s = document.createElement('style');
     s.id = 'arsan-notif-styles';
     s.textContent = `
+      #arsan-notif-bell-host{
+        position:fixed;
+        top:16px;
+        /* RTL default: sidebar FAB is on the right → bell on the left */
+        inset-inline-start:16px;
+        inset-inline-end:auto;
+        z-index:9100;
+      }
+      html[dir="ltr"] #arsan-notif-bell-host{
+        inset-inline-start:auto;
+        inset-inline-end:16px;
+      }
       .arsan-notif-btn{
         position:relative;
-        width:38px;height:38px;border-radius:10px;
+        width:44px;height:44px;border-radius:12px;
         display:grid;place-items:center;
-        background:rgba(255,255,255,.05);
-        border:1px solid rgba(212,168,60,.2);
+        background:rgba(26,21,16,.75);
+        backdrop-filter:blur(16px) saturate(180%);
+        -webkit-backdrop-filter:blur(16px) saturate(180%);
+        border:1px solid rgba(212,168,60,.3);
         color:#f3e9c9;
         cursor:pointer;
-        transition:background .15s, border-color .15s;
+        box-shadow:0 4px 16px rgba(0,0,0,.25);
+        transition:background .15s, border-color .15s, transform .15s;
       }
       html[data-theme="light"] .arsan-notif-btn{
-        background:rgba(255,255,255,.6);
+        background:rgba(255,255,255,.75);
         color:#3a2f15;
-        border-color:rgba(212,168,60,.3);
+        border-color:rgba(212,168,60,.35);
       }
       .arsan-notif-btn:hover{
-        background:rgba(212,168,60,.15);
-        border-color:rgba(212,168,60,.5);
+        background:rgba(212,168,60,.2);
+        border-color:rgba(212,168,60,.6);
+        transform:translateY(-1px);
       }
-      .arsan-notif-btn svg{ width:18px;height:18px; }
+      .arsan-notif-btn svg{ width:20px;height:20px; }
       .arsan-notif-btn .badge{
-        position:absolute; top:-4px; inset-inline-end:-4px;
-        min-width:16px; height:16px; padding:0 4px;
+        position:absolute; top:-5px; inset-inline-end:-5px;
+        min-width:18px; height:18px; padding:0 5px;
         border-radius:999px;
         background:#e63946; color:#fff;
         font-size:10px; font-weight:700;
@@ -103,11 +119,13 @@
         80%{ transform:rotate(4deg); }
       }
 
-      /* Panel */
+      /* Panel — anchored to same side as bell */
       .arsan-notif-panel{
         position:fixed;
-        top:70px; inset-inline-end:20px;
-        width:380px; max-width:calc(100vw - 40px);
+        top:70px;
+        inset-inline-start:16px;
+        inset-inline-end:auto;
+        width:380px; max-width:calc(100vw - 32px);
         max-height:70vh;
         background:linear-gradient(180deg, rgba(26,21,16,.92) 0%, rgba(35,26,16,.88) 100%);
         backdrop-filter:blur(24px) saturate(180%);
@@ -119,6 +137,10 @@
         flex-direction:column;
         z-index:9500;
         overflow:hidden;
+      }
+      html[dir="ltr"] .arsan-notif-panel{
+        inset-inline-start:auto;
+        inset-inline-end:16px;
       }
       html[data-theme="light"] .arsan-notif-panel{
         background:linear-gradient(180deg, rgba(250,246,234,.92) 0%, rgba(243,234,208,.88) 100%);
@@ -340,14 +362,15 @@
 
   // ============ Inject bell into sidebar header ============
   function mountBell(){
-    const sbHead = document.querySelector('.arsan-sb-head');
-    if (!sbHead) return false;
-    if (sbHead.querySelector('.arsan-notif-btn')) return true;
-    // Wrap title + bell in a row
-    sbHead.style.pointerEvents = 'auto';
-    sbHead.style.justifyContent = 'space-between';
+    if (document.getElementById('arsan-notif-bell-host')) return true;
+    // Floating host — positions bell opposite the sidebar FAB.
+    // RTL: sidebar FAB is top-right (inset-inline-end:16px), so bell sits top-LEFT.
+    // LTR: sidebar FAB is top-left, bell sits top-RIGHT.
+    const host = document.createElement('div');
+    host.id = 'arsan-notif-bell-host';
     const bell = createBell();
-    sbHead.appendChild(bell);
+    host.appendChild(bell);
+    document.body.appendChild(host);
     updateBadge();
     return true;
   }

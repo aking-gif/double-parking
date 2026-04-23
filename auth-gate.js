@@ -11,7 +11,7 @@
 
   const API = (typeof API_BASE !== 'undefined' && API_BASE)
     || (window.API_BASE || '');
-  const TOKEN_KEY = 'arsan_token';
+  const TOKEN_KEY = 'arsan_token_v1';
   const LS_LAST_EMAIL = 'arsan_last_email';
 
   const $ = (s, r=document) => r.querySelector(s);
@@ -59,122 +59,284 @@
       .ag-bd{
         position:fixed;inset:0;z-index:9999;
         background:
-          radial-gradient(circle at 20% 30%, rgba(212,168,60,.12) 0%, transparent 45%),
-          radial-gradient(circle at 80% 70%, rgba(184,144,48,.08) 0%, transparent 50%),
-          linear-gradient(135deg, #1a1510 0%, #2a1f14 40%, #1f1810 100%);
+          radial-gradient(circle at 15% 25%, rgba(212,168,60,.25) 0%, transparent 40%),
+          radial-gradient(circle at 85% 75%, rgba(100,70,180,.18) 0%, transparent 45%),
+          radial-gradient(circle at 50% 50%, rgba(180,120,60,.15) 0%, transparent 60%),
+          linear-gradient(135deg, #0a0612 0%, #140a1e 30%, #1a0f0a 70%, #0f0a06 100%);
         display:grid;place-items:center;padding:20px;
         overflow:hidden;
       }
+      /* Animated aurora layer */
       .ag-bd::before{
+        content:'';position:absolute;inset:-20%;
+        background:
+          radial-gradient(ellipse 40% 30% at 20% 30%, rgba(212,168,60,.35), transparent 60%),
+          radial-gradient(ellipse 45% 35% at 75% 20%, rgba(160,100,200,.25), transparent 55%),
+          radial-gradient(ellipse 50% 40% at 60% 80%, rgba(220,140,80,.22), transparent 60%);
+        filter:blur(40px);
+        animation: ag-aurora 20s ease-in-out infinite alternate;
+        pointer-events:none;
+      }
+      @keyframes ag-aurora{
+        0%   { transform:translate(0,0) scale(1); }
+        50%  { transform:translate(-5%, 3%) scale(1.08); }
+        100% { transform:translate(3%,-2%) scale(1.02); }
+      }
+      /* Arabic calligraphy watermark */
+      .ag-bd::after{
         content:'';position:absolute;inset:0;
         background-image:
-          linear-gradient(rgba(212,168,60,.04) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(212,168,60,.04) 1px, transparent 1px);
-        background-size: 40px 40px;
-        mask-image: radial-gradient(circle at center, black, transparent 70%);
+          linear-gradient(rgba(212,168,60,.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212,168,60,.05) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
         pointer-events:none;
+        opacity:.5;
       }
       html[data-theme="light"] .ag-bd{
         background:
-          radial-gradient(circle at 20% 30%, rgba(212,168,60,.2) 0%, transparent 45%),
-          radial-gradient(circle at 80% 70%, rgba(184,144,48,.15) 0%, transparent 50%),
-          linear-gradient(135deg, #faf6ea 0%, #f3e9c9 50%, #eadda5 100%);
+          radial-gradient(circle at 15% 25%, rgba(212,168,60,.3) 0%, transparent 40%),
+          radial-gradient(circle at 85% 75%, rgba(140,110,200,.2) 0%, transparent 45%),
+          linear-gradient(135deg, #faf6ea 0%, #f0e5c9 40%, #e6d8a8 80%, #dbc88a 100%);
       }
+      html[data-theme="light"] .ag-bd::before{
+        background:
+          radial-gradient(ellipse 40% 30% at 20% 30%, rgba(212,168,60,.4), transparent 60%),
+          radial-gradient(ellipse 45% 35% at 75% 20%, rgba(180,140,220,.3), transparent 55%),
+          radial-gradient(ellipse 50% 40% at 60% 80%, rgba(230,180,120,.3), transparent 60%);
+        filter:blur(50px);
+      }
+
+      /* GLASS card */
       .ag-card{
-        background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
-        border:1px solid rgba(212,168,60,.25);
-        border-radius:20px;padding:36px 32px;
-        max-width:420px;width:100%;
-        box-shadow:0 30px 80px rgba(0,0,0,.4);
-        animation:ag-in .3s ease both;
+        position:relative;
+        background:rgba(255,255,255,.08);
+        backdrop-filter:blur(30px) saturate(180%);
+        -webkit-backdrop-filter:blur(30px) saturate(180%);
+        border:1px solid rgba(255,255,255,.18);
+        border-radius:24px;
+        padding:40px 36px;
+        max-width:440px;width:100%;
+        box-shadow:
+          0 30px 80px rgba(0,0,0,.45),
+          inset 0 1px 0 rgba(255,255,255,.15),
+          inset 0 -1px 0 rgba(0,0,0,.1);
+        animation:ag-in .5s cubic-bezier(.2,.9,.3,1.1) both;
+        color:#f3e9c9;
+        overflow:hidden;
       }
-      @keyframes ag-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+      /* Subtle gold highlight along the top edge */
+      .ag-card::before{
+        content:'';position:absolute;top:0;left:0;right:0;height:1px;
+        background:linear-gradient(90deg, transparent, rgba(212,168,60,.6), transparent);
+      }
+      html[data-theme="light"] .ag-card{
+        background:rgba(255,255,255,.45);
+        border-color:rgba(255,255,255,.6);
+        color:#2a1f10;
+        box-shadow:
+          0 30px 80px rgba(0,0,0,.12),
+          inset 0 1px 0 rgba(255,255,255,.8),
+          inset 0 -1px 0 rgba(212,168,60,.15);
+      }
+      @keyframes ag-in{
+        from{opacity:0;transform:translateY(12px) scale(.98)}
+        to{opacity:1;transform:none}
+      }
       .ag-logo{
-        text-align:center;margin-bottom:20px;
+        text-align:center;margin-bottom:22px;
       }
       .ag-logo-mark{
         display:inline-grid;place-items:center;
-        width:60px;height:60px;border-radius:14px;
-        background:linear-gradient(135deg,#d4a83c,#b89030);
-        color:#fff;font-size:28px;font-weight:700;
-        box-shadow:0 8px 20px rgba(212,168,60,.3);
+        width:auto;height:110px;
+        background:transparent;
+        filter: drop-shadow(0 6px 18px rgba(212,168,60,.45));
+      }
+      .ag-logo-mark img{
+        width:auto; height:100%;
+        display:block;
       }
       .ag-title{
-        text-align:center;font-size:22px;font-weight:700;color:#23211c;
-        margin:0 0 4px;letter-spacing:-.01em;
+        text-align:center;font-size:24px;font-weight:700;
+        color:inherit;
+        margin:0 0 6px;letter-spacing:-.01em;
       }
       .ag-sub{
-        text-align:center;font-size:13.5px;color:#8a7c55;margin:0 0 24px;
+        text-align:center;font-size:13px;opacity:.65;margin:0 0 26px;
+        font-weight:400;
       }
       .ag-field{margin-bottom:14px}
       .ag-field label{
-        display:block;font-size:12.5px;font-weight:600;
-        color:#5a4e30;margin-bottom:6px;
+        display:block;font-size:12px;font-weight:500;
+        opacity:.75;margin-bottom:6px;letter-spacing:.2px;
       }
       .ag-field input{
-        width:100%;padding:12px 14px;box-sizing:border-box;
-        border:1px solid #d6ccaa;border-radius:10px;
-        font:inherit;font-size:14px;color:#23211c;
-        background:#fefcf5;transition:border-color .15s, box-shadow .15s;
+        width:100%;padding:13px 15px;box-sizing:border-box;
+        border:1px solid rgba(212,168,60,.25);
+        border-radius:11px;
+        font:inherit;font-size:14px;
+        color:inherit;
+        background:rgba(255,255,255,.06);
+        backdrop-filter:blur(10px);
+        transition:border-color .15s, box-shadow .15s, background .15s;
       }
+      html[data-theme="light"] .ag-field input{
+        background:rgba(255,255,255,.5);
+        border-color:rgba(212,168,60,.35);
+      }
+      .ag-field input::placeholder{ opacity:.4; }
       .ag-field input:focus{
-        outline:none;border-color:#d4a83c;
-        box-shadow:0 0 0 3px rgba(212,168,60,.15);
+        outline:none;
+        border-color:rgba(212,168,60,.65);
+        background:rgba(212,168,60,.08);
+        box-shadow:0 0 0 3px rgba(212,168,60,.18);
       }
       .ag-err{
-        background:#fff2f0;border:1px solid #ffccc7;color:#c23;
-        padding:10px 12px;border-radius:8px;font-size:13px;
+        background:rgba(230,57,70,.12);
+        border:1px solid rgba(230,57,70,.35);
+        color:#ff8a95;
+        padding:10px 12px;border-radius:9px;font-size:13px;
         margin-bottom:12px;display:none;
       }
+      html[data-theme="light"] .ag-err{ color:#c5303c; }
       .ag-err.show{display:block}
       .ag-btn{
-        width:100%;padding:12px 16px;
-        background:linear-gradient(180deg,#d4a83c,#b89030);
-        color:#fff;border:none;border-radius:10px;
+        width:100%;padding:13px 16px;
+        background:linear-gradient(180deg,#e6c05a 0%, #d4a83c 45%, #b89030 100%);
+        color:#fff;border:none;border-radius:11px;
         font:inherit;font-size:14px;font-weight:600;
-        cursor:pointer;transition:filter .15s, transform .05s;
-        box-shadow:0 4px 12px rgba(212,168,60,.3);
+        cursor:pointer;
+        transition:filter .15s, transform .05s, box-shadow .2s;
+        box-shadow:
+          0 6px 20px rgba(212,168,60,.35),
+          inset 0 1px 0 rgba(255,255,255,.25);
+        letter-spacing:.3px;
       }
-      .ag-btn:hover:not(:disabled){filter:brightness(1.08)}
+      .ag-btn:hover:not(:disabled){
+        filter:brightness(1.08);
+        box-shadow:
+          0 10px 28px rgba(212,168,60,.5),
+          inset 0 1px 0 rgba(255,255,255,.3);
+      }
       .ag-btn:active{transform:translateY(1px)}
       .ag-btn:disabled{opacity:.6;cursor:not-allowed}
       .ag-forgot{
-        text-align:center;margin-top:14px;
+        text-align:center;margin-top:16px;
         font-size:12.5px;
       }
-      .ag-forgot a{color:#8a7c55;text-decoration:underline;cursor:pointer}
-      .ag-forgot a:hover{color:#6d5a1e}
+      .ag-forgot a{color:inherit;opacity:.6;text-decoration:underline;cursor:pointer}
+      .ag-forgot a:hover{opacity:1}
       .ag-footer{
-        text-align:center;margin-top:22px;padding-top:16px;
-        border-top:1px solid #eee;font-size:11.5px;color:#a39877;
+        text-align:center;margin-top:24px;padding-top:18px;
+        border-top:1px solid rgba(212,168,60,.15);
+        font-size:11px;opacity:.5;letter-spacing:.3px;
       }
 
-      /* User badge on index */
+      /* User badge on index — embedded glass pill, bottom-opposite from sidebar */
       .ag-userbadge{
-        position:fixed;top:16px;inset-inline-end:16px;z-index:500;
+        position:fixed;
+        bottom:18px;
+        /* RTL default: sidebar FAB is top-right → badge sits bottom-LEFT */
+        inset-inline-start:18px;
+        inset-inline-end:auto;
+        z-index:500;
         display:flex;align-items:center;gap:10px;
-        background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
-        border:1px solid rgba(212,168,60,.25);
-        padding:8px 12px 8px 8px;border-radius:999px;
-        font-size:13px;color:#23211c;
-        box-shadow:0 2px 8px rgba(0,0,0,.05);
+        padding:8px 12px 8px 8px;
+        border-radius:999px;
+        background:linear-gradient(135deg, rgba(250,246,234,.9) 0%, rgba(243,234,208,.9) 100%);
+        backdrop-filter:blur(16px) saturate(180%);
+        -webkit-backdrop-filter:blur(16px) saturate(180%);
+        border:1px solid rgba(212,168,60,.3);
+        color:#3a2f15;
+        font-size:12px;
+        box-shadow:0 8px 24px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.5);
+        transition:all .2s ease;
       }
-      html[data-theme="dark"] .ag-userbadge{background:rgba(40,32,22,.85);color:#f3e9c9;border-color:rgba(212,168,60,.4)}
+      html[dir="ltr"] .ag-userbadge{
+        inset-inline-start:auto;
+        inset-inline-end:18px;
+      }
+      .ag-userbadge:hover{
+        transform:translateY(-2px);
+        box-shadow:0 12px 28px rgba(0,0,0,.12);
+      }
+      html[data-theme="dark"] .ag-userbadge{
+        background:linear-gradient(135deg, rgba(26,21,16,.85) 0%, rgba(42,32,20,.85) 100%);
+        color:#f3e9c9;
+        border-color:rgba(212,168,60,.35);
+        box-shadow:0 8px 24px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.05);
+      }
       .ag-userbadge .avatar{
-        width:28px;height:28px;border-radius:50%;
+        width:30px;height:30px;border-radius:50%;
         background:linear-gradient(135deg,#d4a83c,#b89030);
-        color:#fff;display:grid;place-items:center;
-        font-weight:700;font-size:12px;
+        display:grid;place-items:center;color:#fff;
+        font-weight:700;font-size:13px;
+        box-shadow:0 2px 6px rgba(212,168,60,.4);
+        flex-shrink:0;
       }
-      .ag-userbadge .meta{line-height:1.2}
-      .ag-userbadge .meta strong{display:block;font-size:12.5px}
-      .ag-userbadge .meta small{font-size:10.5px;color:#8a7c55}
+      .ag-userbadge .meta{line-height:1.25; min-width:0;}
+      .ag-userbadge .meta strong{
+        display:block;font-size:12.5px;font-weight:600;
+        max-width:140px;
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      .ag-userbadge .meta small{font-size:10.5px;color:#8a7c55;display:flex;align-items:center;gap:3px}
       html[data-theme="dark"] .ag-userbadge .meta small{color:#c4b58a}
-      .ag-userbadge button{
+      .ag-userbadge .meta small .star{color:#d4a83c}
+      .ag-userbadge .caret{
         background:none;border:none;cursor:pointer;color:inherit;
-        opacity:.6;padding:4px;
+        opacity:.5;padding:4px 2px;
+        display:grid;place-items:center;
+        transition:opacity .15s, transform .2s;
       }
-      .ag-userbadge button:hover{opacity:1}
+      .ag-userbadge .caret:hover{opacity:1}
+      .ag-userbadge.menu-open .caret{ transform:rotate(180deg); opacity:1; }
+
+      /* Dropdown menu for user badge */
+      .ag-userbadge-menu{
+        position:fixed;
+        bottom:70px;
+        inset-inline-start:18px;
+        inset-inline-end:auto;
+        z-index:501;
+        min-width:220px;
+        padding:6px;
+        border-radius:12px;
+        background:linear-gradient(180deg, rgba(250,246,234,.96) 0%, rgba(243,234,208,.94) 100%);
+        backdrop-filter:blur(20px) saturate(180%);
+        border:1px solid rgba(212,168,60,.3);
+        color:#3a2f15;
+        box-shadow:0 20px 50px rgba(0,0,0,.15);
+        display:none;
+        flex-direction:column;
+        gap:2px;
+      }
+      html[dir="ltr"] .ag-userbadge-menu{
+        inset-inline-start:auto;
+        inset-inline-end:18px;
+      }
+      html[data-theme="dark"] .ag-userbadge-menu{
+        background:linear-gradient(180deg, rgba(26,21,16,.95) 0%, rgba(35,26,16,.92) 100%);
+        color:#f3e9c9;
+        border-color:rgba(212,168,60,.35);
+        box-shadow:0 20px 50px rgba(0,0,0,.45);
+      }
+      .ag-userbadge-menu.open{ display:flex; }
+      .ag-userbadge-menu button{
+        display:flex;align-items:center;gap:10px;width:100%;
+        padding:9px 12px;border-radius:8px;
+        background:transparent;border:none;color:inherit;
+        font:inherit;font-size:13px;cursor:pointer;
+        text-align:start;
+      }
+      .ag-userbadge-menu button:hover{ background:rgba(212,168,60,.15); }
+      .ag-userbadge-menu .icn{ font-size:15px; width:22px; text-align:center; flex-shrink:0; }
+      .ag-userbadge-menu .divider{
+        height:1px; margin:4px 8px;
+        background:rgba(212,168,60,.2);
+      }
+      .ag-userbadge-menu button.danger{ color:#c5303c; }
+      html[data-theme="dark"] .ag-userbadge-menu button.danger{ color:#ff7081; }
 
       /* Locked department card */
       .dept-card.ag-locked{
@@ -213,7 +375,7 @@
       const email = emailIn.value.trim().toLowerCase();
       const password = passIn.value;
       if (!email || !password) {
-        err.textContent = 'يجب إدخال البريد وكلمة السر';
+        err.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة السر للمتابعة.';
         err.classList.add('show');
         return;
       }
@@ -223,6 +385,11 @@
         const data = await api('/api/login', { method: 'POST', body: { email, password } });
         setToken(data.token);
         localStorage.setItem(LS_LAST_EMAIL, email);
+        // Also cache the user object so dashboard.html can read it on load
+        if (data.user || (data.email && data.role)) {
+          const u = data.user || { email: data.email, role: data.role, departments: data.departments || [] };
+          try { localStorage.setItem('arsan_me_v1', JSON.stringify(u)); } catch(_){}
+        }
         // Close gate and re-run filtering
         bd.style.animation = 'ag-in .25s reverse';
         setTimeout(() => bd.remove(), 250);
@@ -230,13 +397,13 @@
       } catch(ex) {
         const msg = (ex.message || '').toLowerCase();
         if (msg.includes('invalid-credentials') || msg.includes('401')) {
-          err.textContent = '❌ البريد أو كلمة السر غير صحيحة';
+          err.textContent = 'البريد الإلكتروني أو كلمة السر غير صحيحة. يرجى المحاولة مرة أخرى.';
         } else if (msg.includes('user-disabled')) {
-          err.textContent = '❌ الحساب معطّل. تواصل مع الأدمن.';
+          err.textContent = 'هذا الحساب معطّل حالياً. يرجى التواصل مع مسؤول المنصّة.';
         } else if (msg.includes('domain-not-allowed')) {
-          err.textContent = '❌ يُسمح فقط لبريد @arsann.com';
+          err.textContent = 'الوصول مقتصر على بريد @arsann.com المؤسّسي.';
         } else {
-          err.textContent = '❌ تعذّر تسجيل الدخول: ' + ex.message;
+          err.textContent = 'تعذّر إتمام تسجيل الدخول:\n' + (ex.message || 'خطأ غير معروف');
         }
         err.classList.add('show');
         submitBtn.disabled = false;
@@ -246,9 +413,9 @@
 
     const form = el('form', { onsubmit: doLogin },
       el('div', { class: 'ag-logo' },
-        el('div', { class: 'ag-logo-mark' }, 'A')
+        el('div', { class: 'ag-logo-mark' }, el('img', { src: 'brand-mark.png', alt: 'أرسان' }))
       ),
-      el('h1', { class: 'ag-title' }, 'منصة أرسان SOPs'),
+      el('h1', { class: 'ag-title' }, 'منصّة أرسان التنفيذيّة'),
       el('p', { class: 'ag-sub' }, 'يرجى تسجيل الدخول للمتابعة'),
       err,
       el('div', { class: 'ag-field' },
@@ -280,36 +447,154 @@
     if (!email) return;
     try {
       await api('/api/forgot-password', { method: 'POST', body: { email: email.trim().toLowerCase() } });
-      alert('✓ إذا كان الإيميل مسجّلاً، سيصلك رابط إعادة التعيين قريباً.\n\nإن لم يصل، تحقّق من Slack أو تواصل مع الأدمن.');
+      alert('✓ تم إرسال الطلب بنجاح.\n\nإذا كان البريد الإلكتروني مسجّلاً لدينا، ستصلك رسالة تحتوي على رابط إعادة تعيين كلمة السر خلال دقائق.\n\nإن لم تصلك الرسالة، تحقّق من مجلد الرسائل غير المرغوب فيها أو تواصل مع المسؤول.');
     } catch(e) {
-      alert('تعذّر إرسال الطلب: ' + e.message);
+      alert('تعذّر إرسال الطلب:\n' + (e.message || 'خطأ في الاتصال بالخادم'));
     }
   }
 
   function showUserBadge(me){
     if (document.querySelector('.ag-userbadge')) return;
+    const lang = localStorage.getItem('arsan_lang') || 'ar';
+    const t = (ar, en) => lang === 'en' ? en : ar;
+
     const initial = (me.email || '?').slice(0,1).toUpperCase();
     const shortEmail = (me.email || '').split('@')[0];
+    const isAdmin = me.role === 'admin' || (me.email || '').toLowerCase() === 'a.king@arsann.com';
+
+    const subtitle = isAdmin
+      ? el('small', {}, el('span', { class:'star' }, '⭐ '), t('مسؤول المنصّة', 'Platform Admin'))
+      : el('small', {},
+          (me.departments && me.departments.length
+            ? (me.departments.length + ' ' + t('إدارة', 'departments'))
+            : t('عضو', 'Member'))
+        );
+
     const badge = el('div', { class: 'ag-userbadge' },
       el('div', { class: 'avatar' }, initial),
       el('div', { class: 'meta' },
         el('strong', {}, shortEmail),
-        el('small', {},
-          me.role === 'admin' ? '⭐ مسؤول' : (me.departments && me.departments.length
-            ? (me.departments.length + ' إدارة')
-            : 'عضو')
-        )
+        subtitle
       ),
       el('button', {
-        title: 'خروج',
-        onclick: () => {
-          if (!confirm('تسجيل خروج؟')) return;
-          setToken('');
-          location.reload();
-        }
-      }, el('span', { style: 'font-size:16px' }, '↩'))
+        class: 'caret',
+        title: t('القائمة', 'Menu'),
+        'aria-label': 'Menu',
+      },
+        // chevron-down icon
+        (() => {
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width','12'); svg.setAttribute('height','12');
+          svg.setAttribute('viewBox','0 0 12 12'); svg.setAttribute('fill','none');
+          svg.innerHTML = '<path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+          return svg;
+        })()
+      )
     );
     document.body.appendChild(badge);
+
+    // Build dropdown menu
+    const menu = el('div', { class: 'ag-userbadge-menu' });
+    const items = [];
+
+    items.push({
+      icon: '🗂',
+      label: t('فتح لوحة الإدارة', 'Open Dashboard'),
+      action: () => {
+        // Go to first dept to land in dashboard
+        const firstCard = document.querySelector('.dept-card:not(.ag-locked) a, .dept-card:not(.ag-locked)');
+        if (firstCard) firstCard.click();
+      }
+    });
+
+    if (isAdmin) {
+      items.push({
+        icon: '👥',
+        label: t('المستخدمون والصلاحيات', 'Users & Access'),
+        action: () => { location.href = 'users.html'; }
+      });
+      items.push({
+        icon: '🛡',
+        label: t('لوحة تحكم المسؤول', 'Admin Panel'),
+        action: () => {
+          // Navigate to dashboard with a hash; dashboard's boot will open admin panel
+          localStorage.setItem('arsan_open_admin', '1');
+          const firstCard = document.querySelector('.dept-card:not(.ag-locked) a, .dept-card:not(.ag-locked)');
+          if (firstCard) firstCard.click();
+          else location.href = 'dashboard.html?dept=executive';
+        }
+      });
+    }
+
+    items.push({
+      icon: '🎨',
+      label: t('الثيمات', 'Themes'),
+      action: () => window.ArsanThemes?.openPicker?.()
+    });
+
+    const curLang = lang;
+    items.push({
+      icon: curLang === 'en' ? '🇸🇦' : '🇬🇧',
+      label: curLang === 'en' ? 'العربية' : 'English',
+      action: () => {
+        const newLang = curLang === 'en' ? 'ar' : 'en';
+        localStorage.setItem('arsan_lang', newLang);
+        location.reload();
+      }
+    });
+
+    items.forEach(it => {
+      const b = el('button', {
+        type: 'button',
+        onclick: () => {
+          closeMenu();
+          try { it.action(); } catch(e){ console.warn(e); }
+        }
+      },
+        el('span', { class: 'icn' }, it.icon),
+        el('span', {}, it.label)
+      );
+      menu.appendChild(b);
+    });
+
+    // Divider + logout
+    const divider = el('div', { class: 'divider' });
+    menu.appendChild(divider);
+    const logoutBtn = el('button', {
+      type: 'button',
+      class: 'danger',
+      onclick: () => {
+        if (!confirm(t('تسجيل خروج؟', 'Sign out?'))) return;
+        setToken('');
+        location.reload();
+      }
+    },
+      el('span', { class: 'icn' }, '↩'),
+      el('span', {}, t('تسجيل خروج', 'Sign Out'))
+    );
+    menu.appendChild(logoutBtn);
+    document.body.appendChild(menu);
+
+    function openMenu(){
+      menu.classList.add('open');
+      badge.classList.add('menu-open');
+      setTimeout(() => document.addEventListener('click', outsideClick, { once:true }), 10);
+    }
+    function closeMenu(){
+      menu.classList.remove('open');
+      badge.classList.remove('menu-open');
+    }
+    function outsideClick(e){
+      if (!menu.contains(e.target) && !badge.contains(e.target)) closeMenu();
+      else if (menu.classList.contains('open')) setTimeout(() => document.addEventListener('click', outsideClick, { once:true }), 10);
+    }
+
+    // Clicking anywhere on badge opens menu
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (menu.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
   }
 
   function filterDepartments(me){
@@ -376,6 +661,7 @@
       showUserBadge(me);
       filterDepartments(me);
       window.ArsanCurrentUser = me;
+      try { localStorage.setItem('arsan_me_v1', JSON.stringify(me)); } catch(_){}
     } catch(e) {
       console.warn('[ag] /api/me failed:', e);
       // If unauthorized, show login. Otherwise let the page render ungated (so a Worker outage doesn't lock out admins)

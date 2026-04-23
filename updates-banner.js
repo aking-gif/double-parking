@@ -276,7 +276,7 @@
 
   async function fetchAndRender(){
     try {
-      const res = await fetch('/api/updates', { credentials: 'include' });
+      const res = await fetch((window.API_BASE||'') + '/api/updates', { credentials: 'include' });
       if (!res.ok) return;
       const data = await res.json();
       if (!data.items || data.items.length === 0) return;

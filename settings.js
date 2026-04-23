@@ -89,7 +89,7 @@
 
   async function loadUpdatesUrl(){
     try {
-      const res = await fetch('/api/updates-url', { credentials: 'include' });
+      const res = await fetch((window.API_BASE||'') + '/api/updates-url', { credentials: 'include' });
       if (res.ok) {
         const d = await res.json();
         return d.url || '';
@@ -99,7 +99,7 @@
   }
 
   async function saveUpdatesUrl(url){
-    const res = await fetch('/api/updates-url', {
+    const res = await fetch((window.API_BASE||'') + '/api/updates-url', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -110,7 +110,7 @@
 
   async function loadUpdatesPreview(){
     try {
-      const res = await fetch('/api/updates', { credentials: 'include' });
+      const res = await fetch((window.API_BASE||'') + '/api/updates', { credentials: 'include' });
       if (res.ok) return await res.json();
     } catch(e){}
     return null;
@@ -118,14 +118,14 @@
 
   async function loadDepts(){
     try {
-      const res = await fetch('/api/custom-depts', { credentials: 'include' });
+      const res = await fetch((window.API_BASE||'') + '/api/custom-depts', { credentials: 'include' });
       if (res.ok) return await res.json();
     } catch(e){}
     return [];
   }
 
   async function addDept(data){
-    const res = await fetch('/api/custom-depts', {
+    const res = await fetch((window.API_BASE||'') + '/api/custom-depts', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -135,7 +135,7 @@
   }
 
   async function updateDept(id, data){
-    const res = await fetch('/api/custom-depts/' + encodeURIComponent(id), {
+    const res = await fetch((window.API_BASE||'') + '/api/custom-depts/' + encodeURIComponent(id), {
       method: 'PATCH', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -145,7 +145,7 @@
   }
 
   async function deleteDept(id){
-    const res = await fetch('/api/custom-depts/' + encodeURIComponent(id), {
+    const res = await fetch((window.API_BASE||'') + '/api/custom-depts/' + encodeURIComponent(id), {
       method: 'DELETE', credentials: 'include'
     });
     if (!res.ok) throw new Error((await res.json()).error || 'delete-failed');
@@ -154,14 +154,14 @@
 
   async function getSlackWebhook(){
     try {
-      const res = await fetch('/api/slack-webhook', { credentials: 'include' });
+      const res = await fetch((window.API_BASE||'') + '/api/slack-webhook', { credentials: 'include' });
       if (res.ok) return (await res.json()).url || '';
     } catch(e){}
     return '';
   }
 
   async function saveSlackWebhook(url){
-    const res = await fetch('/api/slack-webhook', {
+    const res = await fetch((window.API_BASE||'') + '/api/slack-webhook', {
       method: 'POST', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })

@@ -1952,21 +1952,67 @@ function extractJSON(text){
   let t = text.trim();
   // Strip markdown code blocks: ```json ... ``` or ``` ... ```
   t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
-  // Find first { and last } to isolate the JSON object
+  // Find first { — search for closing } greedily but also try progressive truncation
   const first = t.indexOf('{');
-  const last = t.lastIndexOf('}');
-  if (first < 0 || last < 0 || last < first) return null;
-  const candidate = t.slice(first, last + 1);
-  try { return JSON.parse(candidate); } catch(_){}
-  // Try cleaning common issues: single quotes, trailing commas
+  if (first < 0) return null;
+  let last = t.lastIndexOf('}');
+  if (last < first) last = -1;
+
+  // Attempt 1: slice between first { and last }
+  if (last > first) {
+    const candidate = t.slice(first, last + 1);
+    const parsed = tryParse(candidate);
+    if (parsed) return parsed;
+  }
+
+  // Attempt 2: JSON might be truncated mid-string (max_tokens cutoff).
+  // Walk back from end and try to close it: strip last partial key/value, add closers.
+  let body = t.slice(first);
+  for (let i = body.length; i > 10; i -= 50) {
+    const slice = body.slice(0, i);
+    // Try to balance brackets
+    const closed = autoCloseJSON(slice);
+    if (closed) {
+      const parsed = tryParse(closed);
+      if (parsed) return parsed;
+    }
+  }
+  return null;
+}
+
+function tryParse(s){
+  try { return JSON.parse(s); } catch(_){}
   try {
-    const cleaned = candidate
-      .replace(/,(\s*[}\]])/g, '$1')      // trailing commas
-      .replace(/[\u201C\u201D]/g, '"')    // smart quotes
+    const cleaned = s
+      .replace(/,(\s*[}\]])/g, '$1')
+      .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'");
     return JSON.parse(cleaned);
   } catch(_){}
   return null;
+}
+
+function autoCloseJSON(s){
+  // Cut off at last complete value (after a comma or before a dangling "key":)
+  let t = s.replace(/,\s*"[^"]*"\s*:\s*"?[^",}\]]*$/,'');
+  t = t.replace(/,\s*"[^"]*$/,'');
+  t = t.replace(/,\s*$/,'');
+  // Count unclosed braces/brackets
+  let braces = 0, brackets = 0, inStr = false, esc = false;
+  for (const ch of t) {
+    if (esc){ esc = false; continue; }
+    if (ch === '\\'){ esc = true; continue; }
+    if (ch === '"'){ inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{') braces++;
+    else if (ch === '}') braces--;
+    else if (ch === '[') brackets++;
+    else if (ch === ']') brackets--;
+  }
+  if (inStr) t += '"';
+  while (brackets-- > 0) t += ']';
+  while (braces-- > 0) t += '}';
+  return t;
 }
 
 async function handleUpload(){
@@ -2034,27 +2080,23 @@ async function handleUpload(){
       if (content.length > 12000) content = content.slice(0, 12000);
 
       setStatus('جاري استخراج الحقول بالذكاء…', true);
-      const prompt = `أنت مساعد ذكي يستخرج حقول إجراء تشغيلي من وثيقة. اكتب JSON فقط (بدون markdown، بدون نص قبله أو بعده).
+      const prompt = `أعد JSON فقط. لا نص قبل أو بعد. لا markdown. لا شرح.
 
-النص المرجعي:
+استخرج حقول إجراء تشغيلي من النص التالي:
+---
 ${content}
+---
 
-أعد JSON بالشكل التالي:
-{
-  "purpose": "...",
-  "owner": "...",
-  "sla": "...",
-  "scope": "...",
-  "inputs": "...",
-  "outputs": "...",
-  "steps": ["..."],
-  "kpis": ["..."]
-}
+الصيغة المطلوبة (انسخها كما هي واملأ القيم):
+{"purpose":"","owner":"","sla":"","scope":"","inputs":"","outputs":"","steps":["","",""],"kpis":["",""]}
 
-يجب أن يبدأ الرد بـ { وينتهي بـ } فقط.`;
+ابدأ الرد بـ { مباشرة.`;
       const res = await callAI(prompt);
       const parsed = extractJSON(res);
-      if (!parsed) throw new Error('الذكاء لم يُعد JSON صالحاً. حاول مرة أخرى أو ملف آخر.');
+      if (!parsed) {
+        console.warn('[AI parse] raw response:', res);
+        throw new Error('الذكاء أعاد نصاً غير صالح. (افتح console للتفاصيل)');
+      }
       fillFieldsFromObject(parsed);
       setStatus('✓ تم استخراج الحقول — راجعها ثم احفظ', true);
     } catch(e){
@@ -2071,27 +2113,20 @@ async function handleAIGen(){
   if (!s) return;
   setStatus('جاري التوليد بالذكاء…', true);
   try {
-    const prompt = `أنت مساعد ذكي يصيغ إجراءات تشغيلية. اكتب JSON فقط (بدون أي نص قبله أو بعده، بدون markdown، بدون \`\`\`).
+    const prompt = `أعد JSON فقط. لا نص قبل أو بعد. لا markdown.
 
-العنوان: "${s.title}"
-الإدارة: "${DEPT.name}"
+صُغ إجراءاً تشغيلياً بعنوان: "${s.title}" لإدارة: "${DEPT.name}".
 
-أعد JSON بهذا الشكل بالضبط:
-{
-  "purpose": "شرح الغرض من الإجراء في جملة أو جملتين",
-  "owner": "الجهة المالكة",
-  "sla": "الإطار الزمني (مثل: 5 أيام عمل)",
-  "scope": "النطاق والتطبيق",
-  "inputs": "المدخلات المطلوبة",
-  "outputs": "المخرجات المتوقعة",
-  "steps": ["الخطوة 1", "الخطوة 2", "الخطوة 3", "الخطوة 4", "الخطوة 5"],
-  "kpis": ["مؤشر 1", "مؤشر 2", "مؤشر 3"]
-}
+الصيغة المطلوبة (انسخها كما هي واملأ القيم بمحتوى واقعي مختصر):
+{"purpose":"الغرض في جملة","owner":"الجهة المالكة","sla":"الإطار الزمني","scope":"النطاق","inputs":"المدخلات","outputs":"المخرجات","steps":["خطوة 1","خطوة 2","خطوة 3","خطوة 4","خطوة 5"],"kpis":["مؤشر 1","مؤشر 2","مؤشر 3"]}
 
-الرد يجب أن يبدأ بـ { وينتهي بـ } فقط.`;
+ابدأ الرد بـ { مباشرة.`;
     const res = await callAI(prompt);
     const parsed = extractJSON(res);
-    if (!parsed) throw new Error('الذكاء أعاد نصاً بدل JSON. حاول مرة أخرى.');
+    if (!parsed) {
+      console.warn('[AI gen] raw response:', res);
+      throw new Error('الذكاء أعاد نصاً غير صالح. (افتح console للتفاصيل)');
+    }
     if (!document.getElementById('m-purpose').getAttribute('data-editing')) enterEditMode();
     fillFieldsFromObject(parsed);
     setStatus('✓ تم التوليد — راجع الحقول ثم احفظ', true);
@@ -2472,7 +2507,7 @@ async function callAI(prompt){
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 1024,
+        max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }]
       })
     });

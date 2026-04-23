@@ -41,6 +41,7 @@ const KEYS = {
   customDepts: "custom_depts_v1",
   updatesUrl:  "updates_url_v1",
   updatesCache:"updates_cache_v1",
+  announcements: "announcements_v1",
 };
 
 function corsHeaders(req) {
@@ -972,6 +973,45 @@ export default {
           titleChanged: newTitle !== cur.title,
         });
         return json({ ok: true, sop: moved, dept: newDept, code: newCode }, 200, req);
+      }
+
+      // ---------- ANNOUNCEMENTS (shared notifications) ----------
+      if (path === "/api/announcements" && method === "GET") {
+        const raw = await env.ARSAN.get(KEYS.announcements);
+        const list = raw ? JSON.parse(raw) : [];
+        return json(list, 200, req);
+      }
+      if (path === "/api/announcements" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const text = (body.text || "").toString().trim();
+        if (!text) return json({ error: "empty" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.announcements);
+        const list = raw ? JSON.parse(raw) : [];
+        const a = {
+          id: "ann-" + Date.now(),
+          text: text.slice(0, 500),
+          kind: (body.kind || "info").toString(),
+          author: ad.session.email,
+          ts: Date.now(),
+        };
+        list.unshift(a);
+        // cap at 50
+        await env.ARSAN.put(KEYS.announcements, JSON.stringify(list.slice(0, 50)));
+        await logActivity(env, { actor: ad.session.email, action: "add-announcement", target: a.id, preview: a.text.slice(0, 80) });
+        return json({ ok: true, announcement: a }, 200, req);
+      }
+      if (path.match(/^\/api\/announcements\/[^\/]+$/) && method === "DELETE") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.announcements);
+        const list = raw ? JSON.parse(raw) : [];
+        const next = list.filter(x => x.id !== id);
+        await env.ARSAN.put(KEYS.announcements, JSON.stringify(next));
+        await logActivity(env, { actor: ad.session.email, action: "delete-announcement", target: id });
+        return json({ ok: true }, 200, req);
       }
 
       // ---------- AI: parse raw text into a structured SOP ----------

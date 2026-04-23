@@ -282,6 +282,50 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     throw new Error("ai-unavailable");
   }
 
+  /* ---------- Announcements ---------- */
+  async function getAnnouncements(){
+    if (hasBackend()) {
+      try {
+        const list = await apiFetch("/api/announcements");
+        // map backend {text, kind} -> frontend {title, body, priority}
+        return (Array.isArray(list) ? list : []).map(a => {
+          if (a.title !== undefined) return a; // already mapped
+          const raw = (a.text || "").toString();
+          const nl = raw.indexOf("\n");
+          const title = nl >= 0 ? raw.slice(0, nl) : raw;
+          const body  = nl >= 0 ? raw.slice(nl+1) : "";
+          return { id: a.id, ts: a.ts, author: a.author, title, body, priority: a.kind || "normal" };
+        });
+      } catch(_){}
+    }
+    try { return JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]"); } catch(_){ return []; }
+  }
+  async function addAnnouncement(a){
+    if (hasBackend() && getToken()) {
+      try {
+        const payload = {
+          text: (a.title ? a.title + "\n" : "") + (a.body || ""),
+          kind: a.priority || "info",
+        };
+        const res = await apiFetch("/api/announcements", { method: "POST", body: payload });
+        return res.announcement || a;
+      } catch(_){}
+    }
+    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
+    list.unshift(a);
+    localStorage.setItem("arsan_announcements_v1", JSON.stringify(list.slice(0, 50)));
+    return a;
+  }
+  async function deleteAnnouncement(id){
+    if (hasBackend() && getToken()) {
+      try { return await apiFetch("/api/announcements/" + encodeURIComponent(id), { method: "DELETE" }); } catch(_){}
+    }
+    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
+    const next = list.filter(x => x.id !== id);
+    localStorage.setItem("arsan_announcements_v1", JSON.stringify(next));
+    return { ok: true };
+  }
+
   /* ---------- Expose ---------- */
   window.ArsanAPI = {
     hasBackend, getToken, me, isEditor, isAdmin,
@@ -294,6 +338,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getUsers, addUser, updateUser, disableUser, enableUser, removeUser,
     inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
+    getAnnouncements, addAnnouncement, deleteAnnouncement,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };

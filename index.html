@@ -289,6 +289,88 @@
     border-top:1px solid var(--line);
     background:var(--surface-2);
   }
+
+  /* ===== GLASS EFFECT (Apple-style) ===== */
+  .hero{
+    background:linear-gradient(135deg, rgba(20,20,20,.72) 0%, rgba(35,26,16,.68) 100%) !important;
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-bottom:1px solid rgba(212,168,60,.22);
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -20px rgba(0,0,0,.5);
+  }
+  html[data-theme="light"] .hero{
+    background:linear-gradient(135deg, rgba(250,246,234,.72) 0%, rgba(243,234,208,.68) 100%) !important;
+    border-bottom:1px solid rgba(212,168,60,.3);
+  }
+  /* Light-mode hero: ink text is too pale for the cream glass — force dark ink */
+  html[data-theme="light"] .hero,
+  html[data-theme="light"] .hero .brandline .mark,
+  html[data-theme="light"] .hero h1.title,
+  html[data-theme="light"] .hero .theme-toggle,
+  html[data-theme="light"] .hero #langToggle{
+    color:#2b2416 !important;
+  }
+  html[data-theme="light"] .hero .brandline,
+  html[data-theme="light"] .hero p.subtitle{
+    color:#5a4f3a !important;
+  }
+  html[data-theme="light"] .hero .theme-toggle,
+  html[data-theme="light"] .hero #langToggle{
+    background:rgba(255,255,255,.5) !important;
+    border-color:rgba(212,168,60,.4) !important;
+  }
+  html[data-theme="light"] .hero .theme-toggle:hover,
+  html[data-theme="light"] .hero #langToggle:hover{
+    background:rgba(255,255,255,.8) !important;
+  }
+  /* Dark-mode hero keeps header-ink values — already readable */
+  /* Ambient tint behind the glass so the blur has something to capture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(212,168,60,.25), transparent 60%),
+      radial-gradient(900px 500px at -5% 40%, rgba(139,111,0,.18), transparent 60%),
+      radial-gradient(700px 500px at 110% 90%, rgba(212,178,74,.15), transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Glass dept cards */
+  .dept-card{
+    background:linear-gradient(135deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%) !important;
+    backdrop-filter:blur(12px) saturate(140%);
+    -webkit-backdrop-filter:blur(12px) saturate(140%);
+    border:1px solid rgba(212,168,60,.18) !important;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 4px 20px -8px rgba(0,0,0,.2);
+  }
+  html[data-theme="light"] .dept-card{
+    background:linear-gradient(135deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,.5) 100%) !important;
+    border:1px solid rgba(212,168,60,.3) !important;
+  }
+  html[data-theme="light"] .dept-card .dept-name{ color:#2b2416 !important; }
+  html[data-theme="light"] .dept-card .dept-desc{ color:#5a4f3a !important; }
+  html[data-theme="dark"] .dept-card .dept-name{ color:#F3F1EA !important; }
+  html[data-theme="dark"] .dept-card .dept-desc{ color:#B8B2A3 !important; }
+  .dept-card:hover{
+    background:linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 100%) !important;
+  }
+  html[data-theme="light"] .dept-card:hover{
+    background:linear-gradient(135deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.7) 100%) !important;
+    border-color:rgba(212,168,60,.5) !important;
+  }
+  .dept-card[aria-pressed="true"]{
+    background:linear-gradient(135deg, rgba(212,168,60,.2) 0%, rgba(212,168,60,.08) 100%) !important;
+    border-color:rgba(212,168,60,.6) !important;
+  }
+  html[data-theme="light"] .dept-card[aria-pressed="true"]{
+    background:linear-gradient(135deg, rgba(212,168,60,.3) 0%, rgba(212,168,60,.15) 100%) !important;
+  }
+
+  @supports not (backdrop-filter: blur(1px)){
+    .hero{ background:var(--header-bg) !important; }
+    .dept-card{ background:var(--surface) !important; }
+  }
 </style>
 </head>
 <body>
@@ -307,6 +389,10 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
         <span id="themeLabel">وضع داكن</span>
+      </button>
+      <button class="theme-toggle" id="langToggle" aria-label="Toggle language" type="button" style="margin-inline-start:8px">
+        <span aria-hidden="true">🌐</span>
+        <span id="langLabel">EN</span>
       </button>
     </div>
 
@@ -418,6 +504,28 @@
       : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
   }
 
+  // ===== LANGUAGE =====
+  const langToggle = document.getElementById('langToggle');
+  const langLabel = document.getElementById('langLabel');
+  function updateLangLabel(){
+    const cur = (window.ArsanI18n && window.ArsanI18n.getLang && window.ArsanI18n.getLang()) || localStorage.getItem('arsan_lang') || 'ar';
+    if (langLabel) langLabel.textContent = cur === 'ar' ? 'EN' : 'عربي';
+  }
+  if (langToggle) {
+    langToggle.addEventListener('click', () => {
+      if (window.ArsanI18n && window.ArsanI18n.toggle) {
+        window.ArsanI18n.toggle();
+      } else {
+        const cur = localStorage.getItem('arsan_lang') || 'ar';
+        localStorage.setItem('arsan_lang', cur === 'ar' ? 'en' : 'ar');
+        location.reload();
+      }
+      updateLangLabel();
+    });
+    window.addEventListener('arsan-lang-change', updateLangLabel);
+    setTimeout(updateLangLabel, 50);
+  }
+
   // ===== RENDER DEPARTMENT CARDS =====
   const grid = document.querySelector('.dept-grid');
   DEPARTMENTS.forEach(dept => {
@@ -470,7 +578,7 @@
 <script>window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";</script>
 <script src="updates-banner.js?v=1"></script>
 <script src="auth-gate.js?v=1"></script>
-<script src="i18n.js?v=1"></script>
+<script src="i18n.js?v=4"></script>
 
 </body>
 </html>

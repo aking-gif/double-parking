@@ -1,6 +1,6 @@
-/* Arsan i18n for index.html and users.html
- * Adds a language toggle (🌐 EN/ع) to the top-right, switches RTL/LTR,
- * and applies English translations to department cards + static UI strings.
+/* Arsan i18n v2 — Comprehensive Arabic/English toggle
+ * Walks the entire DOM and translates known Arabic strings to English.
+ * Works on index.html, users.html, and dashboard.html.
  */
 (function(){
   'use strict';
@@ -8,281 +8,291 @@
   const LS_KEY = 'arsan_lang';
   const getLang = () => localStorage.getItem(LS_KEY) || 'ar';
 
-  // Department name/desc translations
-  const DEPT_EN = {
-    projects:   { name: 'Project Management', desc: 'Design, planning, procurement, maintenance, and execution.' },
-    executive:  { name: 'Executive Management', desc: 'Strategic decisions, governance, overall performance.' },
-    finance:    { name: 'Finance', desc: 'Budgets, payments, claims, and financial reporting.' },
-    operations: { name: 'Operations', desc: 'Day-to-day operations, scheduling, and performance tracking.' },
-    legal:      { name: 'Legal', desc: 'Contracts, compliance, and legal review.' },
-    hr:         { name: 'Human Resources', desc: 'Hiring, performance, training, and employee journey.' },
-    bizdev:     { name: 'Business Development', desc: 'Commercial opportunities, proposals, and strategic relations.' },
-    // Also translate common sub-departments that may appear as custom
-    design:      { name: 'Design', desc: 'Architectural and engineering design phase.' },
-    planning:    { name: 'Planning', desc: 'Schedules, timelines, and delivery planning.' },
-    procurement: { name: 'Procurement', desc: 'Suppliers, tenders, and purchase orders.' },
-    maintenance: { name: 'Maintenance', desc: 'Preventive and corrective maintenance.' },
-    execution:   { name: 'Execution', desc: 'On-site delivery and quality assurance.' }
+  // ===== Arabic → English dictionary =====
+  // Keep keys exact (Arabic as-is). Order doesn't matter.
+  const DICT = {
+    // Common UI
+    'تسجيل الدخول': 'Sign in',
+    'تسجيل خروج': 'Sign out',
+    'تسجيل خروج؟': 'Sign out?',
+    'خروج': 'Logout',
+    'البريد الإلكتروني': 'Email',
+    'كلمة السر': 'Password',
+    'نسيت كلمة السر؟': 'Forgot password?',
+    'يرجى تسجيل الدخول للمتابعة': 'Please sign in to continue',
+    'منصة أرسان SOPs': 'Arsan SOPs Platform',
+    'منصة أرسان': 'Arsan Platform',
+    'arsann.com • جميع الحقوق محفوظة © 2026': 'arsann.com • All rights reserved © 2026',
+    'جميع الحقوق محفوظة': 'All rights reserved',
+
+    // index.html
+    'اختر الإدارة': 'Choose a department',
+    'الإدارات ذات الإجراءات التشغيلية': 'Departments with operating procedures',
+    'تم اختيار:': 'Selected:',
+    'متابعة': 'Continue',
+    'الوضع الفاتح': 'Light mode',
+    'الوضع الداكن': 'Dark mode',
+
+    // Departments
+    'إدارة المشاريع': 'Project Management',
+    'الإدارة التنفيذية': 'Executive Management',
+    'الإدارة المالية': 'Finance',
+    'الإدارة التشغيلية': 'Operations',
+    'الإدارة القانونية': 'Legal',
+    'إدارة الموارد البشرية': 'Human Resources',
+    'إدارة تطوير الأعمال': 'Business Development',
+    'التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ.': 'Design, planning, procurement, maintenance, and execution.',
+    'القرارات الاستراتيجية، الحوكمة، متابعة الأداء الكلي.': 'Strategic decisions, governance, overall performance.',
+    'الموازنات، الصرف، المطالبات، والتقارير المالية.': 'Budgets, payments, claims, and financial reporting.',
+    'العمليات اليومية، الجدولة، ومتابعة الأداء.': 'Day-to-day operations, scheduling, and performance tracking.',
+    'العقود، الامتثال، والمراجعات القانونية.': 'Contracts, compliance, and legal review.',
+    'التوظيف، الأداء، التدريب، ورحلة الموظف.': 'Hiring, performance, training, and employee journey.',
+    'الفرص التجارية، العروض، والعلاقات الاستراتيجية.': 'Commercial opportunities, proposals, and strategic relations.',
+
+    // users.html
+    'الصلاحيات والمستخدمون': 'Users & Permissions',
+    'إدارة مستخدمي منصة Arsan، ربط كل مستخدم بقسم (أو أكثر)، والتحكم في الصلاحيات.': 'Manage Arsan users, assign departments, and control permissions.',
+    'الرئيسية': 'Home',
+    'العودة للرئيسية': 'Back to Home',
+    'تحديث': 'Refresh',
+    'مصفوفة الصلاحيات': 'Permissions Matrix',
+    'إعدادات النظام': 'System Settings',
+    'دعوة مستخدم جديد': 'Invite New User',
+    'جدول': 'Table',
+    'بطاقات': 'Cards',
+    'لوحة': 'Dashboard',
+    'الاسم': 'Name',
+    'البريد': 'Email',
+    'الدور': 'Role',
+    'الإدارات': 'Departments',
+    'الحالة': 'Status',
+    'آخر دخول': 'Last Login',
+    'إجراءات': 'Actions',
+    'نشط': 'Active',
+    'معطّل': 'Disabled',
+    'بانتظار': 'Pending',
+    'مسؤول': 'Admin',
+    'محرّر': 'Editor',
+    'مشاهد': 'Viewer',
+    '⭐ مسؤول': '⭐ Admin',
+    'عضو': 'Member',
+    'المستخدمون': 'Users',
+    'المستخدمين': 'Users',
+
+    // dashboard.html common
+    'استيراد': 'Import',
+    'إجراء جديد': 'New SOP',
+    'Admin': 'Admin',
+    'الإجراءات': 'SOPs',
+    'المحاور': 'Groups',
+    'التبعيّات': 'Dependencies',
+    'الخريطة': 'Map',
+    'المساعد': 'Assistant',
+    'النشاط': 'Activity',
+    'صياغة الخطة الاستراتيجية': 'Strategy Formulation',
+    'الغرض من الإجراء': 'Purpose',
+    'المعلومات الأساسية': 'Basic Information',
+    'الجهة المالكة': 'Owner',
+    'الإطار الزمني (SLA)': 'Timeline (SLA)',
+    'النطاق': 'Scope',
+    'المدخلات': 'Inputs',
+    'المخرجات': 'Outputs',
+    'خطوات التنفيذ': 'Steps',
+    'مؤشرات الأداء': 'KPIs',
+    '— يُكمل لاحقاً': '— To be filled',
+    '— يُعبَّأ لاحقاً': '— To be filled',
+    '— اِشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.': '— Explain here why this SOP exists and what problem it solves.',
+    'وضع التحرير:': 'Edit Mode:',
+    'تحرير مباشر': 'Direct Edit',
+    'رفع ملف': 'Upload File',
+    'توليد بالذكاء': 'Generate with AI',
+    'حفظ': 'Save',
+    'إلغاء': 'Cancel',
+    'حذف': 'Delete',
+    'تعديل': 'Edit',
+    'إضافة': 'Add',
+    'بحث…': 'Search…',
+    'جاري التحميل…': 'Loading…',
+    'جاري الحفظ…': 'Saving…',
+    'جاري التوليد بالذكاء…': 'Generating with AI…',
+    'جاري استخراج الحقول بالذكاء…': 'Extracting fields…',
+    'جاري قراءة الملف…': 'Reading file…',
+    'جاري استخراج النص من PDF…': 'Extracting text from PDF…',
+    'جاري استخراج النص من DOCX…': 'Extracting text from DOCX…',
+    'جاري تحميل محرك PDF…': 'Loading PDF engine…',
+    'جاري تحميل محرك DOCX…': 'Loading DOCX engine…',
+
+    // Settings modal
+    '📣 شريط التحديثات': '📣 Updates Banner',
+    '🏢 الإدارات المخصّصة': '🏢 Custom Departments',
+    '🔔 Slack': '🔔 Slack',
+    'شريط التحديثات': 'Updates Banner',
+    'الإدارات المخصّصة': 'Custom Departments',
+    'رابط مصدر التحديثات': 'Updates source URL',
+    'حفظ الرابط': 'Save URL',
+    '🔄 تحديث المعاينة': '🔄 Refresh Preview',
+    '🔔 إعادة عرض الشريط': '🔔 Re-show Banner',
+    '+ إضافة إدارة': '+ Add Department',
+    'إضافة إدارة جديدة': 'Add New Department',
+    'تعديل إدارة': 'Edit Department',
+    'اسم الإدارة': 'Department Name',
+    'المعرّف (id) — بالإنجليزية': 'ID (English)',
+    'الأيقونة (إيموجي)': 'Icon (Emoji)',
+    'اللون': 'Color',
+    'لا توجد إدارات مخصّصة. أضف أولى.': 'No custom departments yet. Add one.',
+    '✓ تم الحفظ': '✓ Saved',
+    '✓ تم الحفظ. جاري تحديث المعاينة…': '✓ Saved. Refreshing preview…',
+    '✓ تم التحديث': '✓ Updated',
+    '✓ تمت الإضافة': '✓ Added',
+    '✓ حُذفت': '✓ Deleted',
+    '✓ تم إعادة عرض الشريط للجميع عند التحديث': '✓ Banner reset for everyone on next refresh',
+
+    // Auth gate specific
+    'لم يتم تعيين إدارات لحسابك': 'No departments assigned to your account',
+    'تواصل مع الأدمن (a.king@arsann.com) لمنحك صلاحية الوصول.': 'Contact the admin (a.king@arsann.com) to grant access.',
+    '❌ البريد أو كلمة السر غير صحيحة': '❌ Invalid email or password',
+    '❌ الحساب معطّل. تواصل مع الأدمن.': '❌ Account disabled. Contact admin.',
+    '❌ يُسمح فقط لبريد @arsann.com': '❌ Only @arsann.com emails allowed',
+    'يجب إدخال البريد وكلمة السر': 'Email and password required',
+    'جاري التحقق…': 'Verifying…',
   };
 
-  // Static UI strings (keyed)
-  const STR = {
-    ar: {
-      // index.html
-      brand: 'منصة أرسان SOPs',
-      tagline: 'الإدارات ذات الإجراءات التشغيلية',
-      chooseDept: 'اختر الإدارة',
-      continue: 'متابعة',
-      // users.html
-      usersTitle: 'الصلاحيات والمستخدمون',
-      usersSub: 'إدارة مستخدمي منصة Arsan، ربط كل مستخدم بقسم (أو أكثر)، والتحكم في الصلاحيات.',
-      backToDash: 'العودة للرئيسية',
-      refresh: 'تحديث',
-      matrix: 'مصفوفة الصلاحيات',
-      settings: 'إعدادات النظام',
-      inviteUser: 'دعوة مستخدم جديد',
-      // auth-gate
-      signIn: 'تسجيل الدخول',
-      email: 'البريد الإلكتروني',
-      password: 'كلمة السر',
-      forgot: 'نسيت كلمة السر؟',
-      signInTagline: 'يرجى تسجيل الدخول للمتابعة',
-      noAccess: 'لم يتم تعيين إدارات لحسابك',
-      noAccessSub: 'تواصل مع الأدمن (a.king@arsann.com) لمنحك صلاحية الوصول.',
-      member: 'عضو',
-      admin: '⭐ مسؤول',
-      deptsSuffix: 'إدارة',
-      logoutConfirm: 'تسجيل خروج؟',
-      // footer
-      footer: 'arsann.com • جميع الحقوق محفوظة © 2026'
-    },
-    en: {
-      brand: 'Arsan SOPs Platform',
-      tagline: 'Departments with operating procedures',
-      chooseDept: 'Choose a department',
-      continue: 'Continue',
-      usersTitle: 'Users & Permissions',
-      usersSub: 'Manage Arsan platform users, assign departments, and control permissions.',
-      backToDash: 'Back to dashboard',
-      refresh: 'Refresh',
-      matrix: 'Permissions matrix',
-      settings: 'System settings',
-      inviteUser: 'Invite new user',
-      signIn: 'Sign in',
-      email: 'Email',
-      password: 'Password',
-      forgot: 'Forgot password?',
-      signInTagline: 'Please sign in to continue',
-      noAccess: 'No departments assigned to your account',
-      noAccessSub: 'Contact the admin (a.king@arsann.com) to grant access.',
-      member: 'Member',
-      admin: '⭐ Admin',
-      deptsSuffix: 'depts',
-      logoutConfirm: 'Sign out?',
-      footer: 'arsann.com • All rights reserved © 2026'
+  // Dept name → description (for cards) — also used when dept name is in data-id
+  const DEPT_DESC_BY_ID = {
+    projects:   'Design, planning, procurement, maintenance, and execution.',
+    executive:  'Strategic decisions, governance, overall performance.',
+    finance:    'Budgets, payments, claims, and financial reporting.',
+    operations: 'Day-to-day operations, scheduling, and performance tracking.',
+    legal:      'Contracts, compliance, and legal review.',
+    hr:         'Hiring, performance, training, and employee journey.',
+    bizdev:     'Commercial opportunities, proposals, and strategic relations.'
+  };
+  const DEPT_NAME_BY_ID = {
+    projects:   'Project Management',
+    executive:  'Executive Management',
+    finance:    'Finance',
+    operations: 'Operations',
+    legal:      'Legal',
+    hr:         'Human Resources',
+    bizdev:     'Business Development'
+  };
+
+  // ===== Walk DOM and replace text =====
+  function walkAndTranslate(lang){
+    // Save original Arabic once (on <body>)
+    if (!document.body.dataset.i18nStashed) {
+      // Already handled per-node via data-arOrig
     }
-  };
 
-  function t(key){
-    const lang = getLang();
-    return (STR[lang] && STR[lang][key]) || STR.ar[key] || key;
-  }
-  window.ArsanI18n = { t, getLang };
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node){
+          if (!node.textContent || !node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+          const p = node.parentElement;
+          if (!p) return NodeFilter.FILTER_REJECT;
+          const tag = p.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+          if (p.closest('#arsan-lang-toggle')) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
 
-  // ====== Translation appliers ======
-  function applyIndexTranslations(lang){
-    // Dept cards — they may render AFTER this runs, so retry a few times
-    const run = () => {
-      const cards = document.querySelectorAll('.dept-card');
-      if (cards.length === 0) return false;
-      cards.forEach(card => {
-        const id = (card.getAttribute('data-id') || '').toLowerCase();
-        const name = card.querySelector('.dept-name');
-        const desc = card.querySelector('.dept-desc');
-        // Stash Arabic originals on first run
-        if (name && !name.dataset.arOrig) name.dataset.arOrig = name.textContent;
-        if (desc && !desc.dataset.arOrig) desc.dataset.arOrig = desc.textContent;
-        if (lang === 'en' && DEPT_EN[id]) {
-          if (name) name.textContent = DEPT_EN[id].name;
-          if (desc) desc.textContent = DEPT_EN[id].desc;
-        } else {
-          if (name && name.dataset.arOrig) name.textContent = name.dataset.arOrig;
-          if (desc && desc.dataset.arOrig) desc.textContent = desc.dataset.arOrig;
+    const nodes = [];
+    let n;
+    while (n = walker.nextNode()) nodes.push(n);
+
+    nodes.forEach(node => {
+      // Stash original
+      if (!node.__arOrig) node.__arOrig = node.textContent;
+
+      if (lang === 'en') {
+        let text = node.__arOrig;
+        // Try exact match first
+        const trimmed = text.trim();
+        if (DICT[trimmed]) {
+          node.textContent = text.replace(trimmed, DICT[trimmed]);
+          return;
+        }
+        // Otherwise, do partial replacements (for strings with embedded interpolations)
+        let replaced = text;
+        for (const [ar, en] of Object.entries(DICT)) {
+          if (replaced.includes(ar)) {
+            replaced = replaced.split(ar).join(en);
+          }
+        }
+        if (replaced !== text) node.textContent = replaced;
+      } else {
+        // Restore
+        if (node.__arOrig && node.textContent !== node.__arOrig) {
+          node.textContent = node.__arOrig;
+        }
+      }
+    });
+
+    // Translate placeholder + value attributes on inputs
+    document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+      if (!el.__arPlaceholder) el.__arPlaceholder = el.placeholder;
+      if (lang === 'en' && DICT[el.__arPlaceholder]) {
+        el.placeholder = DICT[el.__arPlaceholder];
+      } else if (lang === 'ar' && el.__arPlaceholder) {
+        el.placeholder = el.__arPlaceholder;
+      }
+    });
+
+    // Translate button titles and aria-labels
+    document.querySelectorAll('[title], [aria-label]').forEach(el => {
+      ['title', 'aria-label'].forEach(attr => {
+        const cur = el.getAttribute(attr);
+        if (!cur) return;
+        const stashKey = '__arAttr_' + attr;
+        if (!el[stashKey]) el[stashKey] = cur;
+        if (lang === 'en' && DICT[el[stashKey]]) {
+          el.setAttribute(attr, DICT[el[stashKey]]);
+        } else if (lang === 'ar' && el[stashKey]) {
+          el.setAttribute(attr, el[stashKey]);
         }
       });
-      return true;
-    };
-    if (!run()) {
-      let tries = 0;
-      const iv = setInterval(() => {
-        if (run() || ++tries > 20) clearInterval(iv);
-      }, 150);
-    }
-
-    // Static strings in index.html (brand, tagline, choose dept, etc.)
-    translateTextContent('.brand-text, [data-i18n="brand"]', t('brand'));
-    translateTextContent('.tagline, [data-i18n="tagline"]', t('tagline'));
-    translateTextContent('[data-i18n="chooseDept"]', t('chooseDept'));
-    translateTextContent('[data-i18n="continue"]', t('continue'));
-    translateTextContent('[data-i18n="footer"]', t('footer'));
-
-    // "Choose a department" heading is typically in .choose-title or similar
-    const heading = document.querySelector('.choose-title, .page-title, h1');
-    if (heading && !heading.dataset.i18nSkip && !heading.dataset.arOrig) {
-      heading.dataset.arOrig = heading.textContent;
-    }
-
-    // Selected label
-    const sel = document.getElementById('selectedLabel');
-    if (sel && sel.textContent.trim()) {
-      // Clean up "تم اختيار:" label when switching to English
-      const strong = sel.querySelector('strong');
-      if (strong) {
-        const deptName = strong.textContent;
-        const cards = document.querySelectorAll('.dept-card');
-        let newName = deptName;
-        cards.forEach(c => {
-          if (c.getAttribute('aria-pressed') === 'true') {
-            newName = c.querySelector('.dept-name')?.textContent || deptName;
-          }
-        });
-        sel.innerHTML = (lang === 'en' ? 'Selected: ' : 'تم اختيار: ') + '<strong>' + newName + '</strong>';
-      }
-    }
-  }
-
-  function applyUsersTranslations(lang){
-    translateTextContent('[data-i18n="usersTitle"]', t('usersTitle'));
-    translateTextContent('[data-i18n="usersSub"]', t('usersSub'));
-    translateTextContent('[data-i18n="refresh"]', t('refresh'));
-    translateTextContent('[data-i18n="matrix"]', t('matrix'));
-    translateTextContent('[data-i18n="settings"]', t('settings'));
-    translateTextContent('[data-i18n="inviteUser"]', t('inviteUser'));
-
-    // Direct overrides by button id (backward-compat where data-i18n isn't added)
-    const byIdMap = {
-      'btn-refresh': t('refresh'),
-      'btn-matrix':  t('matrix'),
-      'btn-settings': t('settings'),
-      'btn-invite':  t('inviteUser')
-    };
-    for (const id in byIdMap) {
-      const btn = document.getElementById(id);
-      if (btn) {
-        // Preserve SVG, replace only text nodes
-        const textNode = [...btn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
-        if (textNode) {
-          if (!btn.dataset.arOrig) btn.dataset.arOrig = textNode.textContent;
-          textNode.textContent = lang === 'en' ? ' ' + byIdMap[id] + ' ' : ' ' + btn.dataset.arOrig.trim() + ' ';
-        } else {
-          // No trailing text — append one
-          if (!btn.dataset.arOrig) btn.dataset.arOrig = btn.textContent.trim();
-          btn.appendChild(document.createTextNode(' ' + byIdMap[id]));
-        }
-      }
-    }
-
-    // Page title + subtitle
-    const title = document.querySelector('.page-title');
-    if (title) {
-      if (!title.dataset.arOrig) title.dataset.arOrig = title.textContent;
-      title.textContent = lang === 'en' ? t('usersTitle') : title.dataset.arOrig;
-    }
-    const sub = document.querySelector('.page-sub');
-    if (sub) {
-      if (!sub.dataset.arOrig) sub.dataset.arOrig = sub.textContent;
-      sub.textContent = lang === 'en' ? t('usersSub') : sub.dataset.arOrig;
-    }
-
-    // Breadcrumbs: "الرئيسية / الصلاحيات والمستخدمون"
-    document.querySelectorAll('a[href="dashboard.html"]').forEach(a => {
-      if (a.textContent.trim() === 'الرئيسية' || a.textContent.trim() === 'Home') {
-        if (!a.dataset.arOrig) a.dataset.arOrig = a.textContent;
-        a.textContent = lang === 'en' ? 'Home' : 'الرئيسية';
-      }
-      // Back button
-      if (a.classList.contains('back-btn')) {
-        if (!a.dataset.arOrig) a.dataset.arOrig = a.textContent.trim();
-        // Keep SVG if present
-        const svg = a.querySelector('svg');
-        a.textContent = '';
-        if (svg) a.appendChild(svg);
-        a.appendChild(document.createTextNode(' ' + t('backToDash')));
-      }
     });
   }
 
-  function translateTextContent(selector, newText){
-    document.querySelectorAll(selector).forEach(n => {
-      if (!n.dataset.arOrig) n.dataset.arOrig = n.textContent.trim();
-      n.textContent = (getLang() === 'en') ? newText : n.dataset.arOrig;
-    });
+  // ===== Public API (no floating button — sidebar hosts the toggle) =====
+  function toggleLang(){
+    const next = getLang() === 'ar' ? 'en' : 'ar';
+    localStorage.setItem(LS_KEY, next);
+    applyLang(next);
+    return next;
   }
-
-  // ====== Language toggle button ======
-  function injectToggleButton(){
-    if (document.getElementById('arsan-lang-toggle')) return;
-    const style = document.createElement('style');
-    style.textContent = `
-      #arsan-lang-toggle{
-        position:fixed;top:16px;inset-inline-start:16px;z-index:500;
-        background:rgba(255,255,255,.95);backdrop-filter:blur(8px);
-        border:1px solid rgba(212,168,60,.3);
-        padding:8px 14px;border-radius:999px;
-        font:inherit;font-size:12.5px;font-weight:600;color:#6d5a1e;
-        cursor:pointer;display:flex;align-items:center;gap:6px;
-        transition:background .15s, transform .05s;
-        box-shadow:0 2px 8px rgba(0,0,0,.05);
-      }
-      html[data-theme="dark"] #arsan-lang-toggle{background:rgba(40,32,22,.9);color:#f3e9c9;border-color:rgba(212,168,60,.4)}
-      #arsan-lang-toggle:hover{background:#f9f5e6}
-      html[data-theme="dark"] #arsan-lang-toggle:hover{background:rgba(60,48,30,.95)}
-      #arsan-lang-toggle:active{transform:scale(.96)}
-      #arsan-lang-toggle .globe{font-size:14px}
-    `;
-    document.head.appendChild(style);
-
-    const btn = document.createElement('button');
-    btn.id = 'arsan-lang-toggle';
-    btn.setAttribute('aria-label', 'Toggle language');
-    btn.innerHTML = '<span class="globe">🌐</span><span class="label">EN</span>';
-    btn.onclick = () => {
-      const next = getLang() === 'ar' ? 'en' : 'ar';
-      localStorage.setItem(LS_KEY, next);
-      applyLang(next);
-    };
-    document.body.appendChild(btn);
-    updateToggleLabel();
+  function setLang(lang){
+    if (lang !== 'ar' && lang !== 'en') return;
+    localStorage.setItem(LS_KEY, lang);
+    applyLang(lang);
   }
-
-  function updateToggleLabel(){
-    const btn = document.getElementById('arsan-lang-toggle');
-    if (!btn) return;
-    const label = btn.querySelector('.label');
-    if (label) label.textContent = getLang() === 'ar' ? 'EN' : 'عربي';
+  // Remove any previously-injected floating button (from older versions)
+  function removeOldToggle(){
+    const old = document.getElementById('arsan-lang-toggle');
+    if (old) old.remove();
   }
 
   function applyLang(lang){
     document.documentElement.lang = lang;
     document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
-    updateToggleLabel();
-
-    // Detect page and apply appropriate translations
-    const path = location.pathname.toLowerCase();
-    const isUsersPage = path.endsWith('users.html') || document.body.id === 'users-page' || document.querySelector('#usersTable') || document.getElementById('btn-invite');
-    const isIndex = path.endsWith('/') || path.endsWith('index.html') || document.querySelector('.dept-grid');
-
-    if (isUsersPage) applyUsersTranslations(lang);
-    if (isIndex) applyIndexTranslations(lang);
+    walkAndTranslate(lang);
+    // Notify listeners (sidebar updates its label)
+    try { window.dispatchEvent(new CustomEvent('arsan-lang-change', { detail: { lang } })); } catch(_){}
   }
 
-  // ====== Init ======
   function init(){
-    injectToggleButton();
+    removeOldToggle();
     applyLang(getLang());
-    // Re-apply after delays to catch late-rendered content
-    setTimeout(() => applyLang(getLang()), 300);
-    setTimeout(() => applyLang(getLang()), 1000);
+    // Re-apply on DOM mutations (new modals, cards, etc.)
+    const obs = new MutationObserver(() => {
+      clearTimeout(window.__i18nRerun);
+      window.__i18nRerun = setTimeout(() => { removeOldToggle(); applyLang(getLang()); }, 100);
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') {
@@ -291,5 +301,5 @@
     init();
   }
 
-  window.ArsanApplyLang = applyLang;
+  window.ArsanI18n = { apply: applyLang, getLang, setLang, toggle: toggleLang, dict: DICT };
 })();

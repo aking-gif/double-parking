@@ -38,6 +38,9 @@ const KEYS = {
   users:    "users_v1",
   slack:    "slack_webhook_v1",
   sessions: (token) => `sess_${token}`,
+  customDepts: "custom_depts_v1",
+  updatesUrl:  "updates_url_v1",
+  updatesCache:"updates_cache_v1",
 };
 
 function corsHeaders(req) {
@@ -107,6 +110,118 @@ async function logActivity(env, entry) {
       });
     }
   } catch (e) { /* ignore */ }
+}
+
+/**
+ * إرسال إشعار موجّه لمستخدم عبر Slack (قناة مشتركة) + Email (Resend)
+ * @param {object} env - Worker env
+ * @param {object} opts - { email, subject, bodyText, actionUrl, actionLabel }
+ */
+async function sendUserNotification(env, opts) {
+  const results = { slack: null, email: null };
+  const { email, subject, bodyText, actionUrl, actionLabel } = opts;
+
+  // Try Slack DM first if SLACK_BOT_TOKEN is configured
+  if (env.SLACK_BOT_TOKEN) {
+    try {
+      // 1) Look up user by email
+      const lookupRes = await fetch(`https://slack.com/api/users.lookupByEmail?email=${encodeURIComponent(email)}`, {
+        headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` }
+      });
+      const lookupJson = await lookupRes.json();
+      if (lookupJson.ok && lookupJson.user?.id) {
+        // 2) Send DM
+        const dmRes = await fetch('https://slack.com/api/chat.postMessage', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+            'Content-Type': 'application/json; charset=utf-8'
+          },
+          body: JSON.stringify({
+            channel: lookupJson.user.id,
+            text: `*${subject}*\n\n${bodyText}\n\n<${actionUrl}|${actionLabel || 'اضغط هنا'}>`,
+            unfurl_links: false
+          })
+        });
+        const dmJson = await dmRes.json();
+        if (dmJson.ok) {
+          results.slack = { ok: true, method: 'dm', channel: lookupJson.user.id };
+        } else {
+          results.slack = { ok: false, method: 'dm-failed', error: dmJson.error };
+        }
+      } else {
+        results.slack = { ok: false, method: 'lookup-failed', error: lookupJson.error || 'user-not-found' };
+      }
+    } catch (e) {
+      results.slack = { ok: false, method: 'dm-exception', error: e.message };
+    }
+  }
+
+  // Fallback to channel webhook if DM failed or Bot Token not set
+  if (!results.slack?.ok) {
+    const webhookUrl = env.SLACK_WEBHOOK_URL || await env.ARSAN.get(KEYS.slack);
+    if (webhookUrl) {
+      try {
+        const msg = `*${subject}*\n\n👤 للمستخدم: \`${email}\`\n${bodyText}\n\n<${actionUrl}|${actionLabel || 'افتح الرابط'}>`;
+        const r = await fetch(webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: msg }),
+        });
+        results.slack = { ok: r.ok, method: 'channel', status: r.status, fallback: true };
+      } catch (e) {
+        results.slack = { ok: false, method: 'channel-exception', error: e.message };
+      }
+    } else if (!results.slack) {
+      results.slack = { ok: false, method: 'not-configured' };
+    }
+  }
+
+  // 2) Email via Resend
+  try {
+    const apiKey = env.RESEND_API_KEY;
+    const fromEmail = env.FROM_EMAIL || "noreply@arsann.com";
+    if (apiKey) {
+      const htmlBody = `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Tahoma,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f6ef;border-radius:12px;direction:rtl">
+          <div style="background:#fff;border-radius:10px;padding:28px;border:1px solid #e5dcc0">
+            <div style="font-size:22px;font-weight:700;color:#6d5a1e;margin-bottom:16px">${subject}</div>
+            <div style="font-size:15px;line-height:1.7;color:#333;white-space:pre-wrap">${bodyText}</div>
+            ${actionUrl ? `
+              <div style="margin-top:24px;text-align:center">
+                <a href="${actionUrl}" style="display:inline-block;background:#d4a83c;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:15px">${actionLabel || "فتح الرابط"}</a>
+              </div>
+              <div style="margin-top:20px;font-size:12px;color:#888;text-align:center;word-break:break-all">
+                أو انسخ الرابط: <br/><span style="color:#6d5a1e">${actionUrl}</span>
+              </div>
+            ` : ''}
+          </div>
+          <div style="text-align:center;margin-top:16px;font-size:12px;color:#999">
+            أرسان للتشغيل · Arsan Operations
+          </div>
+        </div>
+      `;
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: `Arsan Operations <${fromEmail}>`,
+          to: [email],
+          subject: subject,
+          html: htmlBody,
+        }),
+      });
+      const data = await r.json().catch(() => ({}));
+      results.email = r.ok ? "sent" : `failed-${r.status}: ${JSON.stringify(data).slice(0,160)}`;
+    } else {
+      results.email = "no-api-key-configured";
+    }
+  } catch (e) { results.email = "error: " + (e.message || e); }
+
+  return results;
 }
 
 export default {
@@ -184,18 +299,25 @@ export default {
       if (path === "/api/me" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ role: "viewer" }, 200, req);
-        return json({ email: s.email, role: s.role }, 200, req);
+        return json({
+          email: s.email,
+          role: s.role,
+          departments: s.departments || [],
+          permissions: s.permissions || null
+        }, 200, req);
       }
 
       // ---------- BOOTSTRAP ----------
       if (path === "/api/bootstrap" && method === "GET") {
-        const [sopsRaw, depsRaw] = await Promise.all([
+        const [sopsRaw, depsRaw, deptsRaw] = await Promise.all([
           env.ARSAN.get(KEYS.sops),
           env.ARSAN.get(KEYS.deps),
+          env.ARSAN.get(KEYS.customDepts),
         ]);
         const sops = sopsRaw ? JSON.parse(sopsRaw) : {};
         const deps = depsRaw ? JSON.parse(depsRaw) : [];
-        return json({ sops, deps }, 200, req);
+        const customDepts = deptsRaw ? JSON.parse(deptsRaw) : [];
+        return json({ sops, deps, customDepts }, 200, req);
       }
 
       // ---------- SOPs ----------
@@ -424,7 +546,18 @@ export default {
         if (idx >= 0) list[idx] = entry; else list.push(entry);
         await env.ARSAN.put(KEYS.users, JSON.stringify(list));
         await logActivity(env, { actor: ad.session.email, action: "invite-user", target: email });
-        return json({ ok: true, token, inviteUrl: `?invite=${token}&email=${encodeURIComponent(email)}` }, 200, req);
+
+        // Build full invite URL
+        const origin = (env.PUBLIC_URL || req.headers.get("origin") || "").replace(/\/$/, "");
+        const inviteUrl = `${origin}/dashboard.html?invite=${token}&email=${encodeURIComponent(email)}`;
+        const notify = await sendUserNotification(env, {
+          email,
+          subject: "دعوة للانضمام إلى لوحة إجراءات أرسان",
+          bodyText: `مرحباً،\n\nتمت دعوتك للانضمام إلى لوحة إجراءات أرسان التشغيلية بصلاحية "${entry.role}".\n\nاضغط على الزر أدناه لقبول الدعوة وتعيين كلمة السر الخاصة بك.\n\nالدعوة صالحة لمدة 7 أيام.`,
+          actionUrl: inviteUrl,
+          actionLabel: "قبول الدعوة وتعيين كلمة السر",
+        });
+        return json({ ok: true, token, inviteUrl, notify }, 200, req);
       }
       // Accept invite: sets password, activates account
       if (path === "/api/users/accept-invite" && method === "POST") {
@@ -471,7 +604,67 @@ export default {
         list[idx].resetExpires = Date.now() + 2 * 24 * 3600 * 1000;
         await env.ARSAN.put(KEYS.users, JSON.stringify(list));
         await logActivity(env, { actor: ad.session.email, action: "reset-password-invite", target: email });
-        return json({ ok: true, mode: "token", token, resetUrl: `?reset=${token}&email=${encodeURIComponent(email)}` }, 200, req);
+
+        const origin = (env.PUBLIC_URL || req.headers.get("origin") || "").replace(/\/$/, "");
+        const resetUrl = `${origin}/dashboard.html?reset=${token}&email=${encodeURIComponent(email)}`;
+        const notify = await sendUserNotification(env, {
+          email,
+          subject: "إعادة تعيين كلمة السر — لوحة أرسان",
+          bodyText: `تم طلب إعادة تعيين كلمة السر لحسابك في لوحة إجراءات أرسان.\n\nاضغط على الزر أدناه لاختيار كلمة سر جديدة.\n\nهذا الرابط صالح لمدة 48 ساعة.\n\nإذا لم تطلب ذلك، تجاهل هذه الرسالة.`,
+          actionUrl: resetUrl,
+          actionLabel: "إعادة تعيين كلمة السر",
+        });
+        return json({ ok: true, mode: "token", token, resetUrl, notify }, 200, req);
+      }
+
+      // Forgot password: any user requests reset; admin gets notified in Slack
+      if (path === "/api/users/forgot-password" && method === "POST") {
+        const body = await req.json().catch(() => ({}));
+        const email = (body.email || "").toLowerCase().trim();
+        if (!email) return json({ error: "email-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.users);
+        const list = raw ? JSON.parse(raw) : [];
+        const user = list.find(u => u.email === email);
+        // Don't reveal if user exists — always return ok to prevent enumeration
+        if (!user) {
+          await logActivity(env, { actor: email, action: "forgot-password-unknown", target: email });
+          return json({ ok: true, queued: true }, 200, req);
+        }
+        // Notify admins via Slack channel
+        const webhookUrl = env.SLACK_WEBHOOK_URL || await env.ARSAN.get(KEYS.slack);
+        if (webhookUrl) {
+          try {
+            const msg = `🔑 *طلب إعادة تعيين كلمة السر*\n\n👤 المستخدم: \`${email}\`\n📅 التوقيت: ${new Date().toLocaleString("ar-SA")}\n\n_يرجى من المسؤول الدخول إلى لوحة المستخدمين وإعادة تعيين كلمة السر._`;
+            await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: msg }),
+            });
+          } catch (e) { /* non-fatal */ }
+        }
+        await logActivity(env, { actor: email, action: "forgot-password-request", target: email });
+        return json({ ok: true, queued: true }, 200, req);
+      }
+
+      // Apply reset: user submits new password with token
+      if (path === "/api/users/apply-reset" && method === "POST") {
+        const body = await req.json().catch(() => ({}));
+        const token = (body.token || "").toString();
+        const newPassword = (body.newPassword || "").toString();
+        if (!token || !newPassword) return json({ error: "token-and-password-required" }, 400, req);
+        if (newPassword.length < 6) return json({ error: "password-too-short" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.users);
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(u => u.resetToken === token);
+        if (idx < 0) return json({ error: "invalid-token" }, 404, req);
+        if (list[idx].resetExpires && list[idx].resetExpires < Date.now()) return json({ error: "token-expired" }, 410, req);
+        list[idx].password = newPassword;
+        list[idx].status = "active";
+        delete list[idx].resetToken;
+        delete list[idx].resetExpires;
+        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        await logActivity(env, { actor: list[idx].email, action: "apply-reset", target: list[idx].email });
+        return json({ ok: true, email: list[idx].email }, 200, req);
       }
 
       // ---------- SLACK WEBHOOK (admin only) ----------
@@ -488,6 +681,254 @@ export default {
         await env.ARSAN.put(KEYS.slack, body.url || "");
         await logActivity(env, { actor: ad.session.email, action: "set-slack-webhook" });
         return json({ ok: true }, 200, req);
+      }
+
+      // ---------- UPDATES BANNER ----------
+      // GET /api/updates-url → admin only, returns current source URL
+      if (path === "/api/updates-url" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const url = await env.ARSAN.get(KEYS.updatesUrl);
+        return json({ url: url || "" }, 200, req);
+      }
+      // POST /api/updates-url { url } → admin sets the Google Doc (pub?embedded) URL
+      if (path === "/api/updates-url" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        await env.ARSAN.put(KEYS.updatesUrl, body.url || "");
+        await env.ARSAN.delete(KEYS.updatesCache); // invalidate cache
+        await logActivity(env, { actor: ad.session.email, action: "set-updates-url" });
+        return json({ ok: true }, 200, req);
+      }
+      // GET /api/updates → public, returns { html, fetchedAt, items[] }
+      // Caches for 5 minutes. Fetches the configured URL (Google Doc published-to-web, or any URL returning HTML/text)
+      if (path === "/api/updates" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+
+        const cacheRaw = await env.ARSAN.get(KEYS.updatesCache);
+        const now = Date.now();
+        if (cacheRaw) {
+          const cache = JSON.parse(cacheRaw);
+          if (now - cache.fetchedAt < 5 * 60 * 1000) {
+            return json(cache, 200, req);
+          }
+        }
+
+        const srcUrl = await env.ARSAN.get(KEYS.updatesUrl);
+        if (!srcUrl) {
+          return json({ html: "", items: [], fetchedAt: now, source: null }, 200, req);
+        }
+
+        try {
+          const res = await fetch(srcUrl, {
+            headers: { "User-Agent": "ArsanSOPs/1.0" },
+            cf: { cacheTtl: 60, cacheEverything: true }
+          });
+          if (!res.ok) throw new Error(`fetch-failed-${res.status}`);
+          let text = await res.text();
+
+          // Strip Google Docs wrapper (if it's a pub?embedded=true)
+          const isGoogleDoc = /docs\.google\.com/.test(srcUrl);
+          let html = text;
+          let items = [];
+
+          if (isGoogleDoc) {
+            // Extract the body contents from Google's HTML
+            const bodyMatch = text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            if (bodyMatch) html = bodyMatch[1];
+            // Remove Google's inline styles & scripts
+            html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+            html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+            // Strip class/id attrs (Google's c1, c2…)
+            html = html.replace(/\s(class|id)="[^"]*"/gi, "");
+            // Strip inline style="..."
+            html = html.replace(/\sstyle="[^"]*"/gi, "");
+          }
+
+          // Extract list items as "items" (for banner rotation)
+          const liMatches = [...html.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)];
+          items = liMatches.map(m => m[1].replace(/<[^>]+>/g, "").trim()).filter(Boolean);
+          // Fallback: paragraph-split
+          if (items.length === 0) {
+            const pMatches = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)];
+            items = pMatches.map(m => m[1].replace(/<[^>]+>/g, "").trim()).filter(Boolean);
+          }
+
+          const payload = { html, items, fetchedAt: now, source: srcUrl };
+          await env.ARSAN.put(KEYS.updatesCache, JSON.stringify(payload), { expirationTtl: 600 });
+          return json(payload, 200, req);
+        } catch (e) {
+          return json({ html: "", items: [], fetchedAt: now, error: e.message }, 200, req);
+        }
+      }
+
+      // ---------- CUSTOM DEPARTMENTS (admin only) ----------
+      // GET /api/custom-depts → returns array of { id, name, icon, color, addedAt, addedBy }
+      if (path === "/api/custom-depts" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.customDepts);
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/custom-depts  { id, name, icon?, color? } — admin only
+      if (path === "/api/custom-depts" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const id = (body.id || "").toString().trim().toLowerCase().replace(/[^a-z0-9_-]/g, "-");
+        const name = (body.name || "").toString().trim();
+        if (!id || !name) return json({ error: "id-and-name-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.customDepts);
+        const list = raw ? JSON.parse(raw) : [];
+        if (list.find(d => d.id === id)) return json({ error: "id-exists" }, 409, req);
+        // also block if it clashes with built-in ids
+        const builtins = ["projects","executive","finance","hr","design","planning","procurement","maintenance","execution"];
+        if (builtins.includes(id)) return json({ error: "id-reserved" }, 409, req);
+        const entry = {
+          id, name,
+          icon: body.icon || "📂",
+          color: body.color || "#d4a83c",
+          addedAt: Date.now(),
+          addedBy: ad.session.email
+        };
+        list.push(entry);
+        await env.ARSAN.put(KEYS.customDepts, JSON.stringify(list));
+        await logActivity(env, { actor: ad.session.email, action: "add-dept", target: id, name });
+        return json({ ok: true, dept: entry }, 200, req);
+      }
+      // PATCH /api/custom-depts/:id  { name?, icon?, color? } — admin only
+      if (path.match(/^\/api\/custom-depts\/[^\/]+$/) && method === "PATCH") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = decodeURIComponent(path.split("/")[3]);
+        const body = await req.json().catch(() => ({}));
+        const raw = await env.ARSAN.get(KEYS.customDepts);
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(d => d.id === id);
+        if (idx < 0) return json({ error: "not-found" }, 404, req);
+        if (body.name !== undefined) list[idx].name = body.name;
+        if (body.icon !== undefined) list[idx].icon = body.icon;
+        if (body.color !== undefined) list[idx].color = body.color;
+        list[idx].updatedAt = Date.now();
+        list[idx].updatedBy = ad.session.email;
+        await env.ARSAN.put(KEYS.customDepts, JSON.stringify(list));
+        await logActivity(env, { actor: ad.session.email, action: "update-dept", target: id });
+        return json({ ok: true, dept: list[idx] }, 200, req);
+      }
+      // DELETE /api/custom-depts/:id — admin only
+      if (path.match(/^\/api\/custom-depts\/[^\/]+$/) && method === "DELETE") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = decodeURIComponent(path.split("/")[3]);
+        const raw = await env.ARSAN.get(KEYS.customDepts);
+        const list = raw ? JSON.parse(raw) : [];
+        const filtered = list.filter(d => d.id !== id);
+        if (filtered.length === list.length) return json({ error: "not-found" }, 404, req);
+        await env.ARSAN.put(KEYS.customDepts, JSON.stringify(filtered));
+        await logActivity(env, { actor: ad.session.email, action: "delete-dept", target: id });
+        return json({ ok: true }, 200, req);
+      }
+
+      // ---------- DEBUG: Slack test (admin only) ----------
+      // POST /api/debug/slack-test  { email: "a.kurdi@arsann.com" }
+      // Returns the raw Slack API responses so we can see exactly what's happening.
+      if (path === "/api/debug/slack-test" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const email = (body.email || ad.session.email || "").toString().toLowerCase();
+        if (!email) return json({ error: "email required" }, 400, req);
+        const diag = {
+          botTokenConfigured: !!env.SLACK_BOT_TOKEN,
+          botTokenPrefix: env.SLACK_BOT_TOKEN ? env.SLACK_BOT_TOKEN.slice(0, 5) + "…" : null,
+          email,
+          steps: []
+        };
+
+        if (!env.SLACK_BOT_TOKEN) {
+          diag.steps.push({ step: "check-token", ok: false, error: "SLACK_BOT_TOKEN not set in Worker secrets" });
+          return json(diag, 200, req);
+        }
+
+        // Step 1: auth.test — verify the token itself
+        try {
+          const r = await fetch("https://slack.com/api/auth.test", {
+            headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` }
+          });
+          const j = await r.json();
+          diag.steps.push({ step: "auth.test", httpStatus: r.status, response: j });
+          if (!j.ok) {
+            return json({ ...diag, verdict: "Token invalid — fix this first" }, 200, req);
+          }
+        } catch (e) {
+          diag.steps.push({ step: "auth.test", error: e.message });
+          return json(diag, 200, req);
+        }
+
+        // Step 2: users.lookupByEmail
+        let userId = null;
+        try {
+          const r = await fetch(`https://slack.com/api/users.lookupByEmail?email=${encodeURIComponent(email)}`, {
+            headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` }
+          });
+          const j = await r.json();
+          diag.steps.push({ step: "users.lookupByEmail", httpStatus: r.status, response: j });
+          if (!j.ok) {
+            return json({ ...diag, verdict: `Lookup failed: ${j.error}` }, 200, req);
+          }
+          userId = j.user?.id;
+        } catch (e) {
+          diag.steps.push({ step: "users.lookupByEmail", error: e.message });
+          return json(diag, 200, req);
+        }
+
+        // Step 3: conversations.open — open a DM channel explicitly
+        let dmChannel = null;
+        try {
+          const r = await fetch("https://slack.com/api/conversations.open", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify({ users: userId })
+          });
+          const j = await r.json();
+          diag.steps.push({ step: "conversations.open", httpStatus: r.status, response: j });
+          if (!j.ok) {
+            return json({ ...diag, verdict: `Cannot open DM: ${j.error}` }, 200, req);
+          }
+          dmChannel = j.channel?.id;
+        } catch (e) {
+          diag.steps.push({ step: "conversations.open", error: e.message });
+          return json(diag, 200, req);
+        }
+
+        // Step 4: chat.postMessage — send a test message
+        try {
+          const r = await fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify({
+              channel: dmChannel,
+              text: `🧪 *اختبار Slack من Arsan SOPs*\n\nإذا وصلتك هذه الرسالة، نظام الإشعارات يعمل بنجاح.\n\nالوقت: ${new Date().toISOString()}`
+            })
+          });
+          const j = await r.json();
+          diag.steps.push({ step: "chat.postMessage", httpStatus: r.status, response: j });
+          diag.verdict = j.ok
+            ? "✅ تم الإرسال بنجاح — تفقّد Slack الآن"
+            : `❌ فشل الإرسال: ${j.error}`;
+        } catch (e) {
+          diag.steps.push({ step: "chat.postMessage", error: e.message });
+        }
+
+        return json(diag, 200, req);
       }
 
       // ---------- SOP: rename/move (change code, dept, or title) ----------

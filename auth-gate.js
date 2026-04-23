@@ -58,10 +58,28 @@
     style.textContent = `
       .ag-bd{
         position:fixed;inset:0;z-index:9999;
-        background:radial-gradient(circle at 30% 20%, #2a2218 0%, #1a140e 60%, #0f0b07 100%);
+        background:
+          radial-gradient(circle at 20% 30%, rgba(212,168,60,.12) 0%, transparent 45%),
+          radial-gradient(circle at 80% 70%, rgba(184,144,48,.08) 0%, transparent 50%),
+          linear-gradient(135deg, #1a1510 0%, #2a1f14 40%, #1f1810 100%);
         display:grid;place-items:center;padding:20px;
+        overflow:hidden;
       }
-      html[data-theme="light"] .ag-bd{background:radial-gradient(circle at 30% 20%, #f9f2dc 0%, #f0e5c0 60%, #e8d89c 100%)}
+      .ag-bd::before{
+        content:'';position:absolute;inset:0;
+        background-image:
+          linear-gradient(rgba(212,168,60,.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212,168,60,.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: radial-gradient(circle at center, black, transparent 70%);
+        pointer-events:none;
+      }
+      html[data-theme="light"] .ag-bd{
+        background:
+          radial-gradient(circle at 20% 30%, rgba(212,168,60,.2) 0%, transparent 45%),
+          radial-gradient(circle at 80% 70%, rgba(184,144,48,.15) 0%, transparent 50%),
+          linear-gradient(135deg, #faf6ea 0%, #f3e9c9 50%, #eadda5 100%);
+      }
       .ag-card{
         background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
         border:1px solid rgba(212,168,60,.25);

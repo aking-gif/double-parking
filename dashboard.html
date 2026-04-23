@@ -359,6 +359,47 @@
     color:var(--ink);
     text-wrap:balance;
   }
+  /* ===== Filled state: green accent on title + status dot + outside timestamp ===== */
+  .filled-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:#22c55e;
+    box-shadow:0 0 0 3px rgba(34,197,94,.18);
+    flex-shrink:0;
+    animation:dotPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes dotPulse{
+    0%,100%{ box-shadow:0 0 0 3px rgba(34,197,94,.18); }
+    50%    { box-shadow:0 0 0 5px rgba(34,197,94,.08); }
+  }
+  .card.is-filled h3{
+    color:#15803d;   /* deep green */
+  }
+  html[data-theme="dark"] .card.is-filled h3{
+    color:#4ade80;   /* lighter green in dark mode */
+  }
+  .card.is-filled{
+    border-color:rgba(34,197,94,.25);
+  }
+  html[data-theme="dark"] .card.is-filled{
+    border-color:rgba(74,222,128,.25);
+  }
+  .card-updated{
+    position:absolute;
+    bottom:-22px;
+    inset-inline-end:4px;
+    font-size:11px;
+    color:var(--ink-3, #9a8f7a);
+    letter-spacing:.01em;
+    white-space:nowrap;
+    pointer-events:none;
+    opacity:.75;
+  }
+  .card-updated time{
+    font-variant-numeric:tabular-nums;
+    font-weight:500;
+  }
+  /* Give room below each card so the outside stamp doesn't collide with next row */
+  .grid, .cards-grid, #grid{ row-gap:40px; }
   .card-desc{
     color:var(--ink-2);
     font-size:13.5px;
@@ -970,6 +1011,80 @@
   background:#ffffff !important;
   color:#111 !important;
 }
+
+/* ==================== GLASS EFFECT (Apple-style) ==================== */
+/* Dashboard header — heavy frosted glass */
+.header{
+  background:linear-gradient(135deg, rgba(20,20,20,.72) 0%, rgba(35,26,16,.68) 100%) !important;
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-bottom:1px solid rgba(212,168,60,.22) !important;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -20px rgba(0,0,0,.5);
+}
+html[data-theme="light"] .header{
+  background:linear-gradient(135deg, rgba(250,246,234,.72) 0%, rgba(243,234,208,.68) 100%) !important;
+  border-bottom:1px solid rgba(212,168,60,.3) !important;
+}
+/* Light-mode header text needs dark ink against cream glass */
+html[data-theme="light"] .header,
+html[data-theme="light"] .header .title,
+html[data-theme="light"] .header .brandline .mark,
+html[data-theme="light"] .header .subtitle,
+html[data-theme="light"] .header .chip,
+html[data-theme="light"] .header .chip span{
+  color:#2b2416 !important;
+}
+html[data-theme="light"] .header .brandline,
+html[data-theme="light"] .header .header-inner .sub,
+html[data-theme="light"] .header small{
+  color:#5a4f3a !important;
+}
+html[data-theme="light"] .header .theme-toggle,
+html[data-theme="light"] .header button{
+  color:#2b2416 !important;
+}
+
+/* Light-mode stat cards inside the glass hero */
+html[data-theme="light"] .header .stat,
+html[data-theme="light"] .header .stat.accent{
+  background:linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.3) 100%) !important;
+  border:1px solid rgba(212,168,60,.3) !important;
+}
+html[data-theme="light"] .header .stat .n{
+  color:#2b2416 !important;
+}
+html[data-theme="light"] .header .stat .l,
+html[data-theme="light"] .header .stat .n .u{
+  color:#5a4f3a !important;
+}
+html[data-theme="light"] .header .stat.accent{
+  background:linear-gradient(180deg, rgba(212,168,60,.28) 0%, rgba(212,168,60,.12) 100%) !important;
+  border-color:rgba(212,168,60,.5) !important;
+}
+.header::before{
+  background-image:
+    radial-gradient(1200px 420px at 90% -10%, rgba(212,168,60,.28), transparent 60%),
+    radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.14), transparent 60%) !important;
+}
+
+/* Dashboard sidebar — glass */
+.arsan-topbar{
+  background:linear-gradient(180deg, rgba(26,21,16,.78) 0%, rgba(35,26,16,.72) 100%) !important;
+  backdrop-filter:blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(180%) !important;
+}
+html[data-theme="light"] .arsan-topbar{
+  background:linear-gradient(180deg, rgba(250,246,234,.82) 0%, rgba(243,234,208,.78) 100%) !important;
+}
+html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
+  color:#2b2416 !important;
+}
+
+/* Feature page: fixed sticky header background fallback */
+@supports not (backdrop-filter: blur(1px)){
+  .header{ background:var(--header-bg) !important; }
+  .arsan-topbar{ background:linear-gradient(180deg, #1a1510, #231a10) !important; }
+}
 </style>
 </head>
 <body>
@@ -1499,6 +1614,35 @@ const phaseLabel = id => (typeof gLabel==='function' ? gLabel(id) : ((PHASES.fin
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
 function isPH(v){ return !v || v === PH; }
+/* Filled = any meaningful content beyond defaults */
+function isFilled(sop){
+  if (!sop) return false;
+  const fields = ['purpose','scope','owner','inputs','outputs','sla','kpis','desc'];
+  if (fields.some(k => !isPH(sop[k]))) return true;
+  if (Array.isArray(sop.steps) && sop.steps.some(s => !isPH(s))) return true;
+  if (Array.isArray(sop.forms) && sop.forms.length > 0) return true;
+  return false;
+}
+/* Relative-ish date for last-update stamps */
+function formatUpdated(ts){
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    const now = Date.now();
+    const diff = now - ts;
+    const mins = Math.floor(diff / 60000);
+    const isEn = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en');
+    if (mins < 1) return isEn ? 'just now' : 'الآن';
+    if (mins < 60) return isEn ? `${mins}m ago` : `قبل ${mins} د`;
+    const hrs = Math.floor(mins/60);
+    if (hrs < 24) return isEn ? `${hrs}h ago` : `قبل ${hrs} س`;
+    const days = Math.floor(hrs/24);
+    if (days < 7) return isEn ? `${days}d ago` : `قبل ${days} يوم`;
+    // Older — show short date
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  } catch(_) { return ''; }
+}
 function renderVal(v){
   if(isPH(v)) return `<span class="ph">يُكمل لاحقاً</span>`;
   return escapeHtml(v);
@@ -1578,11 +1722,15 @@ function renderGrid(){
     const slaHtml   = isPH(s.sla)   ? `<span class="ph">${(typeof T==='function'?T('sla'):'SLA')}</span>`    : escapeHtml(s.sla);
     const openLabel = (typeof T==='function') ? T('openSop') : 'افتح تفاصيل الإجراء';
     const arrow = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? '→' : '←';
+    const filled = isFilled(s);
+    const updatedStr = s.updatedAt ? formatUpdated(s.updatedAt) : '';
+    const updatedLabel = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en') ? 'Updated' : 'آخر تحديث';
     return `
-      <article class="card" tabindex="0" role="button" data-idx="${idx}" aria-label="${escapeHtml(openLabel)} — ${escapeHtml(s.code)}">
+      <article class="card ${filled?'is-filled':''}" tabindex="0" role="button" data-idx="${idx}" aria-label="${escapeHtml(openLabel)} — ${escapeHtml(s.code)}">
         <div class="card-top">
           <span class="sop-code">${escapeHtml(s.code)}</span>
           <span class="phase-tag">${escapeHtml(phaseLabel(s.phase))}</span>
+          ${filled ? `<span class="filled-dot" title="${escapeHtml(updatedLabel)}" aria-label="filled"></span>` : ''}
         </div>
         <h3>${escapeHtml(titleLoc)}</h3>
         <p class="card-desc">${descHtml}</p>
@@ -1600,6 +1748,7 @@ function renderGrid(){
           <span>${escapeHtml(openLabel)}</span>
           <span class="arrow" aria-hidden="true">${arrow}</span>
         </div>
+        ${updatedStr ? `<div class="card-updated">${escapeHtml(updatedLabel)}: <time datetime="${new Date(s.updatedAt).toISOString()}">${escapeHtml(updatedStr)}</time></div>` : ''}
       </article>`;
   }).join("");
 }
@@ -1772,18 +1921,21 @@ async function saveEdits(){
   patch.steps = steps;
 
   Object.assign(s, patch);
+  s.updatedAt = Date.now();
   setStatus('جاري الحفظ…', true);
   try {
     if (window.ArsanAPI && window.ArsanAPI.hasBackend && window.ArsanAPI.hasBackend()) {
-      await window.ArsanAPI.updateSop(DEPT.id, s.code, patch);
+      await window.ArsanAPI.updateSOP(DEPT.id, s.code, patch);
     } else {
       const key = 'arsan_sops_' + DEPT.id;
       const arr = JSON.parse(localStorage.getItem(key) || '{}');
-      arr[s.code] = { ...(arr[s.code]||{}), ...patch };
+      arr[s.code] = { ...(arr[s.code]||{}), ...patch, updatedAt: s.updatedAt };
       localStorage.setItem(key, JSON.stringify(arr));
     }
     setStatus('✓ تم الحفظ', true);
     exitEditMode();
+    // Refresh the grid so the filled dot / green title / timestamp update live
+    try { if (typeof renderGrid === 'function') renderGrid(); } catch(_){}
     openModal(state.openIdx); // reload view
   } catch(e){
     setStatus('خطأ: ' + (e.message||e), false);
@@ -1818,9 +1970,14 @@ function extractJSON(text){
 }
 
 async function handleUpload(){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.pdf,.docx,.txt,.md';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
   inp.onchange = async () => {
     const f = inp.files[0];
-    if (!f) return;
+    if (!f) { inp.remove(); return; }
     setStatus('جاري قراءة الملف…', true);
     try {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
@@ -1903,6 +2060,8 @@ ${content}
     } catch(e){
       setStatus('فشل: ' + (e.message||e), false);
       console.error('[handleUpload]', e);
+    } finally {
+      setTimeout(() => inp.remove(), 100);
     }
   };
   inp.click();
@@ -2892,7 +3051,7 @@ window.Arsan = Object.assign(window.Arsan || {}, {
 window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
 (function(){
-  const TOKEN_KEY = "arsan_token_v1";
+  const TOKEN_KEY = "arsan_token";
   const ME_KEY    = "arsan_me_v1";
   const ADMIN_EMAIL = "a.king@arsann.com";
   const EDITOR_DOMAIN = "@arsann.com";
@@ -3567,12 +3726,14 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     const logPane   = h('div', { class:'arsan-pane active' });
     const usersPane = h('div', { class:'arsan-pane' });
+    const announcePane = h('div', { class:'arsan-pane' });
     const slackPane = h('div', { class:'arsan-pane' });
 
     const tabs = [
-      { id:'log',    label:'سجل النشاط',       pane: logPane   },
-      { id:'users',  label:'المستخدمون',        pane: usersPane },
-      { id:'slack',  label:'Slack',            pane: slackPane },
+      { id:'log',       label:'سجل النشاط',   pane: logPane   },
+      { id:'users',     label:'المستخدمون',       pane: usersPane },
+      { id:'announce',  label:'📢 الإعلانات',       pane: announcePane },
+      { id:'slack',     label:'Slack',          pane: slackPane },
     ];
     const tabBar = h('div', { class:'arsan-tabs' });
     tabs.forEach(t => {
@@ -3654,6 +3815,51 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     usersPane.appendChild(usersList);
     reloadUsers();
 
+    // Announcements
+    const annTitle = h('input', { type:'text', placeholder:'عنوان الإعلان' });
+    const annBody  = h('textarea', { rows:'4', placeholder:'نص الإعلان...', style:'width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg-1);color:var(--ink-1);font:inherit;font-size:13px;resize:vertical' });
+    const annPriority = h('select', { style:'padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-1);color:var(--ink-1);font:inherit;font-size:13px' },
+      h('option', { value:'normal' }, 'عادي'),
+      h('option', { value:'urgent' }, 'عاجل')
+    );
+    const annList = h('div', { class:'arsan-log' });
+    async function reloadAnn(){
+      if (!window.ArsanNotify) { annList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-3)">لم يتم تحميل مكوّن الإشعارات.</div>'; return; }
+      try {
+        const items = await window.ArsanNotify.loadAll();
+        annList.innerHTML = items.length ? items.map(a => `
+          <div class="arsan-log-row">
+            <div>
+              <span class="arsan-log-action" style="${a.priority==='urgent'?'background:#e63946;color:#fff':''}">${a.priority==='urgent'?'عاجل':'عادي'}</span>
+              <strong>${esc(a.title)}</strong>
+              <div style="color:var(--ink-3);margin-top:4px;font-size:12px;white-space:pre-wrap">${esc(a.body||'')}</div>
+              <div class="arsan-log-time" style="margin-top:4px">${esc(a.author||'')} • ${fmt(a.ts)}</div>
+            </div>
+            <button class="arsan-btn danger" style="padding:4px 10px;font-size:12px" data-id="${esc(a.id)}">حذف</button>
+          </div>`).join('') : '<div style="padding:20px;text-align:center;color:var(--ink-3)">لا توجد إعلانات.</div>';
+        annList.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
+          if (!confirm('حذف الإعلان؟')) return;
+          await window.ArsanNotify.remove(b.dataset.id);
+          await window.ArsanNotify.refresh();
+          reloadAnn();
+        }));
+      } catch(e){ annList.innerHTML = `<div style="padding:20px;color:#b85450">${esc(e.message||e)}</div>`; }
+    }
+    announcePane.appendChild(h('div', { class:'sub' }, 'أنشئ إعلانات تظهر لجميع المستخدمين عبر الجرس 🔔 في القائمة الجانبية.'));
+    announcePane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'العنوان'), annTitle));
+    announcePane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'النص'), annBody));
+    announcePane.appendChild(h('div', { class:'arsan-field' }, h('label',{},'الأولوية'), annPriority));
+    announcePane.appendChild(h('div', { class:'arsan-actions' },
+      h('button', { class:'arsan-btn primary', onclick: async () => {
+        try {
+          await window.ArsanNotify.post({ title: annTitle.value, body: annBody.value, priority: annPriority.value });
+          annTitle.value=''; annBody.value=''; annPriority.value='normal';
+          reloadAnn();
+        } catch(e){ alert('خطأ: ' + e.message); }
+      }}, 'نشر الإعلان')));
+    announcePane.appendChild(annList);
+    reloadAnn();
+
     // Slack
     const slackI = h('input', { type:'url', placeholder:'https://hooks.slack.com/services/...' });
     slackPane.appendChild(h('div', { class:'sub' }, 'إن أضفت Incoming Webhook URL من Slack، كل نشاط (تسجيل دخول، تعديل، رسالة...) سيُرسل تلقائياً للقناة.'));
@@ -3668,7 +3874,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     const modal = h('div', { class:'arsan-modal wide' },
       h('h2', {}, '🛡️ لوحة المسؤول'),
       h('div', { class:'sub' }, 'المستخدم الحالي: ' + API.me().email + ' (admin)'),
-      tabBar, logPane, usersPane, slackPane,
+      tabBar, logPane, usersPane, announcePane, slackPane,
       h('div', { class:'arsan-actions' },
         h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إغلاق'))
     );
@@ -4487,8 +4693,10 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
           try {
             await API.updateSOP(window.CURRENT_DEPT_ID, sop.code, patch);
             Object.assign(sop, patch);
+            sop.updatedAt = Date.now();
             el.textContent = patch[keyMap[fieldId]] || '— يُكمل لاحقاً —';
             bd.remove();
+            try { if (typeof renderGrid === 'function') renderGrid(); } catch(_){}
           } catch(e){ alert('خطأ: ' + e.message); }
         }}, 'حفظ'))
     );
@@ -4539,7 +4747,10 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 })();
 </script>
 
-<script src="updates-banner.js?v=1"></script>
+<script src="updates-banner.js?v=3"></script>
+<script src="sidebar.js?v=6"></script>
+<script src="i18n.js?v=4"></script>
+<script src="notifications.js?v=2"></script>
 
 </body>
 </html>

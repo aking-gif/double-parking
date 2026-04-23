@@ -1631,6 +1631,33 @@ try {
   });
 } catch(_){}
 
+/* جلب أحدث البيانات من الخادم (Worker) ودمجها مع المعروض */
+async function fetchRemoteSOPs(){
+  try {
+    if (!window.ArsanAPI || !window.ArsanAPI.hasBackend || !window.ArsanAPI.hasBackend()) return;
+    const data = await window.ArsanAPI.bootstrap();
+    const remote = (data && data.sops && data.sops[CURRENT_DEPT_ID]) || {};
+    if (!remote || typeof remote !== 'object') return;
+    let changed = false;
+    SOPS.forEach(s => {
+      if (remote[s.code]) {
+        Object.assign(s, remote[s.code]);
+        changed = true;
+      }
+    });
+    // cache locally for offline
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remote)); } catch(_){}
+    if (changed && typeof renderGrid === 'function') {
+      try { renderGrid(); } catch(_){}
+    }
+  } catch(e) { console.warn('[Arsan] fetchRemoteSOPs failed:', e); }
+}
+// Kick off after API layer initializes (and retry on login)
+setTimeout(fetchRemoteSOPs, 400);
+setTimeout(fetchRemoteSOPs, 1500);
+window.addEventListener('arsan:login', fetchRemoteSOPs);
+window.fetchRemoteSOPs = fetchRemoteSOPs;
+
 function saveSOP(sop){
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -3169,10 +3196,8 @@ setTimeout(() => applyLang(CURRENT_LANG), 0);
 </script>
 <!-- ===== Arsan Backend Integration ===== -->
 <script>
-  /* ضع رابط Cloudflare Worker هنا بعد النشر، مثل:
-     window.API_BASE = "https://arsan-sops.xxxx.workers.dev";
-     اتركه فارغاً للوضع المحلي (يعمل على كل جهاز منفرداً). */
-  window.API_BASE = "";
+  /* رابط Cloudflare Worker (الواجهة الخلفية للمنصّة) */
+  window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";
   // Expose renderGrid to extensions
   try { window.renderGrid = renderGrid; } catch(_){}
 </script>
@@ -3333,6 +3358,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     if (hasBackend()) {
       const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
       setToken(r.token); setMe({ email: r.email, role: r.role });
+      try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
       return r;
     }
     // local fallback

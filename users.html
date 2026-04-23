@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Arsan — الصلاحيات والمستخدمون</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0c; --surface:#141416; --surface-2:#1c1c1f; --surface-3:#222226;
+  --line:#2a2a2e; --line-2:#1f1f23;
+  --ink:#f5f5f7; --ink-2:#c8c8cc; --ink-3:#8e8e93;
+  --accent:#e7c66a; --accent-soft:rgba(231,198,106,.12); --accent-line:rgba(231,198,106,.25);
+  --ok:#4ade80; --warn:#f59e0b; --danger:#ef4444; --info:#60a5fa;
+  --ok-soft:rgba(74,222,128,.12); --warn-soft:rgba(245,158,11,.12); --danger-soft:rgba(239,68,68,.12); --info-soft:rgba(96,165,250,.12);
+  --radius:14px; --radius-sm:8px; --radius-lg:20px;
+  --font:'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-mono:'Space Grotesk', ui-monospace, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
+input,select,textarea{font-family:inherit}
+.mono{font-family:var(--font-mono);letter-spacing:.01em}
+
+/* ---- Shell ---- */
+.shell{max-width:1600px;margin:0 auto;padding:28px 32px 80px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.crumbs{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:13px}
+.crumbs a{color:var(--ink-3);transition:.15s}
+.crumbs a:hover{color:var(--accent)}
+.crumbs .sep{opacity:.5}
+.crumbs strong{color:var(--ink);font-weight:600}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--ink-2);transition:.15s}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---- Page header ---- */
+.page-head{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.page-title{font-size:32px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.page-sub{color:var(--ink-3);font-size:14px;line-height:1.6}
+.page-head .row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.page-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;transition:.15s;border:1px solid var(--line);color:var(--ink)}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);color:#1a1a1a;border-color:var(--accent);font-weight:600}
+.btn.primary:hover{background:#efd888;border-color:#efd888}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:rgba(239,68,68,.3)}
+.btn.danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+
+/* ---- Tabs ---- */
+.view-tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px;margin-bottom:24px}
+.view-tabs button{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;color:var(--ink-3);transition:.15s;display:inline-flex;align-items:center;gap:8px}
+.view-tabs button:hover{color:var(--ink-2)}
+.view-tabs button.active{background:var(--surface-3);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.04)}
+.view-tabs svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ---- Stats bar ---- */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:.2s}
+.stat-card:hover{border-color:var(--line);transform:translateY(-1px)}
+.stat-card .label{color:var(--ink-3);font-size:12px;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.stat-card .value{font-family:var(--font-mono);font-size:28px;font-weight:700;line-height:1}
+.stat-card .trend{margin-top:6px;font-size:11px;color:var(--ink-3)}
+.stat-card.accent .value{color:var(--accent)}
+.stat-card.ok .value{color:var(--ok)}
+.stat-card.warn .value{color:var(--warn)}
+.stat-card.info .value{color:var(--info)}
+
+/* ---- Filters ---- */
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1;min-width:240px;position:relative}
+.search-box input{width:100%;padding:10px 14px 10px 40px;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:13px;transition:.15s}
+.search-box input:focus{outline:none;border-color:var(--accent)}
+.search-box svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3)}
+.filter-chip{padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--ink-2);transition:.15s;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.filter-chip:hover{border-color:var(--ink-3)}
+.filter-chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.filter-chip .count{background:rgba(0,0,0,.3);padding:1px 6px;border-radius:999px;font-size:10px;font-weight:600}
+
+/* ============ VIEW 1: TABLE ============ */
+.view{display:none}
+.view.active{display:block}
+.table-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table.users-tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.users-tbl thead th{padding:14px 16px;text-align:right;background:var(--surface-2);color:var(--ink-3);font-weight:500;font-size:12px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.users-tbl tbody td{padding:14px 16px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+table.users-tbl tbody tr:last-child td{border-bottom:0}
+table.users-tbl tbody tr{transition:.12s}
+table.users-tbl tbody tr:hover{background:var(--surface-2)}
+.user-cell{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3a3a3d,#25252a);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--ink);flex-shrink:0}
+.avatar.admin{background:linear-gradient(135deg,var(--accent),#c89f3e);color:#1a1a1a}
+.email{font-weight:500;color:var(--ink)}
+.email .mute{color:var(--ink-3)}
+.role-badge,.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.role-admin{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+.role-editor{background:var(--info-soft);color:var(--info);border:1px solid rgba(96,165,250,.25)}
+.role-dept{background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.25)}
+.role-contributor{background:rgba(20,184,166,.12);color:#2dd4bf;border:1px solid rgba(20,184,166,.25)}
+.role-viewer{background:var(--surface-3);color:var(--ink-3);border:1px solid var(--line)}
+.status-active{background:var(--ok-soft);color:var(--ok);border:1px solid rgba(74,222,128,.25)}
+.status-disabled{background:rgba(120,120,120,.15);color:var(--ink-3);border:1px solid var(--line)}
+.status-pending{background:var(--warn-soft);color:var(--warn);border:1px solid rgba(245,158,11,.25)}
+.dept-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;background:var(--surface-3);border:1px solid var(--line);color:var(--ink-2);margin:1px}
+.dept-chips{display:flex;flex-wrap:wrap;gap:3px;max-width:280px}
+.last-login{color:var(--ink-2);font-family:var(--font-mono);font-size:12px}
+.last-login.never{color:var(--ink-3);font-style:italic;font-family:var(--font)}
+.row-actions{display:flex;gap:4px;justify-content:flex-end}
+.icon-btn{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);transition:.12s}
+.icon-btn:hover{background:var(--surface-3);color:var(--ink)}
+.icon-btn.danger:hover{color:var(--danger);background:var(--danger-soft)}
+.icon-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ============ VIEW 2: CARDS ============ */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.user-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;transition:.15s;position:relative}
+.user-card:hover{border-color:var(--line);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.user-card.disabled{opacity:.55}
+.user-card .card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.user-card .avatar{width:44px;height:44px;font-size:15px}
+.user-card .card-id{flex:1;min-width:0}
+.user-card .card-id .e{font-weight:600;font-size:14px;word-break:break-all;line-height:1.4;margin-bottom:2px}
+.user-card .card-id .sub{color:var(--ink-3);font-size:11px;font-family:var(--font-mono)}
+.user-card .card-menu{color:var(--ink-3);cursor:pointer;padding:4px;border-radius:6px}
+.user-card .card-menu:hover{background:var(--surface-3);color:var(--ink)}
+.user-card .card-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:12px;border-top:1px solid var(--line-2)}
+.user-card .card-row .k{color:var(--ink-3)}
+.user-card .card-row .v{font-weight:500;text-align:left}
+.user-card .card-depts{padding:10px 0;border-top:1px solid var(--line-2)}
+.user-card .card-depts .k{color:var(--ink-3);font-size:12px;margin-bottom:6px}
+.user-card .card-actions{display:flex;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2)}
+.user-card .card-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px}
+
+/* ============ VIEW 3: DASHBOARD ============ */
+.dash{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:1100px){.dash{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.panel-title svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;color:var(--accent)}
+.panel-body{padding:20px}
+.panel-body.flush{padding:0}
+
+.dept-tree{display:flex;flex-direction:column;gap:2px}
+.dept-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line-2);transition:.12s;cursor:pointer}
+.dept-row:last-child{border-bottom:0}
+.dept-row:hover{background:var(--surface-2)}
+.dept-row .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.dept-row .dname{flex:1;font-weight:500;font-size:13px}
+.dept-row .dcount{font-family:var(--font-mono);color:var(--ink-3);font-size:12px;padding:3px 10px;background:var(--surface-3);border-radius:999px}
+.dept-row .bar{width:80px;height:4px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.dept-row .bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:.3s}
+
+.role-dist{display:flex;flex-direction:column;gap:14px}
+.role-row{display:flex;align-items:center;gap:10px}
+.role-row .rbad{flex-shrink:0;min-width:80px}
+.role-row .rbar{flex:1;height:8px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.role-row .rbar i{display:block;height:100%;border-radius:999px;transition:.3s}
+.role-row .rval{font-family:var(--font-mono);font-size:12px;color:var(--ink-2);min-width:30px;text-align:left}
+
+.login-feed{max-height:400px;overflow-y:auto}
+.login-row{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--line-2);font-size:12px}
+.login-row:last-child{border-bottom:0}
+.login-row .lavatar{width:26px;height:26px;border-radius:50%;background:var(--surface-3);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.login-row .lname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.login-row .ltime{color:var(--ink-3);font-family:var(--font-mono);font-size:11px;flex-shrink:0}
+
+.permission-matrix{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow-x:auto}
+.permission-matrix table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.permission-matrix th{padding:12px;text-align:right;background:var(--surface-2);color:var(--ink-3);font-weight:500;border-bottom:1px solid var(--line);white-space:nowrap}
+.permission-matrix td{padding:10px 12px;border-bottom:1px solid var(--line-2);text-align:center}
+.permission-matrix td:first-child{text-align:right;font-weight:500}
+.permission-matrix th:first-child{text-align:right}
+.perm-yes{color:var(--ok);font-weight:600;font-size:14px}
+.perm-no{color:var(--ink-3)}
+.perm-partial{color:var(--warn);font-weight:600;font-size:14px}
+
+/* ---- Modal ---- */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal-back.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-3);transition:.15s}
+.modal-close:hover{background:var(--surface-3);color:var(--ink)}
+.modal-body{padding:24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;background:var(--surface-2)}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--ink-2);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-size:13px;transition:.15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field .help{font-size:11px;color:var(--ink-3);margin-top:4px}
+.dept-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:4px}
+.dept-check{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:12px;transition:.12s}
+.dept-check:hover{border-color:var(--ink-3)}
+.dept-check input{width:14px;height:14px;accent-color:var(--accent)}
+.dept-check.checked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+/* ---- Empty / toast ---- */
+.empty{text-align:center;padding:48px 20px;color:var(--ink-3)}
+.empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.4}
+.empty h3{margin:0 0 4px;color:var(--ink-2);font-size:15px}
+.toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--surface-3);border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:.3s}
+.toast.show{opacity:1;bottom:32px}
+.toast.success{border-color:var(--ok);color:var(--ok)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+
+.spinner{width:16px;height:16px;border:2px solid var(--ink-3);border-top-color:transparent;border-radius:50%;animation:sp 0.7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.login-gate{display:flex;align-items:center;justify-content:center;min-height:70vh}
+.login-gate-inner{text-align:center;max-width:420px;padding:40px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg)}
+.login-gate h2{margin:0 0 8px;font-size:20px}
+.login-gate p{color:var(--ink-3);font-size:13px;margin:0 0 20px;line-height:1.6}
+
+.access-warn{background:var(--warn-soft);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--warn);display:flex;align-items:center;gap:8px}
+.access-warn svg{width:16px;height:16px;flex-shrink:0}
+
+/* RTL scrollbar */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--surface-3)}
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <div class="top-bar">
+    <div class="crumbs">
+      <a href="dashboard.html">الرئيسية</a>
+      <span class="sep">/</span>
+      <strong>الصلاحيات والمستخدمون</strong>
+    </div>
+    <a href="dashboard.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      عودة للوحة
+    </a>
+  </div>
+
+  <div id="gate" class="login-gate" style="display:none">
+    <div class="login-gate-inner">
+      <h2>🔒 صفحة الصلاحيات</h2>
+      <p>هذه الصفحة للمسؤول (Admin) فقط. سجّل الدخول بحساب مسؤول للمتابعة.</p>
+      <a href="dashboard.html" class="btn primary">الذهاب لتسجيل الدخول</a>
+    </div>
+  </div>
+
+  <div id="main" style="display:none">
+
+    <div class="page-head">
+      <div class="row">
+        <div>
+          <h1 class="page-title">الصلاحيات والمستخدمون</h1>
+          <div class="page-sub">إدارة مستخدمي منصة Arsan، ربط كل مستخدم بقسم (أو أكثر)، والتحكم في الصلاحيات.</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="btn-refresh">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            تحديث
+          </button>
+          <button class="btn ghost" id="btn-matrix">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+            مصفوفة الصلاحيات
+          </button>
+          <button class="btn primary" id="btn-invite">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            دعوة مستخدم جديد
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <!-- View tabs -->
+    <div class="view-tabs" role="tablist">
+      <button class="active" data-view="table">
+        <svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        جدول
+      </button>
+      <button data-view="cards">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        بطاقات
+      </button>
+      <button data-view="dash">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        لوحة تحليلات
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search" placeholder="ابحث بالإيميل، القسم، أو الدور..."/>
+      </div>
+      <div id="filter-chips"></div>
+    </div>
+
+    <!-- ========== VIEW: TABLE ========== -->
+    <div class="view active" id="view-table">
+      <div class="table-wrap" id="table-wrap">
+        <table class="users-tbl">
+          <thead>
+            <tr>
+              <th>المستخدم</th>
+              <th>الدور</th>
+              <th>الأقسام</th>
+              <th>الحالة</th>
+              <th>آخر دخول</th>
+              <th style="text-align:left">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========== VIEW: CARDS ========== -->
+    <div class="view" id="view-cards">
+      <div class="cards-grid" id="cards-grid"></div>
+    </div>
+
+    <!-- ========== VIEW: DASHBOARD ========== -->
+    <div class="view" id="view-dash">
+      <div class="dash">
+        <div>
+          <div class="panel" style="margin-bottom:20px">
+            <div class="panel-head">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                توزيع المستخدمين على الأقسام
+              </div>
+            </div>
+            <div class="panel-body flush">
+              <div class="dept-tree" id="dept-tree"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M1 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+                توزيع الأدوار
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="role-dist" id="role-dist"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                آخر عمليات الدخول
+              </div>
+            </div>
+            <div class="panel-body flush">
+              <div class="login-feed" id="login-feed"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============ Invite modal ============ -->
+<div class="modal-back" id="mdl-invite">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">دعوة مستخدم جديد</div>
+      <button class="modal-close" data-close="mdl-invite">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="access-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        سيتم إنشاء رابط دعوة — انسخه وأرسله للمستخدم ليختار كلمة سره.
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="inv-email" placeholder="name@arsann.com"/>
+        <div class="help">يجب أن ينتهي بـ @arsann.com</div>
+      </div>
+      <div class="field">
+        <label>الدور</label>
+        <select id="inv-role">
+          <option value="admin">Admin — صلاحية كاملة</option>
+          <option value="dept-manager">Department Manager — مدير قسم</option>
+          <option value="editor" selected>Editor — محرر (القسم/الأقسام المحددة)</option>
+          <option value="contributor">Contributor — مساهم (إضافة فقط)</option>
+          <option value="viewer">Viewer — قراءة فقط</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>الأقسام (يمكن اختيار أكثر من قسم)</label>
+        <div class="dept-grid" id="inv-depts"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" data-close="mdl-invite">إلغاء</button>
+      <button class="btn primary" id="inv-submit">إنشاء رابط الدعوة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Edit user modal ============ -->
+<div class="modal-back" id="mdl-edit">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">تعديل المستخدم</div>
+      <button class="modal-close" data-close="mdl-edit">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="edt-email" disabled style="opacity:.6"/>
+      </div>
+      <div class="field">
+        <label>الدور</label>
+        <select id="edt-role">
+          <option value="admin">Admin — صلاحية كاملة</option>
+          <option value="dept-manager">Department Manager — مدير قسم</option>
+          <option value="editor">Editor — محرر</option>
+          <option value="contributor">Contributor — مساهم (إضافة فقط)</option>
+          <option value="viewer">Viewer — قراءة فقط</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>الأقسام</label>
+        <div class="dept-grid" id="edt-depts"></div>
+      </div>
+      <div class="field">
+        <label>الحالة</label>
+        <select id="edt-status">
+          <option value="active">نشط</option>
+          <option value="disabled">معطّل</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="edt-reset" style="margin-left:auto">إعادة تعيين كلمة السر</button>
+      <button class="btn ghost" data-close="mdl-edit">إلغاء</button>
+      <button class="btn primary" id="edt-submit">حفظ التغييرات</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Permissions matrix modal ============ -->
+<div class="modal-back" id="mdl-matrix">
+  <div class="modal" style="max-width:920px">
+    <div class="modal-head">
+      <div class="modal-title">مصفوفة الصلاحيات</div>
+      <button class="modal-close" data-close="mdl-matrix">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="permission-matrix">
+        <table>
+          <thead>
+            <tr>
+              <th>الصلاحية</th>
+              <th>Admin</th>
+              <th>Dept Manager</th>
+              <th>Editor</th>
+              <th>Contributor</th>
+              <th>Viewer</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" data-close="mdl-matrix">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Invite link modal ============ -->
+<div class="modal-back" id="mdl-link">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">✨ تم إنشاء رابط الدعوة</div>
+      <button class="modal-close" data-close="mdl-link">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--ink-2);font-size:13px;line-height:1.7;margin:0 0 16px">
+        أرسل هذا الرابط للمستخدم. صالح لمدة <strong>7 أيام</strong>. عند فتحه سيختار كلمة السر الخاصة به.
+      </p>
+      <div class="field">
+        <label>الرابط</label>
+        <input type="text" id="link-url" readonly style="font-family:var(--font-mono);font-size:12px"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="link-copy">نسخ الرابط</button>
+      <button class="btn ghost" data-close="mdl-link">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script>
+// ============ CONFIG ============
+const DEPARTMENTS = [
+  "Operations",
+  "Finance",
+  "Supply Chain",
+  "Projects Management",
+  "HR",
+  "Business Development",
+  "Legal and Governance",
+  "People & Culture",
+  "The Academy",
+  "Executive Administration",
+  "Arsann Archive"
+];
+
+const DEPT_AR = {
+  "Operations": "العمليات",
+  "Finance": "المالية",
+  "Supply Chain": "سلسلة الإمداد",
+  "Projects Management": "إدارة المشاريع",
+  "HR": "الموارد البشرية",
+  "Business Development": "تطوير الأعمال",
+  "Legal and Governance": "القانونية والحوكمة",
+  "People & Culture": "الأفراد والثقافة",
+  "The Academy": "الأكاديمية",
+  "Executive Administration": "الإدارة التنفيذية",
+  "Arsann Archive": "أرشيف Arsan"
+};
+
+const ROLE_LABELS = {
+  "admin":         { ar: "Admin", cls: "role-admin" },
+  "dept-manager":  { ar: "Dept Manager", cls: "role-dept" },
+  "editor":        { ar: "Editor", cls: "role-editor" },
+  "contributor":   { ar: "Contributor", cls: "role-contributor" },
+  "viewer":        { ar: "Viewer", cls: "role-viewer" }
+};
+
+const STATUS_LABELS = {
+  "active":   { ar: "نشط", cls: "status-active" },
+  "disabled": { ar: "معطّل", cls: "status-disabled" },
+  "pending":  { ar: "بانتظار التفعيل", cls: "status-pending" }
+};
+
+const PERMISSIONS = [
+  { k: "addSOP",       ar: "إضافة SOP جديدة" },
+  { k: "editSOP",      ar: "تعديل SOP" },
+  { k: "deleteSOP",    ar: "حذف SOP" },
+  { k: "publishSOP",   ar: "الموافقة/النشر" },
+  { k: "viewActivity", ar: "رؤية سجل النشاط" },
+  { k: "manageUsers",  ar: "إدارة المستخدمين" },
+  { k: "export",       ar: "تصدير (PDF/Excel)" },
+  { k: "chat",         ar: "الشات الداخلي" },
+];
+
+// Role → permissions matrix
+const ROLE_PERMS = {
+  "admin":        { addSOP:"yes", editSOP:"yes", deleteSOP:"yes", publishSOP:"yes", viewActivity:"yes", manageUsers:"yes", export:"yes", chat:"yes" },
+  "dept-manager": { addSOP:"yes", editSOP:"yes", deleteSOP:"partial", publishSOP:"yes", viewActivity:"partial", manageUsers:"no", export:"yes", chat:"yes" },
+  "editor":       { addSOP:"yes", editSOP:"yes", deleteSOP:"no", publishSOP:"partial", viewActivity:"no", manageUsers:"no", export:"yes", chat:"yes" },
+  "contributor":  { addSOP:"yes", editSOP:"no", deleteSOP:"no", publishSOP:"no", viewActivity:"no", manageUsers:"no", export:"partial", chat:"yes" },
+  "viewer":       { addSOP:"no", editSOP:"no", deleteSOP:"no", publishSOP:"no", viewActivity:"no", manageUsers:"no", export:"partial", chat:"no" }
+};
+
+// ============ STATE ============
+let USERS = [];
+let FILTER = { text: "", role: "", status: "" };
+
+// ============ HELPERS ============
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+function toast(msg, type="") {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast show " + type;
+  setTimeout(() => t.className = "toast " + type, 2500);
+}
+
+function fmtDate(ts) {
+  if (!ts) return null;
+  const d = new Date(ts);
+  const now = Date.now();
+  const diff = now - ts;
+  if (diff < 60000) return "الآن";
+  if (diff < 3600000) return Math.floor(diff/60000) + " د";
+  if (diff < 86400000) return Math.floor(diff/3600000) + " س";
+  if (diff < 30*86400000) return Math.floor(diff/86400000) + " يوم";
+  return d.toLocaleDateString("ar", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function initials(email) {
+  const [n] = email.split("@");
+  const p = n.split(/[\.\-_]/);
+  return ((p[0]||"?")[0] + (p[1]||"")[0] || "").toUpperCase();
+}
+
+function openModal(id) { $("#"+id).classList.add("open"); }
+function closeModal(id) { $("#"+id).classList.remove("open"); }
+
+// ============ ACCESS GATE ============
+async function checkAccess() {
+  const me = window.ArsanAPI ? window.ArsanAPI.me() : { role: "viewer" };
+  const isAdmin = me.role === "admin";
+  $("#main").style.display = isAdmin ? "" : "none";
+  $("#gate").style.display = isAdmin ? "none" : "";
+  return isAdmin;
+}
+
+// ============ DATA ============
+async function loadUsers() {
+  try {
+    USERS = await window.ArsanAPI.getUsers();
+    // Ensure admin account is always in the list (it's not stored in users_v1 by default)
+    const adminEmail = window.ArsanAPI.ADMIN_EMAIL;
+    if (!USERS.find(u => (u.email||"").toLowerCase() === adminEmail.toLowerCase())) {
+      USERS.unshift({
+        email: adminEmail, role: "admin", departments: ["*"], status: "active",
+        lastLogin: (window.ArsanAPI.me()||{}).email === adminEmail ? Date.now() : null,
+        addedAt: null, pinned: true
+      });
+    }
+    render();
+  } catch (e) {
+    console.error(e);
+    toast("فشل تحميل المستخدمين: " + (e.message||""), "error");
+  }
+}
+
+// ============ RENDER ============
+function filtered() {
+  const q = FILTER.text.toLowerCase().trim();
+  return USERS.filter(u => {
+    if (FILTER.role && u.role !== FILTER.role) return false;
+    if (FILTER.status && u.status !== FILTER.status) return false;
+    if (!q) return true;
+    const hay = (u.email + " " + (u.role||"") + " " + (u.departments||[]).join(" ")).toLowerCase();
+    return hay.includes(q);
+  });
+}
+
+function renderStats() {
+  const active = USERS.filter(u => u.status === "active").length;
+  const pending = USERS.filter(u => u.status === "pending").length;
+  const disabled = USERS.filter(u => u.status === "disabled").length;
+  const depts = new Set();
+  USERS.forEach(u => (u.departments||[]).forEach(d => d !== "*" && depts.add(d)));
+
+  $("#stats-bar").innerHTML = `
+    <div class="stat-card accent"><div class="label">إجمالي المستخدمين</div><div class="value">${USERS.length}</div><div class="trend">في جميع الأقسام</div></div>
+    <div class="stat-card ok"><div class="label">نشط</div><div class="value">${active}</div><div class="trend">يستطيعون الدخول</div></div>
+    <div class="stat-card warn"><div class="label">بانتظار التفعيل</div><div class="value">${pending}</div><div class="trend">لم يفعّلوا الدعوة</div></div>
+    <div class="stat-card"><div class="label">معطّل</div><div class="value" style="color:var(--ink-3)">${disabled}</div><div class="trend">لا يستطيعون الدخول</div></div>
+    <div class="stat-card info"><div class="label">أقسام مغطّاة</div><div class="value">${depts.size}/${DEPARTMENTS.length}</div><div class="trend">${Math.round(depts.size/DEPARTMENTS.length*100)}%</div></div>
+  `;
+}
+
+function renderFilterChips() {
+  const roleCounts = {};
+  USERS.forEach(u => { roleCounts[u.role] = (roleCounts[u.role]||0) + 1; });
+  const chips = [
+    { lbl: "الكل", k: "", count: USERS.length },
+    ...Object.entries(ROLE_LABELS).map(([k,v]) => ({ lbl: v.ar, k: "role:"+k, count: roleCounts[k]||0 }))
+  ];
+  $("#filter-chips").innerHTML = chips.map(c => `
+    <button class="filter-chip ${FILTER.role === c.k.replace(/^role:/,'') && c.k ? 'active' : (!c.k && !FILTER.role ? 'active' : '')}" data-filter="${c.k}">
+      ${c.lbl} <span class="count">${c.count}</span>
+    </button>
+  `).join("");
+  $$("#filter-chips .filter-chip").forEach(ch => {
+    ch.addEventListener("click", () => {
+      const k = ch.dataset.filter;
+      FILTER.role = k.startsWith("role:") ? k.slice(5) : "";
+      render();
+    });
+  });
+}
+
+function roleBadge(role) {
+  const r = ROLE_LABELS[role] || ROLE_LABELS.editor;
+  return `<span class="role-badge ${r.cls}">${r.ar}</span>`;
+}
+function statusBadge(st) {
+  const s = STATUS_LABELS[st] || STATUS_LABELS.active;
+  return `<span class="status-badge ${s.cls}">${s.ar}</span>`;
+}
+function deptChips(depts) {
+  if (!depts || !depts.length) return '<span style="color:var(--ink-3);font-size:11px">—</span>';
+  if (depts.includes("*") || depts[0] === "*") return '<span class="dept-chip" style="background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)">جميع الأقسام</span>';
+  return `<div class="dept-chips">${depts.map(d => `<span class="dept-chip" title="${d}">${DEPT_AR[d]||d}</span>`).join("")}</div>`;
+}
+
+function renderTable() {
+  const rows = filtered();
+  if (!rows.length) {
+    $("#tbody").innerHTML = `<tr><td colspan="6"><div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <h3>لا توجد نتائج</h3><div>جرّب تعديل مصطلح البحث أو إزالة الفلاتر</div></div></td></tr>`;
+    return;
+  }
+  $("#tbody").innerHTML = rows.map(u => {
+    const isAdmin = u.role === "admin";
+    return `
+    <tr data-email="${u.email}">
+      <td>
+        <div class="user-cell">
+          <div class="avatar ${isAdmin?'admin':''}">${initials(u.email)}</div>
+          <div class="email">${u.email}${u.pinned?' <span class="mute" style="font-size:10px">• مُثبّت</span>':''}</div>
+        </div>
+      </td>
+      <td>${roleBadge(u.role)}</td>
+      <td>${deptChips(u.departments)}</td>
+      <td>${statusBadge(u.status)}</td>
+      <td>${u.lastLogin ? `<span class="last-login">${fmtDate(u.lastLogin)}</span>` : '<span class="last-login never">لم يسجّل دخول</span>'}</td>
+      <td>
+        <div class="row-actions">
+          ${!u.pinned ? `
+            <button class="icon-btn" data-act="edit" title="تعديل">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="icon-btn" data-act="${u.status==='disabled'?'enable':'disable'}" title="${u.status==='disabled'?'تفعيل':'تعطيل'}">
+              ${u.status==='disabled'
+                ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>'
+                : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'}
+            </button>
+            <button class="icon-btn danger" data-act="remove" title="حذف">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          ` : `
+            <span style="color:var(--ink-3);font-size:11px;padding:0 8px">حساب محمي</span>
+          `}
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  $$("#tbody [data-act]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const tr = btn.closest("tr");
+      const email = tr.dataset.email;
+      onAction(btn.dataset.act, email);
+    });
+  });
+}
+
+function renderCards() {
+  const rows = filtered();
+  if (!rows.length) {
+    $("#cards-grid").innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>لا توجد نتائج</h3></div>`;
+    return;
+  }
+  $("#cards-grid").innerHTML = rows.map(u => `
+    <div class="user-card ${u.status==='disabled'?'disabled':''}" data-email="${u.email}">
+      <div class="card-top">
+        <div class="avatar ${u.role==='admin'?'admin':''}">${initials(u.email)}</div>
+        <div class="card-id">
+          <div class="e">${u.email}</div>
+          <div class="sub">${roleBadge(u.role)} ${statusBadge(u.status)}</div>
+        </div>
+      </div>
+      <div class="card-depts">
+        <div class="k">الأقسام</div>
+        ${deptChips(u.departments)}
+      </div>
+      <div class="card-row"><span class="k">آخر دخول</span><span class="v">${u.lastLogin ? fmtDate(u.lastLogin) : '<span style="color:var(--ink-3)">لم يدخل</span>'}</span></div>
+      <div class="card-row"><span class="k">عدد الدخول</span><span class="v mono">${u.loginCount||0}</span></div>
+      ${!u.pinned ? `
+      <div class="card-actions">
+        <button class="btn ghost" data-act="edit">تعديل</button>
+        <button class="btn ghost" data-act="${u.status==='disabled'?'enable':'disable'}">${u.status==='disabled'?'تفعيل':'تعطيل'}</button>
+      </div>
+      ` : ''}
+    </div>
+  `).join("");
+  $$("#cards-grid [data-act]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".user-card");
+      onAction(btn.dataset.act, card.dataset.email);
+    });
+  });
+}
+
+function renderDashboard() {
+  // dept tree
+  const deptCounts = {};
+  DEPARTMENTS.forEach(d => deptCounts[d] = 0);
+  USERS.forEach(u => {
+    (u.departments||[]).forEach(d => {
+      if (d === "*") DEPARTMENTS.forEach(x => deptCounts[x]++);
+      else if (deptCounts[d] !== undefined) deptCounts[d]++;
+    });
+  });
+  const maxDept = Math.max(1, ...Object.values(deptCounts));
+  $("#dept-tree").innerHTML = DEPARTMENTS.map(d => `
+    <div class="dept-row">
+      <div class="dot"></div>
+      <div class="dname">${DEPT_AR[d]||d}<div style="font-size:11px;color:var(--ink-3);font-family:var(--font-mono);margin-top:2px">${d}</div></div>
+      <div class="bar"><i style="width:${(deptCounts[d]/maxDept)*100}%"></i></div>
+      <div class="dcount">${deptCounts[d]}</div>
+    </div>
+  `).join("");
+
+  // role distribution
+  const roleCounts = {};
+  Object.keys(ROLE_LABELS).forEach(r => roleCounts[r] = 0);
+  USERS.forEach(u => { if (roleCounts[u.role] !== undefined) roleCounts[u.role]++; });
+  const maxRole = Math.max(1, ...Object.values(roleCounts));
+  const roleColors = { admin:"#e7c66a", "dept-manager":"#c084fc", editor:"#60a5fa", contributor:"#2dd4bf", viewer:"#888" };
+  $("#role-dist").innerHTML = Object.entries(ROLE_LABELS).map(([k,v]) => `
+    <div class="role-row">
+      <div class="rbad">${roleBadge(k)}</div>
+      <div class="rbar"><i style="width:${(roleCounts[k]/maxRole)*100}%;background:${roleColors[k]}"></i></div>
+      <div class="rval">${roleCounts[k]}</div>
+    </div>
+  `).join("");
+
+  // login feed — sort by lastLogin desc
+  const recent = [...USERS].filter(u => u.lastLogin).sort((a,b) => b.lastLogin - a.lastLogin).slice(0, 15);
+  if (!recent.length) {
+    $("#login-feed").innerHTML = `<div class="empty"><h3>لا توجد عمليات دخول بعد</h3></div>`;
+  } else {
+    $("#login-feed").innerHTML = recent.map(u => `
+      <div class="login-row">
+        <div class="lavatar">${initials(u.email)}</div>
+        <div class="lname">${u.email}</div>
+        <div class="ltime">${fmtDate(u.lastLogin)}</div>
+      </div>
+    `).join("");
+  }
+}
+
+function renderMatrix() {
+  $("#matrix-body").innerHTML = PERMISSIONS.map(p => `
+    <tr>
+      <td>${p.ar}</td>
+      ${Object.keys(ROLE_LABELS).map(r => {
+        const v = ROLE_PERMS[r][p.k];
+        if (v === "yes") return '<td class="perm-yes">✓</td>';
+        if (v === "partial") return '<td class="perm-partial">◐</td>';
+        return '<td class="perm-no">—</td>';
+      }).join("")}
+    </tr>
+  `).join("");
+}
+
+function render() {
+  renderStats();
+  renderFilterChips();
+  renderTable();
+  renderCards();
+  renderDashboard();
+  renderMatrix();
+}
+
+// ============ ACTIONS ============
+async function onAction(act, email) {
+  const u = USERS.find(x => x.email === email);
+  if (!u) return;
+  if (act === "edit") return openEdit(u);
+  if (act === "disable") {
+    if (!confirm(`تعطيل ${email}؟\nلن يستطيع تسجيل الدخول.`)) return;
+    try { await window.ArsanAPI.disableUser(email); toast("تم التعطيل", "success"); loadUsers(); }
+    catch(e) { toast("فشل: " + e.message, "error"); }
+  }
+  if (act === "enable") {
+    try { await window.ArsanAPI.enableUser(email); toast("تم التفعيل", "success"); loadUsers(); }
+    catch(e) { toast("فشل: " + e.message, "error"); }
+  }
+  if (act === "remove") {
+    if (!confirm(`حذف ${email} نهائياً؟`)) return;
+    try { await window.ArsanAPI.removeUser(email); toast("تم الحذف", "success"); loadUsers(); }
+    catch(e) { toast("فشل: " + e.message, "error"); }
+  }
+}
+
+function openEdit(u) {
+  $("#edt-email").value = u.email;
+  $("#edt-role").value = u.role || "editor";
+  $("#edt-status").value = u.status || "active";
+  buildDeptChecks("#edt-depts", u.departments || []);
+  $("#edt-submit").onclick = async () => {
+    const patch = {
+      role: $("#edt-role").value,
+      status: $("#edt-status").value,
+      departments: getDeptChecks("#edt-depts"),
+    };
+    try {
+      await window.ArsanAPI.updateUser(u.email, patch);
+      toast("تم الحفظ", "success");
+      closeModal("mdl-edit");
+      loadUsers();
+    } catch (e) { toast("فشل: " + e.message, "error"); }
+  };
+  $("#edt-reset").onclick = async () => {
+    if (!confirm(`إعادة تعيين كلمة السر لـ ${u.email}؟\n\nسيتم إرسال رابط إعادة التعيين تلقائياً عبر Slack + Email.`)) return;
+    try {
+      const r = await window.ArsanAPI.resetUserPassword(u.email);
+      const url = r.resetUrl || "";
+      showDeliveryModal({
+        title: "✓ تم إنشاء رابط إعادة التعيين",
+        email: u.email,
+        url,
+        notify: r.notify || {},
+      });
+    } catch (e) { toast("فشل: " + e.message, "error"); }
+  };
+  openModal("mdl-edit");
+}
+
+/* ============ Modal: عرض نتيجة الإرسال (Slack + Email + رابط) ============ */
+function showDeliveryModal({ title, email, url, notify }) {
+  const existing = document.getElementById("mdl-delivery");
+  if (existing) existing.remove();
+
+  // Normalize slack status — may be object {ok, method, error} OR string
+  const slackRaw = notify.slack;
+  const emailRaw = notify.email;
+  const slackOk = slackRaw === "sent" || (slackRaw && slackRaw.ok === true);
+  const emailOk = emailRaw === "sent" || (emailRaw && emailRaw.ok === true);
+
+  function formatStatus(v) {
+    if (!v) return "—";
+    if (typeof v === "string") return escapeStatus(v);
+    // object form
+    if (v.ok) {
+      if (v.method === "dm") return "✓ أُرسِل عبر DM مباشر";
+      if (v.method === "channel") return v.fallback ? "✓ أُرسِل للقناة (fallback)" : "✓ أُرسِل للقناة";
+      return "✓ تم";
+    }
+    // failure
+    const method = v.method || "?";
+    const err = v.error || "unknown";
+    if (method === "lookup-failed") {
+      if (err === "users_not_found") return "✗ الإيميل غير مسجّل في Slack";
+      if (err === "missing_scope") return "✗ الـ Bot يفتقد صلاحية users:read.email";
+      return `✗ تعذّر البحث: ${err}`;
+    }
+    if (method === "dm-failed") {
+      if (err === "channel_not_found") return "✗ تعذّر فتح DM";
+      if (err === "not_allowed_token_type") return "✗ نوع التوكن خاطئ (استخدم xoxb-)";
+      if (err === "missing_scope") return "✗ الـ Bot يفتقد صلاحية im:write أو chat:write";
+      return `✗ فشل إرسال DM: ${err}`;
+    }
+    if (method === "not-configured") return "⊘ لم يُضبط Bot Token أو Webhook";
+    if (method === "channel-exception" || method === "dm-exception") return `✗ خطأ: ${err}`;
+    return `✗ ${method}: ${err}`;
+  }
+
+  const slackStatus = formatStatus(slackRaw);
+  const emailStatus = typeof emailRaw === "object" && emailRaw ? (emailRaw.ok ? "✓ أُرسِل" : `✗ ${emailRaw.error||'فشل'}`) : (emailRaw || "—");
+  const statusBadge = (label, statusText, ok, raw) => {
+    const isConfigMissing = raw && typeof raw === "object" && (raw.method === "not-configured" || raw === "no-webhook-configured" || raw === "no-api-key-configured");
+    const color = ok ? "#2d7a3e" : (isConfigMissing ? "#888" : "#b85450");
+    const bg = ok ? "#e8f5ea" : "#f8f8f8";
+    const icon = ok ? "✓" : (isConfigMissing ? "⊘" : "✗");
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:${bg};border-radius:10px;border:1px solid ${ok?'#9fd1a8':'#e5e5e5'}">
+        <div style="font-size:22px;color:${color}">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;color:#333">${label}</div>
+          <div style="font-size:12px;color:${color};margin-top:2px;word-break:break-word">${statusText}</div>
+        </div>
+      </div>`;
+  };
+
+  const html = `
+    <div class="modal-backdrop" id="mdl-delivery" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px">
+      <div class="modal-panel" style="background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;direction:rtl;padding:0">
+        <div style="padding:22px 24px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:18px;font-weight:700;color:#2d7a3e">${title}</div>
+          <button onclick="document.getElementById('mdl-delivery').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#888">×</button>
+        </div>
+        <div style="padding:22px 24px">
+          <div style="font-size:14px;color:#555;margin-bottom:14px">إلى: <strong>${email}</strong></div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+            ${statusBadge("Slack (DM)", slackStatus, slackOk, slackRaw)}
+            ${statusBadge("Email (Resend)", emailStatus, emailOk, emailRaw)}
+          </div>
+
+          ${url ? `
+            <div style="background:#f9f6ef;border:1px solid #e5dcc0;border-radius:10px;padding:14px;margin-bottom:14px">
+              <div style="font-size:12px;color:#7a6b45;font-weight:600;margin-bottom:8px">🔗 الرابط (احتياطي — للنسخ اليدوي):</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="del-url" type="text" readonly value="${url}" style="flex:1;padding:8px 10px;border:1px solid #d8cba8;border-radius:6px;font-size:12px;font-family:monospace;background:#fff" onclick="this.select()"/>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('del-url').value);this.textContent='✓ نُسخ'" style="background:#d4a83c;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">📋 نسخ</button>
+              </div>
+            </div>
+          ` : ''}
+
+          ${(!slackOk && !emailOk) ? `
+            <div style="background:#fff6e5;border:1px solid #f0c674;border-radius:10px;padding:12px 14px;font-size:13px;color:#7a5a1e">
+              ⚠️ لم يتم إرسال الإشعار تلقائياً. للتشخيص:
+              <ul style="margin:8px 0 0 0;padding-inline-start:20px;line-height:1.8">
+                <li>Slack DM يحتاج: <code>SLACK_BOT_TOKEN</code> (Secret في Worker) + صلاحيات <code>users:read.email</code>, <code>im:write</code>, <code>chat:write</code></li>
+                <li>إذا الإيميل غير مسجّل في Slack workspace → يستحيل إرسال DM (سيحاول القناة كـ fallback)</li>
+                <li>Email يحتاج: <code>RESEND_API_KEY</code> + <code>FROM_EMAIL</code> (Secrets في Worker)</li>
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+        <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #eee;display:flex;justify-content:flex-end">
+          <button onclick="document.getElementById('mdl-delivery').remove()" style="background:#d4a83c;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer">إغلاق</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", html);
+}
+function escapeStatus(s){
+  if (!s || s === "—") return "—";
+  if (s === "sent") return "أُرسل بنجاح ✓";
+  if (s === "no-webhook-configured") return "لم يُضبط Webhook";
+  if (s === "no-api-key-configured") return "لم يُضبط API Key";
+  return String(s).slice(0, 80);
+}
+
+function buildDeptChecks(sel, preselect) {
+  $(sel).innerHTML = DEPARTMENTS.map(d => `
+    <label class="dept-check ${preselect.includes(d)?'checked':''}">
+      <input type="checkbox" value="${d}" ${preselect.includes(d)?'checked':''}/>
+      ${DEPT_AR[d]}
+    </label>
+  `).join("");
+  $$(sel + " input").forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      e.target.closest("label").classList.toggle("checked", e.target.checked);
+    });
+  });
+}
+function getDeptChecks(sel) {
+  return $$(sel + " input:checked").map(cb => cb.value);
+}
+
+// ============ INVITE FLOW ============
+$("#btn-invite").addEventListener("click", () => {
+  $("#inv-email").value = "";
+  $("#inv-role").value = "editor";
+  buildDeptChecks("#inv-depts", []);
+  openModal("mdl-invite");
+});
+
+$("#inv-submit").addEventListener("click", async () => {
+  const email = $("#inv-email").value.trim().toLowerCase();
+  const role = $("#inv-role").value;
+  const departments = getDeptChecks("#inv-depts");
+  if (!email.endsWith("@arsann.com")) { toast("يجب أن ينتهي بـ @arsann.com", "error"); return; }
+  if (role !== "admin" && !departments.length) { toast("اختر قسماً واحداً على الأقل", "error"); return; }
+  try {
+    const r = await window.ArsanAPI.inviteUser(email, { role, departments: role === "admin" ? ["*"] : departments });
+    closeModal("mdl-invite");
+    showDeliveryModal({
+      title: "✓ تم إنشاء الدعوة",
+      email,
+      url: r.inviteUrl || "",
+      notify: r.notify || {},
+    });
+    loadUsers();
+  } catch (e) { toast("فشل: " + (e.message||"خطأ"), "error"); }
+});
+
+$("#link-copy").addEventListener("click", () => {
+  const inp = $("#link-url");
+  inp.select();
+  navigator.clipboard.writeText(inp.value).then(() => toast("تم النسخ", "success"));
+});
+
+// ============ VIEW TABS ============
+$$(".view-tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $$(".view-tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const v = btn.dataset.view;
+    $$(".view").forEach(x => x.classList.remove("active"));
+    $("#view-" + v).classList.add("active");
+    localStorage.setItem("users_view", v);
+  });
+});
+// Restore view
+const savedView = localStorage.getItem("users_view") || "table";
+const vBtn = $(`.view-tabs [data-view="${savedView}"]`);
+if (vBtn) vBtn.click();
+
+// ============ SEARCH ============
+$("#search").addEventListener("input", (e) => {
+  FILTER.text = e.target.value;
+  render();
+});
+
+// ============ TOP BUTTONS ============
+$("#btn-refresh").addEventListener("click", loadUsers);
+$("#btn-matrix").addEventListener("click", () => openModal("mdl-matrix"));
+
+// ============ MODAL CLOSE ============
+$$("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(b.dataset.close)));
+$$(".modal-back").forEach(m => m.addEventListener("click", (e) => { if (e.target === m) m.classList.remove("open"); }));
+
+// ============ BOOT ============
+(async () => {
+  if (!window.ArsanAPI) {
+    toast("فشل تحميل api.js", "error");
+    return;
+  }
+  const ok = await checkAccess();
+  if (ok) loadUsers();
+})();
+</script>
+</body>
+</html>

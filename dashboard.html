@@ -1794,12 +1794,30 @@ function cancelEdits(){
   exitEditMode();
   openModal(state.openIdx);
 }
+/* Robust JSON extractor — handles markdown code blocks, prefix/suffix text, etc. */
+function extractJSON(text){
+  if (!text || typeof text !== 'string') return null;
+  let t = text.trim();
+  // Strip markdown code blocks: ```json ... ``` or ``` ... ```
+  t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
+  // Find first { and last } to isolate the JSON object
+  const first = t.indexOf('{');
+  const last = t.lastIndexOf('}');
+  if (first < 0 || last < 0 || last < first) return null;
+  const candidate = t.slice(first, last + 1);
+  try { return JSON.parse(candidate); } catch(_){}
+  // Try cleaning common issues: single quotes, trailing commas
+  try {
+    const cleaned = candidate
+      .replace(/,(\s*[}\]])/g, '$1')      // trailing commas
+      .replace(/[\u201C\u201D]/g, '"')    // smart quotes
+      .replace(/[\u2018\u2019]/g, "'");
+    return JSON.parse(cleaned);
+  } catch(_){}
+  return null;
+}
+
 async function handleUpload(){
-  const s = SOPS[state.openIdx];
-  if (!s) return;
-  const inp = document.createElement('input');
-  inp.type = 'file';
-  inp.accept = '.pdf,.docx,.doc,.txt,.md,.rtf';
   inp.onchange = async () => {
     const f = inp.files[0];
     if (!f) return;
@@ -1859,11 +1877,27 @@ async function handleUpload(){
       if (content.length > 12000) content = content.slice(0, 12000);
 
       setStatus('جاري استخراج الحقول بالذكاء…', true);
-      const prompt = `استخرج من النص التالي حقول الإجراء بصيغة JSON فقط (purpose, owner, sla, scope, inputs, outputs, steps[], kpis). النص:\n\n${content}`;
+      const prompt = `أنت مساعد ذكي يستخرج حقول إجراء تشغيلي من وثيقة. اكتب JSON فقط (بدون markdown، بدون نص قبله أو بعده).
+
+النص المرجعي:
+${content}
+
+أعد JSON بالشكل التالي:
+{
+  "purpose": "...",
+  "owner": "...",
+  "sla": "...",
+  "scope": "...",
+  "inputs": "...",
+  "outputs": "...",
+  "steps": ["..."],
+  "kpis": ["..."]
+}
+
+يجب أن يبدأ الرد بـ { وينتهي بـ } فقط.`;
       const res = await callAI(prompt);
-      const m = res.match(/\{[\s\S]*\}/);
-      if (!m) throw new Error('لم يتمكن الذكاء من استخراج JSON');
-      const parsed = JSON.parse(m[0]);
+      const parsed = extractJSON(res);
+      if (!parsed) throw new Error('الذكاء لم يُعد JSON صالحاً. حاول مرة أخرى أو ملف آخر.');
       fillFieldsFromObject(parsed);
       setStatus('✓ تم استخراج الحقول — راجعها ثم احفظ', true);
     } catch(e){
@@ -1878,11 +1912,27 @@ async function handleAIGen(){
   if (!s) return;
   setStatus('جاري التوليد بالذكاء…', true);
   try {
-    const prompt = `أنا أصيغ إجراءً تشغيلياً بعنوان "${s.title}" في "${DEPT.name}". اكتب لي JSON فقط يحتوي الحقول: purpose (الغرض), owner (الجهة المالكة), sla (الإطار الزمني), scope (النطاق), inputs (المدخلات), outputs (المخرجات), steps (مصفوفة 5 خطوات), kpis (3 مؤشرات أداء). لا شيء غير JSON.`;
+    const prompt = `أنت مساعد ذكي يصيغ إجراءات تشغيلية. اكتب JSON فقط (بدون أي نص قبله أو بعده، بدون markdown، بدون \`\`\`).
+
+العنوان: "${s.title}"
+الإدارة: "${DEPT.name}"
+
+أعد JSON بهذا الشكل بالضبط:
+{
+  "purpose": "شرح الغرض من الإجراء في جملة أو جملتين",
+  "owner": "الجهة المالكة",
+  "sla": "الإطار الزمني (مثل: 5 أيام عمل)",
+  "scope": "النطاق والتطبيق",
+  "inputs": "المدخلات المطلوبة",
+  "outputs": "المخرجات المتوقعة",
+  "steps": ["الخطوة 1", "الخطوة 2", "الخطوة 3", "الخطوة 4", "الخطوة 5"],
+  "kpis": ["مؤشر 1", "مؤشر 2", "مؤشر 3"]
+}
+
+الرد يجب أن يبدأ بـ { وينتهي بـ } فقط.`;
     const res = await callAI(prompt);
-    const m = res.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('لم يتمكن الذكاء من التوليد');
-    const parsed = JSON.parse(m[0]);
+    const parsed = extractJSON(res);
+    if (!parsed) throw new Error('الذكاء أعاد نصاً بدل JSON. حاول مرة أخرى.');
     if (!document.getElementById('m-purpose').getAttribute('data-editing')) enterEditMode();
     fillFieldsFromObject(parsed);
     setStatus('✓ تم التوليد — راجع الحقول ثم احفظ', true);
@@ -2652,7 +2702,7 @@ function applyLang(lang){
 
 /* helper to localize a group id */
 function gLabel(id){
-  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].groups[id]) {
+  if (CURRENT_LANG === 'en' && typeof DEPT_EN !== 'undefined' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].groups && DEPT_EN[CURRENT_DEPT_ID].groups[id]) {
     return DEPT_EN[CURRENT_DEPT_ID].groups[id];
   }
   const g = DEPT.groups.find(x => x.id === id);
@@ -2660,7 +2710,7 @@ function gLabel(id){
 }
 /* helper to localize SOP title */
 function sopTitle(sop){
-  if (CURRENT_LANG === 'en' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].sops[sop.code]) {
+  if (CURRENT_LANG === 'en' && typeof DEPT_EN !== 'undefined' && DEPT_EN[CURRENT_DEPT_ID] && DEPT_EN[CURRENT_DEPT_ID].sops && DEPT_EN[CURRENT_DEPT_ID].sops[sop.code]) {
     return DEPT_EN[CURRENT_DEPT_ID].sops[sop.code];
   }
   return sop.title;

@@ -236,6 +236,14 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     });
     return { ok: false, note: "local mode" };
   }
+  async function applyReset(token, newPassword) {
+    if (hasBackend()) return apiFetch("/api/users/apply-reset", { method:"POST", body: { token, newPassword }});
+    throw new Error("backend-required");
+  }
+  async function forgotPassword(email) {
+    if (hasBackend()) return apiFetch("/api/users/forgot-password", { method:"POST", body: { email }});
+    throw new Error("backend-required");
+  }
 
   /* ---------- Slack webhook (admin only) ---------- */
   const SLACK_LOCAL_KEY = "arsan_slack_webhook";
@@ -284,7 +292,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getChat, postChat,
     getActivity,
     getUsers, addUser, updateUser, disableUser, enableUser, removeUser,
-    inviteUser, acceptInvite, resetUserPassword,
+    inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD

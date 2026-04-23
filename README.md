@@ -27,7 +27,12 @@
 ADMIN_EMAIL       = a.king@arsann.com
 EDITOR_DOMAIN     = @arsann.com
 DEFAULT_PASSWORD  = arsan2026
+PUBLIC_URL        = https://aking-gif.github.io/arsan-dashboard
+RESEND_API_KEY    = re_xxxxxxxxxxxx   (اختياري — للإرسال عبر Email)
+FROM_EMAIL        = a.king@arsann.com
 ```
+
+**ملاحظة:** `PUBLIC_URL` هو رابط موقعك على GitHub Pages — ضروري لبناء روابط الدعوة/إعادة التعيين الصحيحة.
 
 ### الخطوة 4 — الكود
 1. افتح Worker `arsan-sops` → **Quick edit** (أو Edit code).
@@ -48,6 +53,23 @@ const API_BASE = ""; // ضع رابط الـ Worker هنا
 3. افتح dashboard → سجّل دخول كـ admin (a.king@arsann.com / arsan2026) → افتح Admin Panel → الصق الـ URL → Save.
 
 من هذه اللحظة: كل تعديل، إضافة، تبعية، رسالة شات، وتسجيل دخول → يُرسَل إلى Slack تلقائياً.
+
+**دعوات المستخدمين + إعادة تعيين كلمة السر** ترسَل أيضاً للقناة العامة كرسالة منسّقة مع زر مباشر.
+
+### الخطوة 7 (اختياري) — Email Integration (Resend.com)
+لإرسال روابط الدعوة وإعادة تعيين كلمات السر عبر البريد الإلكتروني تلقائياً:
+
+1. سجّل حساباً مجانياً في https://resend.com (3000 رسالة/شهر مجاناً).
+2. **Domains** → Add Domain → `arsann.com` → اتبع خطوات إضافة DNS records (SPF + DKIM).
+3. بعد التحقق من الدومين، **API Keys** → Create API Key → انسخه.
+4. في Cloudflare Worker → Settings → Variables → Environment Variables، أضف:
+   - `RESEND_API_KEY` = المفتاح الذي نسخته
+   - `FROM_EMAIL` = `a.king@arsann.com` (أو أي إيميل على دومين arsann.com)
+5. Save and Deploy.
+
+من هذه اللحظة: عند دعوة مستخدم أو إعادة تعيين كلمة السر، تُرسَل رسالة email أنيقة (HTML) تلقائياً للمستخدم بالإضافة للـ Slack.
+
+**ملاحظة:** لو لم تُضبط `RESEND_API_KEY`، ستعمل Slack فقط، ويظل الرابط متاحاً للنسخ اليدوي من الواجهة.
 
 ## الأدوار
 

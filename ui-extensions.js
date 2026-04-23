@@ -197,8 +197,63 @@
         h('button', { class:'arsan-btn', onclick: () => bd.remove() }, 'إلغاء'),
         submit
       ),
+      h('div', { style:'margin-top:14px;text-align:center' },
+        h('a', { href:'#', style:'color:var(--brand,#d4a83c);font-size:13px;text-decoration:underline;cursor:pointer',
+          onclick: (e) => { e.preventDefault(); bd.remove(); showForgot(emailInput.value); } },
+          'نسيت كلمة السر؟')
+      ),
       API.hasBackend() ? null : h('div', { class:'sub', style:'margin-top:12px;padding:10px;background:var(--bg-2);border-radius:8px' },
         '⚠️ لم يتم ربط Worker — يعمل في الوضع المحلي فقط (لن يتم مزامنة التعديلات).')
+    );
+    const bd = openModal(modal);
+    setTimeout(() => emailInput.focus(), 50);
+  }
+
+  // ================= FORGOT PASSWORD =================
+  function showForgot(prefillEmail) {
+    const err = h('div', { class: 'arsan-err' });
+    const emailInput = h('input', {
+      type:'email', placeholder:'name@arsann.com', autocomplete:'email',
+      value: prefillEmail || ''
+    });
+    const submit = h('button', { class:'arsan-btn primary', onclick: async () => {
+      err.textContent = '';
+      const email = emailInput.value.trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        err.textContent = 'أدخل بريد إلكتروني صحيح';
+        return;
+      }
+      submit.disabled = true;
+      submit.textContent = '...جاري الإرسال';
+      try {
+        await API.forgotPassword(email);
+        // Success: show confirmation regardless of whether email exists (prevents enumeration)
+        modal.innerHTML = '';
+        modal.appendChild(h('div', { style:'text-align:center;padding:20px 10px' },
+          h('div', { style:'font-size:56px;margin-bottom:14px' }, '✓'),
+          h('h2', { style:'margin:0 0 10px' }, 'تم إرسال الطلب'),
+          h('div', { class:'sub', style:'margin-bottom:20px;line-height:1.7' },
+            'تم إرسال طلبك للمسؤول. إذا كان بريدك مسجّلاً لديه، سيتواصل معك لإعادة تعيين كلمة السر.'),
+          h('button', { class:'arsan-btn primary', onclick: () => bd.remove() }, 'حسناً')
+        ));
+      } catch(e) {
+        submit.disabled = false;
+        submit.textContent = 'إرسال الطلب';
+        err.textContent = 'تعذّر إرسال الطلب: ' + (e.message || e);
+      }
+    }}, 'إرسال الطلب');
+
+    emailInput.addEventListener('keydown', e => { if (e.key==='Enter') submit.click(); });
+
+    const modal = h('div', { class:'arsan-modal' },
+      h('h2', {}, 'نسيت كلمة السر؟'),
+      h('div', { class:'sub' }, 'أدخل بريدك الإلكتروني وسنُرسل طلباً للمسؤول لإعادة تعيين كلمة السر.'),
+      h('div', { class:'arsan-field' }, h('label', {}, 'البريد الإلكتروني'), emailInput),
+      err,
+      h('div', { class:'arsan-actions' },
+        h('button', { class:'arsan-btn', onclick: () => { bd.remove(); showLogin(); } }, 'رجوع'),
+        submit
+      )
     );
     const bd = openModal(modal);
     setTimeout(() => emailInput.focus(), 50);
@@ -622,6 +677,7 @@
       }
 
       if (me.role === 'admin') {
+        bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'users.html'; }}, '👥 المستخدمون'));
         bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showAdmin }, '🛡️ Admin'));
       }
       bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: async () => { await API.logout(); location.reload(); }}, 'خروج'));
@@ -1163,5 +1219,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 50);
 
-  window.ArsanUI = { showLogin, showAdmin, showUnifiedMap, showDepsEditor, toggleChat };
+  window.ArsanUI = { showLogin, showForgot, showAdmin, showUnifiedMap, showDepsEditor, toggleChat };
 })();

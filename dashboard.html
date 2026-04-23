@@ -1799,17 +1799,68 @@ async function handleUpload(){
   if (!s) return;
   const inp = document.createElement('input');
   inp.type = 'file';
-  inp.accept = '.pdf,.docx,.doc,.txt,.md';
+  inp.accept = '.pdf,.docx,.doc,.txt,.md,.rtf';
   inp.onchange = async () => {
     const f = inp.files[0];
     if (!f) return;
     setStatus('جاري قراءة الملف…', true);
     try {
-      const text = await f.text();
-      const content = text.slice(0, 8000);
+      const ext = (f.name.split('.').pop() || '').toLowerCase();
+      let content = '';
+
+      if (ext === 'txt' || ext === 'md') {
+        content = await f.text();
+      } else if (ext === 'pdf') {
+        // Use pdf.js via CDN (load once, cache)
+        if (!window.pdfjsLib) {
+          setStatus('جاري تحميل محرك PDF…', true);
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        setStatus('جاري استخراج النص من PDF…', true);
+        const buf = await f.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+        const pages = [];
+        const maxPages = Math.min(pdf.numPages, 20);
+        for (let i = 1; i <= maxPages; i++) {
+          const page = await pdf.getPage(i);
+          const txt = await page.getTextContent();
+          pages.push(txt.items.map(it => it.str).join(' '));
+        }
+        content = pages.join('\n\n');
+      } else if (ext === 'docx') {
+        if (!window.mammoth) {
+          setStatus('جاري تحميل محرك DOCX…', true);
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        setStatus('جاري استخراج النص من DOCX…', true);
+        const buf = await f.arrayBuffer();
+        const result = await window.mammoth.extractRawText({ arrayBuffer: buf });
+        content = result.value || '';
+      } else {
+        throw new Error('صيغة الملف غير مدعومة. استخدم PDF, DOCX, TXT, أو MD');
+      }
+
+      content = (content || '').trim();
+      if (!content) throw new Error('الملف فارغ أو لم يُستخرج منه نص');
+      if (content.length > 12000) content = content.slice(0, 12000);
+
       setStatus('جاري استخراج الحقول بالذكاء…', true);
       const prompt = `استخرج من النص التالي حقول الإجراء بصيغة JSON فقط (purpose, owner, sla, scope, inputs, outputs, steps[], kpis). النص:\n\n${content}`;
-      const res = await window.claude.complete(prompt);
+      const res = await callAI(prompt);
       const m = res.match(/\{[\s\S]*\}/);
       if (!m) throw new Error('لم يتمكن الذكاء من استخراج JSON');
       const parsed = JSON.parse(m[0]);
@@ -1817,6 +1868,7 @@ async function handleUpload(){
       setStatus('✓ تم استخراج الحقول — راجعها ثم احفظ', true);
     } catch(e){
       setStatus('فشل: ' + (e.message||e), false);
+      console.error('[handleUpload]', e);
     }
   };
   inp.click();
@@ -1827,7 +1879,7 @@ async function handleAIGen(){
   setStatus('جاري التوليد بالذكاء…', true);
   try {
     const prompt = `أنا أصيغ إجراءً تشغيلياً بعنوان "${s.title}" في "${DEPT.name}". اكتب لي JSON فقط يحتوي الحقول: purpose (الغرض), owner (الجهة المالكة), sla (الإطار الزمني), scope (النطاق), inputs (المدخلات), outputs (المخرجات), steps (مصفوفة 5 خطوات), kpis (3 مؤشرات أداء). لا شيء غير JSON.`;
-    const res = await window.claude.complete(prompt);
+    const res = await callAI(prompt);
     const m = res.match(/\{[\s\S]*\}/);
     if (!m) throw new Error('لم يتمكن الذكاء من التوليد');
     const parsed = JSON.parse(m[0]);
@@ -4437,6 +4489,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 })();
 </script>
 
+<script src="updates-banner.js?v=1"></script>
 
 </body>
 </html>

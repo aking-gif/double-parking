@@ -83,6 +83,12 @@ async function requireEditor(req, env) {
   if (!s.email.toLowerCase().endsWith(editorDomain)) return { error: "forbidden" };
   return { session: s };
 }
+// أي مستخدم مسجّل دخول (لإجراءات السماح للجميع: إضافة/تعديل الإجراءات)
+async function requireSession(req, env) {
+  const s = await getSession(req, env);
+  if (!s) return { error: "unauthorized" };
+  return { session: s };
+}
 async function requireAdmin(req, env) {
   const s = await getSession(req, env);
   if (!s) return { error: "unauthorized" };
@@ -330,7 +336,7 @@ export default {
       }
 
       if (path.match(/^\/api\/sops\/[^\/]+\/[^\/]+$/) && method === "PUT") {
-        const ed = await requireEditor(req, env);
+        const ed = await requireSession(req, env);
         if (ed.error) return json(ed, 403, req);
         const [_, __, ___, dept, code] = path.split("/");
         const body = await req.json();
@@ -344,7 +350,7 @@ export default {
       }
 
       if (path.match(/^\/api\/sops\/[^\/]+$/) && method === "POST") {
-        const ed = await requireEditor(req, env);
+        const ed = await requireSession(req, env);
         if (ed.error) return json(ed, 403, req);
         const dept = path.split("/")[3];
         const body = await req.json();
@@ -375,7 +381,7 @@ export default {
         return json(raw ? JSON.parse(raw) : [], 200, req);
       }
       if (path === "/api/deps" && method === "POST") {
-        const ed = await requireEditor(req, env);
+        const ed = await requireSession(req, env);
         if (ed.error) return json(ed, 403, req);
         const body = await req.json();
         const raw = await env.ARSAN.get(KEYS.deps);
@@ -389,7 +395,7 @@ export default {
         return json({ ok: true, dep: body }, 200, req);
       }
       if (path.match(/^\/api\/deps\/[^\/]+$/) && method === "DELETE") {
-        const ed = await requireEditor(req, env);
+        const ed = await requireSession(req, env);
         if (ed.error) return json(ed, 403, req);
         const id = path.split("/")[3];
         const raw = await env.ARSAN.get(KEYS.deps);
@@ -934,7 +940,7 @@ export default {
 
       // ---------- SOP: rename/move (change code, dept, or title) ----------
       if (path.match(/^\/api\/sops\/[^\/]+\/[^\/]+\/rename$/) && method === "POST") {
-        const ed = await requireEditor(req, env);
+        const ed = await requireSession(req, env);
         if (ed.error) return json(ed, 403, req);
         const [_, __, ___, dept, code] = path.split("/");
         const body = await req.json();

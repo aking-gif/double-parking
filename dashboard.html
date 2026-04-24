@@ -4732,20 +4732,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       document.body.classList.add('editor-mode');
     }
 
-    // Logout — for ANY logged-in user (viewer/editor/admin)
-    if (API.isLoggedIn()) {
-      bar.appendChild(h('button', {
-        class:'arsan-topbar-btn',
-        title:'تسجيل الخروج',
-        onclick: async () => {
-          if (!confirm('هل تريد تسجيل الخروج؟')) return;
-          try { await API.logout(); } catch(_){}
-          try { localStorage.removeItem('arsan_token_v1'); localStorage.removeItem('arsan_token'); } catch(_){}
-          try { localStorage.removeItem('arsan_me_v1'); localStorage.removeItem('arsan_me'); } catch(_){}
-          location.reload();
-        }
-      }, '🚪 خروج'));
-    }
+    // Logout moved to header pill (next to theme/lang) — see logout-button.js
 
     host.appendChild(bar);
   }

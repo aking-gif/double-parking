@@ -391,6 +391,36 @@
         border-top:1px solid var(--line-2, #EFEBE0);
       }
 
+      /* Toggle switch */
+      .asst-toggle{
+        display:flex; align-items:flex-start; gap:12px;
+        padding:12px 14px;
+        border:1px solid var(--line, #E7E3D8);
+        border-radius:10px;
+        background:var(--surface, #fff);
+        cursor:pointer;
+        transition: background .15s ease, border-color .15s ease;
+      }
+      .asst-toggle:hover{ background:var(--surface-2, #FBFAF6); border-color:color-mix(in oklab, var(--accent, #8B6F00) 30%, var(--line, #E7E3D8)); }
+      .asst-toggle .tg-sw{
+        flex-shrink:0; width:38px; height:22px; border-radius:999px;
+        background:var(--line, #E7E3D8); position:relative; transition:background .2s ease;
+        margin-top:2px;
+      }
+      .asst-toggle .tg-sw::after{
+        content:""; position:absolute; top:2px; inset-inline-start:2px;
+        width:18px; height:18px; border-radius:50%; background:#fff;
+        box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .2s ease;
+      }
+      .asst-toggle.on .tg-sw{ background:var(--accent, #8B6F00); }
+      .asst-toggle.on .tg-sw::after{ transform:translateX(16px); }
+      html[dir="rtl"] .asst-toggle.on .tg-sw::after{ transform:translateX(-16px); }
+      .asst-toggle .tg-body{ flex:1; min-width:0 }
+      .asst-toggle .tg-title{ font-weight:600; font-size:13.5px; color:var(--ink, #111827); }
+      .asst-toggle .tg-desc{ font-size:12px; color:var(--ink-3, #6B7280); margin-top:3px; line-height:1.5 }
+      .asst-toggle input{ position:absolute; opacity:0; pointer-events:none }
+      .asst-toggle-list{ display:flex; flex-direction:column; gap:8px }
+
       /* Mobile tweaks */
       @media (max-width:560px){
         .asst-bd{ padding:0 }
@@ -485,6 +515,54 @@
       body: JSON.stringify({ url })
     });
     if (!res.ok) throw new Error((await res.json()).error || 'save-failed');
+    return true;
+  }
+
+  /* --- Feature flags / permissions / templates / imports ---
+     Tries Worker /api/platform-config first (if available), falls back to
+     localStorage for pure-client persistence. Shape:
+     {
+       perms:    { viewerCreate:bool, viewerImport:bool, viewerEdit:bool, viewerDelete:bool, viewerDeps:bool },
+       template: { codePrefix:string, autoCode:bool, startingNumber:int, requirePurpose:bool, requireSteps:bool, defaultPhase:string },
+       imports:  { pdf:bool, docx:bool, gdoc:bool, paste:bool, ai:bool }
+     }
+  */
+  const LS_CFG_KEY = 'arsan_platform_cfg_v1';
+  const DEFAULT_CFG = {
+    perms: { viewerCreate:true, viewerImport:true, viewerEdit:true, viewerDelete:false, viewerDeps:true },
+    template: { codePrefix:'', autoCode:true, startingNumber:1, requirePurpose:false, requireSteps:false, defaultPhase:'' },
+    imports: { pdf:true, docx:true, gdoc:true, paste:true, ai:true }
+  };
+  function mergeCfg(a, b){
+    const out = {};
+    for (const k of Object.keys(a)) {
+      out[k] = (b && typeof b[k]==='object' && b[k]!==null) ? Object.assign({}, a[k], b[k]) : a[k];
+    }
+    return out;
+  }
+  async function loadPlatformCfg(){
+    try {
+      const res = await fetch((window.API_BASE||'') + '/api/platform-config', { credentials:'include' });
+      if (res.ok) { const d = await res.json(); return mergeCfg(DEFAULT_CFG, d||{}); }
+    } catch(_){}
+    try {
+      const raw = localStorage.getItem(LS_CFG_KEY);
+      if (raw) return mergeCfg(DEFAULT_CFG, JSON.parse(raw));
+    } catch(_){}
+    return mergeCfg(DEFAULT_CFG, {});
+  }
+  async function savePlatformCfg(cfg){
+    try { localStorage.setItem(LS_CFG_KEY, JSON.stringify(cfg)); } catch(_){}
+    try {
+      const res = await fetch((window.API_BASE||'') + '/api/platform-config', {
+        method:'POST', credentials:'include',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(cfg),
+      });
+      // If the endpoint isn't implemented yet on Worker, that's fine —
+      // localStorage already persisted the change for this browser.
+      if (res.ok) return true;
+    } catch(_){}
     return true;
   }
 
@@ -770,12 +848,169 @@
       slackStatus
     );
 
+    /* ===== Helpers for permissions/templates/imports panes ===== */
+    let cfgCache = null;
+    async function getCfg(){ if (!cfgCache) cfgCache = await loadPlatformCfg(); return cfgCache; }
+
+    function makeToggle(title, desc, checked, onChange){
+      const tg = el('label', { class: 'asst-toggle' + (checked ? ' on' : '') },
+        el('div', { class:'tg-sw' }),
+        el('div', { class:'tg-body' },
+          el('div', { class:'tg-title' }, title),
+          el('div', { class:'tg-desc' }, desc)
+        )
+      );
+      tg.addEventListener('click', (e) => {
+        e.preventDefault();
+        const next = !tg.classList.contains('on');
+        tg.classList.toggle('on', next);
+        onChange(next);
+      });
+      return tg;
+    }
+
+    /* ===== Pane 4: Permissions ===== */
+    const permStatus = el('div', { class:'asst-status' });
+    const permList = el('div', { class:'asst-toggle-list' });
+    async function buildPermsPane(){
+      const cfg = await getCfg();
+      permList.innerHTML = '';
+      const items = [
+        ['viewerCreate','السماح بإنشاء إجراءات','أي مستخدم مسجّل (viewer) يستطيع إضافة إجراء جديد.'],
+        ['viewerImport','السماح باستيراد الإجراءات','رفع PDF / DOCX / رابط Google Doc / لصق نص.'],
+        ['viewerEdit','السماح بالتعديل Inline','النقر المباشر على الحقول لتعديلها.'],
+        ['viewerDelete','السماح بالحذف','حذف الإجراءات من اللوحة (يُنصح بإبقائه للأدمن فقط).'],
+        ['viewerDeps','السماح بتعديل التبعيّات','إضافة وإزالة العلاقات بين الإجراءات.'],
+      ];
+      items.forEach(([k, t, d]) => {
+        permList.appendChild(makeToggle(t, d, !!cfg.perms[k], async (v) => {
+          cfg.perms[k] = v;
+          await savePlatformCfg(cfg);
+          window.dispatchEvent(new CustomEvent('arsan:platform-cfg-changed', { detail: cfg }));
+          showStatus(permStatus, '✓ تم التحديث', 'ok');
+        }));
+      });
+    }
+    const pane4 = el('div', { class:'asst-pane', id:'asst-pane-perms' },
+      el('div', { class:'asst-section-head' },
+        el('div', { class:'lead' },
+          'تحكّم في ما يستطيع المستخدمون المسجّلون فعله. الأدمن يملك كل الصلاحيات دائماً.'
+        )
+      ),
+      permList,
+      permStatus
+    );
+
+    /* ===== Pane 5: Templates ===== */
+    const tplStatus = el('div', { class:'asst-status' });
+    const tplPrefixIn = el('input', { type:'text', placeholder:'مثال: PR', maxlength:'6', style:'text-transform:uppercase;max-width:160px' });
+    const tplStartIn = el('input', { type:'number', min:'1', max:'9999', style:'max-width:120px' });
+    const tplPhaseIn = el('input', { type:'text', placeholder:'اختياري — مرحلة افتراضية' });
+    const tplAutoCode = el('div');
+    const tplReqPurpose = el('div');
+    const tplReqSteps = el('div');
+
+    async function buildTplPane(){
+      const cfg = await getCfg();
+      tplPrefixIn.value = cfg.template.codePrefix || '';
+      tplStartIn.value = cfg.template.startingNumber || 1;
+      tplPhaseIn.value = cfg.template.defaultPhase || '';
+      tplAutoCode.innerHTML = '';
+      tplReqPurpose.innerHTML = '';
+      tplReqSteps.innerHTML = '';
+      tplAutoCode.appendChild(makeToggle(
+        'توليد الكود تلقائياً', 'استخدام البادئة والرقم التالي عند إنشاء إجراء جديد.',
+        !!cfg.template.autoCode, async (v) => { cfg.template.autoCode = v; await savePlatformCfg(cfg); showStatus(tplStatus,'✓ تم التحديث','ok'); }
+      ));
+      tplReqPurpose.appendChild(makeToggle(
+        'الغرض مطلوب', 'يجب تعبئة حقل الغرض قبل حفظ إجراء جديد.',
+        !!cfg.template.requirePurpose, async (v) => { cfg.template.requirePurpose = v; await savePlatformCfg(cfg); showStatus(tplStatus,'✓ تم التحديث','ok'); }
+      ));
+      tplReqSteps.appendChild(makeToggle(
+        'الخطوات مطلوبة', 'يجب إدخال خطوة واحدة على الأقل.',
+        !!cfg.template.requireSteps, async (v) => { cfg.template.requireSteps = v; await savePlatformCfg(cfg); showStatus(tplStatus,'✓ تم التحديث','ok'); }
+      ));
+    }
+    const tplSaveBtn = el('button', { class:'asst-btn primary', onclick: async () => {
+      tplSaveBtn.disabled = true; tplSaveBtn.textContent = 'جاري الحفظ…';
+      try {
+        const cfg = await getCfg();
+        cfg.template.codePrefix = tplPrefixIn.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+        cfg.template.startingNumber = Math.max(1, parseInt(tplStartIn.value,10) || 1);
+        cfg.template.defaultPhase = tplPhaseIn.value.trim();
+        await savePlatformCfg(cfg);
+        showStatus(tplStatus, '✓ تم الحفظ', 'ok');
+      } catch(e){ showStatus(tplStatus, '❌ ' + e.message, 'err'); }
+      finally { tplSaveBtn.disabled = false; tplSaveBtn.textContent = 'حفظ'; }
+    } }, 'حفظ');
+
+    const pane5 = el('div', { class:'asst-pane', id:'asst-pane-template' },
+      el('div', { class:'asst-section-head' },
+        el('div', { class:'lead' }, 'الإعدادات الافتراضية عند إنشاء إجراء جديد.')
+      ),
+      el('div', { class:'asst-grid-2' },
+        el('div', { class:'asst-field', style:'margin-bottom:0' },
+          el('label', {}, 'بادئة الكود الافتراضية'),
+          tplPrefixIn,
+          el('div', { class:'asst-hint' }, 'مثال: ', el('code',{},'PR'), ' → ينتج PR-01, PR-02…')
+        ),
+        el('div', { class:'asst-field', style:'margin-bottom:0' },
+          el('label', {}, 'الرقم الابتدائي'),
+          tplStartIn
+        )
+      ),
+      el('div', { class:'asst-field' },
+        el('label', {}, 'المرحلة الافتراضية (اختياري)'),
+        tplPhaseIn,
+        el('div', { class:'asst-hint' }, 'سيتم اختيارها تلقائياً في نموذج "إجراء جديد".')
+      ),
+      el('div', { class:'asst-toggle-list' }, tplAutoCode, tplReqPurpose, tplReqSteps),
+      el('div', { class:'asst-row', style:'margin-top:14px' }, tplSaveBtn),
+      tplStatus
+    );
+
+    /* ===== Pane 6: Import sources ===== */
+    const impStatus = el('div', { class:'asst-status' });
+    const impList = el('div', { class:'asst-toggle-list' });
+    async function buildImpPane(){
+      const cfg = await getCfg();
+      impList.innerHTML = '';
+      const items = [
+        ['pdf','ملفات PDF','يتطلب تحميل مكتبة pdf.js من cdnjs عند أول استخدام.'],
+        ['docx','ملفات Word (DOCX)','يستخدم mammoth.js لاستخراج النص.'],
+        ['gdoc','رابط Google Doc','يستورد مباشرة من رابط منشور.'],
+        ['paste','لصق نص مباشرة','للإجراءات السريعة من أي مصدر.'],
+        ['ai','تحليل بالذكاء الاصطناعي','يستخرج الخطوات والـ KPIs تلقائياً. (يحتاج Worker)'],
+      ];
+      items.forEach(([k, t, d]) => {
+        impList.appendChild(makeToggle(t, d, !!cfg.imports[k], async (v) => {
+          cfg.imports[k] = v;
+          await savePlatformCfg(cfg);
+          window.dispatchEvent(new CustomEvent('arsan:platform-cfg-changed', { detail: cfg }));
+          showStatus(impStatus, '✓ تم التحديث', 'ok');
+        }));
+      });
+    }
+    const pane6 = el('div', { class:'asst-pane', id:'asst-pane-imports' },
+      el('div', { class:'asst-section-head' },
+        el('div', { class:'lead' }, 'تفعيل وتعطيل مصادر استيراد الإجراءات التي تظهر في نافذة الاستيراد.')
+      ),
+      impList,
+      impStatus
+    );
+
     /* ===== Tabs ===== */
     const tabs = el('div', { class: 'asst-tabs', role:'tablist' },
       el('button', { class: 'asst-tab active', 'data-tab': 'updates', role:'tab', onclick: (e) => switchTab(e, 'updates') },
         el('span',{class:'ic'},'📣'), ' شريط التحديثات'),
       el('button', { class: 'asst-tab', 'data-tab': 'depts', role:'tab', onclick: (e) => switchTab(e, 'depts') },
-        el('span',{class:'ic'},'🏢'), ' الإدارات المخصّصة'),
+        el('span',{class:'ic'},'🏢'), ' الإدارات'),
+      el('button', { class: 'asst-tab', 'data-tab': 'perms', role:'tab', onclick: (e) => switchTab(e, 'perms') },
+        el('span',{class:'ic'},'🔐'), ' الصلاحيات'),
+      el('button', { class: 'asst-tab', 'data-tab': 'template', role:'tab', onclick: (e) => switchTab(e, 'template') },
+        el('span',{class:'ic'},'📋'), ' قوالب الإجراءات'),
+      el('button', { class: 'asst-tab', 'data-tab': 'imports', role:'tab', onclick: (e) => switchTab(e, 'imports') },
+        el('span',{class:'ic'},'📥'), ' مصادر الاستيراد'),
       el('button', { class: 'asst-tab', 'data-tab': 'slack', role:'tab', onclick: (e) => switchTab(e, 'slack') },
         el('span',{class:'ic'},'🔔'), ' Slack')
     );
@@ -785,6 +1020,9 @@
       $$('.asst-pane', modal).forEach(p => p.classList.toggle('active', p.id === 'asst-pane-' + name));
       if (name === 'depts') refreshDepts();
       if (name === 'slack' && !slackIn.value) getSlackWebhook().then(v => slackIn.value = v);
+      if (name === 'perms') buildPermsPane();
+      if (name === 'template') buildTplPane();
+      if (name === 'imports') buildImpPane();
     }
 
     const modal = el('div', { class: 'asst-modal', role:'dialog', 'aria-modal':'true', 'aria-label':'إعدادات النظام' },
@@ -793,7 +1031,7 @@
         el('button', { class: 'asst-close', onclick: () => bd.remove(), 'aria-label':'إغلاق' }, '×')
       ),
       tabs,
-      el('div', { class: 'asst-body' }, pane1, pane2, pane3)
+      el('div', { class: 'asst-body' }, pane1, pane2, pane4, pane5, pane6, pane3)
     );
 
     bd.appendChild(modal);
@@ -820,4 +1058,10 @@
   }
 
   window.openArsanSettings = openSettingsModal;
+
+  /* Expose helper so other scripts (dashboard/quick-actions) can read flags */
+  window.ArsanPlatformCfg = {
+    async get(){ return await loadPlatformCfg(); },
+    DEFAULT: DEFAULT_CFG,
+  };
 })();

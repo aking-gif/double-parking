@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>اختر الإدارة — أرسان للتشغيل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="400" fill="#141414"/>
+    <rect x="120" y="120" width="160" height="160" rx="20" fill="#8B6F00"/>
+    <text x="200" y="230" font-family="sans-serif" font-size="90" font-weight="700" fill="#F7F6F2" text-anchor="middle">أ</text>
+  </svg>
+</template>
+<style>
+  :root{
+    --bg:#F7F6F2;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF6;
+    --ink:#111827;
+    --ink-2:#374151;
+    --ink-3:#6B7280;
+    --line:#E7E3D8;
+    --line-2:#EFEBE0;
+    --accent:#8B6F00;
+    --accent-ink:#5E4B00;
+    --accent-soft:#F4EFD9;
+    --accent-softer:#FBF7E6;
+    --header-bg:#141414;
+    --header-ink:#F7F6F2;
+    --header-muted:#A8A39A;
+    --shadow-sm:0 1px 2px rgba(17,24,39,.04), 0 1px 1px rgba(17,24,39,.03);
+    --shadow-md:0 6px 20px rgba(17,24,39,.07), 0 2px 6px rgba(17,24,39,.04);
+    --shadow-lg:0 24px 60px rgba(17,24,39,.18), 0 8px 20px rgba(17,24,39,.10);
+    --radius:14px;
+    --radius-lg:20px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0E0F10;
+    --surface:#18191B;
+    --surface-2:#141517;
+    --ink:#F3F1EA;
+    --ink-2:#D7D3C7;
+    --ink-3:#9A9487;
+    --line:#262729;
+    --line-2:#1E1F21;
+    --accent:#D4B24A;
+    --accent-ink:#F0D88A;
+    --accent-soft:#2A2512;
+    --accent-softer:#1F1C10;
+    --header-bg:#0A0A0B;
+    --header-ink:#F3F1EA;
+    --header-muted:#8F8A7D;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+    --shadow-md:0 6px 20px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.4);
+    --shadow-lg:0 24px 60px rgba(0,0,0,.55), 0 8px 20px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;min-height:100%}
+  body{
+    font-family:"IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    line-height:1.6;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+
+  /* ========== HEADER ========== */
+  .hero{
+    background:var(--header-bg);
+    color:var(--header-ink);
+    position:relative;
+    overflow:hidden;
+    padding:36px 28px 48px;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(1200px 420px at 90% -10%, rgba(139,111,0,.22), transparent 60%),
+      radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.10), transparent 60%);
+    pointer-events:none;
+  }
+  .hero-inner{
+    max-width:1100px; margin:0 auto; position:relative;
+  }
+  .brandline{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    color:var(--header-muted);
+    font-size:13px; letter-spacing:.02em;
+  }
+  .brandline .mark{
+    display:inline-flex; align-items:center; gap:10px;
+    color:var(--header-ink); font-weight:600;
+  }
+  .brandline .logo{
+    width:auto;height:44px;
+    background:transparent;
+    display:inline-flex;align-items:center;justify-content:center;
+    filter: drop-shadow(0 2px 6px rgba(212,168,60,.35));
+  }
+  .brandline .logo img{ width:auto; height:100%; display:block; }
+  .brandline .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}
+  .theme-toggle{
+    margin-inline-start:auto;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    font-size:12px;
+    color:var(--header-ink);
+    transition:background .15s;
+  }
+  .theme-toggle:hover{background:rgba(255,255,255,.06)}
+
+  h1.title{
+    font-size:clamp(28px, 4.4vw, 44px);
+    line-height:1.2;
+    font-weight:700;
+    letter-spacing:-.01em;
+    margin:22px 0 10px;
+    color:var(--header-ink);
+  }
+  h1.title .accent-underline{
+    background:linear-gradient(transparent 60%, rgba(212,178,74,.35) 60%);
+    padding:0 4px;
+  }
+  p.subtitle{
+    color:var(--header-muted);
+    font-size:clamp(14px, 1.5vw, 16px);
+    max-width:720px;
+    margin:0;
+  }
+
+  /* ========== MAIN ========== */
+  main.container{
+    flex:1;
+    max-width:1100px;
+    width:100%;
+    margin:0 auto;
+    padding:48px 28px 64px;
+  }
+  .step-label{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink);
+    background:var(--accent-soft);
+    padding:6px 14px;
+    border-radius:999px;
+    font-weight:600;
+    margin-bottom:14px;
+  }
+  html[data-theme="dark"] .step-label{color:var(--accent); background:var(--accent-soft)}
+  .step-label::before{
+    content:""; width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+  }
+  .question{
+    font-size:clamp(22px, 3vw, 30px);
+    font-weight:700;
+    margin:0 0 8px;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .hint{
+    color:var(--ink-3);
+    margin:0 0 32px;
+    font-size:14px;
+  }
+
+  /* ========== DEPT GRID ========== */
+  .dept-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .dept-card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 20px;
+    text-align:start;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:all .18s ease;
+    box-shadow:var(--shadow-sm);
+    min-height:148px;
+  }
+  .dept-card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-md);
+    border-color:var(--accent);
+  }
+  .dept-card[aria-pressed="true"]{
+    border-color:var(--accent);
+    background:var(--accent-softer);
+    box-shadow:var(--shadow-md), 0 0 0 3px var(--accent-soft);
+  }
+  .dept-card[aria-pressed="true"]::after{
+    content:"✓";
+    position:absolute;
+    top:14px; inset-inline-end:14px;
+    width:26px; height:26px;
+    background:var(--accent);
+    color:#fff;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700;
+  }
+  html[data-theme="dark"] .dept-card[aria-pressed="true"]::after{color:#111}
+  .dept-icon{
+    width:40px; height:40px;
+    border-radius:10px;
+    background:var(--accent-softer);
+    color:var(--accent-ink);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:20px;
+    font-weight:600;
+  }
+  html[data-theme="dark"] .dept-icon{color:var(--accent)}
+  .dept-name{
+    font-size:17px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0;
+    line-height:1.4;
+  }
+  .dept-desc{
+    font-size:13px;
+    color:var(--ink-3);
+    margin:0;
+    line-height:1.5;
+  }
+
+  /* ========== ACTIONS ========== */
+  .actions{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .btn-primary{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:14px 28px;
+    background:var(--ink);
+    color:var(--bg);
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
+    transition:all .15s;
+  }
+  .btn-primary:hover:not(:disabled){
+    background:var(--accent-ink);
+    color:#fff;
+    transform:translateY(-1px);
+  }
+  html[data-theme="dark"] .btn-primary{background:var(--ink); color:var(--bg)}
+  html[data-theme="dark"] .btn-primary:hover:not(:disabled){background:var(--accent); color:#111}
+  .btn-primary:disabled{
+    opacity:.4; cursor:not-allowed;
+  }
+  .selected-label{
+    color:var(--ink-3);
+    font-size:14px;
+  }
+  .selected-label strong{color:var(--ink); font-weight:600}
+
+  /* ========== FOOTER ========== */
+  footer{
+    padding:20px 28px;
+    color:var(--ink-3);
+    font-size:12px;
+    text-align:center;
+    border-top:1px solid var(--line);
+    background:var(--surface-2);
+  }
+
+  /* ===== GLASS EFFECT (Apple-style) ===== */
+  .hero{
+    background:linear-gradient(135deg, rgba(20,20,20,.72) 0%, rgba(35,26,16,.68) 100%) !important;
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-bottom:1px solid rgba(212,168,60,.22);
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -20px rgba(0,0,0,.5);
+  }
+  html[data-theme="light"] .hero{
+    background:linear-gradient(135deg, rgba(250,246,234,.72) 0%, rgba(243,234,208,.68) 100%) !important;
+    border-bottom:1px solid rgba(212,168,60,.3);
+  }
+  /* Light-mode hero: ink text is too pale for the cream glass — force dark ink */
+  html[data-theme="light"] .hero,
+  html[data-theme="light"] .hero .brandline .mark,
+  html[data-theme="light"] .hero h1.title,
+  html[data-theme="light"] .hero .theme-toggle,
+  html[data-theme="light"] .hero #langToggle{
+    color:#2b2416 !important;
+  }
+  html[data-theme="light"] .hero .brandline,
+  html[data-theme="light"] .hero p.subtitle{
+    color:#5a4f3a !important;
+  }
+  html[data-theme="light"] .hero .theme-toggle,
+  html[data-theme="light"] .hero #langToggle{
+    background:rgba(255,255,255,.5) !important;
+    border-color:rgba(212,168,60,.4) !important;
+  }
+  html[data-theme="light"] .hero .theme-toggle:hover,
+  html[data-theme="light"] .hero #langToggle:hover{
+    background:rgba(255,255,255,.8) !important;
+  }
+  /* Dark-mode hero keeps header-ink values — already readable */
+  /* Ambient tint behind the glass so the blur has something to capture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    z-index:-1;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(212,168,60,.25), transparent 60%),
+      radial-gradient(900px 500px at -5% 40%, rgba(139,111,0,.18), transparent 60%),
+      radial-gradient(700px 500px at 110% 90%, rgba(212,178,74,.15), transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Glass dept cards */
+  .dept-card{
+    background:linear-gradient(135deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.02) 100%) !important;
+    backdrop-filter:blur(12px) saturate(140%);
+    -webkit-backdrop-filter:blur(12px) saturate(140%);
+    border:1px solid rgba(212,168,60,.18) !important;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 4px 20px -8px rgba(0,0,0,.2);
+  }
+  html[data-theme="light"] .dept-card{
+    background:linear-gradient(135deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,.5) 100%) !important;
+    border:1px solid rgba(212,168,60,.3) !important;
+  }
+  html[data-theme="light"] .dept-card .dept-name{ color:#2b2416 !important; }
+  html[data-theme="light"] .dept-card .dept-desc{ color:#5a4f3a !important; }
+  html[data-theme="dark"] .dept-card .dept-name{ color:#F3F1EA !important; }
+  html[data-theme="dark"] .dept-card .dept-desc{ color:#B8B2A3 !important; }
+  .dept-card:hover{
+    background:linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.04) 100%) !important;
+  }
+  html[data-theme="light"] .dept-card:hover{
+    background:linear-gradient(135deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.7) 100%) !important;
+    border-color:rgba(212,168,60,.5) !important;
+  }
+  .dept-card[aria-pressed="true"]{
+    background:linear-gradient(135deg, rgba(212,168,60,.2) 0%, rgba(212,168,60,.08) 100%) !important;
+    border-color:rgba(212,168,60,.6) !important;
+  }
+  html[data-theme="light"] .dept-card[aria-pressed="true"]{
+    background:linear-gradient(135deg, rgba(212,168,60,.3) 0%, rgba(212,168,60,.15) 100%) !important;
+  }
+
+  @supports not (backdrop-filter: blur(1px)){
+    .hero{ background:var(--header-bg) !important; }
+    .dept-card{ background:var(--surface) !important; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" role="banner">
+  <div class="hero-inner">
+    <div class="brandline">
+      <span class="mark">
+        <span class="logo" aria-hidden="true"><img src="brand-mark.png" alt="أرسان"></span>
+        شركة أرسان للتشغيل
+      </span>
+      <span class="dot" aria-hidden="true"></span>
+      <span>بوابة الإجراءات التشغيلية</span>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الداكن/الفاتح" type="button">
+        <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="themeLabel">وضع داكن</span>
+      </button>
+      <button class="theme-toggle" id="langToggle" aria-label="Toggle language" type="button" style="margin-inline-start:8px">
+        <span aria-hidden="true">🌐</span>
+        <span id="langLabel">EN</span>
+      </button>
+    </div>
+
+    <h1 class="title">
+      مرحباً بك في مرجع الإجراءات <span class="accent-underline">التشغيلية</span>
+    </h1>
+    <p class="subtitle">
+      بوابة داخلية موحّدة لتصفّح وتعبئة النماذج والإجراءات القياسية عبر إدارات الشركة — اختر إدارتك لبدء العمل.
+    </p>
+  </div>
+</section>
+
+<main class="container">
+  <div class="step-label">الخطوة 1 من 1</div>
+  <h2 class="question">لأيّ إدارة تودّ تعبئة النموذج؟</h2>
+  <p class="hint">اختر الإدارة المعنيّة ليتم توجيهك إلى مرجع إجراءاتها التشغيلية الموحّدة.</p>
+
+  <div class="dept-grid" role="radiogroup" aria-label="قائمة الإدارات">
+    <!-- Cards injected by JS -->
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="continueBtn" type="button" disabled>
+      متابعة
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" transform="scale(-1 1) translate(-24 0)"/>
+      </svg>
+    </button>
+    <div class="selected-label" id="selectedLabel">لم يتم الاختيار بعد</div>
+  </div>
+</main>
+
+<footer>
+  © شركة أرسان للتشغيل — إدارة البحث والتطوير · إصدار 1.0
+</footer>
+
+<script>
+  const DEPARTMENTS = [
+    {
+      id: "projects",
+      name: "إدارة المشاريع",
+      desc: "التصميم، التخطيط، المشتريات، الصيانة، والتنفيذ.",
+      icon: "⌂",
+      available: true
+    },
+    {
+      id: "executive",
+      name: "الإدارة التنفيذية",
+      desc: "القرارات الاستراتيجية، الحوكمة، متابعة الأداء الكلي.",
+      icon: "★",
+      available: true
+    },
+    {
+      id: "finance",
+      name: "الإدارة المالية",
+      desc: "الموازنات، الصرف، المطالبات، والتقارير المالية.",
+      icon: "₹",
+      available: true
+    },
+    {
+      id: "operations",
+      name: "الإدارة التشغيلية",
+      desc: "العمليات اليومية، الجدولة، ومتابعة الأداء.",
+      icon: "◆",
+      available: true
+    },
+    {
+      id: "legal",
+      name: "الإدارة القانونية",
+      desc: "العقود، الامتثال، والمراجعات القانونية.",
+      icon: "§",
+      available: true
+    },
+    {
+      id: "hr",
+      name: "إدارة الموارد البشرية",
+      desc: "التوظيف، الأداء، التدريب، ورحلة الموظف.",
+      icon: "☺",
+      available: true
+    },
+    {
+      id: "bizdev",
+      name: "إدارة تطوير الأعمال",
+      desc: "الفرص التجارية، العروض، والعلاقات الاستراتيجية.",
+      icon: "↗",
+      available: true
+    }
+  ];
+
+  // ===== STATE =====
+  let selected = null;
+
+  // ===== THEME =====
+  const themeToggle = document.getElementById('themeToggle');
+  const themeLabel = document.getElementById('themeLabel');
+  const themeIcon = document.getElementById('themeIcon');
+  const saved = localStorage.getItem('arsan_theme') || 'light';
+  setTheme(saved);
+  themeToggle.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('arsan_theme', next);
+  });
+  function setTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    themeLabel.textContent = t === 'dark' ? 'وضع فاتح' : 'وضع داكن';
+    themeIcon.innerHTML = t === 'dark'
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'
+      : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+
+  // ===== LANGUAGE =====
+  const langToggle = document.getElementById('langToggle');
+  const langLabel = document.getElementById('langLabel');
+  function updateLangLabel(){
+    const cur = (window.ArsanI18n && window.ArsanI18n.getLang && window.ArsanI18n.getLang()) || localStorage.getItem('arsan_lang') || 'ar';
+    if (langLabel) langLabel.textContent = cur === 'ar' ? 'EN' : 'عربي';
+  }
+  if (langToggle) {
+    langToggle.addEventListener('click', () => {
+      if (window.ArsanI18n && window.ArsanI18n.toggle) {
+        window.ArsanI18n.toggle();
+      } else {
+        const cur = localStorage.getItem('arsan_lang') || 'ar';
+        localStorage.setItem('arsan_lang', cur === 'ar' ? 'en' : 'ar');
+        location.reload();
+      }
+      updateLangLabel();
+    });
+    window.addEventListener('arsan-lang-change', updateLangLabel);
+    setTimeout(updateLangLabel, 50);
+  }
+
+  // ===== RENDER DEPARTMENT CARDS =====
+  const grid = document.querySelector('.dept-grid');
+
+  function renderDeptCard(dept, isCustom){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dept-card';
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('data-id', dept.id);
+    btn.innerHTML = `
+      <span class="dept-icon" aria-hidden="true">${dept.icon || '🏢'}</span>
+      <h3 class="dept-name">${dept.name}</h3>
+      <p class="dept-desc">${dept.desc || (isCustom ? 'إدارة مخصّصة' : '')}</p>
+      ${isCustom ? '<span style="position:absolute;top:8px;left:8px;font-size:10px;background:rgba(180,140,80,.15);color:#7a5b2e;padding:2px 6px;border-radius:6px">مخصّصة</span>' : ''}
+    `;
+    btn.style.position = 'relative';
+    btn.addEventListener('click', () => selectDept(dept));
+    grid.appendChild(btn);
+    return btn;
+  }
+
+  DEPARTMENTS.forEach(dept => renderDeptCard(dept, false));
+
+  // ===== LOAD CUSTOM DEPARTMENTS FROM WORKER =====
+  async function loadCustomDepts(){
+    try {
+      if (!window.API_BASE) return;
+      const token = (function(){ try { return localStorage.getItem('arsan_token') || ''; } catch(_){ return ''; } })();
+      if (!token) return; // need login to fetch
+      const res = await fetch(window.API_BASE + '/api/custom-depts', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return;
+      const list = await res.json();
+      if (!Array.isArray(list)) return;
+      list.forEach(d => {
+        // Skip if already in defaults
+        if (DEPARTMENTS.find(x => x.id === d.id)) return;
+        renderDeptCard({
+          id: d.id,
+          name: d.name,
+          icon: d.icon || '🏢',
+          desc: d.desc || ''
+        }, true);
+      });
+    } catch(e) { console.warn('[Arsan] loadCustomDepts failed:', e); }
+  }
+  loadCustomDepts();
+  window.addEventListener('arsan:login', loadCustomDepts);
+
+  // ===== ADMIN: ADD NEW DEPARTMENT =====
+  function isAdminLocally(){
+    try {
+      const me = JSON.parse(localStorage.getItem('arsan_me') || 'null');
+      return !!(me && (me.role === 'admin' || (me.email||'').toLowerCase() === 'a.king@arsann.com'));
+    } catch(_) { return false; }
+  }
+
+  function showAddDeptModal(){
+    const bd = document.createElement('div');
+    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    bd.innerHTML = `
+      <div style="background:#fff;border-radius:14px;padding:24px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);direction:rtl;font-family:'IBM Plex Sans Arabic',sans-serif">
+        <h2 style="margin:0 0 6px;color:#3a5a40;font-size:20px">+ إضافة إدارة جديدة</h2>
+        <p style="margin:0 0 20px;color:#888;font-size:13px">ستُضاف للمنصّة وتظهر لجميع المستخدمين فوراً.</p>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#444">المعرّف (بالإنجليزية، بدون مسافات) *</label>
+          <input id="d-id" type="text" placeholder="hr / finance / it" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-family:monospace;direction:ltr">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#444">الاسم بالعربية *</label>
+          <input id="d-name" type="text" placeholder="إدارة الموارد البشرية" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#444">أيقونة (اختياري)</label>
+          <input id="d-icon" type="text" placeholder="🏢 أو 💼 أو 📊" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:18px">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#444">وصف قصير (اختياري)</label>
+          <input id="d-desc" type="text" placeholder="مثال: إجراءات التوظيف والرواتب" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px">
+        </div>
+        <div id="d-err" style="color:#c43;font-size:13px;margin-bottom:10px;min-height:18px"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button id="d-cancel" type="button" style="padding:10px 18px;border:1px solid #ddd;background:#fff;border-radius:8px;cursor:pointer">إلغاء</button>
+          <button id="d-save" type="button" style="padding:10px 22px;background:#3a5a40;color:#fff;border:0;border-radius:8px;cursor:pointer;font-weight:600">حفظ ونشر</button>
+        </div>
+      </div>`;
+    document.body.appendChild(bd);
+    bd.querySelector('#d-cancel').onclick = () => bd.remove();
+    bd.onclick = (e) => { if (e.target === bd) bd.remove(); };
+    bd.querySelector('#d-save').onclick = async () => {
+      const id = bd.querySelector('#d-id').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
+      const name = bd.querySelector('#d-name').value.trim();
+      const icon = bd.querySelector('#d-icon').value.trim() || '🏢';
+      const desc = bd.querySelector('#d-desc').value.trim();
+      const err = bd.querySelector('#d-err');
+      err.textContent = '';
+      if (!id || !name) { err.textContent = 'المعرّف والاسم مطلوبان.'; return; }
+      if (DEPARTMENTS.find(x => x.id === id)) { err.textContent = 'هذا المعرّف موجود بالفعل ضمن الإدارات الافتراضية.'; return; }
+      try {
+        const token = localStorage.getItem('arsan_token') || '';
+        const res = await fetch(window.API_BASE + '/api/custom-depts', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ id, name, icon, desc })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { err.textContent = (data && data.error) || 'فشل الحفظ'; return; }
+        bd.remove();
+        // Add card immediately
+        renderDeptCard({ id, name, icon, desc }, true);
+      } catch(e) { err.textContent = 'خطأ في الاتصال: ' + e.message; }
+    };
+  }
+
+  function maybeShowAddDeptButton(){
+    if (!isAdminLocally()) return;
+    if (document.getElementById('add-dept-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'add-dept-btn';
+    btn.type = 'button';
+    btn.className = 'dept-card';
+    btn.style.cssText = 'border:2px dashed rgba(180,140,80,.6);background:rgba(252,250,245,.5);color:#7a5b2e;cursor:pointer';
+    btn.innerHTML = `
+      <span class="dept-icon" aria-hidden="true" style="opacity:.7">➕</span>
+      <h3 class="dept-name" style="color:#7a5b2e">إضافة إدارة جديدة</h3>
+      <p class="dept-desc" style="color:#a89070">للأدمن فقط — تظهر للجميع</p>
+    `;
+    btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); showAddDeptModal(); };
+    grid.appendChild(btn);
+  }
+  maybeShowAddDeptButton();
+  window.addEventListener('arsan:login', maybeShowAddDeptButton);
+  // Also retry shortly in case localStorage is set after this script runs
+  setTimeout(maybeShowAddDeptButton, 800);
+
+  function selectDept(dept){
+    selected = dept;
+    document.querySelectorAll('.dept-card').forEach(c => {
+      c.setAttribute('aria-pressed', c.getAttribute('data-id') === dept.id ? 'true' : 'false');
+    });
+    document.getElementById('selectedLabel').innerHTML =
+      `تم اختيار: <strong>${dept.name}</strong>`;
+    document.getElementById('continueBtn').disabled = false;
+  }
+
+  // ===== CONTINUE =====
+  document.getElementById('continueBtn').addEventListener('click', () => {
+    if (!selected) return;
+    localStorage.setItem('arsan_department', JSON.stringify({
+      id: selected.id,
+      name: selected.name,
+      ts: Date.now()
+    }));
+    // For now, all departments route to the projects dashboard (only one ready)
+    const url = 'dashboard.html?dept=' + encodeURIComponent(selected.id);
+    window.location.href = url;
+  });
+
+  // ===== KEYBOARD NAV =====
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && selected && !document.getElementById('continueBtn').disabled) {
+      document.getElementById('continueBtn').click();
+    }
+  });
+</script>
+
+<script>window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";</script>
+<script src="updates-banner.js?v=1"></script>
+<script src="auth-gate.js?v=7"></script>
+<script src="i18n.js?v=4"></script>
+<script src="themes.js?v=2"></script>
+<script src="welcome-popup.js?v=1"></script>
+
+</body>
+</html>

@@ -198,6 +198,46 @@
     const nameIn = el('input', { type: 'text', placeholder: 'مثال: العلاقات العامة', value: existing?.name || '' });
     const idIn = el('input', { type: 'text', placeholder: 'pr', value: existing?.id || '', readonly: isEdit ? 'readonly' : null });
     if (isEdit) idIn.style.background = '#f6f2e4';
+
+    // Auto-suggest id from Arabic name (if user hasn't typed id yet)
+    if (!isEdit) {
+      // Map common Arabic department names to English IDs
+      const arToIdMap = [
+        [/خدم.*عملاء|عملاء/, 'customers'],
+        [/موارد.*بشر|بشر/, 'hr'],
+        [/ماليه?|محاسب/, 'finance'],
+        [/تقنيه?|معلومات|it\b/i, 'it'],
+        [/تسويق/, 'marketing'],
+        [/مبيع/, 'sales'],
+        [/قانون|شؤون.*قانون/, 'legal'],
+        [/عام[هة]?|علاقات/, 'pr'],
+        [/مشتريات/, 'procurement'],
+        [/تشغيل|عمليات/, 'operations'],
+        [/جوده?|ضبط/, 'quality'],
+        [/امن|أمن/, 'security'],
+        [/تدريب|تطوير/, 'training'],
+        [/انتاج|إنتاج/, 'production'],
+        [/مستودع|مخزون/, 'warehouse'],
+        [/اكاديم|أكاديم/, 'academy'],
+      ];
+      let userEditedId = false;
+      idIn.addEventListener('input', () => { userEditedId = true; });
+      nameIn.addEventListener('input', () => {
+        if (userEditedId) return;
+        const name = nameIn.value.trim();
+        if (!name) { idIn.value = ''; return; }
+        // Try Arabic mapping first
+        for (const [re, id] of arToIdMap) {
+          if (re.test(name)) { idIn.value = id; return; }
+        }
+        // Fallback: simple ASCII transliteration of first word
+        const ascii = name.toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .split(/\s+/)[0];
+        if (ascii) idIn.value = ascii;
+      });
+    }
     const iconIn = el('input', { type: 'text', placeholder: '📢', value: existing?.icon || '📂', maxlength: '4' });
     const colorIn = el('input', { type: 'color', value: existing?.color || '#d4a83c', style: 'width:60px;height:38px;padding:2px' });
     const status = el('div', { class: 'asst-status' });

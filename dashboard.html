@@ -4728,9 +4728,23 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'users.html'; }}, '👥 المستخدمون'));
         /* Admin panel now opens via the embedded FAB (admin-fab.js) — removed from topbar. */
       }
-      bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: async () => { await API.logout(); location.reload(); }}, 'خروج'));
 
       document.body.classList.add('editor-mode');
+    }
+
+    // Logout — for ANY logged-in user (viewer/editor/admin)
+    if (API.isLoggedIn()) {
+      bar.appendChild(h('button', {
+        class:'arsan-topbar-btn',
+        title:'تسجيل الخروج',
+        onclick: async () => {
+          if (!confirm('هل تريد تسجيل الخروج؟')) return;
+          try { await API.logout(); } catch(_){}
+          try { localStorage.removeItem('arsan_token_v1'); localStorage.removeItem('arsan_token'); } catch(_){}
+          try { localStorage.removeItem('arsan_me_v1'); localStorage.removeItem('arsan_me'); } catch(_){}
+          location.reload();
+        }
+      }, '🚪 خروج'));
     }
 
     host.appendChild(bar);
@@ -5305,6 +5319,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 <script src="themes.js?v=2"></script>
 <script src="settings.js?v=2"></script>
 <script src="favorites.js?v=1"></script>
+<script src="logout-button.js?v=1"></script>
 <script src="notifications.js?v=3"></script>
 <script src="maintenance.js?v=1"></script>
 <script src="changelog.js?v=2"></script>

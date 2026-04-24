@@ -42,6 +42,7 @@ const KEYS = {
   updatesUrl:  "updates_url_v1",
   updatesCache:"updates_cache_v1",
   announcements: "announcements_v1",
+  favorites: (email) => `favorites_${(email||'').toLowerCase()}_v1`,
 };
 
 function corsHeaders(req) {
@@ -979,6 +980,25 @@ export default {
           titleChanged: newTitle !== cur.title,
         });
         return json({ ok: true, sop: moved, dept: newDept, code: newCode }, 200, req);
+      }
+
+      // ---------- FAVORITES (per-user SOP + dept favorites) ----------
+      if (path === "/api/favorites" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.favorites(s.email));
+        const data = raw ? JSON.parse(raw) : { sops: [], depts: [] };
+        return json(data, 200, req);
+      }
+      if (path === "/api/favorites" && method === "PUT") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const sops  = Array.isArray(body.sops)  ? body.sops.slice(0, 500).map(String)  : [];
+        const depts = Array.isArray(body.depts) ? body.depts.slice(0, 100).map(String) : [];
+        const payload = { sops, depts, updatedAt: Date.now() };
+        await env.ARSAN.put(KEYS.favorites(s.email), JSON.stringify(payload));
+        return json({ ok: true, ...payload }, 200, req);
       }
 
       // ---------- ANNOUNCEMENTS (shared notifications) ----------

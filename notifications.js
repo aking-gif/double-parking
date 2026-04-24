@@ -222,6 +222,17 @@
       }
       .arsan-notif-item:hover .del{ opacity:.5; }
       .arsan-notif-item .del:hover{ opacity:1; background:rgba(230,57,70,.2); color:#e63946; }
+      .arsan-notif-foot{
+        padding:10px 14px;
+        border-top:1px solid rgba(212,168,60,.15);
+        text-align:center;
+      }
+      .arsan-notif-foot a{
+        color:#d4a83c; font-size:12px; font-weight:600;
+        text-decoration:none;
+      }
+      .arsan-notif-foot a:hover{ text-decoration:underline; }
+      html[data-theme="light"] .arsan-notif-foot{ border-top-color:rgba(212,168,60,.25); }
     `;
     document.head.appendChild(s);
   }
@@ -288,6 +299,9 @@
         <button type="button" class="close">${t('إغلاق','Close')} ✕</button>
       </div>
       <div class="arsan-notif-body"></div>
+      <div class="arsan-notif-foot">
+        <a href="announcements.html">${t('عرض كل الإعلانات →','View all announcements →')}</a>
+      </div>
     `;
     panel.querySelector('.close').addEventListener('click', () => panel.classList.remove('open'));
     document.body.appendChild(panel);

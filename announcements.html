@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>مركز الإعلانات — أرسان</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans Arabic',sans-serif;background:#faf6ea;color:#3a2f15;min-height:100vh;padding:30px 20px}
+  .wrap{max-width:900px;margin:0 auto}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .topbar h1{font-size:24px;color:#3a5a40}
+  .topbar a{color:#7a5b2e;text-decoration:none;font-size:13px}
+  .topbar a:hover{text-decoration:underline}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .stat{background:#fff;border:1px solid #e6dfc8;border-radius:12px;padding:18px;text-align:center}
+  .stat .num{font-size:28px;font-weight:700;color:#3a5a40}
+  .stat .lbl{font-size:12px;color:#888;margin-top:4px}
+  .filter{display:flex;gap:8px;margin-bottom:16px}
+  .filter button{padding:8px 16px;border:1px solid #e6dfc8;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px}
+  .filter button.active{background:#3a5a40;color:#fff;border-color:#3a5a40}
+  .item{background:#fff;border:1px solid #e6dfc8;border-radius:12px;padding:18px;margin-bottom:12px;position:relative}
+  .item.urgent{border-right:4px solid #e63946}
+  .item .ttl{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;margin-bottom:8px}
+  .item .urg{font-size:10px;background:#e63946;color:#fff;padding:2px 8px;border-radius:4px}
+  .item .body{font-size:14px;line-height:1.6;color:#555;white-space:pre-wrap;margin-bottom:10px}
+  .item .meta{font-size:11px;color:#999;display:flex;justify-content:space-between}
+  .empty{text-align:center;padding:80px 20px;color:#aaa}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>📢 مركز الإعلانات</h1>
+    <a href="index.html">← العودة للإدارات</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">إجمالي الإعلانات</div></div>
+    <div class="stat"><div class="num" id="s-unread">0</div><div class="lbl">غير مقروء</div></div>
+    <div class="stat"><div class="num" id="s-urgent">0</div><div class="lbl">عاجل</div></div>
+  </div>
+  <div class="filter">
+    <button class="active" data-f="all">الكل</button>
+    <button data-f="unread">غير مقروء</button>
+    <button data-f="urgent">العاجل فقط</button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";</script>
+<script>
+(async function(){
+  const READ_KEY = 'arsan_notif_read_v1';
+  function getRead(){ try { return new Set(JSON.parse(localStorage.getItem(READ_KEY)||'[]')); } catch(_){ return new Set(); } }
+  function setRead(s){ localStorage.setItem(READ_KEY, JSON.stringify([...s])); }
+  function esc(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmt(ts){ const d=new Date(ts); const pad=n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+
+  async function load(){
+    try {
+      const token = localStorage.getItem('arsan_token') || '';
+      const res = await fetch(window.API_BASE + '/api/announcements', { headers: token ? {'Authorization':'Bearer '+token} : {} });
+      if (res.ok) return await res.json();
+    } catch(_){}
+    try { return JSON.parse(localStorage.getItem('arsan_announcements_v1')||'[]'); } catch(_){ return []; }
+  }
+
+  let filter = 'all';
+  let all = [];
+
+  function render(){
+    const read = getRead();
+    let list = all;
+    if (filter === 'unread') list = list.filter(a => !read.has(a.id));
+    if (filter === 'urgent') list = list.filter(a => a.priority === 'urgent');
+
+    document.getElementById('s-total').textContent = all.length;
+    document.getElementById('s-unread').textContent = all.filter(a=>!read.has(a.id)).length;
+    document.getElementById('s-urgent').textContent = all.filter(a=>a.priority==='urgent').length;
+
+    const wrap = document.getElementById('list');
+    if (!list.length) {
+      wrap.innerHTML = '<div class="empty">لا توجد إعلانات في هذا التصنيف</div>';
+      return;
+    }
+    wrap.innerHTML = list.map(a => `
+      <div class="item ${a.priority==='urgent'?'urgent':''}">
+        <div class="ttl">
+          ${a.priority==='urgent' ? '<span class="urg">عاجل</span>' : ''}
+          ${esc(a.title||'')}
+        </div>
+        <div class="body">${esc(a.body||'')}</div>
+        <div class="meta">
+          <span>${esc(a.author||'')}</span>
+          <span>${fmt(a.ts||Date.now())}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  document.querySelectorAll('.filter button').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('.filter button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      filter = b.dataset.f;
+      render();
+    };
+  });
+
+  all = await load();
+  // Sort newest first
+  all.sort((a,b) => (b.ts||0) - (a.ts||0));
+  render();
+  // Mark all as read after viewing
+  setTimeout(() => {
+    setRead(new Set(all.map(a=>a.id)));
+    render();
+  }, 1500);
+})();
+</script>
+</body>
+</html>

@@ -454,6 +454,8 @@
   }
 
   function showUserBadge(me){
+    // Hidden on the first/landing page per user request — admin actions live in the admin FAB + dashboard.
+    return;
     if (document.querySelector('.ag-userbadge')) return;
     const lang = localStorage.getItem('arsan_lang') || 'ar';
     const t = (ar, en) => lang === 'en' ? en : ar;

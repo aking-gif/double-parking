@@ -1,19 +1,20 @@
-# حزمة الرفع — 2026-04-24 (محدّثة)
+# حزمة الرفع — زر الخروج v2
 
-## الجديد
-- **logout-button.js** — زر خروج عائم لأي مستخدم مسجّل (يظهر في index.html ويُخفى تلقائياً إن كان موجوداً في topbar)
-- **dashboard.html** — زر "🚪 خروج" أصبح متاحاً لـ viewer/editor/admin (كان مخفيّاً عن viewer) + ربط logout-button.js كاحتياطي
-- **index.html** — ربط logout-button.js
+## الإصلاح
+- زر الخروج الآن مضمون الظهور لأي مستخدم مسجّل:
+  1. في dashboard.html topbar: "🚪 خروج" بعد أزرار الأدمن
+  2. كـ FAB عائم احتياطي (logout-button.js) يظهر إن لم يكن في الـ topbar
+- تمت إضافة console.log في logout-button.js للتشخيص
+  افتح F12 وابحث عن: [logout-fab] render()
+
+## الأسباب المحتملة لعدم ظهور الزر حالياً:
+1. **الملفات لم تُرفع بعد على GitHub** — ارفع كل الحزمة
+2. **cache المتصفح** — Ctrl+Shift+R (أو افتح tab خاص/incognito)
+3. **شريط الأدوات مقصوص** على شاشة صغيرة — الزر موجود لكن خارج الإطار. شاهد الصفحة على شاشة عريضة.
 
 ## الملفات
-
-| الملف | الوجهة |
-|---|---|
-| favorites.js | GitHub repo |
-| logout-button.js | GitHub repo (**جديد**) |
-| dashboard.html | GitHub repo |
-| index.html | GitHub repo |
-| worker.js | Cloudflare Dashboard → Workers → arsan-api → Quick Edit |
-
-## بعد الرفع
-Ctrl+Shift+R في المتصفح.
+- favorites.js
+- logout-button.js (جديد — FAB احتياطي)
+- dashboard.html
+- index.html
+- worker.js → Cloudflare

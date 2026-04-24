@@ -119,11 +119,14 @@
   function render(){
     injectStyles();
     const old = document.getElementById('arsan-logout-fab');
-    if (!loggedIn()) {
+    const logged = loggedIn();
+    console.log('[logout-fab] render()  loggedIn=', logged, '  me=', me());
+    if (!logged) {
       if (old) old.remove();
       return;
     }
     if (existingLogoutInTopbar()) {
+      console.log('[logout-fab] topbar already has a logout — skipping FAB');
       if (old) old.remove();
       return;
     }
@@ -139,6 +142,7 @@
       '<span class="arsan-logout-email">' + (m?.email || '') + '</span>';
     btn.addEventListener('click', doLogout);
     document.body.appendChild(btn);
+    console.log('[logout-fab] button injected ✓');
   }
 
   function boot(){

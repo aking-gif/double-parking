@@ -675,16 +675,41 @@
   }
 
   // ===== CONTINUE =====
-  document.getElementById('continueBtn').addEventListener('click', () => {
+  function goToDashboard(){
     if (!selected) return;
-    localStorage.setItem('arsan_department', JSON.stringify({
-      id: selected.id,
-      name: selected.name,
-      ts: Date.now()
-    }));
-    // For now, all departments route to the projects dashboard (only one ready)
+    try {
+      localStorage.setItem('arsan_department', JSON.stringify({
+        id: selected.id,
+        name: selected.name,
+        ts: Date.now()
+      }));
+    } catch(_){}
     const url = 'dashboard.html?dept=' + encodeURIComponent(selected.id);
-    window.location.href = url;
+    // Multiple fallbacks for stubborn browsers / conflicting handlers
+    try { window.location.assign(url); } catch(_){}
+    setTimeout(() => { try { window.location.href = url; } catch(_){} }, 50);
+    setTimeout(() => { try { window.location.replace(url); } catch(_){} }, 150);
+    // Last resort: real <a> click (browsers trust user-gesture nav)
+    setTimeout(() => {
+      if (location.pathname.endsWith('index.html') || location.pathname.endsWith('/')) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+      }
+    }, 300);
+  }
+  document.getElementById('continueBtn').addEventListener('click', goToDashboard);
+
+  // Double-click a dept card also jumps directly
+  document.addEventListener('dblclick', (e) => {
+    const card = e.target.closest('.dept-card');
+    if (card && card.dataset.id) {
+      const dept = DEPARTMENTS.find(d => d.id === card.dataset.id)
+        || JSON.parse(localStorage.getItem('arsan_custom_depts')||'[]').find(d => d.id === card.dataset.id);
+      if (dept) { selected = dept; goToDashboard(); }
+    }
   });
 
   // ===== KEYBOARD NAV =====

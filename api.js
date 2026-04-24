@@ -1,12 +1,13 @@
 /* ================================================================
-   Arsan API Layer
+   Arsan API Layer  (shared by dashboard.html + users.html + index.html)
    يتصل بـ Cloudflare Worker. لو ما فيه API_BASE، كل شيء محلي.
    ================================================================ */
 
-// ضع رابط Cloudflare Worker هنا بعد نشره (أو اتركه فارغاً للوضع المحلي)
 window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
 (function(){
+  if (window.ArsanAPI && window.ArsanAPI.__loaded) return; // avoid double-load
+
   const TOKEN_KEY = "arsan_token_v1";
   const ME_KEY    = "arsan_me_v1";
   const ADMIN_EMAIL = "a.king@arsann.com";
@@ -33,16 +34,16 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     return data;
   }
 
-  /* ---------- Auth (local fallback if no backend) ---------- */
+  /* ---------- Auth ---------- */
   async function login(email, password) {
     email = (email || "").trim().toLowerCase();
     if (!email.endsWith(EDITOR_DOMAIN)) throw new Error("invalid-domain");
     if (hasBackend()) {
       const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
       setToken(r.token); setMe({ email: r.email, role: r.role });
+      try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
       return r;
     }
-    // local fallback
     if (password !== DEFAULT_PASSWORD) throw new Error("wrong-password");
     const role = email === ADMIN_EMAIL ? "admin" : "editor";
     const me = { email, role };
@@ -58,20 +59,24 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   function me() { return getMe() || { role: "viewer" }; }
   function isEditor() { const m = me(); return m.role === "editor" || m.role === "admin"; }
   function isAdmin()  { return me().role === "admin"; }
+  function isLoggedIn() { const m = me(); return !!(m && m.email); }
 
-  /* ---------- Remote + Local merge helpers ---------- */
+  /* ---------- Bootstrap ---------- */
+  const DEPS_LOCAL_KEY = "arsan_deps_v1";
+  function loadLocalDeps(){ try { return JSON.parse(localStorage.getItem(DEPS_LOCAL_KEY) || '[]'); } catch(_){ return []; } }
+  function saveLocalDeps(deps){ localStorage.setItem(DEPS_LOCAL_KEY, JSON.stringify(deps)); }
+
   async function bootstrap() {
     if (!hasBackend()) return { sops:{}, deps: loadLocalDeps() };
     try { return await apiFetch("/api/bootstrap"); }
     catch(e) { console.warn("bootstrap failed, using local:", e); return { sops:{}, deps: loadLocalDeps() }; }
   }
 
-  /* ---------- SOP edits ---------- */
+  /* ---------- SOPs ---------- */
   async function updateSOP(dept, code, patch) {
     const me_ = me();
-    if (!isEditor()) throw new Error("forbidden");
+    if (!me_ || !me_.email) throw new Error("login-required");
     if (hasBackend()) return apiFetch(`/api/sops/${dept}/${code}`, { method: "PUT", body: patch });
-    // local: store in arsan_sops_<dept>
     const key = `arsan_sops_${dept}`;
     const raw = localStorage.getItem(key);
     const arr = raw ? JSON.parse(raw) : {};
@@ -80,9 +85,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     logLocalActivity({ actor: me_.email, action: "edit-sop", target: `${dept}/${code}`, fields: Object.keys(patch) });
     return { ok: true };
   }
-
   async function addSOP(dept, sop) {
-    if (!isEditor()) throw new Error("forbidden");
+    if (!me() || !me().email) throw new Error("login-required");
     if (hasBackend()) return apiFetch(`/api/sops/${dept}`, { method: "POST", body: sop });
     const key = `arsan_sops_${dept}`;
     const raw = localStorage.getItem(key);
@@ -92,12 +96,9 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     logLocalActivity({ actor: me().email, action: "add-sop", target: `${dept}/${sop.code}`, title: sop.title });
     return { ok: true };
   }
-
   async function renameSOP(dept, code, changes) {
-    // changes: { newDept?, newCode?, newTitle? }
-    if (!isEditor()) throw new Error("forbidden");
+    if (!me() || !me().email) throw new Error("login-required");
     if (hasBackend()) return apiFetch(`/api/sops/${dept}/${code}/rename`, { method: "POST", body: changes });
-    // local mode
     const key = `arsan_sops_${dept}`;
     const raw = localStorage.getItem(key);
     const arr = raw ? JSON.parse(raw) : {};
@@ -120,38 +121,30 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     logLocalActivity({ actor: me().email, action: "rename-sop", target: `${dept}/${code} → ${newDept}/${newCode}` });
     return { ok: true, sop: moved, dept: newDept, code: newCode };
   }
-
   async function aiParseSOP(text, opts = {}) {
-    // ask backend to turn raw text into a structured SOP
     if (!hasBackend() || !getToken()) throw new Error("backend-required");
     return apiFetch("/api/ai/parse-sop", { method: "POST", body: { text, source: opts.source || "", dept: opts.dept || "" } });
   }
 
-  /* ---------- Dependencies ---------- */
-  const DEPS_LOCAL_KEY = "arsan_deps_v1";
-  function loadLocalDeps(){ try { return JSON.parse(localStorage.getItem(DEPS_LOCAL_KEY) || '[]'); } catch(_){ return []; } }
-  function saveLocalDeps(deps){ localStorage.setItem(DEPS_LOCAL_KEY, JSON.stringify(deps)); }
-
+  /* ---------- Deps ---------- */
   async function getDeps() {
     if (hasBackend()) { try { return await apiFetch("/api/deps"); } catch(_) { return loadLocalDeps(); } }
     return loadLocalDeps();
   }
   async function addDep(dep) {
-    if (!isEditor()) throw new Error("forbidden");
+    if (!me() || !me().email) throw new Error("login-required");
     if (hasBackend()) return apiFetch("/api/deps", { method: "POST", body: dep });
     const deps = loadLocalDeps();
     dep.id = dep.id || ("d-" + Date.now());
     dep.createdBy = me().email; dep.createdAt = Date.now();
     deps.push(dep); saveLocalDeps(deps);
-    logLocalActivity({ actor: me().email, action: "add-dep", target: `${dep.from.dept}/${dep.from.code} → ${dep.to.dept}/${dep.to.code}` });
     return { ok: true, dep };
   }
   async function removeDep(id) {
-    if (!isEditor()) throw new Error("forbidden");
+    if (!me() || !me().email) throw new Error("login-required");
     if (hasBackend()) return apiFetch(`/api/deps/${id}`, { method: "DELETE" });
     const deps = loadLocalDeps().filter(d => d.id !== id);
     saveLocalDeps(deps);
-    logLocalActivity({ actor: me().email, action: "delete-dep", target: id });
     return { ok: true };
   }
 
@@ -169,11 +162,10 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     const list = raw ? JSON.parse(raw) : [];
     list.push(msg);
     localStorage.setItem(CHAT_LOCAL_PREFIX + channel, JSON.stringify(list));
-    logLocalActivity({ actor: me().email, action: "chat", target: `#${channel}`, preview: text.slice(0,80) });
     return { ok: true, msg };
   }
 
-  /* ---------- Activity Log (admin only sees all) ---------- */
+  /* ---------- Activity ---------- */
   const ACT_LOCAL_KEY = "arsan_activity_local";
   function logLocalActivity(entry){
     try {
@@ -189,7 +181,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     try { return JSON.parse(localStorage.getItem(ACT_LOCAL_KEY) || '[]'); } catch(_){ return []; }
   }
 
-  /* ---------- Users (admin only) ---------- */
+  /* ---------- Users ---------- */
   async function getUsers() {
     if (!isAdmin()) throw new Error("admin-only");
     if (hasBackend()) return apiFetch("/api/users");
@@ -204,7 +196,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       status: opts.status || "active",
       permissions: opts.permissions || null
     }});
-    return { ok: true, note: "local mode — no shared users" };
+    return { ok: true, note: "local mode" };
   }
   async function updateUser(email, patch) {
     if (!isAdmin()) throw new Error("admin-only");
@@ -220,6 +212,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   }
   async function inviteUser(email, opts = {}) {
     if (!isAdmin()) throw new Error("admin-only");
+    // Support both signatures: inviteUser({email, role, ...}) or inviteUser(email, {role,...})
+    if (typeof email === 'object' && email) { opts = email; email = opts.email; }
     if (hasBackend()) return apiFetch("/api/users/invite", { method:"POST", body: {
       email, role: opts.role || "editor", departments: opts.departments || []
     }});
@@ -245,7 +239,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     throw new Error("backend-required");
   }
 
-  /* ---------- Slack webhook (admin only) ---------- */
+  /* ---------- Slack ---------- */
   const SLACK_LOCAL_KEY = "arsan_slack_webhook";
   async function getSlackWebhook() {
     if (!isAdmin()) throw new Error("admin-only");
@@ -263,16 +257,12 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   async function ai(message, opts = {}) {
     const history = opts.history || [];
     const system  = opts.system;
-    // Prefer Worker if backend + logged in
     if (hasBackend() && getToken()) {
       try {
         const r = await apiFetch("/api/ai", { method:"POST", body: { message, history, system } });
         return r.reply || "";
-      } catch (e) {
-        console.warn("worker AI failed, falling back:", e);
-      }
+      } catch (e) { console.warn("worker AI failed:", e); }
     }
-    // Fallback: claude.ai artifact runtime (only works inside claude.ai preview)
     if (window.claude && typeof window.claude.complete === "function") {
       try {
         const msgs = [...history, { role: "user", content: message }];
@@ -282,53 +272,10 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     throw new Error("ai-unavailable");
   }
 
-  /* ---------- Announcements ---------- */
-  async function getAnnouncements(){
-    if (hasBackend()) {
-      try {
-        const list = await apiFetch("/api/announcements");
-        // map backend {text, kind} -> frontend {title, body, priority}
-        return (Array.isArray(list) ? list : []).map(a => {
-          if (a.title !== undefined) return a; // already mapped
-          const raw = (a.text || "").toString();
-          const nl = raw.indexOf("\n");
-          const title = nl >= 0 ? raw.slice(0, nl) : raw;
-          const body  = nl >= 0 ? raw.slice(nl+1) : "";
-          return { id: a.id, ts: a.ts, author: a.author, title, body, priority: a.kind || "normal" };
-        });
-      } catch(_){}
-    }
-    try { return JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]"); } catch(_){ return []; }
-  }
-  async function addAnnouncement(a){
-    if (hasBackend() && getToken()) {
-      try {
-        const payload = {
-          text: (a.title ? a.title + "\n" : "") + (a.body || ""),
-          kind: a.priority || "info",
-        };
-        const res = await apiFetch("/api/announcements", { method: "POST", body: payload });
-        return res.announcement || a;
-      } catch(_){}
-    }
-    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
-    list.unshift(a);
-    localStorage.setItem("arsan_announcements_v1", JSON.stringify(list.slice(0, 50)));
-    return a;
-  }
-  async function deleteAnnouncement(id){
-    if (hasBackend() && getToken()) {
-      try { return await apiFetch("/api/announcements/" + encodeURIComponent(id), { method: "DELETE" }); } catch(_){}
-    }
-    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
-    const next = list.filter(x => x.id !== id);
-    localStorage.setItem("arsan_announcements_v1", JSON.stringify(next));
-    return { ok: true };
-  }
-
   /* ---------- Expose ---------- */
   window.ArsanAPI = {
-    hasBackend, getToken, me, isEditor, isAdmin,
+    __loaded: true,
+    hasBackend, getToken, me, isEditor, isAdmin, isLoggedIn,
     login, logout,
     bootstrap,
     updateSOP, addSOP, renameSOP, aiParseSOP,
@@ -338,7 +285,6 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getUsers, addUser, updateUser, disableUser, enableUser, removeUser,
     inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
-    getAnnouncements, addAnnouncement, deleteAnnouncement,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };

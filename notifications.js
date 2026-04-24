@@ -19,16 +19,40 @@
   function t(ar, en){ return lang() === 'en' ? en : ar; }
 
   // ============ Storage ============
+  // Normalize announcements from mixed sources (backend uses text/kind,
+  // local/composer uses body/priority). This is why items sometimes looked
+  // blank — the renderer reads body/priority, but backend responses were
+  // returning text/kind only.
+  function normalizeAnn(a){
+    if (!a || typeof a !== 'object') return null;
+    const kind = a.priority || a.kind || 'normal';
+    return {
+      id: a.id || ('a-' + (a.ts || Date.now()) + '-' + Math.random().toString(36).slice(2,6)),
+      ts: a.ts || Date.now(),
+      author: a.author || '',
+      title: a.title || '',
+      body: a.body || a.text || '',
+      priority: kind === 'urgent' || kind === 'warn' || kind === 'success' ? kind : 'normal',
+    };
+  }
   async function loadAnnouncements(){
+    let list = null;
     if (hasBackend() && getAPI().getAnnouncements) {
-      try { return await getAPI().getAnnouncements(); } catch(_){}
+      try { list = await getAPI().getAnnouncements(); } catch(_){ list = null; }
     }
-    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
-    catch(_){ return []; }
+    if (!Array.isArray(list)) {
+      try { list = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+      catch(_){ list = []; }
+    }
+    // Always normalize so renderers see the same shape no matter the source.
+    return list.map(normalizeAnn).filter(Boolean);
   }
   async function saveAnnouncement(a){
     if (hasBackend() && getAPI().addAnnouncement) {
-      try { return await getAPI().addAnnouncement(a); } catch(_){}
+      try {
+        const saved = await getAPI().addAnnouncement(a);
+        return normalizeAnn(saved || a);
+      } catch(_){}
     }
     const list = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
     list.unshift(a);
@@ -359,7 +383,7 @@
   }
 
   // ============ Admin composer (exposed) ============
-  async function postAnnouncement({title, body, priority='normal'}){
+  async function postAnnouncement({title, body, priority='normal', notifyAll=true}){
     if (!title || !title.trim()) throw new Error(t('العنوان مطلوب','Title required'));
     const a = {
       id: 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
@@ -367,11 +391,13 @@
       author: me().email || 'admin',
       title: title.trim(),
       body: (body || '').trim(),
-      priority
+      priority,
+      notifyAll
     };
-    await saveAnnouncement(a);
+    const res = await saveAnnouncement(a);
     await updateBadge();
-    return a;
+    // Return the server response (with .slack info) if available, else the local object
+    return (res && typeof res === 'object') ? res : a;
   }
 
   // ============ Inject bell into sidebar header ============

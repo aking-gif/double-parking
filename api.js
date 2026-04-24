@@ -253,6 +253,77 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     return { ok: true };
   }
 
+  /* ---------- Announcements ---------- */
+  async function getAnnouncements() {
+    if (hasBackend()) {
+      try { return await apiFetch("/api/announcements"); }
+      catch(_) { return []; }
+    }
+    return [];
+  }
+  async function addAnnouncement(a) {
+    if (!isAdmin()) throw new Error("admin-only");
+    // Map composer shape → Worker payload. Keep `body` for backwards compat.
+    const payload = {
+      title: a.title || "",
+      text:  a.body || a.text || "",
+      kind:  a.priority === "urgent" ? "urgent" : (a.kind || "info"),
+      notifyAll: a.notifyAll !== false
+    };
+    if (hasBackend()) return apiFetch("/api/announcements", { method: "POST", body: payload });
+    return { ok: false, note: "local-only" };
+  }
+  async function deleteAnnouncement(id) {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch(`/api/announcements/${encodeURIComponent(id)}`, { method: "DELETE" });
+    return { ok: true };
+  }
+
+  /* ---------- Announcements ---------- */
+  async function getAnnouncements() {
+    if (hasBackend()) {
+      try {
+        const r = await apiFetch("/api/announcements");
+        // Worker returns either an array or {list:[...]}
+        return Array.isArray(r) ? r : (r.list || r.announcements || []);
+      } catch (e) { /* fallthrough to local */ }
+    }
+    try { return JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]"); }
+    catch (_) { return []; }
+  }
+  async function addAnnouncement(a) {
+    if (!isAdmin()) throw new Error("admin-only");
+    // Normalize payload for the Worker. Also surface notification prefs
+    // (notifyAll=true → DM every user via Bot Token when configured).
+    const payload = {
+      title: a.title || "",
+      text: a.body || a.text || "",
+      kind: a.priority === "urgent" ? "urgent"
+          : a.priority === "warn"   ? "warn"
+          : a.priority === "success"? "success"
+          : "info",
+      // Always broadcast to the Slack channel (if a webhook is configured);
+      // optionally DM each user (if a Bot Token is configured).
+      notifyAll: a.notifyAll !== false,
+    };
+    if (hasBackend()) {
+      const r = await apiFetch("/api/announcements", { method:"POST", body: payload });
+      return r.announcement || r;
+    }
+    // Local fallback
+    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
+    list.unshift({ ...a, id: a.id || ("a-" + Date.now()) });
+    localStorage.setItem("arsan_announcements_v1", JSON.stringify(list.slice(0, 50)));
+    return a;
+  }
+  async function deleteAnnouncement(id) {
+    if (!isAdmin()) throw new Error("admin-only");
+    if (hasBackend()) return apiFetch(`/api/announcements/${encodeURIComponent(id)}`, { method:"DELETE" });
+    const list = JSON.parse(localStorage.getItem("arsan_announcements_v1") || "[]");
+    localStorage.setItem("arsan_announcements_v1", JSON.stringify(list.filter(x => x.id !== id)));
+    return { ok: true };
+  }
+
   /* ---------- AI ---------- */
   async function ai(message, opts = {}) {
     const history = opts.history || [];
@@ -285,6 +356,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getUsers, addUser, updateUser, disableUser, enableUser, removeUser,
     inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
+    getAnnouncements, addAnnouncement, deleteAnnouncement,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };

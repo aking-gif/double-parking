@@ -382,6 +382,15 @@
               <button type="button" data-p="urgent" class="urgent">${t('عاجل','Urgent')}</button>
             </div>
           </div>
+          <div style="margin-top:14px;padding:12px 14px;background:rgba(212,168,60,.08);border:1px solid rgba(212,168,60,.25);border-radius:10px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
+              <input type="checkbox" id="arsan-ann-slack" checked style="width:18px;height:18px;accent-color:#d4a83c;cursor:pointer">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:14px;color:#3d2f0e">${t('إرسال إشعار Slack للجميع','Send Slack notification to everyone')}</div>
+                <div style="font-size:11.5px;color:#7a5f1a;margin-top:2px">${t('يُرسل للقناة العامة ورسائل خاصة للمستخدمين المتصلين','Posts to the channel and DMs all connected users')}</div>
+              </div>
+            </label>
+          </div>
           <div class="arsan-ann-existing" id="arsan-ann-existing">
             <h4>${t('الإعلانات السابقة','Previous Announcements')}</h4>
             <div class="arsan-ann-list"></div>
@@ -413,11 +422,24 @@
       const btn = e.currentTarget;
       const title = overlay.querySelector('#arsan-ann-title').value.trim();
       const body = overlay.querySelector('#arsan-ann-body').value.trim();
+      const notifySlack = overlay.querySelector('#arsan-ann-slack')?.checked !== false;
       if (!title) { alert(t('العنوان مطلوب','Title required')); return; }
       btn.disabled = true; btn.textContent = t('جاري النشر…','Publishing…');
       try {
-        await window.ArsanNotify.post({ title, body, priority });
+        const res = await window.ArsanNotify.post({ title, body, priority, notifyAll: notifySlack });
         close();
+        // Surface Slack delivery status briefly
+        if (notifySlack && res && res.slack) {
+          const ok = res.slack.channel && res.slack.channel.ok;
+          const dmCount = (res.slack.dms || []).filter(x => x.ok).length;
+          const msg = ok
+            ? t(`تم النشر ✓ وأُرسل إشعار Slack${dmCount ? ` + ${dmCount} رسالة خاصة` : ''}`,
+                `Published ✓ Slack notified${dmCount ? ` + ${dmCount} DMs` : ''}`)
+            : t('تم النشر ✓ (لم يُرسل Slack — تحقّق من إعداد الويب هوك)',
+                'Published ✓ (Slack not delivered — check webhook setup)');
+          if (window.ArsanToast?.show) window.ArsanToast.show(msg);
+          else console.log('[Arsan]', msg);
+        }
       } catch(err){
         btn.disabled = false; btn.textContent = t('نشر الإعلان','Publish');
         alert(t('تعذّر النشر: ','Failed: ') + (err.message || err));

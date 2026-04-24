@@ -1015,10 +1015,13 @@ export default {
         if (!text) return json({ error: "empty" }, 400, req);
         const raw = await env.ARSAN.get(KEYS.announcements);
         const list = raw ? JSON.parse(raw) : [];
+        const kind = (body.kind || "info").toString();
+        const title = (body.title || "").toString().trim().slice(0, 140);
         const a = {
           id: "ann-" + Date.now(),
+          title: title || null,
           text: text.slice(0, 500),
-          kind: (body.kind || "info").toString(),
+          kind,
           author: ad.session.email,
           ts: Date.now(),
         };
@@ -1026,7 +1029,70 @@ export default {
         // cap at 50
         await env.ARSAN.put(KEYS.announcements, JSON.stringify(list.slice(0, 50)));
         await logActivity(env, { actor: ad.session.email, action: "add-announcement", target: a.id, preview: a.text.slice(0, 80) });
-        return json({ ok: true, announcement: a }, 200, req);
+
+        // ----- Fan out to Slack (non-blocking, best-effort) -----
+        // 1) Channel webhook (always try if configured)
+        // 2) DM every user via Bot Token (if configured AND body.notifyAll !== false)
+        const slackResults = { channel: null, dms: [] };
+        try {
+          const emoji = kind === "urgent" ? "🚨" : kind === "warn" ? "⚠️" : kind === "success" ? "✅" : "📢";
+          const header = title ? `*${emoji} ${title}*` : `*${emoji} إعلان من ${ad.session.email}*`;
+          const origin = req.headers.get("origin") || req.headers.get("referer") || "";
+          const linkLine = origin ? `\n\n<${origin}|فتح المنصّة>` : "";
+          const slackText = `${header}\n\n${a.text}${linkLine}`;
+
+          // Channel webhook
+          const webhookUrl = env.SLACK_WEBHOOK_URL || await env.ARSAN.get(KEYS.slack);
+          if (webhookUrl) {
+            try {
+              const r = await fetch(webhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: slackText }),
+              });
+              slackResults.channel = { ok: r.ok, status: r.status };
+            } catch (e) { slackResults.channel = { ok: false, error: e.message }; }
+          } else {
+            slackResults.channel = { ok: false, reason: "no-webhook" };
+          }
+
+          // Optional: DM all users via Bot Token
+          if (env.SLACK_BOT_TOKEN && body.notifyAll !== false) {
+            const usersRaw = await env.ARSAN.get(KEYS.users);
+            const users = usersRaw ? JSON.parse(usersRaw) : [];
+            // Cap the fan-out so we don't hit Slack rate limits on huge lists
+            const targets = users
+              .filter(u => u && u.email && u.status !== "disabled")
+              .slice(0, 50);
+            for (const u of targets) {
+              try {
+                const lu = await fetch(`https://slack.com/api/users.lookupByEmail?email=${encodeURIComponent(u.email)}`, {
+                  headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` }
+                });
+                const luj = await lu.json();
+                if (!luj.ok) { slackResults.dms.push({ email: u.email, ok: false, error: luj.error }); continue; }
+                const dm = await fetch("https://slack.com/api/chat.postMessage", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+                    "Content-Type": "application/json; charset=utf-8"
+                  },
+                  body: JSON.stringify({
+                    channel: luj.user.id,
+                    text: slackText,
+                    unfurl_links: false
+                  })
+                });
+                const dmj = await dm.json();
+                slackResults.dms.push({ email: u.email, ok: !!dmj.ok, error: dmj.ok ? null : dmj.error });
+              } catch (e) {
+                slackResults.dms.push({ email: u.email, ok: false, error: e.message });
+              }
+            }
+          }
+        } catch (e) { /* non-fatal */ }
+
+        return json({ ok: true, announcement: a, slack: slackResults }, 200, req);
       }
       if (path.match(/^\/api\/announcements\/[^\/]+$/) && method === "DELETE") {
         const ad = await requireAdmin(req, env);

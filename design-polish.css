@@ -1,0 +1,137 @@
+/* ================================================================
+   Arsan Design Polish — light, non-breaking visual refinements
+   ----------------------------------------------------------------
+   Goals:
+   - Soften hard shadows; tighten borders
+   - Better focus rings for keyboard users
+   - Smoother card hovers
+   - More breathable spacing on buttons/chips
+   - Print-cleaner: hide FABs and topbar when printing
+   - Do NOT change brand colors or typography
+   ================================================================ */
+
+/* Softer, less "clippy" shadows */
+:root{
+  --arsan-shadow-xs: 0 1px 2px rgba(40,30,20,.06);
+  --arsan-shadow-sm: 0 2px 6px rgba(40,30,20,.08);
+  --arsan-shadow-md: 0 6px 18px rgba(40,30,20,.10);
+  --arsan-shadow-lg: 0 14px 36px rgba(40,30,20,.14);
+}
+
+/* Cards — gentler hover (works for both dashboard SOP cards & dept cards) */
+.card,
+.dept-card{
+  transition: transform .18s ease,
+              box-shadow  .18s ease,
+              border-color .18s ease;
+}
+.card:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--arsan-shadow-md);
+}
+
+/* Topbar pills — more breathing room, cleaner edges */
+.arsan-topbar-btn{
+  padding: 7px 12px !important;
+  border-radius: 10px !important;
+  transition: background .15s ease, border-color .15s ease, transform .12s ease !important;
+}
+.arsan-topbar-btn:hover{
+  transform: translateY(-1px);
+}
+.arsan-topbar-btn:active{
+  transform: translateY(0);
+}
+
+/* Keyboard focus — visible on everything focusable (accessibility) */
+:focus-visible{
+  outline: 2px solid rgba(180,140,80,.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.arsan-topbar-btn:focus-visible,
+.theme-toggle:focus-visible,
+.dept-card:focus-visible,
+.card:focus-visible,
+.chip:focus-visible,
+.arsan-logout-inline:focus-visible{
+  outline-offset: 3px;
+}
+
+/* Chips bar — smoother */
+#chips .chip{
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+#chips .chip:hover{
+  transform: translateY(-1px);
+}
+
+/* Scrollbar — subtle, on-brand */
+@supports (scrollbar-width: thin){
+  html{
+    scrollbar-width: thin;
+    scrollbar-color: rgba(180,140,80,.4) transparent;
+  }
+}
+::-webkit-scrollbar{ width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb{
+  background: rgba(180,140,80,.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover{
+  background: rgba(180,140,80,.6);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Selection — brand-tinted */
+::selection{
+  background: rgba(180,140,80,.28);
+  color: inherit;
+}
+
+/* Placeholder inputs — slightly lighter */
+input::placeholder,
+textarea::placeholder{
+  opacity: .55;
+}
+
+/* Tighter modal headers where applicable */
+.modal h2,
+.arsan-modal h2{
+  margin-top: 0;
+}
+
+/* --- Print (save as PDF) --- */
+@media print{
+  .arsan-topbar,
+  #arsan-qa,
+  #arsan-logout-fab,
+  #arsan-fav-chip,
+  #chips,
+  .updates-banner,
+  .notifications-bell,
+  .admin-fab,
+  .arsan-fav-star{
+    display: none !important;
+  }
+  .wrap, .container{
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .card, .dept-card{
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+  body{ background: #fff !important; }
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

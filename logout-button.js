@@ -122,30 +122,92 @@
     document.head.appendChild(s);
   }
 
-  async function doLogout(){
-    if (!confirm('هل تريد تسجيل الخروج؟')) return;
-    try {
-      if (window.ArsanAPI?.logout) await window.ArsanAPI.logout();
-      else if (window.API?.logout) await window.API.logout();
-      else if (window.API_BASE) {
-        const token = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
-        if (token) {
-          await fetch(window.API_BASE + '/api/logout', {
-            method:'POST',
-            headers:{ 'Authorization': 'Bearer ' + token },
-          }).catch(()=>{});
-        }
-      }
-    } catch(_){}
+  let __logoutBusy = false;
+  async function doLogout(btn){
+    if (__logoutBusy) return;
+    // Non-blocking confirm via micro-popover to avoid UI freeze
+    if (!(await confirmLogout(btn))) return;
+    __logoutBusy = true;
+    if (btn) { btn.disabled = true; btn.style.opacity = '.6'; btn.style.pointerEvents = 'none'; }
+    // Clear client state FIRST so UI unfreezes even if backend hangs
     try {
       localStorage.removeItem('arsan_token_v1');
       localStorage.removeItem('arsan_token');
       localStorage.removeItem('arsan_me_v1');
       localStorage.removeItem('arsan_me');
     } catch(_){}
+    // Fire backend logout but don't block navigation on it
+    try {
+      const token = (window.ArsanAPI && window.ArsanAPI.getToken && window.ArsanAPI.getToken()) ||
+                    localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
+      const base = window.API_BASE || '';
+      if (token && base) {
+        // keepalive = request survives navigation; 1s timeout
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 1000);
+        fetch(base + '/api/logout', {
+          method:'POST',
+          headers:{ 'Authorization': 'Bearer ' + token },
+          keepalive:true,
+          signal: ctrl.signal,
+        }).catch(()=>{});
+      }
+    } catch(_){}
+    // Navigate immediately — don't wait
     const onIndex = /index\.html?$|\/$/.test(location.pathname);
     if (onIndex) location.reload();
-    else location.href = 'index.html';
+    else location.replace('index.html');
+  }
+
+  /* Lightweight non-blocking confirmation popover near the button */
+  function confirmLogout(anchor){
+    return new Promise(resolve => {
+      document.getElementById('arsan-logout-confirm')?.remove();
+      const pop = document.createElement('div');
+      pop.id = 'arsan-logout-confirm';
+      pop.style.cssText = `
+        position:fixed; z-index:10000;
+        background:#fff; color:#111;
+        border:1px solid rgba(0,0,0,.12);
+        border-radius:12px;
+        box-shadow:0 12px 40px rgba(0,0,0,.18);
+        padding:14px 16px; font:inherit; font-size:13px;
+        min-width:240px; max-width:300px;
+        animation: arsan-logout-pop .14s ease;
+      `;
+      pop.innerHTML =
+        '<div style="margin-bottom:10px;font-weight:600">تسجيل الخروج من الحساب؟</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+          '<button type="button" data-a="cancel" style="padding:6px 12px;border:1px solid rgba(0,0,0,.12);background:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px">إلغاء</button>' +
+          '<button type="button" data-a="ok" style="padding:6px 12px;border:1px solid #b4423c;background:#b4423c;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600">خروج</button>' +
+        '</div>';
+      // Position under the anchor (or center if no anchor)
+      try {
+        const r = anchor?.getBoundingClientRect?.();
+        if (r) {
+          pop.style.top = Math.min(window.innerHeight - 120, r.bottom + 8) + 'px';
+          pop.style.insetInlineStart = Math.max(8, r.left - 8) + 'px';
+        } else {
+          pop.style.top = '80px';
+          pop.style.insetInlineStart = '24px';
+        }
+      } catch(_){
+        pop.style.top = '80px'; pop.style.insetInlineStart = '24px';
+      }
+      const cleanup = (val) => { pop.remove(); document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDoc, true); resolve(val); };
+      const onKey = (e) => { if (e.key==='Escape') cleanup(false); if (e.key==='Enter') cleanup(true); };
+      const onDoc = (e) => { if (!pop.contains(e.target) && e.target !== anchor) cleanup(false); };
+      pop.addEventListener('click', (e) => {
+        const a = e.target.closest('[data-a]'); if (!a) return;
+        cleanup(a.dataset.a === 'ok');
+      });
+      document.body.appendChild(pop);
+      // Defer global listeners a tick to avoid catching the same click
+      setTimeout(() => {
+        document.addEventListener('keydown', onKey);
+        document.addEventListener('mousedown', onDoc, true);
+      }, 0);
+    });
   }
 
   /* Find the right spot: after themeToggle, falling back to langToggle,
@@ -193,7 +255,7 @@
       '</svg>' +
       '<span class="arsan-logout-label">خروج</span>' +
       (m?.email ? '<span class="arsan-logout-email">' + m.email + '</span>' : '');
-    btn.addEventListener('click', doLogout);
+    btn.addEventListener('click', (e) => { e.preventDefault(); doLogout(btn); });
     return btn;
   }
 
@@ -245,19 +307,31 @@
       '</svg>' +
       '<span>خروج</span>' +
       (m?.email ? '<span class="arsan-logout-email">' + m.email + '</span>' : '');
-    fab.addEventListener('click', doLogout);
+    fab.addEventListener('click', (e) => { e.preventDefault(); doLogout(fab); });
     document.body.appendChild(fab);
   }
 
   function boot(){
     render();
-    // Retry a few times — the dashboard injects its topbar after bootstrap,
-    // which may run after this script.
-    let tries = 0;
-    const iv = setInterval(() => {
+    // Observe DOM mutations instead of polling — stops as soon as the
+    // button lands in its final slot, and avoids the CPU/UI jank of a
+    // recurring setInterval.
+    let mounted = !!document.getElementById('arsan-logout-inline');
+    const obs = new MutationObserver(() => {
+      // Cheap early-exit: if our button is where we want it, disconnect.
+      const el = document.getElementById('arsan-logout-inline');
+      const anchor = document.getElementById('themeToggle') ||
+                     document.getElementById('langToggle') ||
+                     document.getElementById('changeDeptBtn');
+      if (el && anchor && el.parentElement === anchor.parentElement) {
+        mounted = true;
+        return; // keep observing briefly for login/logout swaps
+      }
       render();
-      if (++tries > 30) clearInterval(iv);
-    }, 400);
+    });
+    obs.observe(document.body, { childList:true, subtree:true });
+    // Stop observing after 10s — the dashboard has definitely mounted by then.
+    setTimeout(() => obs.disconnect(), 10000);
     window.addEventListener('storage', render);
     window.addEventListener('arsan:login', render);
   }

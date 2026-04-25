@@ -91,11 +91,39 @@
   }
 
   function deptName(id){
-    if (window.DEPARTMENTS_CONFIG) {
-      const d = window.DEPARTMENTS_CONFIG.find(x => x.id === id);
-      if (d) return d.icon ? d.icon+' '+d.name : d.name;
-    }
+    if (!id) return '';
+    const cfg = window.DEPARTMENTS_CONFIG || {};
+    const d = cfg[id];
+    if (d) return d.icon ? d.icon+' '+(d.name || id) : (d.name || id);
+    // try custom depts cache
+    try {
+      const custom = JSON.parse(localStorage.getItem('arsan_custom_depts_v1') || '[]');
+      const c = Array.isArray(custom) && custom.find(x => x.id === id);
+      if (c) return (c.icon ? c.icon+' ' : '') + (c.name || id);
+    } catch(_){}
     return id;
+  }
+  
+  function getAllDepts(){
+    const cfg = window.DEPARTMENTS_CONFIG || {};
+    // 1) base depts (object → entries)
+    const base = Object.keys(cfg).filter(k => k && k !== 'undefined').map(id => ({
+      id,
+      name: cfg[id].icon ? cfg[id].icon+' '+(cfg[id].name||id) : (cfg[id].name||id)
+    }));
+    // 2) custom depts from localStorage (kept in sync by index.html)
+    let custom = [];
+    try {
+      const arr = JSON.parse(localStorage.getItem('arsan_custom_depts_v1') || '[]');
+      if (Array.isArray(arr)) custom = arr.filter(d => d && d.id).map(d => ({
+        id: d.id,
+        name: (d.icon ? d.icon+' ' : '') + (d.name || d.id)
+      }));
+    } catch(_){}
+    // merge unique
+    const seen = new Set(base.map(d => d.id));
+    custom.forEach(c => { if (!seen.has(c.id)) { base.push(c); seen.add(c.id); } });
+    return base;
   }
 
   // ===== state =====
@@ -121,7 +149,7 @@
     }
     const unread = state.inbox.filter(m => !m.read).length;
     const myDepts = (me()?.departments || []);
-    const allDepts = (window.DEPARTMENTS_CONFIG || []).map(d => ({id:d.id, name:deptName(d.id)}));
+    const allDepts = getAllDepts();
 
     modal.innerHTML = `
       <div class="amsg-modal" onclick="event.stopPropagation()">

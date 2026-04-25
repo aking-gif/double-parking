@@ -1729,12 +1729,36 @@ if (!DEPT) {
         DEPT.name = found.name;
         DEPT.titleHighlight = found.name;
         DEPT.subtitle = found.desc || DEPT.subtitle;
-        // Re-render header
-        const h1 = document.querySelector('h1.title');
-        if (h1) h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix}`;
-        const sub = document.querySelector('.subtitle');
-        if (sub) sub.textContent = DEPT.subtitle;
-        document.title = DEPT.name + ' — Arsann SOPs';
+        // cache locally so future loads don't blink
+        try {
+          localStorage.setItem('arsan_department', JSON.stringify({ id: CURRENT_DEPT_ID, name: found.name, icon: found.icon }));
+          // keep arsan_custom_depts_v1 in sync (used by messaging.js)
+          let arr = [];
+          try { arr = JSON.parse(localStorage.getItem('arsan_custom_depts_v1') || '[]'); } catch(_){}
+          if (!Array.isArray(arr)) arr = [];
+          const idx = arr.findIndex(d => d && d.id === CURRENT_DEPT_ID);
+          if (idx >= 0) arr[idx] = { ...arr[idx], ...found };
+          else arr.push(found);
+          localStorage.setItem('arsan_custom_depts_v1', JSON.stringify(arr));
+        } catch(_){}
+        // Re-render header (retry until h1 exists)
+        const updateHeader = () => {
+          const h1 = document.querySelector('h1.title') || document.querySelector('.title');
+          if (h1) {
+            h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix||''}`;
+          }
+          const sub = document.querySelector('.subtitle') || document.querySelector('p.sub');
+          if (sub) sub.textContent = DEPT.subtitle;
+          document.title = DEPT.name + ' — Arsann SOPs';
+          return !!h1;
+        };
+        if (!updateHeader()) {
+          // retry after DOM is ready
+          let tries = 0;
+          const iv = setInterval(() => {
+            if (updateHeader() || ++tries > 20) clearInterval(iv);
+          }, 250);
+        }
       }
     } catch(_) {}
   }, 100);

@@ -34,11 +34,52 @@
   function me(){
     try { return JSON.parse(localStorage.getItem('arsan_me') || '{}'); } catch(_){ return {}; }
   }
+  function profileCache(){
+    try { return JSON.parse(localStorage.getItem('arsan_profile_v1') || '{}'); } catch(_){ return {}; }
+  }
   function firstName(email){
+    // 1) من البروفايل المحفوظ (اسم حقيقي)
+    const prof = profileCache();
+    if (prof.firstName && String(prof.firstName).trim()) {
+      return String(prof.firstName).trim();
+    }
+    // 2) fallback: من الإيميل
     if (!email) return '';
     const local = String(email).split('@')[0] || '';
-    // "a.king" → "A"
     return local.split('.')[0].replace(/^./, c => c.toUpperCase());
+  }
+  function fullName(email){
+    const prof = profileCache();
+    if (prof.firstName) {
+      return (prof.firstName + (prof.lastName ? ' ' + prof.lastName : '')).trim();
+    }
+    return firstName(email);
+  }
+  function hasProfile(){
+    const prof = profileCache();
+    return !!(prof.firstName && String(prof.firstName).trim());
+  }
+
+  // جلب البروفايل من السيرفر وتخزينه (لمرة واحدة)
+  async function ensureProfile(){
+    if (hasProfile()) return;
+    try {
+      const tok = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
+      if (!tok) return;
+      const base = window.API_BASE || '';
+      const r = await fetch(base + '/api/profile', {
+        headers: { 'Authorization': 'Bearer ' + tok }
+      });
+      if (!r.ok) return;
+      const prof = await r.json();
+      if (prof && prof.firstName !== undefined) {
+        localStorage.setItem('arsan_profile_v1', JSON.stringify({
+          firstName: prof.firstName || '',
+          lastName: prof.lastName || '',
+          phone: prof.phone || ''
+        }));
+      }
+    } catch(_) {}
   }
 
   function pickQuote(){
@@ -146,16 +187,21 @@
     document.head.appendChild(s);
   }
 
-  function show(){
+  async function show(){
     if (localStorage.getItem(SHOWN_KEY) === todayStr()) return;
 
     const user = me();
     if (!user || !user.email) return; // only logged-in
+
+    // ⏳ جلب البروفايل من الـ API قبل البناء (لو أول مرة)
+    await ensureProfile();
+
     localStorage.setItem(SHOWN_KEY, todayStr());
     injectStyles();
 
     const q = pickQuote();
     const name = firstName(user.email);
+    const noProfile = !hasProfile();
     const isEn = lang() === 'en';
     const greeting = isEn
       ? (name ? `Welcome back, ${name}` : 'Welcome back')
@@ -166,6 +212,11 @@
 
     const bd = document.createElement('div');
     bd.className = 'arsan-welcome-bd';
+    const profileNudge = noProfile
+      ? (isEn
+          ? '<div style="margin-top:14px;padding:10px 14px;background:rgba(133,113,77,.08);border:1px dashed rgba(133,113,77,.3);border-radius:10px;font-size:12.5px;color:#7a5b2e">💡 Add your name in your <a href="profile.html" style="color:#85714D;font-weight:600;text-decoration:none;border-bottom:1px solid currentColor">profile</a> for personalized greetings.</div>'
+          : '<div style="margin-top:14px;padding:10px 14px;background:rgba(133,113,77,.08);border:1px dashed rgba(133,113,77,.3);border-radius:10px;font-size:12.5px;color:#7a5b2e">💡 أضف اسمك من <a href="profile.html" style="color:#85714D;font-weight:600;text-decoration:none;border-bottom:1px solid currentColor">صفحة البروفايل</a> لتظهر التحيات باسمك الحقيقي.</div>')
+      : '';
     bd.innerHTML = `
       <div class="arsan-welcome-card" role="dialog" aria-modal="true">
         <button class="arsan-welcome-x" type="button" aria-label="إغلاق">✕</button>
@@ -173,6 +224,7 @@
         <div class="arsan-welcome-hello">${greeting}</div>
         <h2 class="arsan-welcome-title">${q.t}</h2>
         <p class="arsan-welcome-sub">${q.s}</p>
+        ${profileNudge}
         <button class="arsan-welcome-btn" type="button">${isEn ? 'Let\'s go' : 'لنبدأ اليوم'}</button>
         <div class="arsan-welcome-date">${dateStr}</div>
       </div>

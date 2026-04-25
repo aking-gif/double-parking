@@ -192,6 +192,15 @@ input:disabled{opacity:.55;cursor:not-allowed}
     document.getElementById('lastName').value  = prof.lastName  || '';
     document.getElementById('phone').value     = prof.phone     || '';
 
+    // 🔄 cache locally so welcome-popup & other pages pick up the real name
+    try {
+      localStorage.setItem('arsan_profile_v1', JSON.stringify({
+        firstName: prof.firstName || '',
+        lastName: prof.lastName || '',
+        phone: prof.phone || ''
+      }));
+    } catch(_){}
+
     refreshHero(me.email, me.role, prof.firstName, prof.lastName);
   }
 
@@ -228,6 +237,14 @@ input:disabled{opacity:.55;cursor:not-allowed}
         body: JSON.stringify({ firstName: fn, lastName: ln, phone: ph })
       });
       if (r.error) throw new Error(r.error);
+      // 🔄 cache locally so welcome-popup & sidebar pick it up instantly
+      try {
+        localStorage.setItem('arsan_profile_v1', JSON.stringify({
+          firstName: fn, lastName: ln, phone: ph
+        }));
+        // reset welcome shown flag so user gets the personalized greeting next time
+        localStorage.removeItem('arsan_welcome_shown_v1');
+      } catch(_){}
       showToast('تم الحفظ ✓');
       const email = document.getElementById('emailField').value;
       refreshHero(email, null, fn, ln);

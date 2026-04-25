@@ -466,6 +466,16 @@
   }
 
   // ============================================================
+  // Helper: قراءة الـ token من كلا الاسمين (auth-gate يستخدم _v1)
+  // ============================================================
+  function getArsanToken() {
+    return localStorage.getItem('arsan_token_v1')
+        || localStorage.getItem('arsan_token')
+        || '';
+  }
+  window.getArsanToken = getArsanToken;
+
+  // ============================================================
   // 2. الإدارات الافتراضية
   // ============================================================
   const DEPARTMENTS = [
@@ -525,7 +535,7 @@
   // ============================================================
   async function loadCustomDepts() {
     try {
-      const token = localStorage.getItem('arsan_token') || '';
+      const token = getArsanToken();
       if (!token) return;
       const res = await fetch(window.API_BASE + '/api/custom-depts', {
         headers: { 'Authorization': 'Bearer ' + token }
@@ -613,7 +623,7 @@
       if (!id || !name) { err.textContent = 'المعرّف والاسم مطلوبان.'; return; }
       if (DEPARTMENTS.find(x => x.id === id)) { err.textContent = 'هذا المعرّف موجود بالفعل.'; return; }
       try {
-        const token = localStorage.getItem('arsan_token') || '';
+        const token = getArsanToken();
         const res = await fetch(window.API_BASE + '/api/custom-depts', {
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + token },
@@ -696,6 +706,226 @@
   });
 
   // ============================================================
+  // 11.5 — Modals عامة (بنية موحّدة)
+  // ============================================================
+  function openModal(title, bodyHTML, opts = {}) {
+    const bd = document.createElement('div');
+    bd.className = 'modal-bd';
+    bd.innerHTML = `
+      <div class="modal" style="max-width:${opts.width || 520}px">
+        <h2>${title}</h2>
+        ${opts.subtitle ? `<p class="muted">${opts.subtitle}</p>` : ''}
+        <div id="mdBody">${bodyHTML}</div>
+        <div class="modal-err" id="mdErr"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="mdClose">إغلاق</button>
+          ${opts.saveLabel ? `<button class="btn btn-primary" id="mdSave">${opts.saveLabel}</button>` : ''}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bd);
+    bd.onclick = (e) => { if (e.target === bd) bd.remove(); };
+    bd.querySelector('#mdClose').onclick = () => bd.remove();
+    if (opts.saveLabel && opts.onSave) {
+      bd.querySelector('#mdSave').onclick = () => opts.onSave(bd);
+    }
+    if (opts.onMount) opts.onMount(bd);
+    return bd;
+  }
+
+  async function apiCall(path, opts = {}) {
+    const token = getArsanToken();
+    const res = await fetch(window.API_BASE + path, {
+      method: opts.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    return data;
+  }
+
+  // ============================================================
+  // 11.6 — إعلان جديد
+  // ============================================================
+  function showAnnounceModal() {
+    openModal('📢 إعلان جديد', `
+      <label>عنوان الإعلان *</label>
+      <input id="aTitle" type="text" placeholder="مثال: اجتماع طارئ يوم الأحد">
+      <label>المحتوى *</label>
+      <textarea id="aBody" rows="4" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--ink);resize:vertical" placeholder="تفاصيل الإعلان..."></textarea>
+      <label>الأهمية</label>
+      <select id="aPriority" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--ink)">
+        <option value="info">عادي</option>
+        <option value="warning">مهم</option>
+        <option value="urgent">عاجل</option>
+      </select>
+    `, {
+      saveLabel: 'نشر الإعلان',
+      onSave: async (bd) => {
+        const title = bd.querySelector('#aTitle').value.trim();
+        const body = bd.querySelector('#aBody').value.trim();
+        const priority = bd.querySelector('#aPriority').value;
+        const err = bd.querySelector('#mdErr');
+        if (!title || !body) { err.textContent = 'العنوان والمحتوى مطلوبان.'; return; }
+        try {
+          await apiCall('/api/announcements', {
+            method: 'POST',
+            body: { title, body, priority, ts: Date.now() }
+          });
+          bd.remove();
+          alert('✅ تم نشر الإعلان');
+        } catch (e) { err.textContent = 'خطأ: ' + e.message; }
+      }
+    });
+  }
+
+  // ============================================================
+  // 11.7 — شريط التحديثات (Google Doc URL)
+  // ============================================================
+  function showUpdatesModal() {
+    openModal('💬 شريط التحديثات', `
+      <p class="muted" style="margin-bottom:10px">رابط Google Doc يُعرَض كشريط تحديثات في أعلى dashboard.</p>
+      <label>رابط المستند</label>
+      <input id="uUrl" type="url" placeholder="https://docs.google.com/document/d/..." style="direction:ltr">
+      <p class="muted" style="font-size:11px;margin-top:8px">اتركه فارغاً لإيقاف الشريط.</p>
+    `, {
+      saveLabel: 'حفظ',
+      onMount: async (bd) => {
+        try {
+          const data = await apiCall('/api/updates-url');
+          bd.querySelector('#uUrl').value = data.url || '';
+        } catch(_) {}
+      },
+      onSave: async (bd) => {
+        const url = bd.querySelector('#uUrl').value.trim();
+        const err = bd.querySelector('#mdErr');
+        try {
+          await apiCall('/api/updates-url', { method: 'POST', body: { url } });
+          bd.remove();
+          alert('✅ تم الحفظ');
+        } catch (e) { err.textContent = 'خطأ: ' + e.message; }
+      }
+    });
+  }
+
+  // ============================================================
+  // 11.8 — سجل النشاط
+  // ============================================================
+  function showActivityModal() {
+    const bd = openModal('📊 سجل النشاط', '<div id="actList" style="max-height:50vh;overflow:auto;font-size:13px">جارٍ التحميل...</div>', { width: 640 });
+    apiCall('/api/activity?limit=50').then(data => {
+      const list = bd.querySelector('#actList');
+      if (!Array.isArray(data) || data.length === 0) {
+        list.innerHTML = '<p class="muted">لا يوجد نشاط.</p>'; return;
+      }
+      list.innerHTML = data.map(a => `
+        <div style="padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px">
+          <div>
+            <div style="font-weight:600">${a.action || '—'}</div>
+            <div style="color:var(--ink-3);font-size:12px">${a.user || ''} · ${a.target || ''}</div>
+          </div>
+          <div style="color:var(--ink-3);font-size:11px;white-space:nowrap">${new Date(a.ts || 0).toLocaleString('ar')}</div>
+        </div>
+      `).join('');
+    }).catch(e => {
+      bd.querySelector('#actList').innerHTML = '<p class="muted">خطأ في التحميل: ' + e.message + '</p>';
+    });
+  }
+
+  // ============================================================
+  // 11.9 — Slack webhook
+  // ============================================================
+  function showSlackModal() {
+    openModal('🔗 ربط Slack', `
+      <p class="muted" style="margin-bottom:10px">سترسل إشعارات الإعلانات والتحديثات لـ Slack.</p>
+      <label>Webhook URL</label>
+      <input id="sUrl" type="url" placeholder="https://hooks.slack.com/services/..." style="direction:ltr">
+      <p class="muted" style="font-size:11px;margin-top:8px">احصل عليه من Slack: Apps → Incoming Webhooks.</p>
+    `, {
+      saveLabel: 'حفظ + اختبار',
+      onMount: async (bd) => {
+        try {
+          const data = await apiCall('/api/slack-webhook');
+          bd.querySelector('#sUrl').value = data.url || '';
+        } catch(_) {}
+      },
+      onSave: async (bd) => {
+        const url = bd.querySelector('#sUrl').value.trim();
+        const err = bd.querySelector('#mdErr');
+        try {
+          await apiCall('/api/slack-webhook', { method: 'POST', body: { url } });
+          if (url) {
+            await apiCall('/api/debug/slack-test', { method: 'POST' });
+            alert('✅ تم الحفظ. تحقق من Slack — يجب أن تصلك رسالة اختبار.');
+          } else {
+            alert('✅ تم إزالة الربط');
+          }
+          bd.remove();
+        } catch (e) { err.textContent = 'خطأ: ' + e.message; }
+      }
+    });
+  }
+
+  // ============================================================
+  // 11.10 — وكيل الصيانة
+  // ============================================================
+  function showMaintenanceModal() {
+    const bd = openModal('🔧 وكيل الصيانة', `
+      <p class="muted">يفحص المنصّة ويصلح المشاكل تلقائياً.</p>
+      <div id="mResult" style="margin-top:14px;padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;min-height:80px">اضغط "تشغيل الفحص" للبدء.</div>
+    `, {
+      saveLabel: 'تشغيل الفحص',
+      onSave: async (bd) => {
+        const r = bd.querySelector('#mResult');
+        r.innerHTML = '⏳ جارٍ الفحص...';
+        try {
+          const data = await apiCall('/api/maintenance/run', { method: 'POST' });
+          const checks = data.checks || [];
+          r.innerHTML = checks.length
+            ? checks.map(c => `<div style="padding:6px 0;display:flex;gap:8px;align-items:center"><span>${c.ok ? '✅' : '⚠️'}</span><span>${c.name}: ${c.message || ''}</span></div>`).join('')
+            : '<p>تم الفحص — كل شيء سليم.</p>';
+        } catch (e) { r.innerHTML = '❌ خطأ: ' + e.message; }
+      }
+    });
+  }
+
+  // ============================================================
+  // 11.11 — الإعدادات العامة
+  // ============================================================
+  function showSettingsModal() {
+    openModal('⚙️ إعدادات المنصّة', `
+      <p class="muted">روابط سريعة:</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+        <a href="users.html" style="padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--ink);display:flex;justify-content:space-between;align-items:center">
+          <span>👥 إدارة المستخدمين والصلاحيات</span><span>←</span>
+        </a>
+        <button onclick="showAnnounceModal()" style="padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;text-align:right;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;font-size:14px;color:var(--ink)">
+          <span>📢 نشر إعلان جديد</span><span>+</span>
+        </button>
+        <button onclick="showUpdatesModal()" style="padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;text-align:right;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;font-size:14px;color:var(--ink)">
+          <span>💬 ربط شريط التحديثات (Google Doc)</span><span>+</span>
+        </button>
+        <button onclick="showSlackModal()" style="padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;text-align:right;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;font-size:14px;color:var(--ink)">
+          <span>🔗 ربط Slack</span><span>+</span>
+        </button>
+        <button onclick="showActivityModal()" style="padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;text-align:right;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;font-size:14px;color:var(--ink)">
+          <span>📊 عرض سجل النشاط</span><span>←</span>
+        </button>
+      </div>
+    `, { width: 480 });
+  }
+
+  // اجعلها متاحة عالمياً (للأزرار inline في settings modal)
+  window.showAnnounceModal = showAnnounceModal;
+  window.showUpdatesModal = showUpdatesModal;
+  window.showSlackModal = showSlackModal;
+  window.showActivityModal = showActivityModal;
+
+  // ============================================================
   // 12. شريط أدوات الأدمن
   // ============================================================
   function showAdminToolbar() {
@@ -707,30 +937,12 @@
     // ربط الأزرار
     document.getElementById('atAddDept').onclick = showAddDeptModal;
     document.getElementById('atUsers').onclick = () => location.href = 'users.html';
-    document.getElementById('atAnnounce').onclick = () => {
-      localStorage.setItem('arsan_open_panel', 'announce');
-      location.href = 'dashboard.html?dept=executive';
-    };
-    document.getElementById('atUpdates').onclick = () => {
-      localStorage.setItem('arsan_open_panel', 'updates');
-      location.href = 'dashboard.html?dept=executive';
-    };
-    document.getElementById('atActivity').onclick = () => {
-      localStorage.setItem('arsan_open_panel', 'activity');
-      location.href = 'dashboard.html?dept=executive';
-    };
-    document.getElementById('atSlack').onclick = () => {
-      localStorage.setItem('arsan_open_panel', 'slack');
-      location.href = 'dashboard.html?dept=executive';
-    };
-    document.getElementById('atMaintenance').onclick = () => {
-      localStorage.setItem('arsan_open_panel', 'maintenance');
-      location.href = 'dashboard.html?dept=executive';
-    };
-    document.getElementById('atSettings').onclick = () => {
-      localStorage.setItem('arsan_open_admin', '1');
-      location.href = 'dashboard.html?dept=executive';
-    };
+    document.getElementById('atAnnounce').onclick = showAnnounceModal;
+    document.getElementById('atUpdates').onclick = showUpdatesModal;
+    document.getElementById('atActivity').onclick = showActivityModal;
+    document.getElementById('atSlack').onclick = showSlackModal;
+    document.getElementById('atMaintenance').onclick = showMaintenanceModal;
+    document.getElementById('atSettings').onclick = showSettingsModal;
   }
 
   // ============================================================

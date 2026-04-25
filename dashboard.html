@@ -1687,6 +1687,34 @@ function getCurrentDept(){
 const CURRENT_DEPT_ID = getCurrentDept();
 let DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
 
+// 🛡️ NORMALIZE: ensure DEPT (if found) has all required title fields
+// (custom departments fetched async may lack these — never show "undefined")
+if (DEPT) {
+  if (!DEPT.titlePrefix || DEPT.titlePrefix === 'undefined') {
+    DEPT.titlePrefix = 'مرجع إجراءات';
+  }
+  if (!DEPT.titleHighlight || DEPT.titleHighlight === 'undefined') {
+    DEPT.titleHighlight = DEPT.name || 'إدارة';
+  }
+  if (DEPT.titleSuffix === undefined || DEPT.titleSuffix === 'undefined') {
+    DEPT.titleSuffix = '';
+  }
+  if (!DEPT.subtitle || DEPT.subtitle === 'undefined') {
+    DEPT.subtitle = DEPT.desc || 'إجراءات هذه الإدارة';
+  }
+  if (!DEPT.groupVerb) DEPT.groupVerb = 'الإجراءات';
+  if (!Array.isArray(DEPT.groups) || !DEPT.groups.length) {
+    DEPT.groups = [
+      { id: 'general',  label: 'عام' },
+      { id: 'planning', label: 'تخطيط' },
+      { id: 'execution',label: 'تنفيذ' },
+      { id: 'review',   label: 'مراجعة' },
+      { id: 'closure',  label: 'إقفال' }
+    ];
+  }
+  if (!Array.isArray(DEPT.sops)) DEPT.sops = [];
+}
+
 // ----------------------------------------------------------------
 // Fallback for CUSTOM departments (not in DEPARTMENTS_CONFIG)
 // ----------------------------------------------------------------

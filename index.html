@@ -459,7 +459,7 @@
   function goToDept(dept) {
     try {
       localStorage.setItem('arsan_department', JSON.stringify({
-        id: dept.id, name: dept.name, ts: Date.now()
+        id: dept.id, name: dept.name, icon: dept.icon || '🏢', desc: dept.desc || '', ts: Date.now()
       }));
     } catch(_) {}
     // طريقة موثوقة 100% — رابط مباشر مع نقر
@@ -517,6 +517,8 @@
       if (!res.ok) return;
       const list = await res.json();
       if (!Array.isArray(list)) return;
+      // 💾 cache in localStorage so dashboard.html can read the name immediately
+      try { localStorage.setItem('arsan_custom_depts_v1', JSON.stringify(list)); } catch(_) {}
       list.forEach(d => {
         if (DEPARTMENTS.find(x => x.id === d.id)) return; // skip duplicates
         renderDeptCard({

@@ -5,6 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>لوحة إجراءات إدارة المشاريع — أرسان للتشغيل</title>
 <script>
+/* 🔐 HARD AUTH GUARD — يُجبر تسجيل الدخول قبل أي شيء آخر
+ * لو لا يوجد token، يُعيد التوجيه لـ index.html فوراً.
+ * هذا يمنع dashboard من العرض بدور viewer دون مصادقة. */
+(function(){
+  try {
+    var t = localStorage.getItem('arsan_token') || localStorage.getItem('arsan_token_v1');
+    if (!t || t.length < 10) {
+      // حفظ المسار الحالي للعودة بعد الدخول
+      try { sessionStorage.setItem('arsan_return_to', location.href); } catch(_){}
+      // التوجيه لـ index.html (في نفس المجلد)
+      var dest = location.pathname.replace(/dashboard\.html.*$/i, 'index.html');
+      location.replace(dest);
+      // إيقاف تنفيذ بقية الصفحة
+      throw new Error('not-logged-in');
+    }
+  } catch(e){
+    if (e.message === 'not-logged-in') throw e;
+    // أي خطأ آخر — تجاهل ودع auth-gate يتعامل
+  }
+})();
+</script>
+<script>
 /* Cache-bust on demand: if URL has ?_rb=..., every same-origin script/link we
  * encounter while parsing <body> gets ?_rb appended. Runs synchronously in <head>
  * so it fires BEFORE <body> scripts are fetched. */

@@ -32,8 +32,16 @@
     return n;
   }
 
-  function getToken(){ return localStorage.getItem(TOKEN_KEY) || ''; }
-  function setToken(t){ if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }
+  function getToken(){ return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('arsan_token') || ''; }
+  function setToken(t){
+    if (t) {
+      localStorage.setItem(TOKEN_KEY, t);
+      localStorage.setItem('arsan_token', t); // ✅ توافق مع dashboard.html القديم
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem('arsan_token');
+    }
+  }
 
   async function api(path, opts={}){
     const token = getToken();
@@ -389,7 +397,18 @@
         if (data.user || (data.email && data.role)) {
           const u = data.user || { email: data.email, role: data.role, departments: data.departments || [] };
           try { localStorage.setItem('arsan_me_v1', JSON.stringify(u)); } catch(_){}
+          // 🔁 ضمان توافق dashboard القديم مع المفتاح بدون _v1
+          try { localStorage.setItem('arsan_me', JSON.stringify(u)); } catch(_){}
         }
+        // 🔁 إعادة لـ المسار الأصلي إن وُجد (حُفظ بواسطة hard-guard في dashboard)
+        try {
+          const ret = sessionStorage.getItem('arsan_return_to');
+          if (ret && ret !== location.href) {
+            sessionStorage.removeItem('arsan_return_to');
+            location.replace(ret);
+            return;
+          }
+        } catch(_){}
         // Close gate and re-run filtering
         bd.style.animation = 'ag-in .25s reverse';
         setTimeout(() => bd.remove(), 250);

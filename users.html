@@ -4,6 +4,19 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Arsan — الصلاحيات والمستخدمون</title>
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('arsan_token') || localStorage.getItem('arsan_token_v1');
+    if (!t || t.length < 10) {
+      try { sessionStorage.setItem('arsan_return_to', location.href); } catch(_){}
+      var dest = location.pathname.replace(/users\.html.*$/i, 'index.html');
+      location.replace(dest);
+      throw new Error('not-logged-in');
+    }
+  } catch(e){ if (e.message === 'not-logged-in') throw e; }
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">

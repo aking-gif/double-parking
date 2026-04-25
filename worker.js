@@ -51,6 +51,10 @@ const KEYS = {
   webhooks: "webhooks_v1",                            // webhooks مسجّلة
   backups:  (date) => `backup_${date}_v1`,           // نسخ احتياطي يومي
   backupIndex: "backup_index_v1",                     // قائمة بكل النسخ
+  // ===== Layer 2 expansions =====
+  tasks:    "tasks_v1",                               // كل المهام
+  comments: (sopRef) => `comments_${sopRef.replace('/','_')}_v1`,  // تعليقات لكل SOP
+  approvals: "approvals_v1",                          // طلبات الاعتماد
 };
 
 function corsHeaders(req) {
@@ -1361,6 +1365,210 @@ ${clipped}
         } catch (e) {
           return json({ error: "ai-fetch-failed", message: String(e && e.message || e) }, 502, req);
         }
+      }
+
+      // ============================================================
+      // ===== LAYER 2 — Tasks / Comments / Approvals =====
+      // ============================================================
+
+      // -------- TASKS --------
+      // GET /api/tasks?sopRef=...&assignee=...&status=...
+      if (path === "/api/tasks" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.tasks);
+        let list = raw ? JSON.parse(raw) : [];
+        const sopRef = url.searchParams.get("sopRef");
+        const assignee = url.searchParams.get("assignee");
+        const status = url.searchParams.get("status");
+        const dept = url.searchParams.get("dept");
+        if (sopRef) list = list.filter(t => t.sopRef === sopRef);
+        if (assignee) list = list.filter(t => (t.assignee||"").toLowerCase() === assignee.toLowerCase());
+        if (status) list = list.filter(t => t.status === status);
+        if (dept) list = list.filter(t => t.dept === dept);
+        return json(list, 200, req);
+      }
+      // POST /api/tasks  { title, sopRef?, dept, assignee, dueDate?, priority? }
+      if (path === "/api/tasks" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        if (!body.title) return json({ error: "title-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.tasks);
+        const list = raw ? JSON.parse(raw) : [];
+        const task = {
+          id: rand(10),
+          title: String(body.title).slice(0, 200),
+          description: String(body.description || "").slice(0, 2000),
+          sopRef: body.sopRef || null,
+          dept: body.dept || null,
+          assignee: body.assignee || null,
+          createdBy: s.email,
+          createdAt: Date.now(),
+          dueDate: body.dueDate || null,
+          priority: body.priority || "normal",
+          status: "open" // open | in-progress | done | cancelled
+        };
+        list.unshift(task);
+        if (list.length > 2000) list.length = 2000;
+        await env.ARSAN.put(KEYS.tasks, JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "task-create", taskId: task.id, title: task.title, assignee: task.assignee });
+        if (task.assignee && task.assignee !== s.email) {
+          await addMention(env, { toEmail: task.assignee, fromEmail: s.email, kind: "task", message: `أُسندت لك مهمة: ${task.title}`, sopRef: task.sopRef, dept: task.dept });
+        }
+        await fireWebhook(env, "task.assigned", task);
+        return json({ ok: true, task }, 200, req);
+      }
+      // PATCH /api/tasks/:id
+      if (path.match(/^\/api\/tasks\/[^\/]+$/) && method === "PATCH") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const body = await req.json().catch(() => ({}));
+        const raw = await env.ARSAN.get(KEYS.tasks);
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(t => t.id === id);
+        if (idx < 0) return json({ error: "not-found" }, 404, req);
+        ["title","description","status","assignee","dueDate","priority"].forEach(k => {
+          if (body[k] !== undefined) list[idx][k] = body[k];
+        });
+        list[idx].updatedAt = Date.now();
+        list[idx].updatedBy = s.email;
+        await env.ARSAN.put(KEYS.tasks, JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "task-update", taskId: id, fields: Object.keys(body) });
+        return json({ ok: true, task: list[idx] }, 200, req);
+      }
+      // DELETE /api/tasks/:id
+      if (path.match(/^\/api\/tasks\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.tasks);
+        const list = (raw ? JSON.parse(raw) : []).filter(t => t.id !== id);
+        await env.ARSAN.put(KEYS.tasks, JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "task-delete", taskId: id });
+        return json({ ok: true }, 200, req);
+      }
+
+      // -------- COMMENTS (per SOP) --------
+      // GET /api/comments?sopRef=dept/code
+      if (path === "/api/comments" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const sopRef = url.searchParams.get("sopRef");
+        if (!sopRef) return json({ error: "sopRef-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.comments(sopRef));
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/comments  { sopRef, text }
+      if (path === "/api/comments" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const { sopRef, text } = body;
+        if (!sopRef || !text) return json({ error: "invalid-input" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.comments(sopRef));
+        const list = raw ? JSON.parse(raw) : [];
+        const c = {
+          id: rand(8),
+          ts: Date.now(),
+          author: s.email,
+          text: String(text).slice(0, 2000)
+        };
+        list.push(c);
+        if (list.length > 500) list.shift();
+        await env.ARSAN.put(KEYS.comments(sopRef), JSON.stringify(list));
+        // Mentions
+        const m = extractMentions(text);
+        for (const em of m.emails) {
+          await addMention(env, { toEmail: em, fromEmail: s.email, kind: "comment", message: `أُشير إليك في تعليق على ${sopRef}`, sopRef });
+        }
+        await logAudit(env, { actor: s.email, action: "comment-add", sopRef, commentId: c.id });
+        await fireWebhook(env, "comment.added", { sopRef, comment: c });
+        return json({ ok: true, comment: c }, 200, req);
+      }
+      // DELETE /api/comments/:sopRef/:id
+      if (path.match(/^\/api\/comments\/[^\/]+\/[^\/]+\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const parts = path.split("/");
+        const sopRef = parts[3] + "/" + parts[4];
+        const cid = parts[5];
+        const raw = await env.ARSAN.get(KEYS.comments(sopRef));
+        let list = raw ? JSON.parse(raw) : [];
+        const c = list.find(x => x.id === cid);
+        if (c && c.author !== s.email && s.role !== "admin") return json({ error: "forbidden" }, 403, req);
+        list = list.filter(x => x.id !== cid);
+        await env.ARSAN.put(KEYS.comments(sopRef), JSON.stringify(list));
+        return json({ ok: true }, 200, req);
+      }
+
+      // -------- APPROVALS --------
+      // GET /api/approvals?status=...&dept=...
+      if (path === "/api/approvals" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.approvals);
+        let list = raw ? JSON.parse(raw) : [];
+        const status = url.searchParams.get("status");
+        const dept = url.searchParams.get("dept");
+        if (status) list = list.filter(a => a.status === status);
+        if (dept) list = list.filter(a => a.dept === dept);
+        return json(list, 200, req);
+      }
+      // POST /api/approvals  { sopRef, dept, note? }
+      if (path === "/api/approvals" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const { sopRef, dept, note } = body;
+        if (!sopRef) return json({ error: "sopRef-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.approvals);
+        const list = raw ? JSON.parse(raw) : [];
+        const ap = {
+          id: rand(10),
+          sopRef,
+          dept: dept || sopRef.split("/")[0],
+          status: "pending", // pending | approved | rejected
+          requestedBy: s.email,
+          requestedAt: Date.now(),
+          note: String(note || "").slice(0, 500),
+          decidedBy: null,
+          decidedAt: null,
+          decisionNote: null
+        };
+        list.unshift(ap);
+        await env.ARSAN.put(KEYS.approvals, JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "approval-request", sopRef, approvalId: ap.id });
+        return json({ ok: true, approval: ap }, 200, req);
+      }
+      // POST /api/approvals/:id/decide  { decision: 'approved'|'rejected', note? }
+      if (path.match(/^\/api\/approvals\/[^\/]+\/decide$/) && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = path.split("/")[3];
+        const body = await req.json().catch(() => ({}));
+        const { decision, note } = body;
+        if (!["approved","rejected"].includes(decision)) return json({ error: "invalid-decision" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.approvals);
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(a => a.id === id);
+        if (idx < 0) return json({ error: "not-found" }, 404, req);
+        list[idx].status = decision;
+        list[idx].decidedBy = ad.session.email;
+        list[idx].decidedAt = Date.now();
+        list[idx].decisionNote = String(note || "").slice(0, 500);
+        await env.ARSAN.put(KEYS.approvals, JSON.stringify(list));
+        await logAudit(env, { actor: ad.session.email, action: "approval-"+decision, approvalId: id, sopRef: list[idx].sopRef });
+        // إشعار صاحب الطلب
+        await addMention(env, {
+          toEmail: list[idx].requestedBy,
+          fromEmail: ad.session.email,
+          kind: "approval",
+          message: decision === "approved" ? `✅ اعتُمد إجراؤك ${list[idx].sopRef}` : `❌ رُفض إجراؤك ${list[idx].sopRef}`,
+          sopRef: list[idx].sopRef
+        });
+        return json({ ok: true, approval: list[idx] }, 200, req);
       }
 
       // ============================================================

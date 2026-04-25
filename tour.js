@@ -13,7 +13,7 @@
   window.__arsanTourLoaded = true;
 
   const SEEN_KEY = 'arsan_tour_seen_v1';
-  const HORSE = './adham.png';
+  const HORSE_SVG = `<svg viewBox="0 0 90 90" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%;display:block"><path d="M58.4,17c-0.5-0.2-1-0.5-1.6-0.7c-0.1,0-0.2-0.1-0.4-0.1c-0.1,0-0.1-0.1-0.2-0.1c-1-0.4-1.9-0.7-1.9-0.7c-10.5-3.8-25.1-3.8-38.2-4.1c3.8,3.6,9.2,5.7,13.3,9.1c-6.8,9.2-13,18.9-19.2,28.6c0,0,9.6,7.3,15.1,12.3c3.8-3.5,7.4-8.5,11.6-12c4.9-3.2,5.6,1,5.6,1.8c0.7,9.4-4.1,25.1,1,32.9c16.4,0,28.1,0,44.5,0C78.9,58.3,81.8,27.4,58.4,17z"/><path d="M8,51.9c-1.1,1.8-2.2,3.4-3.4,5.1c0,0-3.4,5-3.2,5.5c0.2,0.4,2.2,2.3,3.3,2.9c1.1,0.6,2.2,0.9,2.9,0.8c2.3-0.5,4.1-2.1,5.9-3.6c0.2-0.2,1.3-0.3,1.3,0.8c0,0.6-4.1,5.9-4.1,5.9c0.8,1,1.8,1.9,2.7,2.7c2.8-2.7,5.9-5,8.4-8C17.9,59.4,13,55.6,8,51.9z"/></svg>`;
 
   function lang(){ return localStorage.getItem('arsan_lang') || 'ar'; }
   function t(ar, en){ return lang() === 'en' ? en : ar; }
@@ -213,11 +213,12 @@
         background:radial-gradient(circle at 30% 30%, #EFE7D5, #C9B58A 70%, #A89066 100%);
         border-radius:50%;
         display:flex; align-items:center; justify-content:center;
-        padding:5px; box-sizing:border-box;
+        padding:8px; box-sizing:border-box;
+        color:#1a1510;
         box-shadow:0 4px 12px rgba(133,113,77,.4), inset 0 1px 2px rgba(255,255,255,.4);
         border:1px solid rgba(133,113,77,.45);
       }
-      .at-avatar img{ width:100%; height:100%; object-fit:contain; }
+      .at-avatar svg{ width:100%; height:100%; }
       .at-name{ font-size:13px; font-weight:700; color:#c9b27a; line-height:1.2; }
       .at-name small{ display:block; font-size:11px; opacity:.6; font-weight:500; margin-top:2px; }
 
@@ -278,11 +279,11 @@
       .at-confirm-card p{ margin:0 0 18px; font-size:13.5px; line-height:1.7; opacity:.85; }
       .at-confirm-actions{ display:flex; gap:10px; justify-content:flex-end; }
 
-      /* manual-trigger button — small floating circle ABOVE the Adham FAB */
+      /* manual-trigger button — square icon, sits ABOVE the Adham FAB */
       #at-launch{
         position:fixed;
-        bottom:92px;                 /* sits above the 56px Adham FAB (24+56+12) */
-        inset-inline-end:30px;       /* aligned with FAB centre (FAB at 24, +4 to centre 44 vs 56) */
+        bottom:80px;                 /* 24 (FAB bottom) + 44 (FAB height) + 12 gap */
+        inset-inline-end:24px;       /* aligned with FAB */
         inset-inline-start:auto;
         z-index:9450;                /* below FAB so panel can overlay both */
         width:44px; height:44px;
@@ -292,11 +293,11 @@
         -webkit-backdrop-filter:blur(14px) saturate(180%);
         color:#f3e9c9;
         border:1px solid rgba(133,113,77,.35);
-        border-radius:50%;
+        border-radius:12px;
         cursor:pointer;
         display:none;
         align-items:center; justify-content:center;
-        box-shadow:0 4px 14px rgba(0,0,0,.25);
+        box-shadow:0 4px 14px rgba(0,0,0,.22);
         transition:background .15s, border-color .15s, transform .15s, opacity .15s;
         opacity:.85;
       }
@@ -413,7 +414,7 @@
 
     bubble.innerHTML = `
       <div class="at-head">
-        <div class="at-avatar"><img src="${HORSE}" alt="Adham"/></div>
+        <div class="at-avatar">${HORSE_SVG}</div>
         <div class="at-name">
           ${t('الأدهم','Al-Adham')}
           <small>${t('مرشدك في أرسان','Your Arsan guide')}</small>

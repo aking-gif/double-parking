@@ -13,8 +13,9 @@
   const t = (ar, en) => LANG() === 'en' ? en : ar;
   const isRTL = () => LANG() === 'ar';
 
-  // --- Black horse SVG logo (Arsan brand mark)
-  const HORSE_SVG = `<img src="./adham.png" alt="Adham" style="width:100%;height:100%;object-fit:contain;display:block"/>`;
+  // --- Horse head icon (Noun Project, Daniela Baptista)
+  // --- Horse icon (Rachel Harris, Noun Project) — stroke style
+  const HORSE_SVG = `<svg viewBox="0 0 90 90" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%;display:block"><path d="M58.4,17c-0.5-0.2-1-0.5-1.6-0.7c-0.1,0-0.2-0.1-0.4-0.1c-0.1,0-0.1-0.1-0.2-0.1c-1-0.4-1.9-0.7-1.9-0.7c-10.5-3.8-25.1-3.8-38.2-4.1c3.8,3.6,9.2,5.7,13.3,9.1c-6.8,9.2-13,18.9-19.2,28.6c0,0,9.6,7.3,15.1,12.3c3.8-3.5,7.4-8.5,11.6-12c4.9-3.2,5.6,1,5.6,1.8c0.7,9.4-4.1,25.1,1,32.9c16.4,0,28.1,0,44.5,0C78.9,58.3,81.8,27.4,58.4,17z"/><path d="M8,51.9c-1.1,1.8-2.2,3.4-3.4,5.1c0,0-3.4,5-3.2,5.5c0.2,0.4,2.2,2.3,3.3,2.9c1.1,0.6,2.2,0.9,2.9,0.8c2.3-0.5,4.1-2.1,5.9-3.6c0.2-0.2,1.3-0.3,1.3,0.8c0,0.6-4.1,5.9-4.1,5.9c0.8,1,1.8,1.9,2.7,2.7c2.8-2.7,5.9-5,8.4-8C17.9,59.4,13,55.6,8,51.9z"/></svg>`;
 
   // --- AI caller (resilient)
   async function ask(prompt){
@@ -63,22 +64,31 @@
         inset-inline-end:24px;
         bottom:24px;
         z-index:9500;
-        width:56px;height:56px;
-        border-radius:50%;
-        border:none;
-        background:radial-gradient(circle at 30% 30%, #EFE7D5 0%, #C9B58A 50%, #A89066 100%);
-        color:#5E4F36;
+        width:44px;height:44px;
+        border-radius:12px;
+        border:1px solid rgba(133,113,77,.35);
+        background:rgba(26,21,16,.55);
+        backdrop-filter:blur(14px) saturate(180%);
+        -webkit-backdrop-filter:blur(14px) saturate(180%);
+        color:#f3e9c9;
         font-size:24px;
         cursor:pointer;
-        box-shadow:0 6px 20px rgba(133,113,77,.35), 0 2px 6px rgba(0,0,0,.18);
-        transition:transform .2s, box-shadow .2s, opacity .2s;
+        box-shadow:0 4px 14px rgba(0,0,0,.22);
+        transition:transform .2s, box-shadow .2s, opacity .2s, background .2s;
         display:flex;align-items:center;justify-content:center;
-        opacity:.78;
+        opacity:.85;
+      }
+      html[data-theme="light"] .arsan-ai-fab{
+        background:rgba(255,255,255,.6);
+        border-color:rgba(133,113,77,.35);
+        color:#3a2f15;
       }
       .arsan-ai-fab:hover{
         opacity:1;
-        transform:translateY(-2px) scale(1.05);
-        box-shadow:0 10px 28px rgba(133,113,77,.55), 0 4px 10px rgba(0,0,0,.25);
+        background:rgba(133,113,77,.25);
+        border-color:rgba(133,113,77,.6);
+        transform:translateY(-1px);
+        box-shadow:0 8px 22px rgba(0,0,0,.28);
       }
       .arsan-ai-fab:active{ transform:translateY(0) scale(.98); }
       .arsan-ai-fab .pulse{
@@ -93,8 +103,13 @@
       }
       .arsan-ai-fab .arsan-ai-fab-mark{
         position:relative;
-        width:32px;height:32px;
+        width:22px;height:22px;
         display:flex;align-items:center;justify-content:center;
+      }
+      .arsan-ai-fab .arsan-ai-fab-mark{ color:#1a1510; }
+      html[data-theme="dark"] .arsan-ai-fab .arsan-ai-fab-mark{ color:#f3e9c9; }
+      .arsan-ai-fab .arsan-ai-fab-mark img{
+        width:100%; height:100%; object-fit:contain;
       }
       .arsan-ai-fab .arsan-ai-fab-mark svg{
         width:100%;height:100%;
@@ -142,6 +157,12 @@
       .arsan-ai-head .avatar{
         width:40px;height:40px;border-radius:50%;
         background:radial-gradient(circle at 30% 30%, #EFE7D5, #C9B58A 70%, #A89066 100%);
+        color:#1a1510;
+        display:flex;align-items:center;justify-content:center;
+        flex-shrink:0;
+        padding:8px;
+        box-sizing:border-box;
+      }
         border:1px solid rgba(133,113,77,.45);
         box-shadow:0 0 0 2px rgba(133,113,77,.18), inset 0 1px 2px rgba(255,255,255,.4);
         display:flex;align-items:center;justify-content:center;

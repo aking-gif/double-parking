@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<title>أرسان — تشخيص ذاتي</title>
+<style>
+  body{ font-family:"IBM Plex Sans Arabic",system-ui,sans-serif; background:#0f0f0f; color:#eee; padding:24px; line-height:1.7 }
+  h1{ color:#D4B24A; margin:0 0 8px }
+  .sub{ color:#999; margin-bottom:24px }
+  .card{ background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding:18px; margin-bottom:14px }
+  .row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #2a2a2a }
+  .row:last-child{ border-bottom:0 }
+  .label{ font-weight:600 }
+  .ok{ color:#4ade80 }
+  .err{ color:#f87171 }
+  .warn{ color:#fbbf24 }
+  .val{ font-family:ui-monospace,monospace; font-size:13px; color:#aaa; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  button{ background:#D4B24A; color:#000; border:0; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer; margin:4px }
+  button.danger{ background:#b91c1c; color:#fff }
+  pre{ background:#0a0a0a; padding:12px; border-radius:8px; overflow:auto; font-size:12px; max-height:300px }
+  .actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px }
+</style>
+</head>
+<body>
+
+<h1>🔬 تشخيص أرسان الذاتي</h1>
+<div class="sub">شغّل هذه الصفحة من أي وقت لمعرفة حالة النظام بسرعة. تُحدَّث تلقائياً.</div>
+
+<div class="card" id="card-auth">
+  <h3>🔐 المصادقة</h3>
+  <div id="auth-results"></div>
+</div>
+
+<div class="card" id="card-storage">
+  <h3>💾 التخزين المحلي</h3>
+  <div id="storage-results"></div>
+</div>
+
+<div class="card" id="card-api">
+  <h3>🌐 الاتصال بـ Worker</h3>
+  <div id="api-results"></div>
+</div>
+
+<div class="card" id="card-depts">
+  <h3>🏢 الإدارات</h3>
+  <div id="depts-results"></div>
+</div>
+
+<div class="card" id="card-files">
+  <h3>📄 إصدار الملفات</h3>
+  <div id="files-results"></div>
+</div>
+
+<div class="card">
+  <h3>🛠️ إجراءات سريعة</h3>
+  <div class="actions">
+    <button onclick="runAll()">🔄 إعادة الفحص</button>
+    <button onclick="goHome()">🏠 الصفحة الرئيسية</button>
+    <button onclick="clearCacheAll()" class="danger">🗑️ مسح كل البيانات</button>
+    <button onclick="forceRefresh()">⚡ Hard Refresh + Unregister SW</button>
+    <button onclick="copyDebugReport()">📋 نسخ تقرير المشكلة</button>
+  </div>
+  <pre id="debug-report" style="display:none"></pre>
+</div>
+
+<script src="cache-bust.js"></script>
+<script>
+const API_BASE = 'https://arsan-api.a-king-6e1.workers.dev';
+
+function row(label, value, status) {
+  const cls = status === 'ok' ? 'ok' : status === 'err' ? 'err' : status === 'warn' ? 'warn' : '';
+  return `<div class="row">
+    <div class="label">${label}</div>
+    <div class="val ${cls}">${value}</div>
+  </div>`;
+}
+
+async function checkAuth() {
+  const tok = localStorage.getItem('arsan_token');
+  let me = null;
+  try { me = JSON.parse(localStorage.getItem('arsan_me') || 'null'); } catch(_) {}
+  let html = '';
+  html += row('Token موجود', tok ? `${tok.slice(0,16)}...` : 'لا', tok ? 'ok' : 'err');
+  html += row('البريد', me?.email || '—', me?.email ? 'ok' : 'err');
+  html += row('الدور (Role)', me?.role || '—', me?.role === 'admin' ? 'ok' : me?.role ? 'warn' : 'err');
+  html += row('الإدارات المخصّصة', JSON.stringify(me?.departments || []), 'ok');
+  html += row('isAdmin', me?.role === 'admin' ? 'نعم' : 'لا', me?.role === 'admin' ? 'ok' : 'warn');
+  document.getElementById('auth-results').innerHTML = html;
+}
+
+async function checkStorage() {
+  const keys = ['arsan_token','arsan_me','arsan_department','arsan_custom_depts_v1','arsan_lang','arsan_theme'];
+  let html = '';
+  keys.forEach(k => {
+    const v = localStorage.getItem(k);
+    const display = v ? (v.length > 60 ? v.slice(0,60)+'...' : v) : '(فارغ)';
+    html += row(k, display, v ? 'ok' : 'warn');
+  });
+  document.getElementById('storage-results').innerHTML = html;
+}
+
+async function checkAPI() {
+  const tok = localStorage.getItem('arsan_token');
+  let html = '';
+  // 1. ping /api/me
+  try {
+    const r = await fetch(API_BASE + '/api/me', {
+      headers: tok ? { Authorization:'Bearer '+tok } : {}
+    });
+    const j = await r.json().catch(() => ({}));
+    html += row('GET /api/me', `${r.status} — ${j.email || j.error || 'OK'}`, r.ok ? 'ok' : 'err');
+  } catch(e) { html += row('GET /api/me', e.message, 'err'); }
+
+  // 2. custom-depts
+  try {
+    const r = await fetch(API_BASE + '/api/custom-depts', {
+      headers: tok ? { Authorization:'Bearer '+tok } : {}
+    });
+    const j = await r.json().catch(() => []);
+    html += row('GET /api/custom-depts', `${r.status} — ${Array.isArray(j) ? j.length+' إدارة' : 'خطأ'}`, r.ok ? 'ok' : 'err');
+  } catch(e) { html += row('GET /api/custom-depts', e.message, 'err'); }
+
+  // 3. bootstrap
+  try {
+    const r = await fetch(API_BASE + '/api/bootstrap', {
+      headers: tok ? { Authorization:'Bearer '+tok } : {}
+    });
+    html += row('GET /api/bootstrap', r.status, r.ok ? 'ok' : 'err');
+  } catch(e) { html += row('GET /api/bootstrap', e.message, 'err'); }
+
+  document.getElementById('api-results').innerHTML = html;
+}
+
+async function checkDepts() {
+  const tok = localStorage.getItem('arsan_token');
+  let html = '';
+  try {
+    const r = await fetch(API_BASE + '/api/custom-depts', {
+      headers: tok ? { Authorization:'Bearer '+tok } : {}
+    });
+    const list = await r.json();
+    if (Array.isArray(list)) {
+      list.forEach(d => {
+        const issues = [];
+        if (!d.name) issues.push('بدون اسم');
+        if (!d.id) issues.push('بدون id');
+        if (/[&]/.test(d.id || '')) issues.push('id يحوي محارف غير صالحة');
+        const status = issues.length ? 'err' : 'ok';
+        html += row(`${d.icon || '🏢'} ${d.name || d.id}`, `id: ${d.id} ${issues.length ? '⚠️ ' + issues.join('، ') : '✓'}`, status);
+      });
+      if (!list.length) html += row('—', 'لا توجد إدارات مخصّصة', 'warn');
+    } else {
+      html += row('خطأ', JSON.stringify(list), 'err');
+    }
+  } catch(e) { html += row('خطأ', e.message, 'err'); }
+  document.getElementById('depts-results').innerHTML = html;
+}
+
+async function checkFiles() {
+  const files = [
+    { url:'dashboard.html', expect:'NORMALIZE: ensure DEPT', label:'dashboard.html (V3.8)' },
+    { url:'index.html', expect:'arsan_custom_depts_v1', label:'index.html (V3.7)' },
+    { url:'admin-toolbar.js', expect:'openNewSopModal', label:'admin-toolbar.js (V3.9)' }
+  ];
+  let html = '';
+  for (const f of files) {
+    try {
+      const r = await fetch(f.url + '?t=' + Date.now());
+      const txt = await r.text();
+      const found = txt.includes(f.expect);
+      html += row(f.label, found ? '✓ نسخة محدّثة' : '✗ نسخة قديمة — ارفع الملف', found ? 'ok' : 'err');
+    } catch(e) { html += row(f.label, e.message, 'err'); }
+  }
+  document.getElementById('files-results').innerHTML = html;
+}
+
+async function runAll() {
+  await Promise.all([checkAuth(), checkStorage(), checkAPI(), checkDepts(), checkFiles()]);
+}
+
+function goHome() { location.href = 'index.html'; }
+
+function clearCacheAll() {
+  if (!confirm('سيُسجَّل خروجك ويُمسح التخزين المحلي. متابعة؟')) return;
+  localStorage.clear();
+  sessionStorage.clear();
+  if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  setTimeout(() => location.reload(), 500);
+}
+
+function forceRefresh() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(rs => {
+      rs.forEach(r => r.unregister());
+      if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      setTimeout(() => location.reload(true), 300);
+    });
+  } else { location.reload(true); }
+}
+
+async function copyDebugReport() {
+  const lines = [];
+  lines.push('=== ARSAN DIAGNOSE REPORT ===');
+  lines.push('Date: ' + new Date().toISOString());
+  lines.push('URL: ' + location.href);
+  lines.push('UA: ' + navigator.userAgent);
+  lines.push('');
+  document.querySelectorAll('.card').forEach(c => {
+    lines.push(c.querySelector('h3').textContent);
+    c.querySelectorAll('.row').forEach(r => {
+      lines.push('  ' + r.querySelector('.label').textContent + ': ' + r.querySelector('.val').textContent);
+    });
+    lines.push('');
+  });
+  const txt = lines.join('\n');
+  document.getElementById('debug-report').style.display = 'block';
+  document.getElementById('debug-report').textContent = txt;
+  try {
+    await navigator.clipboard.writeText(txt);
+    alert('✓ نُسخ التقرير. ألصقه في المحادثة.');
+  } catch(_) { alert('انسخ التقرير من المربع أدناه يدوياً.'); }
+}
+
+runAll();
+setInterval(runAll, 10000);
+</script>
+</body>
+</html>

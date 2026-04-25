@@ -26,6 +26,22 @@
     return false;
   }
 
+  // -------- isLoggedIn (any role) --------
+  function isLoggedIn() {
+    if (!localStorage.getItem('arsan_token')) return false;
+    const sources = [
+      window.ArsanCurrentUser,
+      (() => { try { return JSON.parse(localStorage.getItem('arsan_me') || 'null'); } catch(_) { return null; } })(),
+      (() => { try { return JSON.parse(localStorage.getItem('arsan_me_v1') || 'null'); } catch(_) { return null; } })()
+    ];
+    return sources.some(me => me && me.email);
+  }
+
+  // -------- inDashboard (page is dashboard.html with a department) --------
+  function inDashboard() {
+    return !!window.CURRENT_DEPT_ID || /dashboard\.html/i.test(location.pathname);
+  }
+
   // -------- inject CSS --------
   const css = `
   .arsan-at{
@@ -568,8 +584,21 @@
     tb.id = 'arsanAdminToolbar';
     tb.className = 'arsan-at';
     tb.setAttribute('role', 'toolbar');
+    const showAddSopBtn = isLoggedIn() && inDashboard();
+    const sopBtnsHTML = showAddSopBtn ? `
+      <button class="is-primary" data-act="new-sop" title="إضافة إجراء جديد">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="at-text">إجراء جديد</span>
+      </button>
+      <button data-act="import-sop" title="استيراد إجراء من ملف">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="at-text">استيراد</span>
+      </button>
+      <span class="at-divider"></span>
+    ` : '';
     tb.innerHTML = `
-      <span class="at-label">أدوات الأدمن</span>
+      <span class="at-label">${isAdmin() ? 'أدوات الأدمن' : 'أدوات سريعة'}</span>
+      ${sopBtnsHTML}
       <button class="is-primary" data-act="add-dept" title="إدارة الإدارات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span class="at-text">الإدارات</span>
@@ -633,27 +662,130 @@
         else if (act === 'slack') showSlackModal();
         else if (act === 'maintenance') showMaintenanceModal();
         else if (act === 'settings') showSettingsModal();
+        else if (act === 'new-sop') openNewSopModal();
+        else if (act === 'import-sop') openImportSopModal();
       };
     });
   }
 
+  // ============================================================
+  // ➕ NEW SOP MODAL — لكل المستخدمين المسجّلين (admin/editor/viewer)
+  // ============================================================
+  async function openNewSopModal() {
+    if (!isLoggedIn()) { alert('سجّل الدخول أولاً'); return; }
+    const deptId = window.CURRENT_DEPT_ID;
+    if (!deptId) { alert('افتح إدارة أولاً'); return; }
+
+    const DEPT = (window.DEPARTMENTS_CONFIG && window.DEPARTMENTS_CONFIG[deptId]) || window.DEPT || {};
+    const deptName = DEPT.name || deptId;
+    const groups = Array.isArray(DEPT.groups) && DEPT.groups.length ? DEPT.groups : [
+      { id:'general', label:'عام' },
+      { id:'planning', label:'تخطيط' },
+      { id:'execution', label:'تنفيذ' },
+      { id:'review', label:'مراجعة' },
+      { id:'closure', label:'إقفال' }
+    ];
+
+    const bd = document.createElement('div');
+    bd.className = 'arsan-md-bd';
+    bd.innerHTML = `
+      <div class="arsan-md" style="max-width:560px">
+        <h2>➕ إجراء جديد</h2>
+        <p class="muted">في إدارة: <b>${deptName}</b></p>
+        <label>الكود <span style="color:#9ca3af;font-weight:400">(مثال: SOP-001)</span></label>
+        <input id="ns_code" placeholder="SOP-001" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit"/>
+        <label>العنوان</label>
+        <input id="ns_title" placeholder="مثال: إجراء استلام البضائع" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit"/>
+        <label>المرحلة</label>
+        <select id="ns_phase" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+          ${groups.map(g => `<option value="${g.id}">${g.label}</option>`).join('')}
+        </select>
+        <label>الغرض</label>
+        <textarea id="ns_purpose" rows="3" placeholder="ما الهدف من هذا الإجراء؟" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit;resize:vertical"></textarea>
+        <div id="ns_err" style="color:#dc2626;font-size:13px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="ns_cancel" style="padding:10px 18px;border:1px solid #d1d5db;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit">إلغاء</button>
+          <button id="ns_save" style="padding:10px 18px;background:#8B6F00;color:#fff;border:0;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit">حفظ</button>
+        </div>
+      </div>`;
+    document.body.appendChild(bd);
+    bd.querySelector('#ns_cancel').onclick = () => bd.remove();
+    bd.onclick = (e) => { if (e.target === bd) bd.remove(); };
+
+    bd.querySelector('#ns_save').onclick = async () => {
+      const code = bd.querySelector('#ns_code').value.trim();
+      const title = bd.querySelector('#ns_title').value.trim();
+      const phase = bd.querySelector('#ns_phase').value;
+      const purpose = bd.querySelector('#ns_purpose').value.trim() || 'بانتظار التعبئة';
+      const err = bd.querySelector('#ns_err');
+      if (!code) { err.textContent = 'الكود مطلوب'; return; }
+      if (!title) { err.textContent = 'العنوان مطلوب'; return; }
+      try {
+        const tok = localStorage.getItem('arsan_token');
+        const res = await fetch(API_BASE + '/api/sops/' + encodeURIComponent(deptId), {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+tok },
+          body: JSON.stringify({ code, title, phase, purpose, scope:'', responsibilities:'', steps:[], inputs:[], outputs:[], kpis:[], references:[] })
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          err.textContent = j.error || ('فشل الحفظ — ' + res.status);
+          return;
+        }
+        bd.remove();
+        location.reload();
+      } catch(e) {
+        err.textContent = 'خطأ في الاتصال — ' + e.message;
+      }
+    };
+  }
+
+  // ============================================================
+  // 📥 IMPORT MODAL
+  // ============================================================
+  function openImportSopModal() {
+    if (!isLoggedIn()) { alert('سجّل الدخول أولاً'); return; }
+    if (!window.CURRENT_DEPT_ID) { alert('افتح إدارة أولاً'); return; }
+    // delegate to existing dashboard import flow if available
+    if (typeof window.showImportModal === 'function') {
+      window.showImportModal();
+    } else {
+      alert('ميزة الاستيراد ستفتح بعد لحظة — حدّث الصفحة لو لم تظهر');
+    }
+  }
+
   function refresh() {
-    const tb = document.getElementById('arsanAdminToolbar');
+    let tb = document.getElementById('arsanAdminToolbar');
+    // إعادة بناء كاملة لو CURRENT_DEPT_ID تغيّر بعد التهيئة
+    if (tb) {
+      const hasNewSop = !!tb.querySelector('[data-act="new-sop"]');
+      const shouldHaveNewSop = isLoggedIn() && inDashboard();
+      if (hasNewSop !== shouldHaveNewSop) {
+        tb.remove();
+        tb = null;
+      }
+    }
+    if (!tb) {
+      buildToolbar();
+      tb = document.getElementById('arsanAdminToolbar');
+    }
     if (!tb) return;
-    if (isAdmin()) tb.classList.add('is-visible');
+    // الظهور: أدمن دائماً، أو أي مستخدم مسجّل داخل dashboard
+    const shouldShow = isAdmin() || (isLoggedIn() && inDashboard());
+    if (shouldShow) tb.classList.add('is-visible');
     else tb.classList.remove('is-visible');
   }
 
   function init() {
     buildToolbar();
     refresh();
-    // أعد التحقق دورياً (لو auth-gate حدّث arsan_me متأخراً)
+    // أعد التحقق دورياً (لو auth-gate حدّث arsan_me متأخراً، أو CURRENT_DEPT_ID جاء بعد التحميل)
     let retries = 0;
     const t = setInterval(() => {
       retries++;
       refresh();
-      if (isAdmin() || retries > 12) clearInterval(t);
-    }, 800);
+      if (retries > 20) clearInterval(t);
+    }, 600);
   }
 
   if (document.readyState === 'loading') {

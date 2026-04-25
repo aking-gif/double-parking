@@ -2690,12 +2690,24 @@ function renderBrainMap(){
   map.innerHTML = '';
 
   // ===== Empty-state guard =====
-  // If the dept has no groups or no SOPs, render a clear empty-state instead
-  // of an empty canvas. Common when viewing a newly-added custom dept before
-  // any procedures have been added.
-  const hasGroups = DEPT && Array.isArray(DEPT.groups) && DEPT.groups.length > 0;
+  // Only show empty-state when truly empty. If SOPs exist but groups don't,
+  // auto-generate groups from SOP phases so the map still renders.
   const hasSOPs   = Array.isArray(SOPS) && SOPS.length > 0;
-  if (!hasGroups || !hasSOPs) {
+  let hasGroups = DEPT && Array.isArray(DEPT.groups) && DEPT.groups.length > 0;
+
+  // Auto-build groups from SOP.phase if dept has no groups defined
+  if (hasSOPs && !hasGroups) {
+    const phaseMap = new Map();
+    SOPS.forEach(s => {
+      const ph = s.phase || s.stage || 'عام';
+      if (!phaseMap.has(ph)) phaseMap.set(ph, { id: 'auto_' + phaseMap.size, label: ph });
+    });
+    if (!DEPT) DEPT = {};
+    DEPT.groups = [...phaseMap.values()];
+    hasGroups = DEPT.groups.length > 0;
+  }
+
+  if (!hasSOPs) {
     const isEn = (typeof CURRENT_LANG!=='undefined' && CURRENT_LANG==='en');
     const title = isEn
       ? (hasSOPs ? 'No phases defined for this department' : 'Mind map is waiting for your first procedure')
@@ -5491,6 +5503,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 </script>
 
 <script src="updates-banner.js?v=3"></script>
+<script src="cache-bust.js?v=1"></script>
 <script src="sidebar.js?v=9"></script>
 <script src="i18n.js?v=4"></script>
 <script src="themes.js?v=2"></script>
@@ -5504,6 +5517,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 <script src="admin-fab.js?v=5"></script>
 <script src="welcome-popup.js?v=2"></script>
 <script src="features-pack.js?v=1"></script>
+<script src="admin-toolbar.js?v=2"></script>
+<script src="auth-gate.js?v=8"></script>
 
 </body>
 </html>

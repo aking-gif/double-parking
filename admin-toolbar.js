@@ -184,7 +184,80 @@
 
   // -------- Add Department --------
   function showAddDeptModal() {
-    openModal('+ إضافة إدارة جديدة', `
+    showManageDeptsModal();
+  }
+
+  // -------- Manage Departments (list + add + edit + delete) --------
+  async function showManageDeptsModal() {
+    const bd = openModal('🗂️ إدارة الإدارات', `
+      <p class="muted">يمكنك إضافة، تعديل، أو حذف الإدارات المخصّصة. الإدارات الافتراضية لا يمكن حذفها.</p>
+      <div id="dList" style="max-height:50vh;overflow:auto;margin-top:12px">جارٍ التحميل...</div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #E7E3D8">
+        <button id="dShowAdd" class="btn btn-primary" style="width:100%">+ إضافة إدارة جديدة</button>
+      </div>
+    `, { width: 600 });
+
+    const BUILTIN = [
+      { id: 'executive',   name: 'الإدارة التنفيذية',     icon: '🏛️' },
+      { id: 'projects',    name: 'إدارة المشاريع',         icon: '🏗️' },
+      { id: 'finance',     name: 'الإدارة المالية',         icon: '💰' },
+      { id: 'procurement', name: 'إدارة المشتريات',         icon: '🛒' },
+      { id: 'operations',  name: 'الإدارة التشغيلية',       icon: '⚙️' },
+      { id: 'hr',          name: 'إدارة الموارد البشرية',   icon: '👥' },
+      { id: 'bizdev',      name: 'إدارة تطوير الأعمال',     icon: '📈' }
+    ];
+
+    async function refreshList() {
+      const listEl = bd.querySelector('#dList');
+      listEl.innerHTML = '⏳ جارٍ التحميل...';
+      let custom = [];
+      try { custom = await apiCall('/api/custom-depts'); } catch(_) {}
+      const all = [
+        ...BUILTIN.map(d => ({ ...d, builtin: true })),
+        ...custom.map(d => ({ ...d, builtin: false }))
+      ];
+      listEl.innerHTML = all.map(d => `
+        <div class="dept-row" data-id="${d.id}" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #E7E3D8;border-radius:10px;margin-bottom:8px;background:#fff">
+          <span style="font-size:22px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:#F4EFD9;border-radius:8px">${d.icon || '🏢'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600">${d.name}</div>
+            <div style="font-size:11px;color:#6B7280;font-family:monospace;direction:ltr;text-align:right">${d.id}${d.builtin ? ' · افتراضية' : ''}</div>
+          </div>
+          ${d.builtin ? '' : `
+            <button class="btn-edit" data-id="${d.id}" title="تعديل" style="border:1px solid #E7E3D8;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:#374151">تعديل</button>
+            <button class="btn-del" data-id="${d.id}" title="حذف" style="border:1px solid #E7E3D8;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:#c43">حذف</button>
+          `}
+        </div>
+      `).join('');
+
+      // bind edit/delete
+      listEl.querySelectorAll('.btn-edit').forEach(b => {
+        b.onclick = () => {
+          const id = b.getAttribute('data-id');
+          const dept = custom.find(x => x.id === id);
+          if (dept) showEditDeptModal(dept, refreshList);
+        };
+      });
+      listEl.querySelectorAll('.btn-del').forEach(b => {
+        b.onclick = async () => {
+          const id = b.getAttribute('data-id');
+          if (!confirm('هل أنت متأكد من حذف هذه الإدارة؟ كل إجراءاتها ستبقى لكن لن تظهر الإدارة في القائمة.')) return;
+          try {
+            await apiCall('/api/custom-depts/' + encodeURIComponent(id), { method: 'DELETE' });
+            window.dispatchEvent(new CustomEvent('arsan:depts-changed'));
+            await refreshList();
+          } catch(e) { alert('خطأ: ' + e.message); }
+        };
+      });
+    }
+
+    bd.querySelector('#dShowAdd').onclick = () => showAddNewDeptModal(refreshList);
+    refreshList();
+  }
+
+  // -------- Add New Department (sub-modal) --------
+  function showAddNewDeptModal(onDone) {
+    openModal('+ إدارة جديدة', `
       <p class="muted">ستُضاف للمنصّة وتظهر لجميع المستخدمين فوراً.</p>
       <label>المعرّف (إنجليزي بدون مسافات) *</label>
       <input id="dId" type="text" placeholder="hr / finance / it" style="font-family:monospace;direction:ltr">
@@ -195,7 +268,7 @@
       <label>وصف قصير (اختياري)</label>
       <input id="dDesc" type="text" placeholder="مثال: التوظيف والرواتب">
     `, {
-      saveLabel: 'حفظ ونشر',
+      saveLabel: 'حفظ',
       onSave: async (bd) => {
         const id = bd.querySelector('#dId').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
         const name = bd.querySelector('#dName').value.trim();
@@ -206,8 +279,40 @@
         try {
           await apiCall('/api/custom-depts', { method: 'POST', body: { id, name, icon, desc } });
           bd.remove();
-          alert('✅ تمت الإضافة. جارٍ تحديث الصفحة...');
-          location.reload();
+          window.dispatchEvent(new CustomEvent('arsan:depts-changed'));
+          if (onDone) onDone(); else location.reload();
+        } catch(e) { err.textContent = 'خطأ: ' + e.message; }
+      }
+    });
+  }
+
+  // -------- Edit Department --------
+  function showEditDeptModal(dept, onDone) {
+    openModal('✏️ تعديل: ' + dept.name, `
+      <label>المعرّف</label>
+      <input id="dId" type="text" value="${dept.id}" disabled style="font-family:monospace;direction:ltr;opacity:.6">
+      <label>الاسم بالعربية *</label>
+      <input id="dName" type="text" value="${(dept.name||'').replace(/"/g,'&quot;')}">
+      <label>أيقونة (Emoji)</label>
+      <input id="dIcon" type="text" value="${dept.icon || '🏢'}" style="font-size:18px">
+      <label>وصف قصير</label>
+      <input id="dDesc" type="text" value="${(dept.desc||'').replace(/"/g,'&quot;')}">
+    `, {
+      saveLabel: 'حفظ التعديلات',
+      onSave: async (bd) => {
+        const name = bd.querySelector('#dName').value.trim();
+        const icon = bd.querySelector('#dIcon').value.trim() || '🏢';
+        const desc = bd.querySelector('#dDesc').value.trim();
+        const err = bd.querySelector('#mdErr');
+        if (!name) { err.textContent = 'الاسم مطلوب.'; return; }
+        try {
+          await apiCall('/api/custom-depts/' + encodeURIComponent(dept.id), {
+            method: 'PATCH',
+            body: { name, icon, desc }
+          });
+          bd.remove();
+          window.dispatchEvent(new CustomEvent('arsan:depts-changed'));
+          if (onDone) onDone();
         } catch(e) { err.textContent = 'خطأ: ' + e.message; }
       }
     });
@@ -315,23 +420,76 @@
     });
   }
 
-  // -------- Maintenance --------
+  // -------- Maintenance (client-side health check) --------
   function showMaintenanceModal() {
     openModal('🔧 وكيل الصيانة', `
-      <p class="muted">يفحص المنصّة ويصلح المشاكل تلقائياً.</p>
-      <div id="mResult" style="margin-top:14px;padding:14px;background:#FBFAF6;border-radius:8px;font-size:13px;min-height:80px">اضغط "تشغيل الفحص" للبدء.</div>
+      <p class="muted">يفحص حالة الـ Worker، الـ KV، وصلاحياتك.</p>
+      <div id="mResult" style="margin-top:14px;padding:14px;background:#FBFAF6;border-radius:8px;font-size:13px;min-height:80px;line-height:1.9">اضغط "تشغيل الفحص" للبدء.</div>
     `, {
       saveLabel: 'تشغيل الفحص',
       onSave: async (bd) => {
         const r = bd.querySelector('#mResult');
         r.innerHTML = '⏳ جارٍ الفحص...';
+        const out = [];
+        const log = (ok, label, detail) => {
+          out.push(`<div style="padding:4px 0">${ok ? '✅' : '⚠️'} <strong>${label}</strong> ${detail ? `<span style="color:#6B7280">— ${detail}</span>` : ''}</div>`);
+          r.innerHTML = out.join('');
+        };
+
+        // 1) Worker reachable
         try {
-          const data = await apiCall('/api/maintenance/run', { method: 'POST' });
-          const checks = data.checks || [];
-          r.innerHTML = checks.length
-            ? checks.map(c => `<div style="padding:6px 0">${c.ok ? '✅' : '⚠️'} ${c.name}: ${c.message || ''}</div>`).join('')
-            : '<p>تم الفحص — كل شيء سليم.</p>';
-        } catch(e) { r.innerHTML = '❌ خطأ: ' + e.message; }
+          const res = await fetch(API_BASE + '/api/health').catch(() => null);
+          if (res) {
+            const ok = res.ok;
+            log(ok, 'الـ Worker يستجيب', `HTTP ${res.status}`);
+          } else {
+            // /api/health may not exist; try /api/me
+            const t = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+            const r2 = await fetch(API_BASE + '/api/me', { headers: { Authorization: 'Bearer ' + t } });
+            log(r2.status !== 0, 'الـ Worker يستجيب', `HTTP ${r2.status}`);
+          }
+        } catch(e) { log(false, 'الـ Worker يستجيب', e.message); }
+
+        // 2) /api/me
+        try {
+          const me = await apiCall('/api/me');
+          log(true, 'الجلسة صالحة', `${me.email} (${me.role})`);
+        } catch(e) { log(false, 'الجلسة صالحة', e.message); }
+
+        // 3) Custom depts
+        try {
+          const list = await apiCall('/api/custom-depts');
+          log(true, 'الإدارات المخصّصة', `${list.length} إدارة`);
+        } catch(e) { log(false, 'الإدارات المخصّصة', e.message); }
+
+        // 4) Activity (admin only)
+        try {
+          const list = await apiCall('/api/activity?limit=5');
+          log(true, 'سجل النشاط', `${list.length} حدث (آخر 5)`);
+        } catch(e) { log(false, 'سجل النشاط', e.message); }
+
+        // 5) Slack
+        try {
+          const d = await apiCall('/api/slack-webhook');
+          log(true, 'إعدادات Slack', d.url ? 'مربوط' : 'غير مربوط');
+        } catch(e) { log(false, 'إعدادات Slack', e.message); }
+
+        // 6) Updates URL
+        try {
+          const d = await apiCall('/api/updates-url');
+          log(true, 'شريط التحديثات', d.url ? 'مفعّل' : 'معطّل');
+        } catch(e) { log(false, 'شريط التحديثات', e.message); }
+
+        // 7) localStorage
+        try {
+          const t = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
+          const me = localStorage.getItem('arsan_me_v1');
+          log(!!(t && me), 'localStorage', `token: ${t ? '✓' : '✗'} · me: ${me ? '✓' : '✗'}`);
+        } catch(e) { log(false, 'localStorage', e.message); }
+
+        out.push('<hr style="border:none;border-top:1px solid #E7E3D8;margin:10px 0">');
+        out.push('<div style="color:#6B7280;font-size:12px">انتهى الفحص.</div>');
+        r.innerHTML = out.join('');
       }
     });
   }
@@ -373,9 +531,9 @@
     tb.setAttribute('role', 'toolbar');
     tb.innerHTML = `
       <span class="at-label">أدوات الأدمن</span>
-      <button class="is-primary" data-act="add-dept" title="إضافة إدارة جديدة">
+      <button class="is-primary" data-act="add-dept" title="إدارة الإدارات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span class="at-text">إدارة جديدة</span>
+        <span class="at-text">الإدارات</span>
       </button>
       <span class="at-divider"></span>
       <button data-act="users" title="إدارة المستخدمين">
@@ -413,7 +571,7 @@
     tb.querySelectorAll('button[data-act]').forEach(b => {
       b.onclick = () => {
         const act = b.getAttribute('data-act');
-        if (act === 'add-dept') showAddDeptModal();
+        if (act === 'add-dept') showManageDeptsModal();
         else if (act === 'users') location.href = 'users.html';
         else if (act === 'announce') showAnnounceModal();
         else if (act === 'updates') showUpdatesModal();
@@ -461,6 +619,7 @@
     show: () => { const tb = document.getElementById('arsanAdminToolbar'); if (tb) tb.classList.add('is-visible'); },
     hide: () => { const tb = document.getElementById('arsanAdminToolbar'); if (tb) tb.classList.remove('is-visible'); },
     addDept: showAddDeptModal,
+    openManageDepts: showManageDeptsModal,
     announce: showAnnounceModal,
     updates: showUpdatesModal,
     activity: showActivityModal,

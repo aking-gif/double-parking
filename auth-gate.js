@@ -568,6 +568,12 @@
       onclick: () => {
         if (!confirm(t('تسجيل خروج؟', 'Sign out?'))) return;
         setToken('');
+        try {
+          localStorage.removeItem('arsan_me_v1');
+          localStorage.removeItem('arsan_me');
+          localStorage.removeItem('arsan_token');
+          localStorage.removeItem('arsan_department');
+        } catch(_){}
         location.reload();
       }
     },
@@ -662,5 +668,17 @@
     hydrateUser();
   }
 
-  window.ArsanAuthGate = { logout: () => { setToken(''); location.reload(); }, hydrate: hydrateUser };
+  window.ArsanAuthGate = {
+    logout: () => {
+      setToken('');
+      try {
+        localStorage.removeItem('arsan_me_v1');
+        localStorage.removeItem('arsan_me');
+        localStorage.removeItem('arsan_token');
+        localStorage.removeItem('arsan_department');
+      } catch(_){}
+      location.reload();
+    },
+    hydrate: hydrateUser
+  };
 })();

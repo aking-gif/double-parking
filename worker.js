@@ -442,23 +442,70 @@ export default {
         const s = await getSession(req, env);
         if (!s) return json({ error: "unauthorized" }, 401, req);
         const body = await req.json().catch(() => ({}));
+        // اقرأ القديم لدمجه مع الحقول الجديدة
+        const oldRaw = await env.ARSAN.get(`profile_${s.email}`);
+        const old = oldRaw ? JSON.parse(oldRaw) : {};
         const profile = {
-          firstName: String(body.firstName || "").trim().slice(0, 50),
-          lastName:  String(body.lastName  || "").trim().slice(0, 50),
-          phone:     String(body.phone     || "").trim().slice(0, 30),
-          updatedAt: Date.now()
+          firstName:  String(body.firstName  ?? old.firstName  ?? "").trim().slice(0, 50),
+          lastName:   String(body.lastName   ?? old.lastName   ?? "").trim().slice(0, 50),
+          phone:      String(body.phone      ?? old.phone      ?? "").trim().slice(0, 30),
+          jobTitle:   String(body.jobTitle   ?? old.jobTitle   ?? "").trim().slice(0, 80),
+          department: String(body.department ?? old.department ?? "").trim().slice(0, 80),
+          bio:        String(body.bio        ?? old.bio        ?? "").trim().slice(0, 500),
+          avatar:     String(body.avatar     ?? old.avatar     ?? "").trim().slice(0, 500000),
+          updatedAt:  Date.now()
         };
         await env.ARSAN.put(`profile_${s.email}`, JSON.stringify(profile));
         await logActivity(env, { actor: s.email, action: "update-profile" });
         return json({ ok: true, profile }, 200, req);
       }
-      // GET /api/profile/:email  → admin only (for users.html)
+      // GET /api/profile/:email  → any signed-in user (read-only public profile)
       if (path.match(/^\/api\/profile\/[^\/]+$/) && method === "GET") {
-        const ad = await requireAdmin(req, env);
-        if (ad.error) return json(ad, 403, req);
-        const email = decodeURIComponent(path.split("/")[3]);
-        const raw = await env.ARSAN.get(`profile_${email}`);
-        return json(raw ? JSON.parse(raw) : { firstName:"", lastName:"", phone:"" }, 200, req);
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const email = decodeURIComponent(path.split("/")[3]).toLowerCase();
+        const [profRaw, usersRaw] = await Promise.all([
+          env.ARSAN.get(`profile_${email}`),
+          env.ARSAN.get(KEYS.users),
+        ]);
+        const profile = profRaw ? JSON.parse(profRaw) : { firstName:"", lastName:"", phone:"" };
+        const users = usersRaw ? JSON.parse(usersRaw) : {};
+        const u = users[email] || {};
+        return json({
+          email,
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          phone: profile.phone || "",
+          jobTitle: profile.jobTitle || "",
+          department: profile.department || u.department || "",
+          bio: profile.bio || "",
+          avatar: profile.avatar || "",
+          role: u.role || "viewer",
+          createdAt: u.createdAt || null,
+          lastSeen: u.lastSeen || null,
+        }, 200, req);
+      }
+
+      // GET /api/people  → public directory (any signed-in user)
+      if (path === "/api/people" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const usersRaw = await env.ARSAN.get(KEYS.users);
+        const users = usersRaw ? JSON.parse(usersRaw) : {};
+        const list = await Promise.all(Object.entries(users).map(async ([email, u]) => {
+          const profRaw = await env.ARSAN.get(`profile_${email}`);
+          const p = profRaw ? JSON.parse(profRaw) : {};
+          return {
+            email,
+            firstName: p.firstName || "",
+            lastName: p.lastName || "",
+            jobTitle: p.jobTitle || "",
+            department: p.department || u.department || "",
+            avatar: p.avatar || "",
+            role: u.role || "viewer",
+          };
+        }));
+        return json(list, 200, req);
       }
 
       // ---------- BOOTSTRAP ----------

@@ -377,10 +377,13 @@
     </div>
   </div>
   <div class="topbar-right">
-    <span id="userPill" class="user-pill" style="display:none">
+    <a id="userPill" class="user-pill" href="profile.html" title="ملفي الشخصي" style="display:none;text-decoration:none;cursor:pointer">
       <span class="avatar" id="userAvatar">·</span>
       <span id="userEmail">—</span>
-    </span>
+    </a>
+    <a class="icon-btn" href="people.html" title="الفريق — دليل الزملاء" aria-label="الفريق">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </a>
     <button class="icon-btn" id="refreshBtn" title="تحديث الصفحة" aria-label="تحديث">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
@@ -679,8 +682,22 @@
       const pill = document.getElementById('userPill');
       const avatar = document.getElementById('userAvatar');
       const emailSpan = document.getElementById('userEmail');
-      avatar.textContent = (me.email[0] || '?').toUpperCase();
-      emailSpan.textContent = me.email;
+      // اسم البروفايل من cache إن وُجد
+      let displayName = me.email;
+      try {
+        const prof = JSON.parse(localStorage.getItem('arsan_profile_v1') || 'null');
+        if (prof && (prof.firstName || prof.lastName)){
+          displayName = [prof.firstName, prof.lastName].filter(Boolean).join(' ');
+        }
+        if (prof && prof.avatar && prof.avatar.startsWith('data:')){
+          avatar.innerHTML = '<img src="'+prof.avatar+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+        } else {
+          avatar.textContent = (me.email[0] || '?').toUpperCase();
+        }
+      } catch(_){
+        avatar.textContent = (me.email[0] || '?').toUpperCase();
+      }
+      emailSpan.textContent = displayName;
       pill.style.display = '';
     } catch(_) {}
   }

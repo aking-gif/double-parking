@@ -4,7 +4,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>أرسان — الملف الشخصي</title>
@@ -25,9 +24,10 @@
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
-input{font-family:inherit;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:14px;padding:11px 13px;transition:.15s}
-input:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
-input:disabled{opacity:.55;cursor:not-allowed}
+input, textarea{font-family:inherit;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:14px;padding:11px 13px;transition:.15s}
+input:focus, textarea:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
+input:disabled, textarea:disabled{opacity:.55;cursor:not-allowed}
+textarea{resize:vertical;min-height:90px;line-height:1.7}
 
 .shell{max-width:880px;margin:0 auto;padding:28px 24px 80px}
 .top-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:32px}
@@ -42,27 +42,32 @@ input:disabled{opacity:.55;cursor:not-allowed}
 .page-title{font-size:30px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
 .page-sub{color:var(--ink-3);font-size:14px;line-height:1.6}
 
-/* hero card */
 .hero{background:linear-gradient(135deg, rgba(231,198,106,.08), rgba(231,198,106,.02));border:1px solid var(--accent-line);border-radius:18px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:18px}
-.avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#e7c66a,#85714D);display:grid;place-items:center;color:#1a1a1a;font-weight:700;font-size:28px;letter-spacing:.5px;flex-shrink:0;box-shadow:0 4px 18px rgba(231,198,106,.3)}
+.avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#e7c66a,#85714D);display:grid;place-items:center;color:#1a1a1a;font-weight:700;font-size:32px;letter-spacing:.5px;flex-shrink:0;box-shadow:0 4px 18px rgba(231,198,106,.3);overflow:hidden;position:relative}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar .upload-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
+.avatar.editable:hover .upload-overlay{display:flex}
 .hero-info{flex:1;min-width:0}
-.hero-name{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.hero-name{font-size:24px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
 .hero-name .placeholder{color:var(--ink-3);font-style:italic;font-weight:500}
+.hero-job{color:var(--ink-2);font-size:14px;margin:2px 0}
 .hero-email{color:var(--ink-3);font-size:13px;direction:ltr;text-align:right;font-family:var(--font-mono)}
-.hero-role{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;margin-top:8px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+.hero-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hero-role{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+.hero-dept{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;background:var(--surface-3);color:var(--ink-2);border:1px solid var(--line)}
 
-/* form */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:18px}
 .card h3{margin:0 0 4px;font-size:16px;font-weight:600}
 .card p.muted{margin:0 0 18px;color:var(--ink-3);font-size:13px}
 .field{margin-bottom:16px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px;letter-spacing:.2px}
 .field .hint{font-size:11px;color:var(--ink-3);margin-top:5px}
+.field .value{font-size:14px;color:var(--ink);padding:11px 0;border-bottom:1px solid var(--line)}
+.field .value.empty{color:var(--ink-3);font-style:italic}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:560px){ .row2{grid-template-columns:1fr} }
 
-/* actions */
-.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-size:14px;font-weight:500;transition:.15s;border:1px solid var(--line);color:var(--ink)}
 .btn:hover{border-color:var(--ink-2)}
 .btn.primary{background:var(--accent);color:#1a1a1a;border-color:var(--accent);font-weight:600}
@@ -72,9 +77,11 @@ input:disabled{opacity:.55;cursor:not-allowed}
 .toast{position:fixed;bottom:30px;right:30px;background:var(--ok);color:#0a3a1a;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(100px);opacity:0;transition:.3s;pointer-events:none;z-index:9999}
 .toast.show{transform:none;opacity:1}
 .toast.err{background:var(--danger);color:#fff}
-
 .skeleton{display:inline-block;width:120px;height:14px;background:linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2));background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.viewing-banner{background:rgba(231,198,106,.08);border:1px solid var(--accent-line);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:10px}
+.viewing-banner svg{color:var(--accent);flex-shrink:0}
 </style>
 </head>
 <body>
@@ -85,31 +92,48 @@ input:disabled{opacity:.55;cursor:not-allowed}
     <div class="crumbs">
       <a href="index.html">الرئيسية</a>
       <span class="sep">/</span>
-      <strong>الملف الشخصي</strong>
+      <a href="people.html">الفريق</a>
+      <span class="sep">/</span>
+      <strong id="crumbName">الملف</strong>
     </div>
-    <a class="back-btn" href="index.html">→ رجوع</a>
+    <a class="back-btn" href="people.html">→ كل الفريق</a>
   </div>
 
   <div class="page-head">
-    <h1 class="page-title">الملف الشخصي</h1>
-    <p class="page-sub">معلوماتك الأساسية. تظهر في سجل النشاط، الرسائل، والإشارات (@mentions).</p>
+    <h1 class="page-title" id="pageTitle">الملف الشخصي</h1>
+    <p class="page-sub" id="pageSub">معلوماتك الأساسية. تظهر في سجل النشاط، الرسائل، والإشارات (@mentions).</p>
+  </div>
+
+  <div class="viewing-banner" id="viewingBanner" style="display:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+    <span>أنت تشاهد بروفايل زميل — للقراءة فقط.</span>
   </div>
 
   <div class="hero">
-    <div class="avatar" id="avatar">—</div>
+    <div class="avatar" id="avatar">
+      <span id="avatarText">—</span>
+      <div class="upload-overlay" id="avatarUpload">تغيير الصورة</div>
+    </div>
     <div class="hero-info">
       <div class="hero-name" id="heroName"><span class="skeleton"></span></div>
+      <div class="hero-job" id="heroJob" style="display:none"></div>
       <div class="hero-email" id="heroEmail"><span class="skeleton"></span></div>
-      <div class="hero-role" id="heroRole" style="display:none">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5z"/></svg>
-        <span id="roleLabel"></span>
+      <div class="hero-row">
+        <div class="hero-role" id="heroRole" style="display:none">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5z"/></svg>
+          <span id="roleLabel"></span>
+        </div>
+        <div class="hero-dept" id="heroDept" style="display:none"></div>
       </div>
     </div>
   </div>
 
-  <form class="card" id="profileForm">
+  <input type="file" id="avatarFile" accept="image/*" style="display:none">
+
+  <!-- Edit form (own profile) -->
+  <form class="card" id="profileForm" style="display:none">
     <h3>المعلومات الشخصية</h3>
-    <p class="muted">سيراها زملاؤك عند الإشارة إليك أو إرسال رسالة لإدارتك.</p>
+    <p class="muted">سيراها زملاؤك عند زيارة بروفايلك أو عند الإشارة إليك.</p>
 
     <div class="row2">
       <div class="field">
@@ -122,10 +146,27 @@ input:disabled{opacity:.55;cursor:not-allowed}
       </div>
     </div>
 
+    <div class="row2">
+      <div class="field">
+        <label for="jobTitle">المسمّى الوظيفي</label>
+        <input id="jobTitle" type="text" placeholder="مثال: مدير التشغيل" maxlength="80">
+      </div>
+      <div class="field">
+        <label for="department">الإدارة</label>
+        <input id="department" type="text" placeholder="مثال: الموارد البشرية" maxlength="80">
+      </div>
+    </div>
+
     <div class="field">
       <label for="phone">رقم الجوال</label>
       <input id="phone" type="tel" placeholder="+966 5XXXXXXXX" style="direction:ltr;text-align:left" maxlength="30">
       <div class="hint">يستخدم للتواصل المباشر داخل الفريق. اختياري.</div>
+    </div>
+
+    <div class="field">
+      <label for="bio">نبذة مختصرة</label>
+      <textarea id="bio" placeholder="اكتب سطرين عن دورك أو خبرتك…" maxlength="500"></textarea>
+      <div class="hint">حد أقصى 500 حرف.</div>
     </div>
 
     <div class="field">
@@ -138,6 +179,36 @@ input:disabled{opacity:.55;cursor:not-allowed}
       <button type="submit" class="btn primary" id="saveBtn">حفظ التغييرات</button>
     </div>
   </form>
+
+  <!-- Read-only view (others' profile) -->
+  <div class="card" id="readonlyCard" style="display:none">
+    <h3>المعلومات</h3>
+    <p class="muted">معلومات هذا الزميل كما شاركها.</p>
+    <div class="field">
+      <label>المسمّى الوظيفي</label>
+      <div class="value" id="roJob">—</div>
+    </div>
+    <div class="field">
+      <label>الإدارة</label>
+      <div class="value" id="roDept">—</div>
+    </div>
+    <div class="field">
+      <label>رقم الجوال</label>
+      <div class="value" id="roPhone" style="direction:ltr;text-align:right;font-family:var(--font-mono)">—</div>
+    </div>
+    <div class="field">
+      <label>البريد الإلكتروني</label>
+      <div class="value" id="roEmail" style="direction:ltr;text-align:right;font-family:var(--font-mono)">—</div>
+    </div>
+    <div class="field">
+      <label>نبذة</label>
+      <div class="value" id="roBio" style="white-space:pre-wrap;line-height:1.7">—</div>
+    </div>
+    <div class="actions">
+      <a class="btn" id="mailBtn" href="#" style="display:none">✉ راسله بالإيميل</a>
+      <a class="btn" id="phoneBtn" href="#" style="display:none">📞 اتصل</a>
+    </div>
+  </div>
 
 </div>
 
@@ -165,6 +236,7 @@ input:disabled{opacity:.55;cursor:not-allowed}
   function roleArabic(r){
     return r==='admin'?'الأدمن':r==='editor'?'محرّر':r==='viewer'?'مشاهد':'ضيف';
   }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   async function api(path, opts={}){
     const r = await fetch(API + path, {
@@ -178,80 +250,166 @@ input:disabled{opacity:.55;cursor:not-allowed}
     return r.json();
   }
 
-  async function load(){
-    if (!token()){
-      // auth-gate سيتولى عرض شاشة الدخول
-      return;
-    }
-    const me = await api('/api/me');
-    if (!me || !me.email){
-      showToast('لم يتم التعرّف على الجلسة', false);
-      return;
-    }
-    const prof = await api('/api/profile');
-
-    document.getElementById('emailField').value = me.email;
-    document.getElementById('heroEmail').textContent = me.email;
-    document.getElementById('firstName').value = prof.firstName || '';
-    document.getElementById('lastName').value  = prof.lastName  || '';
-    document.getElementById('phone').value     = prof.phone     || '';
-
-    // 🔄 cache locally so welcome-popup & other pages pick up the real name
-    try {
-      localStorage.setItem('arsan_profile_v1', JSON.stringify({
-        firstName: prof.firstName || '',
-        lastName: prof.lastName || '',
-        phone: prof.phone || ''
-      }));
-    } catch(_){}
-
-    refreshHero(me.email, me.role, prof.firstName, prof.lastName);
+  // قراءة الـ ?email=...
+  function targetEmail(){
+    const u = new URL(location.href);
+    return (u.searchParams.get('email') || '').toLowerCase().trim();
   }
 
-  function refreshHero(email, role, fn, ln){
-    const fullName = [fn, ln].filter(Boolean).join(' ').trim();
+  function renderAvatar(prof, email){
+    const av = document.getElementById('avatar');
+    const txt = document.getElementById('avatarText');
+    if (prof.avatar && prof.avatar.startsWith('data:')){
+      av.innerHTML = '<img src="'+escapeHtml(prof.avatar)+'" alt=""><div class="upload-overlay" id="avatarUpload">تغيير</div>';
+      // re-bind because innerHTML wiped it
+      const ov = av.querySelector('.upload-overlay');
+      if (ov && av.classList.contains('editable')) ov.onclick = () => document.getElementById('avatarFile').click();
+    } else {
+      txt.textContent = avatarLetter(prof.firstName, prof.lastName, email);
+    }
+  }
+
+  function renderHero(prof, email, role, fullNameFallback){
+    const fullName = [prof.firstName, prof.lastName].filter(Boolean).join(' ').trim() || fullNameFallback || '';
     const nameEl = document.getElementById('heroName');
     if (fullName){
       nameEl.textContent = fullName;
+      document.getElementById('crumbName').textContent = fullName;
+      document.title = 'أرسان — ' + fullName;
     } else {
-      nameEl.innerHTML = '<span class="placeholder">— لم تُكمِل ملفك بعد —</span>';
+      nameEl.innerHTML = '<span class="placeholder">— لم يُكمِل بروفايله بعد —</span>';
     }
-    document.getElementById('avatar').textContent = avatarLetter(fn, ln, email);
+    document.getElementById('heroEmail').textContent = email;
+    if (prof.jobTitle){
+      const j = document.getElementById('heroJob');
+      j.style.display = '';
+      j.textContent = prof.jobTitle;
+    }
     if (role){
       const r = document.getElementById('heroRole');
       r.style.display = 'inline-flex';
       document.getElementById('roleLabel').textContent = roleArabic(role);
     }
+    if (prof.department){
+      const d = document.getElementById('heroDept');
+      d.style.display = 'inline-flex';
+      d.textContent = prof.department;
+    }
+    renderAvatar(prof, email);
   }
+
+  function fillReadonly(prof, email){
+    const set = (id, v, empty='—') => { const el=document.getElementById(id); el.textContent = v || empty; if (!v) el.classList.add('empty'); };
+    set('roJob', prof.jobTitle);
+    set('roDept', prof.department);
+    set('roPhone', prof.phone);
+    set('roEmail', email);
+    set('roBio', prof.bio);
+    if (email){
+      const m = document.getElementById('mailBtn');
+      m.href = 'mailto:' + email;
+      m.style.display = 'inline-flex';
+    }
+    if (prof.phone){
+      const p = document.getElementById('phoneBtn');
+      p.href = 'tel:' + prof.phone.replace(/\s/g,'');
+      p.style.display = 'inline-flex';
+    }
+  }
+
+  async function loadOwn(){
+    const me = await api('/api/me');
+    if (!me || !me.email){ showToast('لم يتم التعرّف على الجلسة', false); return; }
+    const prof = await api('/api/profile');
+    document.getElementById('emailField').value = me.email;
+    document.getElementById('firstName').value = prof.firstName || '';
+    document.getElementById('lastName').value  = prof.lastName  || '';
+    document.getElementById('jobTitle').value  = prof.jobTitle  || '';
+    document.getElementById('department').value= prof.department|| '';
+    document.getElementById('phone').value     = prof.phone     || '';
+    document.getElementById('bio').value       = prof.bio       || '';
+    renderHero(prof, me.email, me.role);
+    document.getElementById('profileForm').style.display = '';
+    // make avatar uploadable
+    document.getElementById('avatar').classList.add('editable');
+    document.getElementById('avatarUpload').onclick = () => document.getElementById('avatarFile').click();
+
+    // cache for welcome popup
+    try {
+      localStorage.setItem('arsan_profile_v1', JSON.stringify({
+        firstName: prof.firstName||'', lastName: prof.lastName||'', phone: prof.phone||'',
+        jobTitle: prof.jobTitle||'', department: prof.department||'', bio: prof.bio||'', avatar: prof.avatar||''
+      }));
+    } catch(_){}
+  }
+
+  async function loadOther(email){
+    document.getElementById('viewingBanner').style.display = '';
+    document.getElementById('pageTitle').textContent = 'بروفايل زميل';
+    document.getElementById('pageSub').textContent = 'معلومات هذا الزميل كما شاركها — تستطيع التواصل عبر البريد أو الجوال.';
+    const prof = await api('/api/profile/' + encodeURIComponent(email));
+    if (prof.error){
+      showToast('تعذّر تحميل البروفايل: ' + prof.error, false);
+      return;
+    }
+    renderHero(prof, email, prof.role);
+    fillReadonly(prof, email);
+    document.getElementById('readonlyCard').style.display = '';
+  }
+
+  // image upload → base64 (compressed)
+  document.getElementById('avatarFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > 3*1024*1024){ showToast('الصورة كبيرة جداً (حد 3MB)', false); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      // compress via canvas
+      const img = new Image();
+      img.onload = () => {
+        const max = 320;
+        const scale = Math.min(1, max/Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = img.width*scale; c.height = img.height*scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const dataUrl = c.toDataURL('image/jpeg', 0.82);
+        document.getElementById('avatar').innerHTML = '<img src="'+dataUrl+'" alt=""><div class="upload-overlay" onclick="document.getElementById(\'avatarFile\').click()">تغيير</div>';
+        // store temporarily; will save with the form
+        document.getElementById('avatarFile').dataset.pending = dataUrl;
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
 
   document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fn = document.getElementById('firstName').value.trim();
     const ln = document.getElementById('lastName').value.trim();
-    const ph = document.getElementById('phone').value.trim();
-    if (!fn || !ln){
-      showToast('الاسم الأول والأخير مطلوبان', false);
-      return;
-    }
+    if (!fn || !ln){ showToast('الاسم الأول والأخير مطلوبان', false); return; }
+    const payload = {
+      firstName: fn, lastName: ln,
+      jobTitle: document.getElementById('jobTitle').value.trim(),
+      department: document.getElementById('department').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      bio: document.getElementById('bio').value.trim(),
+    };
+    const pendingAvatar = document.getElementById('avatarFile').dataset.pending;
+    if (pendingAvatar) payload.avatar = pendingAvatar;
+
     const btn = document.getElementById('saveBtn');
     btn.disabled = true; btn.textContent = 'جارٍ الحفظ…';
     try {
-      const r = await api('/api/profile', {
-        method: 'PUT',
-        body: JSON.stringify({ firstName: fn, lastName: ln, phone: ph })
-      });
+      const r = await api('/api/profile', { method:'PUT', body: JSON.stringify(payload) });
       if (r.error) throw new Error(r.error);
-      // 🔄 cache locally so welcome-popup & sidebar pick it up instantly
       try {
-        localStorage.setItem('arsan_profile_v1', JSON.stringify({
-          firstName: fn, lastName: ln, phone: ph
-        }));
-        // reset welcome shown flag so user gets the personalized greeting next time
+        localStorage.setItem('arsan_profile_v1', JSON.stringify({...payload, avatar: pendingAvatar || (JSON.parse(localStorage.getItem('arsan_profile_v1')||'{}').avatar||'') }));
         localStorage.removeItem('arsan_welcome_shown_v1');
       } catch(_){}
       showToast('تم الحفظ ✓');
-      const email = document.getElementById('emailField').value;
-      refreshHero(email, null, fn, ln);
+      // refresh hero from saved data
+      const me = await api('/api/me');
+      const prof = r.profile || payload;
+      renderHero(prof, me.email, me.role);
     } catch(err){
       showToast('فشل الحفظ: ' + (err.message||err), false);
     } finally {
@@ -259,12 +417,18 @@ input:disabled{opacity:.55;cursor:not-allowed}
     }
   });
 
-  // init when auth-gate confirms session (or immediately if already logged in)
-  if (token()){
-    load();
-  } else {
-    setTimeout(load, 500); // wait for auth-gate
+  async function init(){
+    if (!token()){ setTimeout(init, 500); return; }
+    const target = targetEmail();
+    const me = await api('/api/me');
+    if (!me || !me.email) return;
+    if (!target || target === me.email.toLowerCase()){
+      await loadOwn();
+    } else {
+      await loadOther(target);
+    }
   }
+  init();
 })();
 </script>
 </body>

@@ -5359,6 +5359,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showUnifiedMap }, '🌐 الخريطة الشاملة'));
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showDepsEditor }, '🔗 التبعيّات'));
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: toggleChat }, '💬 التواصل'));
+    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'people.html'; }}, '👥 الفريق'));
+    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'profile.html'; }, title:'ملفي الشخصي' }, '👤 ملفي'));
 
     if (me.role === 'viewer') {
       bar.appendChild(h('button', { class:'arsan-topbar-btn primary', onclick: showLogin }, '🔑 دخول'));

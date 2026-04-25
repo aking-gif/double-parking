@@ -13,17 +13,60 @@
   const t = (ar, en) => LANG() === 'en' ? en : ar;
   const isRTL = () => LANG() === 'ar';
 
+  // --- Black horse SVG logo (Arsan brand mark)
+  const HORSE_SVG = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="ah-grad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1a1510"/>
+        <stop offset="100%" stop-color="#0a0806"/>
+      </linearGradient>
+      <linearGradient id="ah-mane" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#85714D"/>
+        <stop offset="100%" stop-color="#5E4F36"/>
+      </linearGradient>
+    </defs>
+    <!-- Horse silhouette: arched neck, alert ears, flowing mane -->
+    <path d="M44 16 L46 10 L48 16 L50 10 L52 17 Q54 22 52 28 Q56 32 56 38 Q56 48 50 52 L48 50 Q47 46 48 42 L42 40 Q36 38 32 34 Q28 32 24 36 Q20 40 18 46 Q16 48 14 46 Q12 44 14 38 Q16 30 22 26 Q28 22 34 22 Q40 20 44 16 Z"
+          fill="url(#ah-grad)" stroke="#85714D" stroke-width="0.8"/>
+    <!-- Mane flowing back -->
+    <path d="M44 16 Q40 14 36 18 Q32 22 30 26 Q28 28 30 30 Q34 28 38 26 Q42 22 44 18 Z"
+          fill="url(#ah-mane)" opacity="0.85"/>
+    <!-- Eye -->
+    <circle cx="42" cy="24" r="1.2" fill="#85714D"/>
+    <!-- Nostril -->
+    <ellipse cx="50" cy="22" rx="0.8" ry="1.2" fill="#85714D" opacity="0.7"/>
+  </svg>`;
+
   // --- AI caller (resilient)
   async function ask(prompt){
-    // 1) Use dashboard.html's callAI if it exists
+    // 1) ArsanAPI.ai (uses /api/ai with token)
+    if (window.ArsanAPI && typeof window.ArsanAPI.ai === 'function') {
+      try { return await window.ArsanAPI.ai(prompt); } catch(e) { console.warn('ArsanAPI.ai failed:', e); }
+    }
+    // 2) Direct Worker call with stored token (works on any page)
+    const token = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
+    const apiBase = window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
+    if (token && apiBase) {
+      try {
+        const res = await fetch(apiBase.replace(/\/$/,'') + '/api/ai', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer ' + token
+          },
+          body: JSON.stringify({ message: prompt, history: [] })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.reply) return data.reply;
+        if (res.status === 401) throw new Error(t('انتهت الجلسة. سجّل الدخول مجدداً.','Session expired. Please log in again.'));
+        if (data.error) throw new Error(data.error);
+      } catch(e){ console.warn('Direct AI call failed:', e); if (e.message) throw e; }
+    }
+    // 3) dashboard.html's callAI
     if (typeof window.callAI === 'function') {
       return await window.callAI(prompt);
     }
-    // 2) ArsanAPI
-    if (window.ArsanAPI && typeof window.ArsanAPI.ai === 'function' && window.ArsanAPI.getToken && window.ArsanAPI.getToken()) {
-      return await window.ArsanAPI.ai(prompt);
-    }
-    // 3) Built-in claude (artifact only)
+    // 4) Built-in claude (artifact only)
     if (window.claude && typeof window.claude.complete === 'function') {
       return await window.claude.complete(prompt);
     }
@@ -67,6 +110,15 @@
         70%{ box-shadow:0 0 0 16px rgba(133,113,77,0); }
         100%{ box-shadow:0 0 0 0 rgba(133,113,77,0); }
       }
+      .arsan-ai-fab .arsan-ai-fab-mark{
+        position:relative;
+        width:32px;height:32px;
+        display:flex;align-items:center;justify-content:center;
+      }
+      .arsan-ai-fab .arsan-ai-fab-mark svg{
+        width:100%;height:100%;
+        filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
+      }
       .arsan-ai-fab.hidden{ display:none; }
 
       .arsan-ai-panel{
@@ -107,11 +159,15 @@
         display:flex;align-items:center;gap:10px;
       }
       .arsan-ai-head .avatar{
-        width:36px;height:36px;border-radius:50%;
-        background:linear-gradient(135deg, #85714D, #5E4F36);
+        width:40px;height:40px;border-radius:50%;
+        background:linear-gradient(135deg, #2a2014, #1a1510);
+        border:1.5px solid rgba(133,113,77,.5);
         display:flex;align-items:center;justify-content:center;
-        font-size:18px;color:#fff;
         flex-shrink:0;
+        overflow:hidden;
+      }
+      .arsan-ai-head .avatar svg{
+        width:28px;height:28px;
       }
       .arsan-ai-head .info{ flex:1; min-width:0; }
       .arsan-ai-head .info h3{
@@ -296,9 +352,9 @@
     fab = document.createElement('button');
     fab.className = 'arsan-ai-fab';
     fab.id = 'arsan-ai-fab';
-    fab.setAttribute('aria-label', t('مساعد الذكاء','AI Assistant'));
-    fab.title = t('اسأل المساعد','Ask the assistant');
-    fab.innerHTML = `<span class="pulse"></span><span style="position:relative">🤖</span>`;
+    fab.setAttribute('aria-label', t('الأدهم — مساعد أرسان','Al-Adham — Arsan Assistant'));
+    fab.title = t('اسأل الأدهم','Ask Al-Adham');
+    fab.innerHTML = `<span class="pulse"></span><span class="arsan-ai-fab-mark">${HORSE_SVG}</span>`;
     fab.addEventListener('click', toggle);
     document.body.appendChild(fab);
 
@@ -310,17 +366,17 @@
     panel.setAttribute('aria-modal','false');
     panel.innerHTML = `
       <div class="arsan-ai-head">
-        <div class="avatar">🤖</div>
+        <div class="avatar">${HORSE_SVG}</div>
         <div class="info">
-          <h3>${t('مساعد أرسان الذكي','Arsan AI Assistant')}</h3>
-          <div class="status">${t('جاهز للمساعدة','Ready to help')}</div>
+          <h3>${t('الأدهم','Al-Adham')}</h3>
+          <div class="status">${t('مساعد أرسان الذكي','Arsan AI Assistant')}</div>
         </div>
         <button class="x" type="button" aria-label="Close">✕</button>
       </div>
       <div class="arsan-ai-body" id="arsan-ai-body"></div>
       <div class="arsan-ai-suggest" id="arsan-ai-suggest"></div>
       <div class="arsan-ai-foot">
-        <textarea id="arsan-ai-input" rows="1" placeholder="${t('اكتب سؤالك…','Type your question…')}"></textarea>
+        <textarea id="arsan-ai-input" rows="1" placeholder="${t('اكتب سؤالك للأدهم…','Ask Al-Adham…')}"></textarea>
         <button class="arsan-ai-send" id="arsan-ai-send" type="button" aria-label="Send">↑</button>
       </div>
     `;
@@ -346,10 +402,10 @@
     // Suggestions
     renderSuggest();
 
-    // Greeting
+    // Greeting — Al-Adham introduces himself
     addBot(t(
-      'مرحباً 👋\nأنا مساعدك الذكي. أستطيع شرح الإجراءات، صياغة خطوات جديدة، اقتراح KPIs، وتلخيص المحتوى. اسأل ما شئت!',
-      'Hi 👋\nI am your AI helper. I can explain SOPs, draft new steps, suggest KPIs, and summarize content. Ask me anything!'
+      'السلام عليكم 🐎\nأنا **الأدهم** — مساعدك الذكي في منصّة أرسان.\n\n"الأدهم" في العربية يعني الحصان الأسود الفاره، رمز القوة والوفاء والسرعة. هكذا أحبّ أن أكون: سريع الاستجابة، أمين على معرفتك، وقوي عند الحاجة.\n\nأستطيع:\n• شرح الإجراءات وتلخيصها\n• صياغة خطوات وKPIs جديدة\n• اقتراح تحسينات تشغيلية\n• الإجابة على أي سؤال يخصّ عملك في أرسان\n\nمن أين نبدأ؟',
+      'Greetings 🐎\nI am **Al-Adham** — your AI assistant on the Arsan platform.\n\n"Al-Adham" in Arabic means a noble black horse — a symbol of strength, loyalty, and speed. That is how I aim to be: quick to answer, faithful to your knowledge, and strong when you need me.\n\nI can:\n• Explain & summarize SOPs\n• Draft new steps & KPIs\n• Suggest operational improvements\n• Answer any question about your work in Arsan\n\nWhere shall we start?'
     ));
   }
 
@@ -375,11 +431,17 @@
     });
   }
 
+  function renderMd(txt){
+    // light markdown: **bold** + line breaks
+    const esc = String(txt).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    return esc.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  }
+
   // --- Messaging
   function addBot(txt){
     const div = document.createElement('div');
     div.className = 'arsan-ai-msg bot';
-    div.textContent = txt;
+    div.innerHTML = renderMd(txt);
     body.appendChild(div);
     scroll();
     history.push({ role:'assistant', content: txt });

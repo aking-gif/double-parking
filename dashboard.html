@@ -1315,9 +1315,9 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         شبكة
       </button>
-      <button class="view-btn" data-view="map" type="button" role="tab" aria-selected="false">
+      <button class="view-btn" data-view="map" type="button" role="tab" aria-selected="false" title="عرض الخريطة الشاملة لكل الإدارات">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m7 7 3 3M17 7l-3 3M7 17l3-3M17 17l-3-3"/></svg>
-        خريطة ذهنية
+        الخريطة الشاملة 🌐
       </button>
     </div>
   </div>
@@ -2869,13 +2869,22 @@ updateStats();
 document.querySelectorAll('.view-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const v = btn.dataset.view;
+    if (v === 'map') {
+      // "خريطة ذهنية" زر يفتح الخريطة الشاملة الآن (modal)
+      // اترك الـ active على Grid لأن المودال لا يستبدل العرض
+      if (typeof window.showUnifiedMap === 'function') {
+        window.showUnifiedMap();
+      } else {
+        alert('الخريطة الشاملة قيد التحميل…');
+      }
+      return;
+    }
     document.querySelectorAll('.view-btn').forEach(b => {
       b.classList.toggle('active', b === btn);
       b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
     });
     $("#grid").style.display = v === 'grid' ? '' : 'none';
-    $("#brainMap").style.display = v === 'map' ? '' : 'none';
-    if (v === 'map') (window.renderBrainMap || renderBrainMap)();
+    $("#brainMap").style.display = 'none';
   });
 });
 
@@ -3329,7 +3338,7 @@ var I18N = {
     clearSearch: "مسح ✕",
     all: "الكل",
     gridView: "شبكة",
-    mapView: "خريطة ذهنية",
+    mapView: "الخريطة الشاملة 🌐",
     viewingOf: (v, t) => `عرض <strong id="visibleCount">${v}</strong> من أصل <strong id="totalCount">${t}</strong> إجراءً`,
     openSop: "افتح تفاصيل الإجراء",
     owner: "المالك",
@@ -3383,7 +3392,7 @@ var I18N = {
     clearSearch: "Clear ✕",
     all: "All",
     gridView: "Grid",
-    mapView: "Mind Map",
+    mapView: "Unified Map 🌐",
     viewingOf: (v, t) => `Showing <strong id="visibleCount">${v}</strong> of <strong id="totalCount">${t}</strong> procedures`,
     openSop: "Open procedure details",
     owner: "Owner",
@@ -5931,10 +5940,10 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 <script src="maintenance.js?v=20"></script>
 <script src="changelog.js?v=20"></script>
 <script src="admin-fab.js?v=20"></script>
-<script src="welcome-popup.js?v=20"></script>
+<script src="welcome-popup.js?v=21"></script>
 <script src="features-pack.js?v=21"></script>
 <script src="admin-toolbar.js?v=20"></script>
-<script src="ai-assistant.js?v=1"></script>
+<script src="ai-assistant.js?v=2"></script>
 <script src="messaging.js?v=20"></script>
 <script src="mentions.js?v=20"></script>
 <script src="audit-viewer.js?v=20"></script>

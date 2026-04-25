@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  const SHOWN_KEY = 'arsan_welcome_shown_date';  // stores YYYY-MM-DD to show once per day
+  const SHOWN_KEY = 'arsan_welcome_shown_session';  // sessionStorage — shows once per browser session (i.e. each fresh login)
   const LAST_QUOTE_KEY = 'arsan_welcome_last_idx';
   const todayStr = () => {
     const d = new Date();
@@ -188,7 +188,7 @@
   }
 
   async function show(){
-    if (localStorage.getItem(SHOWN_KEY) === todayStr()) return;
+    if (sessionStorage.getItem(SHOWN_KEY) === "1") return;
 
     const user = me();
     if (!user || !user.email) return; // only logged-in
@@ -196,7 +196,7 @@
     // ⏳ جلب البروفايل من الـ API قبل البناء (لو أول مرة)
     await ensureProfile();
 
-    localStorage.setItem(SHOWN_KEY, todayStr());
+    sessionStorage.setItem(SHOWN_KEY, "1");
     injectStyles();
 
     const q = pickQuote();
@@ -266,13 +266,13 @@
     // Also listen for login events (if app emits one)
     window.addEventListener('arsan-auth-change', () => {
       if (me().email) {
-        localStorage.removeItem(SHOWN_KEY);
+        sessionStorage.removeItem(SHOWN_KEY);
         setTimeout(show, 300);
       }
     });
     // Console helper for testing
     window.showWelcome = () => {
-      localStorage.removeItem(SHOWN_KEY);
+      sessionStorage.removeItem(SHOWN_KEY);
       show();
     };
   }

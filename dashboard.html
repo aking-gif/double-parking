@@ -1683,7 +1683,60 @@ function getCurrentDept(){
   return id;
 }
 const CURRENT_DEPT_ID = getCurrentDept();
-const DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
+let DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
+
+// ----------------------------------------------------------------
+// Fallback for CUSTOM departments (not in DEPARTMENTS_CONFIG)
+// ----------------------------------------------------------------
+if (!DEPT) {
+  // Try to read custom dept name from localStorage (set by index.html on click)
+  let customName = CURRENT_DEPT_ID;
+  try {
+    const stored = JSON.parse(localStorage.getItem('arsan_department') || 'null');
+    if (stored && stored.id === CURRENT_DEPT_ID && stored.name) customName = stored.name;
+  } catch(_) {}
+  // Build a generic config so the dashboard doesn't break
+  DEPT = {
+    name: customName,
+    titlePrefix: 'إدارة',
+    titleHighlight: customName,
+    titleSuffix: '',
+    subtitle: 'إجراءات هذه الإدارة',
+    groupVerb: 'الإجراءات',
+    groups: [
+      { id: 'general',  label: 'عام' },
+      { id: 'planning', label: 'تخطيط' },
+      { id: 'execution',label: 'تنفيذ' },
+      { id: 'review',   label: 'مراجعة' },
+      { id: 'closure',  label: 'إقفال' }
+    ],
+    sops: [] // empty — user will add their own
+  };
+  DEPARTMENTS_CONFIG[CURRENT_DEPT_ID] = DEPT;
+
+  // Also try to fetch official name + members from Worker (async, will refresh title later)
+  setTimeout(async () => {
+    try {
+      const tok = localStorage.getItem('arsan_token') || '';
+      const res = await fetch((window.API_BASE||'') + '/api/custom-depts', {
+        headers: tok ? { Authorization: 'Bearer ' + tok } : {}
+      });
+      const list = await res.json();
+      const found = Array.isArray(list) && list.find(d => d.id === CURRENT_DEPT_ID);
+      if (found) {
+        DEPT.name = found.name;
+        DEPT.titleHighlight = found.name;
+        DEPT.subtitle = found.desc || DEPT.subtitle;
+        // Re-render header
+        const h1 = document.querySelector('h1.title');
+        if (h1) h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix}`;
+        const sub = document.querySelector('.subtitle');
+        if (sub) sub.textContent = DEPT.subtitle;
+        document.title = DEPT.name + ' — Arsann SOPs';
+      }
+    } catch(_) {}
+  }, 100);
+}
 
 /* متوافق مع الكود القديم: PHASES = groups الخاصة بالإدارة */
 const PHASES = DEPT.groups;

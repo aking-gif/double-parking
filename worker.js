@@ -43,6 +43,14 @@ const KEYS = {
   updatesCache:"updates_cache_v1",
   announcements: "announcements_v1",
   favorites: (email) => `favorites_${(email||'').toLowerCase()}_v1`,
+  // ===== Layer 1 expansions =====
+  audit:    "audit_v1",                              // قائمة كاملة لكل التعديلات (max 5000 entry)
+  mentions: (email) => `mentions_${(email||'').toLowerCase()}_v1`,  // إشعارات mentions لكل مستخدم
+  deptInbox: (dept) => `inbox_${dept}_v1`,           // صندوق رسائل الإدارة
+  messages: "messages_v1",                            // كل الرسائل بين الإدارات (مرجع رئيسي)
+  webhooks: "webhooks_v1",                            // webhooks مسجّلة
+  backups:  (date) => `backup_${date}_v1`,           // نسخ احتياطي يومي
+  backupIndex: "backup_index_v1",                     // قائمة بكل النسخ
 };
 
 function corsHeaders(req) {
@@ -118,6 +126,103 @@ async function logActivity(env, entry) {
       });
     }
   } catch (e) { /* ignore */ }
+}
+
+// ============================================================
+// LAYER 1 HELPERS — Audit / Mentions / Webhooks
+// ============================================================
+
+/** سجل تعديل في audit log (مفصّل أكثر من activity) */
+async function logAudit(env, entry) {
+  try {
+    const raw = await env.ARSAN.get(KEYS.audit);
+    const list = raw ? JSON.parse(raw) : [];
+    list.unshift({
+      id: rand(8),
+      ts: Date.now(),
+      ...entry
+    });
+    if (list.length > 5000) list.length = 5000;
+    await env.ARSAN.put(KEYS.audit, JSON.stringify(list));
+  } catch(_) {}
+}
+
+/** أرسل إشعار/mention لمستخدم */
+async function addMention(env, opts) {
+  // opts: { toEmail, fromEmail, kind, message, sopRef, dept }
+  try {
+    const raw = await env.ARSAN.get(KEYS.mentions(opts.toEmail));
+    const list = raw ? JSON.parse(raw) : [];
+    list.unshift({
+      id: rand(8),
+      ts: Date.now(),
+      from: opts.fromEmail,
+      kind: opts.kind || "mention",
+      message: opts.message || "",
+      sopRef: opts.sopRef || null,
+      dept: opts.dept || null,
+      read: false
+    });
+    if (list.length > 200) list.length = 200;
+    await env.ARSAN.put(KEYS.mentions(opts.toEmail), JSON.stringify(list));
+  } catch(_) {}
+}
+
+/** أطلق webhooks المسجّلة لحدث معيّن */
+async function fireWebhook(env, eventName, payload) {
+  try {
+    const raw = await env.ARSAN.get(KEYS.webhooks);
+    const list = raw ? JSON.parse(raw) : [];
+    const matching = list.filter(w =>
+      w.active &&
+      Array.isArray(w.events) &&
+      w.events.includes(eventName) &&
+      (!w.dept || !payload?.dept || w.dept === payload.dept)
+    );
+    // لا تنتظر الكل (fire-and-forget)
+    matching.forEach(async wh => {
+      try {
+        const res = await fetch(wh.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: eventName,
+            ts: Date.now(),
+            payload
+          })
+        });
+        wh.lastFired = Date.now();
+        wh.lastError = res.ok ? null : `HTTP ${res.status}`;
+      } catch(e) {
+        wh.lastError = String(e.message || e);
+      }
+    });
+    // حدّث الحالة (best-effort)
+    if (matching.length) {
+      setTimeout(async () => {
+        try { await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list)); } catch(_) {}
+      }, 100);
+    }
+  } catch(_) {}
+}
+
+/** استخراج @mentions من نص — يبحث عن @إدارة-... أو @email */
+function extractMentions(text) {
+  if (!text) return { depts: [], emails: [] };
+  const depts = [];
+  const emails = [];
+  // @dept-id (latin or hyphenated)
+  (text.match(/@([a-z0-9_-]+)\b/gi) || []).forEach(m => {
+    const id = m.slice(1).toLowerCase();
+    if (id.includes("@") || id.includes(".")) emails.push(id);
+    else if (!depts.includes(id)) depts.push(id);
+  });
+  // @email@domain
+  (text.match(/@([a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,})/gi) || []).forEach(m => {
+    const email = m.slice(1).toLowerCase();
+    if (!emails.includes(email)) emails.push(email);
+  });
+  return { depts, emails };
 }
 
 /**
@@ -344,9 +449,21 @@ export default {
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
         all[dept] = all[dept] || {};
-        all[dept][code] = { ...all[dept][code], ...body, updatedAt: Date.now(), updatedBy: ed.session.email };
+        const _before = JSON.parse(JSON.stringify(all[dept][code] || {}));
+        all[dept][code] = { ...all[dept][code], ...body, updatedAt: Date.now(), updatedBy: ed.session.email, version: (_before.version||0)+1 };
         await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
         await logActivity(env, { actor: ed.session.email, action: "edit-sop", target: `${dept}/${code}`, dept, code, fields: Object.keys(body) });
+        await logAudit(env, { actor: ed.session.email, action: "sop-update", dept, code, fields: Object.keys(body), before: _before, after: all[dept][code] });
+        // فحص mentions في الحقول النصية
+        const _txt = [body.purpose, body.scope, body.notes, ...(body.steps||[]).map(s=>typeof s==='string'?s:s?.text||'')].filter(Boolean).join(' ');
+        const _m = extractMentions(_txt);
+        for (const dId of _m.depts) {
+          await logAudit(env, { actor: ed.session.email, action: "mention-dept", dept: dId, sopRef: `${dept}/${code}` });
+        }
+        for (const em of _m.emails) {
+          await addMention(env, { toEmail: em, fromEmail: ed.session.email, kind: "mention", message: `أُشير إليك في ${dept}/${code}`, sopRef: `${dept}/${code}`, dept });
+        }
+        await fireWebhook(env, "sop.updated", { dept, code, by: ed.session.email, fields: Object.keys(body) });
         return json({ ok: true, sop: all[dept][code] }, 200, req);
       }
 
@@ -358,9 +475,11 @@ export default {
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
         all[dept] = all[dept] || {};
-        all[dept][body.code] = { ...body, createdAt: Date.now(), createdBy: ed.session.email };
+        all[dept][body.code] = { ...body, createdAt: Date.now(), createdBy: ed.session.email, version: 1 };
         await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
         await logActivity(env, { actor: ed.session.email, action: "add-sop", target: `${dept}/${body.code}`, dept, code: body.code, title: body.title });
+        await logAudit(env, { actor: ed.session.email, action: "sop-create", dept, code: body.code, title: body.title, after: all[dept][body.code] });
+        await fireWebhook(env, "sop.created", { dept, code: body.code, title: body.title, by: ed.session.email });
         return json({ ok: true }, 200, req);
       }
 
@@ -370,9 +489,12 @@ export default {
         const [_, __, ___, dept, code] = path.split("/");
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
+        const _deleted = all[dept] && all[dept][code] ? JSON.parse(JSON.stringify(all[dept][code])) : null;
         if (all[dept]) delete all[dept][code];
         await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
         await logActivity(env, { actor: ad.session.email, action: "delete-sop", target: `${dept}/${code}` });
+        await logAudit(env, { actor: ad.session.email, action: "sop-delete", dept, code, before: _deleted });
+        await fireWebhook(env, "sop.deleted", { dept, code, by: ad.session.email });
         return json({ ok: true }, 200, req);
       }
 
@@ -1239,6 +1361,265 @@ ${clipped}
         } catch (e) {
           return json({ error: "ai-fetch-failed", message: String(e && e.message || e) }, 502, req);
         }
+      }
+
+      // ============================================================
+      // ===== LAYER 1 — Audit / Mentions / Messages / Webhooks =====
+      // ============================================================
+
+      // -------- AUDIT TRAIL --------
+      // GET /api/audit?limit=100&dept=executive&actor=...&action=update
+      if (path === "/api/audit" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.audit);
+        let list = raw ? JSON.parse(raw) : [];
+        const limit = parseInt(url.searchParams.get("limit") || "200", 10);
+        const dept = url.searchParams.get("dept");
+        const actor = url.searchParams.get("actor");
+        const action = url.searchParams.get("action");
+        if (dept) list = list.filter(e => e.dept === dept);
+        if (actor) list = list.filter(e => (e.actor||"").toLowerCase().includes(actor.toLowerCase()));
+        if (action) list = list.filter(e => e.action === action);
+        return json(list.slice(0, limit), 200, req);
+      }
+
+      // -------- MENTIONS / NOTIFICATIONS (per-user) --------
+      // GET /api/mentions  → my mentions
+      if (path === "/api/mentions" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.mentions(s.email));
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/mentions/:id/read → mark as read
+      if (path.match(/^\/api\/mentions\/[^\/]+\/read$/) && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.mentions(s.email));
+        const list = raw ? JSON.parse(raw) : [];
+        const item = list.find(m => m.id === id);
+        if (item) { item.read = true; item.readAt = Date.now(); }
+        await env.ARSAN.put(KEYS.mentions(s.email), JSON.stringify(list));
+        return json({ ok: true }, 200, req);
+      }
+      // POST /api/mentions/read-all
+      if (path === "/api/mentions/read-all" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.mentions(s.email));
+        const list = raw ? JSON.parse(raw) : [];
+        list.forEach(m => { m.read = true; m.readAt = Date.now(); });
+        await env.ARSAN.put(KEYS.mentions(s.email), JSON.stringify(list));
+        return json({ ok: true }, 200, req);
+      }
+
+      // -------- INTER-DEPT MESSAGING --------
+      // GET /api/messages?dept=executive  → الصندوق الوارد للإدارة
+      if (path === "/api/messages" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const dept = url.searchParams.get("dept");
+        if (!dept) return json({ error: "dept-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.deptInbox(dept));
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/messages  { fromDept, toDept, subject, body, priority?, sopRef? }
+      if (path === "/api/messages" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const { fromDept, toDept, subject, body: msgBody, priority, sopRef } = body;
+        if (!fromDept || !toDept || !subject) return json({ error: "invalid-input" }, 400, req);
+        const msg = {
+          id: rand(12),
+          fromDept, toDept,
+          fromEmail: s.email,
+          subject: String(subject).slice(0, 200),
+          body: String(msgBody || "").slice(0, 5000),
+          priority: priority || "normal",
+          sopRef: sopRef || null,
+          ts: Date.now(),
+          read: false,
+          readBy: []
+        };
+        // أضف للصندوق الوارد للإدارة المستقبلة
+        const inboxRaw = await env.ARSAN.get(KEYS.deptInbox(toDept));
+        const inbox = inboxRaw ? JSON.parse(inboxRaw) : [];
+        inbox.unshift(msg);
+        if (inbox.length > 500) inbox.length = 500;
+        await env.ARSAN.put(KEYS.deptInbox(toDept), JSON.stringify(inbox));
+        // وأرسل نسخة لصندوق المرسل (Sent)
+        const sentKey = `inbox_${fromDept}_sent_v1`;
+        const sentRaw = await env.ARSAN.get(sentKey);
+        const sent = sentRaw ? JSON.parse(sentRaw) : [];
+        sent.unshift(msg);
+        if (sent.length > 500) sent.length = 500;
+        await env.ARSAN.put(sentKey, JSON.stringify(sent));
+        // سجل في audit
+        await logAudit(env, { actor: s.email, action: "message-sent", dept: toDept, fromDept, subject: msg.subject });
+        // أطلق webhook لو موجود
+        await fireWebhook(env, "message.sent", msg);
+        return json({ ok: true, message: msg }, 200, req);
+      }
+      // GET /api/messages/sent?dept=...  → المرسلة
+      if (path === "/api/messages/sent" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const dept = url.searchParams.get("dept");
+        if (!dept) return json({ error: "dept-required" }, 400, req);
+        const raw = await env.ARSAN.get(`inbox_${dept}_sent_v1`);
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/messages/:id/read  { dept }
+      if (path.match(/^\/api\/messages\/[^\/]+\/read$/) && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const body = await req.json().catch(() => ({}));
+        const dept = body.dept;
+        if (!dept) return json({ error: "dept-required" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.deptInbox(dept));
+        const list = raw ? JSON.parse(raw) : [];
+        const item = list.find(m => m.id === id);
+        if (item) {
+          item.read = true;
+          if (!item.readBy.includes(s.email)) item.readBy.push(s.email);
+        }
+        await env.ARSAN.put(KEYS.deptInbox(dept), JSON.stringify(list));
+        return json({ ok: true }, 200, req);
+      }
+
+      // -------- WEBHOOKS (admin only) --------
+      // GET /api/webhooks  → list all
+      if (path === "/api/webhooks" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const raw = await env.ARSAN.get(KEYS.webhooks);
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/webhooks  { name, url, events: [...], dept?, active }
+      if (path === "/api/webhooks" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const { name, url: hookUrl, events, dept, active } = body;
+        if (!name || !hookUrl || !Array.isArray(events) || !events.length) return json({ error: "invalid-input" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.webhooks);
+        const list = raw ? JSON.parse(raw) : [];
+        const wh = {
+          id: rand(10),
+          name: String(name).slice(0, 80),
+          url: String(hookUrl),
+          events,
+          dept: dept || null,
+          active: active !== false,
+          createdAt: Date.now(),
+          createdBy: ad.session.email,
+          lastFired: null,
+          lastError: null
+        };
+        list.push(wh);
+        await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list));
+        return json({ ok: true, webhook: wh }, 200, req);
+      }
+      // PATCH /api/webhooks/:id
+      if (path.match(/^\/api\/webhooks\/[^\/]+$/) && method === "PATCH") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = path.split("/")[3];
+        const body = await req.json().catch(() => ({}));
+        const raw = await env.ARSAN.get(KEYS.webhooks);
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(w => w.id === id);
+        if (idx < 0) return json({ error: "not-found" }, 404, req);
+        ["name","url","events","dept","active"].forEach(k => {
+          if (body[k] !== undefined) list[idx][k] = body[k];
+        });
+        await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list));
+        return json({ ok: true, webhook: list[idx] }, 200, req);
+      }
+      // DELETE /api/webhooks/:id
+      if (path.match(/^\/api\/webhooks\/[^\/]+$/) && method === "DELETE") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.webhooks);
+        const list = (raw ? JSON.parse(raw) : []).filter(w => w.id !== id);
+        await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list));
+        return json({ ok: true }, 200, req);
+      }
+      // POST /api/webhooks/:id/test  → اختبر webhook
+      if (path.match(/^\/api\/webhooks\/[^\/]+\/test$/) && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.webhooks);
+        const list = raw ? JSON.parse(raw) : [];
+        const wh = list.find(w => w.id === id);
+        if (!wh) return json({ error: "not-found" }, 404, req);
+        try {
+          const res = await fetch(wh.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event: "test", from: "Arsann SOPs", ts: Date.now() })
+          });
+          wh.lastFired = Date.now();
+          wh.lastError = res.ok ? null : `HTTP ${res.status}`;
+          await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list));
+          return json({ ok: res.ok, status: res.status }, 200, req);
+        } catch(e) {
+          wh.lastError = String(e.message || e);
+          await env.ARSAN.put(KEYS.webhooks, JSON.stringify(list));
+          return json({ ok: false, error: wh.lastError }, 200, req);
+        }
+      }
+
+      // -------- BACKUPS (admin only) --------
+      // POST /api/backup  → create snapshot of sops + deps
+      if (path === "/api/backup" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const date = new Date().toISOString().slice(0, 10);
+        const sopsRaw = await env.ARSAN.get(KEYS.sops);
+        const depsRaw = await env.ARSAN.get(KEYS.deps);
+        const customRaw = await env.ARSAN.get(KEYS.customDepts);
+        const snapshot = {
+          ts: Date.now(),
+          date,
+          createdBy: ad.session.email,
+          sops: sopsRaw ? JSON.parse(sopsRaw) : {},
+          deps: depsRaw ? JSON.parse(depsRaw) : [],
+          customDepts: customRaw ? JSON.parse(customRaw) : []
+        };
+        await env.ARSAN.put(KEYS.backups(date), JSON.stringify(snapshot));
+        // حدّث الفهرس
+        const idxRaw = await env.ARSAN.get(KEYS.backupIndex);
+        const idx = idxRaw ? JSON.parse(idxRaw) : [];
+        if (!idx.find(b => b.date === date)) {
+          idx.unshift({ date, ts: snapshot.ts, createdBy: snapshot.createdBy });
+          if (idx.length > 90) idx.length = 90;
+        }
+        await env.ARSAN.put(KEYS.backupIndex, JSON.stringify(idx));
+        await logAudit(env, { actor: ad.session.email, action: "backup-created", date });
+        return json({ ok: true, date, ts: snapshot.ts }, 200, req);
+      }
+      // GET /api/backups  → list
+      if (path === "/api/backups" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const raw = await env.ARSAN.get(KEYS.backupIndex);
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // GET /api/backups/:date  → restore preview
+      if (path.match(/^\/api\/backups\/\d{4}-\d{2}-\d{2}$/) && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const date = path.split("/")[3];
+        const raw = await env.ARSAN.get(KEYS.backups(date));
+        if (!raw) return json({ error: "not-found" }, 404, req);
+        return json(JSON.parse(raw), 200, req);
       }
 
       // ---------- HEALTH ----------

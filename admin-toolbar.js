@@ -552,6 +552,18 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span class="at-text">النشاط</span>
       </button>
+      <button data-act="messages" title="مركز الرسائل بين الإدارات">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="at-text">الرسائل</span>
+      </button>
+      <button data-act="audit" title="سجل التعديلات">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="at-text">السجل</span>
+      </button>
+      <button data-act="webhooks" title="Webhooks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6m-10 0H1"/></svg>
+        <span class="at-text">تكامل</span>
+      </button>
       <span class="at-divider"></span>
       <button data-act="slack" title="ربط Slack">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
@@ -576,6 +588,9 @@
         else if (act === 'announce') showAnnounceModal();
         else if (act === 'updates') showUpdatesModal();
         else if (act === 'activity') showActivityModal();
+        else if (act === 'messages') { if (window.ArsanMessaging) window.ArsanMessaging.open(); else alert('messaging.js لم يُحمَّل'); }
+        else if (act === 'audit') { if (window.ArsanAudit) window.ArsanAudit.open(); else alert('audit-viewer.js لم يُحمَّل'); }
+        else if (act === 'webhooks') { if (window.ArsanWebhooks) window.ArsanWebhooks.open(); else alert('webhooks-admin.js لم يُحمَّل'); }
         else if (act === 'slack') showSlackModal();
         else if (act === 'maintenance') showMaintenanceModal();
         else if (act === 'settings') showSettingsModal();

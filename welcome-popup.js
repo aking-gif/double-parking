@@ -69,7 +69,7 @@
         position:relative;
         max-width:460px; width:100%;
         background:linear-gradient(145deg, #fff9ec 0%, #f6ecc8 100%);
-        border:1px solid rgba(212,168,60,.35);
+        border:1px solid rgba(133,113,77,.35);
         border-radius:20px;
         padding:40px 32px 32px;
         box-shadow:0 30px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.1) inset;
@@ -89,7 +89,7 @@
         content:'';
         position:absolute; top:-2px; inset-inline:-2px;
         height:4px;
-        background:linear-gradient(90deg, transparent, #d4a83c, #ffcb4e, #d4a83c, transparent);
+        background:linear-gradient(90deg, transparent, #85714D, #A89066, #85714D, transparent);
         border-radius:20px 20px 0 0;
         opacity:.8;
       }
@@ -97,10 +97,10 @@
         width:54px; height:54px;
         margin:0 auto 14px;
         border-radius:14px;
-        background:linear-gradient(135deg, #d4a83c, #b89030);
+        background:linear-gradient(135deg, #85714D, #5E4F36);
         display:grid; place-items:center;
         color:#fff; font-size:26px; font-weight:700;
-        box-shadow:0 8px 24px rgba(212,168,60,.4);
+        box-shadow:0 8px 24px rgba(133,113,77,.4);
       }
       .arsan-welcome-hello{
         font-size:14px; color:#7a5b2e; margin-bottom:6px;
@@ -116,19 +116,19 @@
         margin:0 0 24px;
       }
       .arsan-welcome-btn{
-        background:linear-gradient(135deg, #d4a83c, #b89030);
+        background:linear-gradient(135deg, #85714D, #5E4F36);
         color:#fff;
         border:none;
         padding:12px 32px;
         border-radius:10px;
         font:inherit; font-size:14px; font-weight:600;
         cursor:pointer;
-        box-shadow:0 6px 16px rgba(212,168,60,.4);
+        box-shadow:0 6px 16px rgba(133,113,77,.4);
         transition:transform .15s, box-shadow .15s;
       }
       .arsan-welcome-btn:hover{
         transform:translateY(-1px);
-        box-shadow:0 8px 20px rgba(212,168,60,.55);
+        box-shadow:0 8px 20px rgba(133,113,77,.55);
       }
       .arsan-welcome-x{
         position:absolute; top:12px; inset-inline-start:12px;
@@ -137,7 +137,7 @@
         color:#7a5b2e; opacity:.5;
         cursor:pointer; font-size:18px;
       }
-      .arsan-welcome-x:hover{ opacity:1; background:rgba(212,168,60,.15); }
+      .arsan-welcome-x:hover{ opacity:1; background:rgba(133,113,77,.15); }
       .arsan-welcome-date{
         font-size:11px; color:#9a8550; margin-top:18px;
         letter-spacing:.3px;

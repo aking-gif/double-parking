@@ -106,7 +106,7 @@
         background:rgba(26,21,16,.75);
         backdrop-filter:blur(16px) saturate(180%);
         -webkit-backdrop-filter:blur(16px) saturate(180%);
-        border:1px solid rgba(212,168,60,.3);
+        border:1px solid rgba(133,113,77,.3);
         color:#f3e9c9;
         cursor:pointer;
         box-shadow:0 4px 16px rgba(0,0,0,.25);
@@ -115,11 +115,11 @@
       html[data-theme="light"] .arsan-notif-btn{
         background:rgba(255,255,255,.75);
         color:#3a2f15;
-        border-color:rgba(212,168,60,.35);
+        border-color:rgba(133,113,77,.35);
       }
       .arsan-notif-btn:hover{
-        background:rgba(212,168,60,.2);
-        border-color:rgba(212,168,60,.6);
+        background:rgba(133,113,77,.2);
+        border-color:rgba(133,113,77,.6);
         transform:translateY(-1px);
       }
       .arsan-notif-btn svg{ width:20px;height:20px; }
@@ -154,7 +154,7 @@
         background:linear-gradient(180deg, rgba(26,21,16,.92) 0%, rgba(35,26,16,.88) 100%);
         backdrop-filter:blur(24px) saturate(180%);
         -webkit-backdrop-filter:blur(24px) saturate(180%);
-        border:1px solid rgba(212,168,60,.25);
+        border:1px solid rgba(133,113,77,.25);
         border-radius:14px;
         box-shadow:0 20px 60px rgba(0,0,0,.4);
         display:none;
@@ -168,16 +168,16 @@
       }
       html[data-theme="light"] .arsan-notif-panel{
         background:linear-gradient(180deg, rgba(250,246,234,.92) 0%, rgba(243,234,208,.88) 100%);
-        border-color:rgba(212,168,60,.35);
+        border-color:rgba(133,113,77,.35);
       }
       .arsan-notif-panel.open{ display:flex; }
       .arsan-notif-head{
         padding:14px 16px;
-        border-bottom:1px solid rgba(212,168,60,.15);
+        border-bottom:1px solid rgba(133,113,77,.15);
         display:flex; align-items:center; justify-content:space-between;
         color:#f3e9c9;
       }
-      html[data-theme="light"] .arsan-notif-head{ color:#3a2f15; border-bottom-color:rgba(212,168,60,.25); }
+      html[data-theme="light"] .arsan-notif-head{ color:#3a2f15; border-bottom-color:rgba(133,113,77,.25); }
       .arsan-notif-head h3{
         margin:0; font-size:15px; font-weight:600;
       }
@@ -187,7 +187,7 @@
         cursor:pointer; padding:4px 8px; border-radius:6px;
         opacity:.7;
       }
-      .arsan-notif-head button:hover{ opacity:1; background:rgba(212,168,60,.15); }
+      .arsan-notif-head button:hover{ opacity:1; background:rgba(133,113,77,.15); }
       .arsan-notif-body{
         flex:1; overflow-y:auto;
         padding:8px;
@@ -202,7 +202,7 @@
         padding:12px 14px;
         border-radius:10px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(212,168,60,.12);
+        border:1px solid rgba(133,113,77,.12);
         color:#f3e9c9;
         position:relative;
         transition:background .15s;
@@ -210,11 +210,11 @@
       html[data-theme="light"] .arsan-notif-item{
         background:rgba(255,255,255,.4);
         color:#3a2f15;
-        border-color:rgba(212,168,60,.2);
+        border-color:rgba(133,113,77,.2);
       }
       .arsan-notif-item.unread{
-        background:rgba(212,168,60,.12);
-        border-color:rgba(212,168,60,.35);
+        background:rgba(133,113,77,.12);
+        border-color:rgba(133,113,77,.35);
       }
       .arsan-notif-item.urgent{
         border-inline-start:3px solid #e63946;
@@ -248,15 +248,15 @@
       .arsan-notif-item .del:hover{ opacity:1; background:rgba(230,57,70,.2); color:#e63946; }
       .arsan-notif-foot{
         padding:10px 14px;
-        border-top:1px solid rgba(212,168,60,.15);
+        border-top:1px solid rgba(133,113,77,.15);
         text-align:center;
       }
       .arsan-notif-foot a{
-        color:#d4a83c; font-size:12px; font-weight:600;
+        color:#85714D; font-size:12px; font-weight:600;
         text-decoration:none;
       }
       .arsan-notif-foot a:hover{ text-decoration:underline; }
-      html[data-theme="light"] .arsan-notif-foot{ border-top-color:rgba(212,168,60,.25); }
+      html[data-theme="light"] .arsan-notif-foot{ border-top-color:rgba(133,113,77,.25); }
     `;
     document.head.appendChild(s);
   }

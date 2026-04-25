@@ -145,7 +145,7 @@
       }
       .arsan-cl-tag{
         display:inline-block;padding:2px 9px;border-radius:999px;
-        background:linear-gradient(135deg,#d4a83c,#b89030);
+        background:linear-gradient(135deg,#85714D,#5E4F36);
         color:#fff;font-size:11px;font-weight:700;letter-spacing:.4px;
       }
       .arsan-cl-release.old .arsan-cl-tag{
@@ -199,7 +199,7 @@
         transition:background .18s, transform .18s;
       }
       .version[role="button"]:hover{
-        background:rgba(212,168,60,.15);
+        background:rgba(133,113,77,.15);
       }
       .version[role="button"]:active{ transform:scale(.96); }
     `;

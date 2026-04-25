@@ -365,9 +365,12 @@
 
 <!-- ========== TOP BAR ========== -->
 <div class="topbar">
-  <div>
-    <h1>أرسان للتشغيل</h1>
-    <div class="sub">منصّة الإجراءات التشغيلية القياسية</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div id="arsan-brand-logo" style="flex-shrink:0"></div>
+    <div>
+      <h1>أرسان للتشغيل</h1>
+      <div class="sub">منصّة الإجراءات التشغيلية القياسية</div>
+    </div>
   </div>
   <div class="topbar-right">
     <span id="userPill" class="user-pill" style="display:none">
@@ -397,6 +400,23 @@
 </main>
 
 <!-- ========== شريط أدوات الأدمن (مشترك) ========== -->
+<script src="brand.js?v=1"></script>
+<script>
+  // حقن الشعار في الـ topbar
+  (function(){
+    function inject(){
+      const slot = document.getElementById('arsan-brand-logo');
+      if (slot && window.ArsanBrand){
+        slot.innerHTML = window.ArsanBrand.logo(44);
+      } else {
+        setTimeout(inject, 100);
+      }
+    }
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', inject);
+    } else { inject(); }
+  })();
+</script>
 <script src="welcome-popup.js?v=3"></script>
 <script src="admin-toolbar.js?v=4"></script>
 <script src="messaging.js?v=1"></script>

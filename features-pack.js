@@ -303,8 +303,8 @@
       <style>
         body{font-family:'IBM Plex Sans Arabic',Arial,sans-serif;padding:40px;color:#222;line-height:1.7}
         h1,h2,h3{color:#3a5a40;margin:16px 0 8px}
-        h1{font-size:22px;border-bottom:2px solid #d4a83c;padding-bottom:8px}
-        .code{color:#b89030;font-weight:bold;font-size:14px}
+        h1{font-size:22px;border-bottom:2px solid #85714D;padding-bottom:8px}
+        .code{color:#5E4F36;font-weight:bold;font-size:14px}
         button,.modal-close,.arsan-fav-star{display:none!important}
         img{max-width:100%}
         @media print { @page { margin: 1.5cm; } }
@@ -424,7 +424,7 @@
       .arsan-gs-card, .arsan-cmd-card {
         width:min(640px,90vw);
         background:linear-gradient(180deg,#fff9ec,#f6ecc8);
-        border:1px solid rgba(212,168,60,.35);
+        border:1px solid rgba(133,113,77,.35);
         border-radius:14px;
         box-shadow:0 30px 80px rgba(0,0,0,.45);
         overflow:hidden;
@@ -437,7 +437,7 @@
         background:transparent;
         font-size:18px;font-family:inherit;
         color:#3a2f15;
-        border-bottom:1px solid rgba(212,168,60,.25);
+        border-bottom:1px solid rgba(133,113,77,.25);
       }
       .arsan-gs-results, .arsan-cmd-list {
         max-height:50vh;overflow-y:auto;padding:8px;
@@ -449,19 +449,19 @@
       }
       .arsan-gs-item:hover, .arsan-gs-item.sel,
       .arsan-cmd-row:hover, .arsan-cmd-row.sel {
-        background:rgba(212,168,60,.2);
+        background:rgba(133,113,77,.2);
       }
-      .arsan-gs-code { font-weight:700;color:#b89030;font-size:13px; }
+      .arsan-gs-code { font-weight:700;color:#5E4F36;font-size:13px; }
       .arsan-gs-title { flex:1;color:#3a2f15; }
-      .arsan-gs-dept { font-size:11px;color:#888;background:rgba(212,168,60,.15);padding:2px 8px;border-radius:4px; }
+      .arsan-gs-dept { font-size:11px;color:#888;background:rgba(133,113,77,.15);padding:2px 8px;border-radius:4px; }
       .arsan-gs-empty, .arsan-empty { padding:40px;text-align:center;color:#aaa; }
       .arsan-gs-hint {
         padding:10px 16px;font-size:11px;color:#7a5b2e;
-        border-top:1px solid rgba(212,168,60,.2);
+        border-top:1px solid rgba(133,113,77,.2);
         display:flex;gap:16px;justify-content:center;
       }
       kbd {
-        background:#fff;border:1px solid #d4a83c;
+        background:#fff;border:1px solid #85714D;
         padding:2px 6px;border-radius:4px;font-size:10px;font-family:monospace;
         box-shadow:0 1px 2px rgba(0,0,0,.1);
       }
@@ -476,8 +476,8 @@
         width:32px;height:32px;border-radius:6px;
         transition:all .15s;z-index:2;
       }
-      .arsan-fav-star:hover { opacity:1;background:rgba(212,168,60,.15); }
-      .arsan-fav-star.active { color:#d4a83c;opacity:1; }
+      .arsan-fav-star:hover { opacity:1;background:rgba(133,113,77,.15); }
+      .arsan-fav-star.active { color:#85714D;opacity:1; }
 
       .arsan-modal-bd {
         position:fixed;inset:0;z-index:99000;
@@ -490,7 +490,7 @@
         max-width:560px;width:100%;
         max-height:85vh;overflow-y:auto;
         background:linear-gradient(180deg,#fff9ec,#f6ecc8);
-        border:1px solid rgba(212,168,60,.35);
+        border:1px solid rgba(133,113,77,.35);
         border-radius:16px;padding:28px;
         direction:rtl;
         font-family:'IBM Plex Sans Arabic',sans-serif;
@@ -502,7 +502,7 @@
         background:transparent;border:none;width:32px;height:32px;
         border-radius:8px;cursor:pointer;opacity:.5;font-size:16px;
       }
-      .arsan-x:hover { opacity:1;background:rgba(212,168,60,.15); }
+      .arsan-x:hover { opacity:1;background:rgba(133,113,77,.15); }
       .arsan-stats-card h2, .arsan-sc-card h2, .arsan-recent-card h2, .arsan-fav-card h2 {
         margin:0 0 20px;font-size:20px;color:#3a5a40;
       }
@@ -510,31 +510,31 @@
         display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;
       }
       .arsan-stat-box {
-        background:rgba(255,255,255,.5);border:1px solid rgba(212,168,60,.25);
+        background:rgba(255,255,255,.5);border:1px solid rgba(133,113,77,.25);
         border-radius:10px;padding:16px 10px;text-align:center;
       }
       .arsan-stat-box .n { font-size:26px;font-weight:700;color:#3a5a40; }
       .arsan-stat-box .l { font-size:11px;color:#7a5b2e;margin-top:4px; }
       .arsan-bar-wrap {
-        height:8px;background:rgba(212,168,60,.15);border-radius:4px;overflow:hidden;margin-bottom:20px;
+        height:8px;background:rgba(133,113,77,.15);border-radius:4px;overflow:hidden;margin-bottom:20px;
       }
-      .arsan-bar { height:100%;background:linear-gradient(90deg,#d4a83c,#3a5a40);transition:width .4s; }
+      .arsan-bar { height:100%;background:linear-gradient(90deg,#85714D,#3a5a40);transition:width .4s; }
       .arsan-dept-list { display:flex;flex-direction:column;gap:8px; }
       .arsan-dept-row {
         display:grid;grid-template-columns:120px 1fr 40px;gap:10px;align-items:center;
         font-size:13px;
       }
       .arsan-dept-bar {
-        height:6px;background:rgba(212,168,60,.15);border-radius:3px;overflow:hidden;display:block;
+        height:6px;background:rgba(133,113,77,.15);border-radius:3px;overflow:hidden;display:block;
       }
-      .arsan-dept-bar span { display:block;height:100%;background:#d4a83c; }
+      .arsan-dept-bar span { display:block;height:100%;background:#85714D; }
       .arsan-dept-n { text-align:end;font-weight:600;color:#3a5a40; }
 
       .arsan-sc-list { display:flex;flex-direction:column;gap:10px; }
       .arsan-sc-row {
         display:flex;justify-content:space-between;align-items:center;
         padding:10px 14px;background:rgba(255,255,255,.4);
-        border-radius:8px;border:1px solid rgba(212,168,60,.2);
+        border-radius:8px;border:1px solid rgba(133,113,77,.2);
       }
       .arsan-sc-label { font-size:13px; }
       .arsan-sc-keys { display:flex;align-items:center;gap:6px; }
@@ -544,16 +544,16 @@
       .arsan-recent-row, .arsan-fav-row {
         display:flex;align-items:center;gap:12px;
         padding:10px 14px;background:rgba(255,255,255,.4);
-        border-radius:8px;border:1px solid rgba(212,168,60,.2);
+        border-radius:8px;border:1px solid rgba(133,113,77,.2);
         cursor:pointer;transition:background .1s;
       }
-      .arsan-recent-row:hover, .arsan-fav-row:hover { background:rgba(212,168,60,.2); }
-      .arsan-recent-code, .arsan-fav-row .code { font-weight:700;color:#b89030;font-size:12px;min-width:60px; }
+      .arsan-recent-row:hover, .arsan-fav-row:hover { background:rgba(133,113,77,.2); }
+      .arsan-recent-code, .arsan-fav-row .code { font-weight:700;color:#5E4F36;font-size:12px;min-width:60px; }
       .arsan-recent-title { flex:1;font-size:13px; }
       .arsan-recent-dept, .arsan-fav-row .dept {
-        font-size:11px;color:#888;background:rgba(212,168,60,.15);padding:2px 8px;border-radius:4px;
+        font-size:11px;color:#888;background:rgba(133,113,77,.15);padding:2px 8px;border-radius:4px;
       }
-      .arsan-fav-row .star { color:#d4a83c;font-size:16px; }
+      .arsan-fav-row .star { color:#85714D;font-size:16px; }
       .arsan-fav-row .rm {
         background:transparent;border:none;opacity:.4;cursor:pointer;
         width:24px;height:24px;border-radius:5px;
@@ -564,13 +564,13 @@
       #arsan-launcher-fab {
         position:fixed;bottom:20px;inset-inline-end:20px;z-index:9000;
         width:48px;height:48px;border-radius:50%;
-        background:linear-gradient(135deg,#d4a83c,#b89030);
+        background:linear-gradient(135deg,#85714D,#5E4F36);
         color:#fff;font-size:20px;border:none;cursor:pointer;
-        box-shadow:0 6px 20px rgba(212,168,60,.4);
+        box-shadow:0 6px 20px rgba(133,113,77,.4);
         display:grid;place-items:center;
         transition:all .15s;
       }
-      #arsan-launcher-fab:hover { transform:scale(1.1);box-shadow:0 8px 25px rgba(212,168,60,.55); }
+      #arsan-launcher-fab:hover { transform:scale(1.1);box-shadow:0 8px 25px rgba(133,113,77,.55); }
     `;
     document.head.appendChild(s);
   }

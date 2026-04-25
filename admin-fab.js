@@ -62,13 +62,13 @@
       #${BTN_ID}:hover{
         opacity:1;
         color:#f3e9c9;
-        border-color:rgba(212,168,60,.4);
+        border-color:rgba(133,113,77,.4);
         background:rgba(26,21,16,.78);
       }
       html[data-theme="light"] #${BTN_ID}:hover{
         color:#3a2f15;
         background:rgba(255,255,255,.85);
-        border-color:rgba(212,168,60,.45);
+        border-color:rgba(133,113,77,.45);
       }
       #${BTN_ID}.visible{ display:inline-flex; }
 
@@ -112,7 +112,7 @@
         width:100%;max-width:560px;
         background:linear-gradient(180deg, rgba(26,21,16,.96) 0%, rgba(35,26,16,.94) 100%);
         backdrop-filter:blur(24px) saturate(180%);
-        border:1px solid rgba(212,168,60,.3);
+        border:1px solid rgba(133,113,77,.3);
         border-radius:16px;
         box-shadow:0 30px 80px rgba(0,0,0,.5);
         color:#f3e9c9;
@@ -124,7 +124,7 @@
       }
       .arsan-ann-head{
         padding:18px 22px 14px;
-        border-bottom:1px solid rgba(212,168,60,.2);
+        border-bottom:1px solid rgba(133,113,77,.2);
         display:flex;align-items:center;justify-content:space-between;
       }
       .arsan-ann-head h2{
@@ -134,15 +134,15 @@
       .arsan-ann-head h2::before{
         content:'';
         width:8px;height:8px;border-radius:50%;
-        background:radial-gradient(circle at 30% 30%, #ffcb4e, #d4a83c);
-        box-shadow:0 0 10px rgba(212,168,60,.5);
+        background:radial-gradient(circle at 30% 30%, #A89066, #85714D);
+        box-shadow:0 0 10px rgba(133,113,77,.5);
       }
       .arsan-ann-head .x{
         background:transparent;border:none;color:inherit;
         font-size:22px;cursor:pointer;opacity:.6;
         width:30px;height:30px;border-radius:6px;
       }
-      .arsan-ann-head .x:hover{ opacity:1;background:rgba(212,168,60,.15); }
+      .arsan-ann-head .x:hover{ opacity:1;background:rgba(133,113,77,.15); }
       .arsan-ann-body{ padding:20px 22px; }
       .arsan-ann-body label{
         display:block;
@@ -155,7 +155,7 @@
         padding:11px 14px;
         border-radius:9px;
         background:rgba(255,255,255,.04);
-        border:1px solid rgba(212,168,60,.2);
+        border:1px solid rgba(133,113,77,.2);
         color:inherit;
         font:inherit;
         font-size:13px;
@@ -166,12 +166,12 @@
       html[data-theme="light"] .arsan-ann-body input,
       html[data-theme="light"] .arsan-ann-body textarea{
         background:rgba(255,255,255,.6);
-        border-color:rgba(212,168,60,.3);
+        border-color:rgba(133,113,77,.3);
       }
       .arsan-ann-body input:focus,
       .arsan-ann-body textarea:focus{
-        border-color:rgba(212,168,60,.6);
-        background:rgba(212,168,60,.06);
+        border-color:rgba(133,113,77,.6);
+        background:rgba(133,113,77,.06);
       }
       .arsan-ann-body textarea{ min-height:100px; }
       .arsan-ann-row{ display:flex;gap:12px;margin-bottom:14px; }
@@ -184,14 +184,14 @@
         padding:9px 10px;
         border-radius:7px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(212,168,60,.2);
+        border:1px solid rgba(133,113,77,.2);
         color:inherit;
         font:inherit;font-size:12px;
         cursor:pointer;
         transition:all .15s;
       }
       .arsan-ann-priority button.active{
-        background:linear-gradient(135deg,#d4a83c,#b89030);
+        background:linear-gradient(135deg,#85714D,#5E4F36);
         color:#fff;
         border-color:transparent;
       }
@@ -201,7 +201,7 @@
       .arsan-ann-foot{
         padding:14px 22px 20px;
         display:flex;gap:10px;justify-content:flex-end;
-        border-top:1px solid rgba(212,168,60,.15);
+        border-top:1px solid rgba(133,113,77,.15);
       }
       .arsan-ann-foot button{
         padding:10px 20px;
@@ -215,18 +215,18 @@
       }
       .arsan-ann-foot .cancel:hover{ opacity:1; }
       .arsan-ann-foot .send{
-        background:linear-gradient(135deg,#d4a83c,#b89030);
+        background:linear-gradient(135deg,#85714D,#5E4F36);
         color:#fff;
-        box-shadow:0 4px 12px rgba(212,168,60,.35);
+        box-shadow:0 4px 12px rgba(133,113,77,.35);
       }
-      .arsan-ann-foot .send:hover{ box-shadow:0 6px 16px rgba(212,168,60,.5); }
+      .arsan-ann-foot .send:hover{ box-shadow:0 6px 16px rgba(133,113,77,.5); }
       .arsan-ann-foot .send:disabled{ opacity:.5;cursor:not-allowed;box-shadow:none; }
 
       .arsan-ann-existing{
         margin-top:10px;
         max-height:200px;
         overflow-y:auto;
-        border-top:1px dashed rgba(212,168,60,.2);
+        border-top:1px dashed rgba(133,113,77,.2);
         padding-top:14px;
       }
       .arsan-ann-existing h4{
@@ -237,7 +237,7 @@
         padding:9px 12px;
         border-radius:7px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(212,168,60,.12);
+        border:1px solid rgba(133,113,77,.12);
         margin-bottom:6px;
         display:flex;align-items:flex-start;gap:10px;
         font-size:12px;
@@ -293,7 +293,7 @@
       min-width:230px;
       background:linear-gradient(180deg, rgba(26,21,16,.95) 0%, rgba(35,26,16,.92) 100%);
       backdrop-filter:blur(20px) saturate(180%);
-      border:1px solid rgba(212,168,60,.3);
+      border:1px solid rgba(133,113,77,.3);
       border-radius:12px;
       box-shadow:0 20px 50px rgba(0,0,0,.4);
       padding:6px;
@@ -328,7 +328,7 @@
         transition:background .12s;
       `;
       row.innerHTML = `<span style="font-size:16px;width:22px;text-align:center">${it.icon}</span><span>${it.label}</span>`;
-      row.addEventListener('mouseenter', () => row.style.background='rgba(212,168,60,.15)');
+      row.addEventListener('mouseenter', () => row.style.background='rgba(133,113,77,.15)');
       row.addEventListener('mouseleave', () => row.style.background='transparent');
       row.addEventListener('click', () => {
         menuEl?.remove(); menuEl = null;
@@ -382,9 +382,9 @@
               <button type="button" data-p="urgent" class="urgent">${t('عاجل','Urgent')}</button>
             </div>
           </div>
-          <div style="margin-top:14px;padding:12px 14px;background:rgba(212,168,60,.08);border:1px solid rgba(212,168,60,.25);border-radius:10px">
+          <div style="margin-top:14px;padding:12px 14px;background:rgba(133,113,77,.08);border:1px solid rgba(133,113,77,.25);border-radius:10px">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
-              <input type="checkbox" id="arsan-ann-slack" checked style="width:18px;height:18px;accent-color:#d4a83c;cursor:pointer">
+              <input type="checkbox" id="arsan-ann-slack" checked style="width:18px;height:18px;accent-color:#85714D;cursor:pointer">
               <div style="flex:1">
                 <div style="font-weight:600;font-size:14px;color:#3d2f0e">${t('إرسال إشعار Slack للجميع','Send Slack notification to everyone')}</div>
                 <div style="font-size:11.5px;color:#7a5f1a;margin-top:2px">${t('يُرسل للقناة العامة ورسائل خاصة للمستخدمين المتصلين','Posts to the channel and DMs all connected users')}</div>

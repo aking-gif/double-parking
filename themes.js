@@ -13,7 +13,7 @@
       label: { ar: 'الذهب الملكي', en: 'Royal Gold' },
       desc: { ar: 'الهوية الأساسية — دافئة وكلاسيكية', en: 'Core identity — warm & classic' },
       mode: 'dark',
-      swatches: ['#1a1510', '#2a2014', '#d4a83c', '#f3e9c9'],
+      swatches: ['#1a1510', '#2a2014', '#85714D', '#f3e9c9'],
       vars: {
         '--arsan-bg-0':   '#0f0c08',
         '--arsan-bg-1':   '#1a1510',
@@ -21,8 +21,8 @@
         '--arsan-ink-0':  '#f3e9c9',
         '--arsan-ink-1':  '#d9c896',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#d4a83c',
-        '--arsan-accent-2':'#b89030',
+        '--arsan-accent': '#85714D',
+        '--arsan-accent-2':'#5E4F36',
         '--arsan-danger': '#e63946',
       }
     },
@@ -31,7 +31,7 @@
       label: { ar: 'العاج الصحراوي', en: 'Desert Ivory' },
       desc: { ar: 'وضع نهاري فاخر — بيج ودافئ', en: 'Elevated light mode — beige & warm' },
       mode: 'light',
-      swatches: ['#faf6ea', '#f3ead0', '#d4a83c', '#3a2f15'],
+      swatches: ['#faf6ea', '#f3ead0', '#85714D', '#3a2f15'],
       vars: {
         '--arsan-bg-0':   '#fdfaf0',
         '--arsan-bg-1':   '#faf6ea',
@@ -39,7 +39,7 @@
         '--arsan-ink-0':  '#3a2f15',
         '--arsan-ink-1':  '#5a4e30',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#b89030',
+        '--arsan-accent': '#5E4F36',
         '--arsan-accent-2':'#a17d26',
         '--arsan-danger': '#c5303c',
       }
@@ -197,7 +197,7 @@
         width:100%;max-width:640px;
         background:linear-gradient(180deg, rgba(26,21,16,.96), rgba(35,26,16,.94));
         backdrop-filter:blur(24px);
-        border:1px solid rgba(212,168,60,.3);
+        border:1px solid rgba(133,113,77,.3);
         border-radius:16px;
         box-shadow:0 30px 80px rgba(0,0,0,.5);
         color:#f3e9c9;
@@ -209,7 +209,7 @@
       }
       .arsan-theme-head{
         padding:18px 22px;
-        border-bottom:1px solid rgba(212,168,60,.2);
+        border-bottom:1px solid rgba(133,113,77,.2);
         display:flex;align-items:center;justify-content:space-between;
       }
       .arsan-theme-head h2{
@@ -223,7 +223,7 @@
         font-size:22px;cursor:pointer;opacity:.6;
         width:30px;height:30px;border-radius:6px;
       }
-      .arsan-theme-head .x:hover{ opacity:1;background:rgba(212,168,60,.15); }
+      .arsan-theme-head .x:hover{ opacity:1;background:rgba(133,113,77,.15); }
       .arsan-theme-grid{
         padding:18px;
         display:grid;
@@ -241,8 +241,8 @@
       }
       .arsan-theme-swatch:hover{ transform:translateY(-2px); }
       .arsan-theme-swatch.active{
-        border-color:#d4a83c;
-        box-shadow:0 0 0 3px rgba(212,168,60,.25);
+        border-color:#85714D;
+        box-shadow:0 0 0 3px rgba(133,113,77,.25);
       }
       .arsan-theme-swatch .preview{
         height:70px;
@@ -264,7 +264,7 @@
         top:8px; inset-inline-end:8px;
         width:22px;height:22px;
         border-radius:50%;
-        background:#d4a83c;
+        background:#85714D;
         color:#fff;
         display:none;
         align-items:center;justify-content:center;
@@ -273,7 +273,7 @@
       .arsan-theme-swatch.active .check{ display:flex; }
       .arsan-theme-foot{
         padding:14px 22px;
-        border-top:1px solid rgba(212,168,60,.15);
+        border-top:1px solid rgba(133,113,77,.15);
         font-size:11px;opacity:.6;
         display:flex;align-items:center;gap:8px;
       }

@@ -307,7 +307,7 @@ async function sendUserNotification(env, opts) {
             <div style="font-size:15px;line-height:1.7;color:#333;white-space:pre-wrap">${bodyText}</div>
             ${actionUrl ? `
               <div style="margin-top:24px;text-align:center">
-                <a href="${actionUrl}" style="display:inline-block;background:#d4a83c;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:15px">${actionLabel || "فتح الرابط"}</a>
+                <a href="${actionUrl}" style="display:inline-block;background:#85714D;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:15px">${actionLabel || "فتح الرابط"}</a>
               </div>
               <div style="margin-top:20px;font-size:12px;color:#888;text-align:center;word-break:break-all">
                 أو انسخ الرابط: <br/><span style="color:#6d5a1e">${actionUrl}</span>
@@ -974,7 +974,7 @@ export default {
         const entry = {
           id, name,
           icon: body.icon || "📂",
-          color: body.color || "#d4a83c",
+          color: body.color || "#85714D",
           addedAt: Date.now(),
           addedBy: ad.session.email
         };

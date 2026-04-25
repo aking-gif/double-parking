@@ -24,7 +24,7 @@
         max-width:85vw !important;
         background:linear-gradient(180deg, #1a1510 0%, #231a10 100%) !important;
         border:none !important;
-        border-inline-start:1px solid rgba(212,168,60,.2) !important;
+        border-inline-start:1px solid rgba(133,113,77,.2) !important;
         border-radius:0 !important;
         box-shadow:-8px 0 30px rgba(0,0,0,.3) !important;
         backdrop-filter:none !important;
@@ -47,13 +47,13 @@
         right:auto !important;
         left:0 !important;
         border-inline-start:none !important;
-        border-inline-end:1px solid rgba(212,168,60,.2) !important;
+        border-inline-end:1px solid rgba(133,113,77,.2) !important;
         box-shadow:8px 0 30px rgba(0,0,0,.3) !important;
         --inline-dir: -100%;
       }
       html[data-theme="light"] .arsan-topbar{
         background:linear-gradient(180deg, #faf6ea 0%, #f3ead0 100%) !important;
-        border-color:rgba(212,168,60,.3) !important;
+        border-color:rgba(133,113,77,.3) !important;
       }
       body.arsan-sidebar-open .arsan-topbar{
         transform:translateX(0) !important;
@@ -78,13 +78,13 @@
         color:#3a2f15 !important;
       }
       .arsan-topbar-btn:hover{
-        background:rgba(212,168,60,.15) !important;
-        border-color:rgba(212,168,60,.3) !important;
+        background:rgba(133,113,77,.15) !important;
+        border-color:rgba(133,113,77,.3) !important;
       }
       .arsan-topbar-btn.primary{
-        background:linear-gradient(180deg, #d4a83c, #b89030) !important;
+        background:linear-gradient(180deg, #85714D, #5E4F36) !important;
         color:#fff !important;
-        border-color:#d4a83c !important;
+        border-color:#85714D !important;
         font-weight:600 !important;
       }
       .arsan-topbar .arsan-role,
@@ -104,13 +104,13 @@
         z-index:9100;
         width:44px;height:44px;
         border-radius:12px;
-        background:linear-gradient(135deg, #d4a83c, #b89030);
+        background:linear-gradient(135deg, #85714D, #5E4F36);
         border:none;
         color:#fff;
         cursor:pointer;
         display:grid;
         place-items:center;
-        box-shadow:0 4px 14px rgba(212,168,60,.35), 0 2px 6px rgba(0,0,0,.15);
+        box-shadow:0 4px 14px rgba(133,113,77,.35), 0 2px 6px rgba(0,0,0,.15);
         transition:transform .15s, box-shadow .15s;
       }
       html[dir="ltr"] #arsan-fab{
@@ -120,7 +120,7 @@
       }
       #arsan-fab:hover{
         transform:scale(1.05);
-        box-shadow:0 6px 20px rgba(212,168,60,.45), 0 3px 10px rgba(0,0,0,.2);
+        box-shadow:0 6px 20px rgba(133,113,77,.45), 0 3px 10px rgba(0,0,0,.2);
       }
       #arsan-fab:active{ transform:scale(.96); }
       #arsan-fab svg{ width:22px; height:22px; stroke:#fff; stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
@@ -153,7 +153,7 @@
       .arsan-sb-head{
         position:absolute;top:0;inset-inline-start:0;inset-inline-end:0;
         padding:20px 20px 14px;
-        border-bottom:1px solid rgba(212,168,60,.15);
+        border-bottom:1px solid rgba(133,113,77,.15);
         display:flex;align-items:center;gap:10px;
         pointer-events:auto;
       }
@@ -165,7 +165,7 @@
         width:auto;height:48px;
         background:transparent;
         display:grid;place-items:center;
-        filter: drop-shadow(0 2px 6px rgba(212,168,60,.3));
+        filter: drop-shadow(0 2px 6px rgba(133,113,77,.3));
       }
       .arsan-sb-head .logo img{ width:auto; height:100%; display:block; }
       .arsan-sb-head .title{
@@ -179,13 +179,13 @@
       .arsan-sb-refresh{
         margin-top:auto;
         padding-top:14px;
-        border-top:1px solid rgba(212,168,60,.15);
+        border-top:1px solid rgba(133,113,77,.15);
       }
       .arsan-sb-refresh button{
         width:100%;
         padding:10px 12px;
         border-radius:8px;
-        border:1px solid rgba(212,168,60,.25);
+        border:1px solid rgba(133,113,77,.25);
         background:rgba(255,255,255,.03);
         color:#f3e9c9;
         font-size:13px;
@@ -199,8 +199,8 @@
         color:#3a2f15;
       }
       .arsan-sb-refresh button:hover{
-        background:rgba(212,168,60,.15);
-        border-color:rgba(212,168,60,.5);
+        background:rgba(133,113,77,.15);
+        border-color:rgba(133,113,77,.5);
       }
       .arsan-sb-refresh button .spin{
         display:inline-block;width:14px;height:14px;
@@ -219,14 +219,14 @@
       /* Embedded language switch at the bottom of the sidebar */
       .arsan-sb-lang{
         padding-top:10px;
-        border-top:1px solid rgba(212,168,60,.15);
+        border-top:1px solid rgba(133,113,77,.15);
         display:flex;gap:6px;
       }
       .arsan-sb-lang button{
         flex:1;
         padding:10px 12px;
         border-radius:10px;
-        border:1px solid rgba(212,168,60,.25);
+        border:1px solid rgba(133,113,77,.25);
         background:rgba(255,255,255,.04);
         color:#f3e9c9;
         font:inherit;font-size:13px;font-weight:600;
@@ -238,12 +238,12 @@
         color:#3a2f15;
       }
       .arsan-sb-lang button:hover{
-        background:rgba(212,168,60,.15);
+        background:rgba(133,113,77,.15);
       }
       .arsan-sb-lang button.active{
-        background:linear-gradient(180deg, #d4a83c, #b89030);
+        background:linear-gradient(180deg, #85714D, #5E4F36);
         color:#fff;
-        border-color:#d4a83c;
+        border-color:#85714D;
       }
 
       /* Respect mobile */
@@ -284,7 +284,7 @@
     head.className = 'arsan-sb-head';
     head.innerHTML = `
       <div class="brand-wrap">
-        <div class="logo"><img src="brand-mark.png" alt="أرسان"></div>
+        <div class="logo" id="arsan-sb-logo">${(window.ArsanBrand && window.ArsanBrand.logo) ? window.ArsanBrand.logo(48) : ''}</div>
         <div class="title">Arsann SOPs<small>منصة الإجراءات التشغيلية</small></div>
       </div>
     `;

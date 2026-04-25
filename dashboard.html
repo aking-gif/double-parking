@@ -1691,19 +1691,42 @@ let DEPT = DEPARTMENTS_CONFIG[CURRENT_DEPT_ID];
 // Fallback for CUSTOM departments (not in DEPARTMENTS_CONFIG)
 // ----------------------------------------------------------------
 if (!DEPT) {
-  // Try to read custom dept name from localStorage (set by index.html on click)
-  let customName = CURRENT_DEPT_ID;
+  // Try to read custom dept name from MULTIPLE sources
+  let customName = '';
+  let customIcon = '🏢';
+  let customDesc = '';
+  // Source 1: arsan_department (set by index.html on click)
   try {
     const stored = JSON.parse(localStorage.getItem('arsan_department') || 'null');
-    if (stored && stored.id === CURRENT_DEPT_ID && stored.name) customName = stored.name;
+    if (stored && stored.id === CURRENT_DEPT_ID) {
+      if (stored.name) customName = stored.name;
+      if (stored.icon) customIcon = stored.icon;
+    }
   } catch(_) {}
+  // Source 2: arsan_custom_depts_v1 (synced from Worker)
+  if (!customName) {
+    try {
+      const arr = JSON.parse(localStorage.getItem('arsan_custom_depts_v1') || '[]');
+      const found = Array.isArray(arr) && arr.find(d => d && d.id === CURRENT_DEPT_ID);
+      if (found) {
+        if (found.name) customName = found.name;
+        if (found.icon) customIcon = found.icon;
+        if (found.desc) customDesc = found.desc;
+      }
+    } catch(_) {}
+  }
+  // Last resort — never show "undefined"
+  if (!customName || customName === 'undefined') {
+    customName = 'إدارة جديدة';
+  }
   // Build a generic config so the dashboard doesn't break
   DEPT = {
     name: customName,
-    titlePrefix: 'إدارة',
+    icon: customIcon,
+    titlePrefix: 'مرجع إجراءات',
     titleHighlight: customName,
     titleSuffix: '',
-    subtitle: 'إجراءات هذه الإدارة',
+    subtitle: customDesc || 'إجراءات هذه الإدارة',
     groupVerb: 'الإجراءات',
     groups: [
       { id: 'general',  label: 'عام' },
@@ -1715,6 +1738,22 @@ if (!DEPT) {
     sops: [] // empty — user will add their own
   };
   DEPARTMENTS_CONFIG[CURRENT_DEPT_ID] = DEPT;
+
+  // 🎯 Update header IMMEDIATELY (synchronous DOMContentLoaded) before any async work
+  const renderHeaderNow = () => {
+    const h1 = document.querySelector('h1.title');
+    if (h1) {
+      h1.innerHTML = `${DEPT.titlePrefix} <span class="accent-underline">${DEPT.titleHighlight}</span> ${DEPT.titleSuffix||''}`;
+    }
+    const sub = document.querySelector('.subtitle');
+    if (sub) sub.textContent = DEPT.subtitle;
+    document.title = DEPT.name + ' — Arsann SOPs';
+    return !!h1;
+  };
+  // Try once now (in case DOM is ready) then again on DOMContentLoaded
+  if (!renderHeaderNow()) {
+    document.addEventListener('DOMContentLoaded', renderHeaderNow);
+  }
 
   // Also try to fetch official name + members from Worker (async, will refresh title later)
   setTimeout(async () => {

@@ -618,15 +618,7 @@
       }
     });
 
-    // Launcher FAB
-    if (!document.getElementById('arsan-launcher-fab')) {
-      const fab = document.createElement('button');
-      fab.id = 'arsan-launcher-fab';
-      fab.title = t('مركز الأوامر (Ctrl+K)','Command Center (Ctrl+K)');
-      fab.innerHTML = '⌘';
-      fab.onclick = openLauncher;
-      document.body.appendChild(fab);
-    }
+    // Launcher FAB removed — accessible via Ctrl/Cmd+K hotkey only.
   }
 
   if (document.readyState === 'loading') {

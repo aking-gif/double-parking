@@ -157,13 +157,34 @@
       menu.appendChild(b);
     }
 
+    // === Section 1: Create ===
     if (canUseNewSop()) addItem('➕','إجراء جديد', () => window.showNewSopModal());
     if (canUseImport())  addItem('📥','استيراد إجراء', () => window.showImportModal());
-    addItem('⭐','تبديل المفضلة', () => {
-      const current = !!document.getElementById('arsan-fav-chip')?.getAttribute('aria-pressed') &&
-                      document.getElementById('arsan-fav-chip')?.getAttribute('aria-pressed') === 'true';
-      window.ArsanFavorites?.setFilter(!current);
+
+    // === Section 2: Browse ===
+    addSeparator();
+    addItem('⭐','المفضلة', () => {
+      if (window.ArsanFeatures?.showFavorites) window.ArsanFeatures.showFavorites();
+      else {
+        const chip = document.getElementById('arsan-fav-chip');
+        const current = chip && chip.getAttribute('aria-pressed') === 'true';
+        window.ArsanFavorites?.setFilter(!current);
+      }
     });
+    addItem('🕒','شوهد مؤخراً', () => window.ArsanFeatures?.showRecent?.());
+    addItem('📊','الإحصائيات', () => window.ArsanFeatures?.showStats?.());
+
+    // === Section 3: Tools ===
+    addSeparator();
+    addItem('🔍','بحث عام', () => window.ArsanFeatures?.openSearch?.() || window.ArsanCmdK?.open?.());
+    addItem('🖨️','طباعة الإجراء', () => window.ArsanFeatures?.printCurrentSOP?.());
+    addItem('⌨️','اختصارات لوحة المفاتيح', () => window.ArsanFeatures?.showShortcuts?.());
+
+    function addSeparator(){
+      const sep = document.createElement('div');
+      sep.style.cssText = 'height:1px;width:160px;background:rgba(133,113,77,.2);margin:2px 0;align-self:flex-end;';
+      menu.appendChild(sep);
+    }
 
     // FAB
     const fab = document.createElement('button');

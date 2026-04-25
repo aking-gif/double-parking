@@ -4977,138 +4977,355 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     other:    { ar:"أخرى",     color:"#6b7280" }
   };
 
-  // ================= UNIFIED MAP =================
+  // ================= UNIFIED MAP (Interactive) =================
   window.showUnifiedMap = showUnifiedMap;
   function showUnifiedMap() {
     const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
     const deptIds = Object.keys(DEPT_CFG);
-    const W = 1200, H = 700;
+    if (!deptIds.length) { alert('لا توجد إدارات'); return; }
+
+    const W = 1600, H = 1000;
     const cx = W/2, cy = H/2;
-    const R_DEPT = 260; // distance from center for department hubs
-    const R_SOP  = 90;  // distance of SOPs around their dept hub
+    const R_DEPT = 360;
+    const R_SOP  = 130;
 
-    const container = h('div', { class:'arsan-unified' });
-    const legend = h('div', { class:'legend' });
-    Object.entries(window.DEP_TYPES_UI).forEach(([_,info]) => {
-      legend.appendChild(h('div', { class:'ent' },
-        h('span', { class:'sw', style:`background:${info.color}` }), info.ar));
-    });
-    container.appendChild(legend);
-
-    // Positions
-    const positions = {}; // deptId → {x,y}
+    // ---- Build positions ----
+    const positions = {};
     deptIds.forEach((id, i) => {
       const a = (i / deptIds.length) * Math.PI * 2 - Math.PI/2;
-      positions[id] = { x: cx + R_DEPT * Math.cos(a), y: cy + R_DEPT * Math.sin(a), angle: a };
+      positions[id] = { x: cx + R_DEPT * Math.cos(a), y: cy + R_DEPT * Math.sin(a) };
     });
-    // SOP positions around each dept
-    const sopPos = {}; // `${dept}/${code}` → {x,y}
+    const sopPos = {};
     deptIds.forEach(id => {
       const cfg = DEPT_CFG[id];
       const center = positions[id];
       const sops = cfg.sops || [];
+      const r = Math.max(R_SOP, 40 + sops.length * 6);
       sops.forEach(([code], j) => {
-        const a = (j / sops.length) * Math.PI * 2;
-        sopPos[`${id}/${code}`] = { x: center.x + R_SOP * Math.cos(a), y: center.y + R_SOP * Math.sin(a) };
+        const a = (j / Math.max(sops.length,1)) * Math.PI * 2;
+        sopPos[`${id}/${code}`] = { x: center.x + r * Math.cos(a), y: center.y + r * Math.sin(a), dept: id, code };
       });
     });
 
+    // ---- Container with toolbar ----
+    const container = h('div', { class:'arsan-unified-i' });
+    container.style.cssText = 'position:relative;width:100%;height:78vh;background:radial-gradient(ellipse at center, rgba(133,113,77,.04), transparent 70%), var(--bg-0);border-radius:14px;overflow:hidden;border:1px solid var(--line)';
+
+    // Toolbar (top-right)
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:6px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:6px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5';
+    const btnStyle = 'background:transparent;border:none;color:#f3e9c9;width:34px;height:34px;border-radius:7px;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:all .15s';
+    toolbar.innerHTML = `
+      <button id="um-zoom-in"  title="تكبير"     style="${btnStyle}">＋</button>
+      <button id="um-zoom-out" title="تصغير"    style="${btnStyle}">−</button>
+      <button id="um-fit"      title="ملاءمة"   style="${btnStyle}">⊡</button>
+      <button id="um-reset"    title="إعادة"   style="${btnStyle}">⟲</button>
+      <input id="um-search" placeholder="ابحث…" style="background:rgba(0,0,0,.4);border:1px solid rgba(133,113,77,.3);color:#f3e9c9;padding:6px 10px;border-radius:7px;font-size:12px;width:140px;outline:none">
+    `;
+    toolbar.querySelectorAll('button').forEach(b => {
+      b.onmouseenter = () => b.style.background = 'rgba(133,113,77,.25)';
+      b.onmouseleave = () => b.style.background = 'transparent';
+    });
+
+    // Legend (bottom-left)
+    const legend = document.createElement('div');
+    legend.style.cssText = 'position:absolute;bottom:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5;display:flex;flex-direction:column;gap:5px;font-size:11px';
+    Object.entries(window.DEP_TYPES_UI).forEach(([_,info]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;color:#d9c896';
+      row.innerHTML = `<span style="width:18px;height:3px;background:${info.color};border-radius:2px;display:inline-block"></span>${info.ar}`;
+      legend.appendChild(row);
+    });
+
+    // Hint (top-left)
+    const hint = document.createElement('div');
+    hint.style.cssText = 'position:absolute;top:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5;font-size:11px;color:#d9c896;max-width:280px;line-height:1.6';
+    hint.innerHTML = '🖱️ <b>اسحب</b> للتحريك · <b>عجلة الفأرة</b> للتكبير · <b>انقر</b> على إدارة لفتحها · <b>انقر</b> على إجراء لعرضه';
+
+    // Tooltip
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = 'position:absolute;pointer-events:none;background:rgba(20,17,12,.95);color:#f3e9c9;padding:8px 12px;border-radius:8px;font-size:12px;border:1px solid rgba(133,113,77,.5);box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:10;display:none;max-width:280px;line-height:1.5;white-space:normal';
+
+    // SVG canvas (inside transformer)
+    const stage = document.createElement('div');
+    stage.style.cssText = 'position:absolute;inset:0;overflow:hidden;cursor:grab';
+    const inner = document.createElement('div');
+    inner.style.cssText = 'position:absolute;left:50%;top:50%;transform-origin:0 0;will-change:transform';
+    stage.appendChild(inner);
+
+    container.appendChild(stage);
+    container.appendChild(toolbar);
+    container.appendChild(legend);
+    container.appendChild(hint);
+    container.appendChild(tooltip);
+
+    // ---- Build SVG ----
     (async () => {
-      const deps = await API.getDeps();
+      const deps = await API.getDeps().catch(() => []);
       const svg = [];
-      svg.push(`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto">`);
+      svg.push(`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block">`);
       svg.push(`<defs>
         ${Object.entries(window.DEP_TYPES_UI).map(([k,v]) => `
-          <marker id="arrow-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="um2-arr-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="${v.color}"/>
           </marker>`).join('')}
-        <filter id="um-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <filter id="um2-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
-        <radialGradient id="pulse-grad">
-          <stop offset="0%" stop-color="#b85450" stop-opacity="0.6"/>
+        <radialGradient id="um2-pulse">
+          <stop offset="0%" stop-color="#b85450" stop-opacity="0.7"/>
           <stop offset="100%" stop-color="#b85450" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="um2-dept-grad">
+          <stop offset="0%" stop-color="#85714D" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#85714D" stop-opacity="0"/>
         </radialGradient>
       </defs>`);
 
-      // dependency lines (animated)
-      deps.forEach((d, i) => {
+      // Dept aura
+      deptIds.forEach(id => {
+        const p = positions[id];
+        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="${R_SOP+50}" fill="url(#um2-dept-grad)"/>`);
+      });
+
+      // Dependency lines (animated)
+      deps.forEach((d) => {
         const f = sopPos[`${d.from.dept}/${d.from.code}`];
         const t = sopPos[`${d.to.dept}/${d.to.code}`];
         if (!f || !t) return;
         const color = (window.DEP_TYPES_UI[d.type]||{}).color || '#6b7280';
-        const mx = (f.x+t.x)/2, my = (f.y+t.y)/2 - 30;
-        svg.push(`<path class="um-dep um-dep-${d.from.dept}-${d.to.dept}" d="M ${f.x} ${f.y} Q ${mx} ${my} ${t.x} ${t.y}" fill="none" stroke="${color}" stroke-width="2" stroke-opacity="0.7" stroke-dasharray="6 4" marker-end="url(#arrow-${d.type||'other'})" style="filter:url(#um-glow)">
+        const dx = t.x - f.x, dy = t.y - f.y;
+        const dist = Math.hypot(dx, dy);
+        // Curve more for cross-dept
+        const curve = (d.from.dept !== d.to.dept) ? Math.min(dist*0.25, 80) : 20;
+        const mx = (f.x+t.x)/2 - dy/dist*curve;
+        const my = (f.y+t.y)/2 + dx/dist*curve;
+        svg.push(`<path class="um2-dep" data-from="${d.from.dept}" data-to="${d.to.dept}" data-type="${d.type||'other'}"
+          d="M ${f.x} ${f.y} Q ${mx} ${my} ${t.x} ${t.y}"
+          fill="none" stroke="${color}" stroke-width="2" stroke-opacity="0.6" stroke-dasharray="6 4"
+          marker-end="url(#um2-arr-${d.type||'other'})" style="filter:url(#um2-glow);pointer-events:stroke;cursor:pointer">
           <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.5s" repeatCount="indefinite"/>
         </path>`);
       });
 
-      // dept hubs + SOPs
+      // Dept hubs + SOPs
       deptIds.forEach(id => {
         const cfg = DEPT_CFG[id];
         const p = positions[id];
         const isExec = id === 'executive';
-        // Pulse ring for executive
+        const deptName = cfg.name || id;
+        const sopCount = (cfg.sops||[]).length;
+
         if (isExec) {
-          svg.push(`<circle cx="${p.x}" cy="${p.y}" r="42" fill="url(#pulse-grad)">
-            <animate attributeName="r" values="42;70;42" dur="2.5s" repeatCount="indefinite"/>
-            <animate attributeName="opacity" values="0.7;0;0.7" dur="2.5s" repeatCount="indefinite"/>
+          svg.push(`<circle cx="${p.x}" cy="${p.y}" r="55" fill="url(#um2-pulse)">
+            <animate attributeName="r" values="55;90;55" dur="2.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite"/>
           </circle>`);
         }
-        // dept node (clickable group)
-        svg.push(`<g class="um-dept" data-dept="${id}" style="cursor:pointer">`);
-        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="42" fill="${isExec?'#b85450':'var(--bg-0)'}" stroke="${isExec?'#b85450':'var(--brand)'}" stroke-width="${isExec?3:2}"/>`);
-        svg.push(`<text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="${isExec?'#fff':'var(--ink-1)'}" pointer-events="none">${esc(cfg.name.split(' ')[0])}</text>`);
-        svg.push(`<text x="${p.x}" y="${p.y+18}" text-anchor="middle" font-size="10" fill="${isExec?'#fff':'var(--ink-3)'}" pointer-events="none">${cfg.sops.length}</text>`);
+        // dept node
+        svg.push(`<g class="um2-dept" data-dept="${id}" style="cursor:pointer">`);
+        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="55" fill="${isExec?'#b85450':'#1a1510'}" stroke="${isExec?'#ff7a76':'#85714D'}" stroke-width="${isExec?3:2.5}"/>`);
+        svg.push(`<text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-size="14" font-weight="700" fill="${isExec?'#fff':'#f3e9c9'}" pointer-events="none">${esc(deptName.split(' ')[0])}</text>`);
+        svg.push(`<text x="${p.x}" y="${p.y+18}" text-anchor="middle" font-size="11" fill="${isExec?'#ffd':'#A89066'}" pointer-events="none">${sopCount} إجراء</text>`);
         svg.push(`</g>`);
 
-        // SOP mini nodes
-        (cfg.sops||[]).forEach(([code]) => {
+        // SOP nodes
+        (cfg.sops||[]).forEach(([code, title]) => {
           const sp = sopPos[`${id}/${code}`];
-          svg.push(`<g class="um-sop" data-sop="${id}/${code}" style="cursor:pointer">`);
-          svg.push(`<circle cx="${sp.x}" cy="${sp.y}" r="10" fill="var(--bg-0)" stroke="var(--line)" stroke-width="1">
-            <animate attributeName="r" values="10;11;10" dur="${2 + Math.random()*2}s" repeatCount="indefinite"/>
+          svg.push(`<line x1="${sp.x}" y1="${sp.y}" x2="${p.x}" y2="${p.y}" stroke="rgba(133,113,77,.25)" stroke-width="1" pointer-events="none"/>`);
+          svg.push(`<g class="um2-sop" data-sop="${id}/${code}" data-title="${esc(title||'')}" style="cursor:pointer">`);
+          svg.push(`<circle cx="${sp.x}" cy="${sp.y}" r="14" fill="#0f0c08" stroke="#85714D" stroke-width="1.5">
+            <animate attributeName="r" values="14;15.5;14" dur="${2 + Math.random()*2}s" repeatCount="indefinite"/>
           </circle>`);
-          svg.push(`<text x="${sp.x}" y="${sp.y+3}" text-anchor="middle" font-size="7" fill="var(--ink-2)" pointer-events="none">${esc(code.split('-')[1]||code)}</text>`);
+          svg.push(`<text x="${sp.x}" y="${sp.y+3.5}" text-anchor="middle" font-size="9" font-weight="600" fill="#d9c896" pointer-events="none">${esc(code.split('-')[1]||code.slice(-2))}</text>`);
           svg.push(`</g>`);
-          // line from SOP to dept hub
-          svg.push(`<line x1="${sp.x}" y1="${sp.y}" x2="${p.x}" y2="${p.y}" stroke="var(--line)" stroke-width="0.5" opacity="0.5"/>`);
         });
       });
 
       svg.push('</svg>');
-      container.insertAdjacentHTML('beforeend', svg.join(''));
+      inner.innerHTML = svg.join('');
 
-      // Interactivity: hover dept → highlight related deps
-      const svgEl = container.querySelector('svg');
-      if (svgEl) {
-        svgEl.querySelectorAll('.um-dept').forEach(g => {
-          const id = g.dataset.dept;
-          g.addEventListener('mouseenter', () => {
-            svgEl.querySelectorAll('.um-dep').forEach(p => {
-              const cls = Array.from(p.classList).find(c => c.startsWith('um-dep-'));
-              const involves = cls && cls.includes(id);
-              p.style.opacity = involves ? '1' : '0.1';
-              p.style.strokeWidth = involves ? '3' : '2';
-            });
-          });
-          g.addEventListener('mouseleave', () => {
-            svgEl.querySelectorAll('.um-dep').forEach(p => {
-              p.style.opacity = '0.7';
-              p.style.strokeWidth = '2';
-            });
-          });
+      const svgEl = inner.querySelector('svg');
+
+      // ===== Pan & Zoom =====
+      let scale = 1;
+      let tx = -W/2, ty = -H/2;
+      const apply = () => { inner.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; };
+      apply();
+
+      // Fit-to-screen
+      const fitToScreen = () => {
+        const rect = stage.getBoundingClientRect();
+        const sx = rect.width / W;
+        const sy = rect.height / H;
+        scale = Math.min(sx, sy) * 0.92;
+        tx = -W/2;
+        ty = -H/2;
+        apply();
+      };
+      // Initial fit after layout
+      requestAnimationFrame(() => { setTimeout(fitToScreen, 50); });
+
+      // Wheel zoom
+      stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = stage.getBoundingClientRect();
+        const cxRel = e.clientX - rect.left - rect.width/2;
+        const cyRel = e.clientY - rect.top - rect.height/2;
+        const factor = e.deltaY > 0 ? 0.88 : 1.14;
+        const newScale = Math.max(0.15, Math.min(4, scale * factor));
+        // Zoom towards cursor
+        tx = cxRel - (cxRel - tx) * (newScale/scale);
+        ty = cyRel - (cyRel - ty) * (newScale/scale);
+        scale = newScale;
+        apply();
+      }, { passive: false });
+
+      // Pan with mouse drag
+      let dragging = false, sx0 = 0, sy0 = 0, tx0 = 0, ty0 = 0;
+      stage.addEventListener('mousedown', (e) => {
+        // ignore if clicked on an interactive node
+        if (e.target.closest('.um2-dept, .um2-sop, .um2-dep')) return;
+        dragging = true; sx0 = e.clientX; sy0 = e.clientY; tx0 = tx; ty0 = ty;
+        stage.style.cursor = 'grabbing';
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        tx = tx0 + (e.clientX - sx0);
+        ty = ty0 + (e.clientY - sy0);
+        apply();
+      });
+      window.addEventListener('mouseup', () => { dragging = false; stage.style.cursor = 'grab'; });
+
+      // Touch
+      let touch1 = null, touch2 = null, pinchStart = 0, pinchScale = 1;
+      stage.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          touch1 = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx0: tx, ty0: ty };
+        } else if (e.touches.length === 2) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          pinchStart = Math.hypot(dx, dy);
+          pinchScale = scale;
+        }
+      }, { passive: true });
+      stage.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && touch1) {
+          tx = touch1.tx0 + (e.touches[0].clientX - touch1.x);
+          ty = touch1.ty0 + (e.touches[0].clientY - touch1.y);
+          apply();
+        } else if (e.touches.length === 2) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const d = Math.hypot(dx, dy);
+          scale = Math.max(0.15, Math.min(4, pinchScale * (d / pinchStart)));
+          apply();
+        }
+      }, { passive: true });
+
+      // Toolbar buttons
+      toolbar.querySelector('#um-zoom-in').onclick  = () => { scale = Math.min(4, scale*1.25); apply(); };
+      toolbar.querySelector('#um-zoom-out').onclick = () => { scale = Math.max(0.15, scale/1.25); apply(); };
+      toolbar.querySelector('#um-fit').onclick      = fitToScreen;
+      toolbar.querySelector('#um-reset').onclick    = () => { scale = 1; tx = -W/2; ty = -H/2; apply(); };
+
+      // ===== Interactivity =====
+      const showTip = (e, html) => {
+        tooltip.innerHTML = html;
+        tooltip.style.display = 'block';
+        const rect = container.getBoundingClientRect();
+        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+        tooltip.style.top  = (e.clientY - rect.top + 14) + 'px';
+      };
+      const hideTip = () => { tooltip.style.display = 'none'; };
+
+      const allDeps = svgEl.querySelectorAll('.um2-dep');
+      const dimAll = (related = null) => {
+        allDeps.forEach(p => {
+          const inv = related && (p.dataset.from === related || p.dataset.to === related);
+          p.style.opacity = related ? (inv ? '1' : '.06') : '.6';
+          p.style.strokeWidth = inv ? '3' : '2';
         });
-      }
+        svgEl.querySelectorAll('.um2-dept, .um2-sop').forEach(g => {
+          if (!related) { g.style.opacity = '1'; return; }
+          const did = g.dataset.dept || (g.dataset.sop||'').split('/')[0];
+          g.style.opacity = (did === related) ? '1' : '.35';
+        });
+      };
+
+      // Dept interactions
+      svgEl.querySelectorAll('.um2-dept').forEach(g => {
+        const id = g.dataset.dept;
+        const cfg = DEPT_CFG[id];
+        g.addEventListener('mouseenter', (e) => {
+          dimAll(id);
+          showTip(e, `<b>${esc(cfg.name)}</b><br><span style="color:#A89066">${(cfg.sops||[]).length} إجراء</span><br><small style="opacity:.7">انقر للدخول</small>`);
+        });
+        g.addEventListener('mousemove', (e) => showTip(e, tooltip.innerHTML));
+        g.addEventListener('mouseleave', () => { dimAll(); hideTip(); });
+        g.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Navigate to that dept's dashboard
+          const url = new URL(location.href);
+          url.searchParams.set('dept', id);
+          location.href = url.toString();
+        });
+      });
+
+      // SOP interactions
+      svgEl.querySelectorAll('.um2-sop').forEach(g => {
+        const [deptId, code] = g.dataset.sop.split('/');
+        const title = g.dataset.title;
+        g.addEventListener('mouseenter', (e) => {
+          dimAll(deptId);
+          showTip(e, `<b>${esc(code)}</b><br>${esc(title||'بدون عنوان')}<br><small style="opacity:.7;color:#A89066">${esc(DEPT_CFG[deptId]?.name||'')}</small>`);
+        });
+        g.addEventListener('mousemove', (e) => showTip(e, tooltip.innerHTML));
+        g.addEventListener('mouseleave', () => { dimAll(); hideTip(); });
+        g.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Open SOP modal — if same dept, open directly; else navigate
+          if (deptId === window.CURRENT_DEPT_ID && typeof openSOP === 'function') {
+            bd.remove();
+            openSOP(code);
+          } else {
+            const url = new URL(location.href);
+            url.searchParams.set('dept', deptId);
+            url.searchParams.set('open', code);
+            location.href = url.toString();
+          }
+        });
+      });
+
+      // Search
+      const searchInput = toolbar.querySelector('#um-search');
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) {
+          svgEl.querySelectorAll('.um2-dept, .um2-sop').forEach(g => g.style.opacity = '1');
+          return;
+        }
+        svgEl.querySelectorAll('.um2-dept').forEach(g => {
+          const cfg = DEPT_CFG[g.dataset.dept];
+          const match = (cfg.name||'').toLowerCase().includes(q) || g.dataset.dept.includes(q);
+          g.style.opacity = match ? '1' : '.2';
+        });
+        svgEl.querySelectorAll('.um2-sop').forEach(g => {
+          const sop = g.dataset.sop.toLowerCase();
+          const title = (g.dataset.title||'').toLowerCase();
+          const match = sop.includes(q) || title.includes(q);
+          g.style.opacity = match ? '1' : '.15';
+        });
+      });
     })();
 
-    const modal = h('div', { class:'arsan-modal wide', style:'max-width:1280px' },
+    const modal = h('div', { class:'arsan-modal wide', style:'max-width:95vw;width:95vw' },
       h('h2', {}, '🌐 الخريطة الشاملة — كل الإدارات'),
-      h('div', { class:'sub' }, 'النقاط الحمراء = الإدارة التنفيذية. الخطوط تمثّل التبعيات بين الإجراءات. الألوان في الأسفل.'),
+      h('div', { class:'sub' }, 'انقر على أي إدارة لفتحها · انقر على أي إجراء لعرضه · اسحب وكبّر للاستكشاف'),
       container,
       h('div', { class:'arsan-actions' },
-        h('button', { class:'arsan-btn', onclick: () => showDepsEditor() }, 'محرر التبعيات'),
+        h('button', { class:'arsan-btn', onclick: () => { bd.remove(); showDepsEditor(); } }, '🔗 محرر التبعيات'),
         h('button', { class:'arsan-btn primary', onclick: () => bd.remove() }, 'إغلاق'))
     );
     const bd = openModal(modal);
@@ -5122,11 +5339,9 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     const me = API.me();
     const bar = h('div', { class:'arsan-topbar' });
 
-    // Unified map button (visible to all)
+    // ===== المجموعة الأساسية (للجميع) =====
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showUnifiedMap }, '🌐 الخريطة الشاملة'));
-    // Deps editor
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showDepsEditor }, '🔗 التبعيّات'));
-    // Chat
     bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: toggleChat }, '💬 التواصل'));
 
     if (me.role === 'viewer') {
@@ -5136,34 +5351,74 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       bar.appendChild(h('span', { style:'align-self:center;font-size:12px;color:var(--ink-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, me.email));
     }
 
-    // Create/Import SOP — available to ANY logged-in user when inside a dept page
+    // ===== أزرار الإجراءات السريعة (للمسجّلين داخل صفحة إدارة) =====
     if (API.isLoggedIn() && window.CURRENT_DEPT_ID) {
       bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showNewSopModal }, '➕ إجراء جديد'));
       bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showImportModal }, '📥 استيراد'));
     }
 
+    // ===== أدوات الأدمن — مخفية خلف زر نجمة قابل للطيّ =====
+    if (me.role === 'admin') {
+      const adminWrap = h('div', { class:'arsan-admin-tools', style:'display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(133,113,77,.2);margin-top:8px;padding-top:10px;width:100%' });
+
+      // زر النجمة (toggler)
+      const starBtn = h('button', {
+        class:'arsan-topbar-btn arsan-admin-star',
+        title:'أدوات الأدمن',
+        style:'background:linear-gradient(135deg,#85714D,#5E4F36)!important;color:#fff!important;font-weight:700!important;border:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important'
+      },
+        h('span', {}, '⭐ أدوات الأدمن'),
+        h('span', { class:'arsan-admin-caret', style:'font-size:11px;transition:transform .25s' }, '▼')
+      );
+
+      // الحاوي المنسدل
+      const dropdown = h('div', { class:'arsan-admin-dropdown', style:'display:none;flex-direction:column;gap:6px;padding:8px 6px 4px;background:rgba(133,113,77,.06);border-radius:8px' });
+
+      dropdown.appendChild(h('button', {
+        class:'arsan-topbar-btn',
+        onclick: () => {
+          if (typeof window.openArsanSettings === 'function') window.openArsanSettings();
+          else alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');
+        }
+      }, '⚙️ إعدادات النظام'));
+      dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'users.html'; }}, '👥 المستخدمون'));
+
+      // Hooks لإضافة المزيد لاحقاً (audit/webhooks/announcements...)
+      // أزرار اختيارية لو الموديولات محمّلة:
+      if (window.ArsanAuditViewer && window.ArsanAuditViewer.open){
+        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanAuditViewer.open() }, '📋 سجل النشاط'));
+      }
+      if (window.ArsanWebhooksAdmin && window.ArsanWebhooksAdmin.open){
+        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanWebhooksAdmin.open() }, '🔌 Webhooks'));
+      }
+      if (window.ArsanAnnouncements && window.ArsanAnnouncements.openComposer){
+        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanAnnouncements.openComposer() }, '📢 إعلان جديد'));
+      }
+
+      // Toggle
+      starBtn.addEventListener('click', () => {
+        const open = dropdown.style.display !== 'none';
+        dropdown.style.display = open ? 'none' : 'flex';
+        const caret = starBtn.querySelector('.arsan-admin-caret');
+        if (caret) caret.style.transform = open ? '' : 'rotate(180deg)';
+        // احفظ الحالة
+        try { localStorage.setItem('arsan_admin_open', open ? '0' : '1'); } catch(e) {}
+      });
+      // استرجاع آخر حالة
+      try {
+        if (localStorage.getItem('arsan_admin_open') === '1') {
+          dropdown.style.display = 'flex';
+          const caret = starBtn.querySelector('.arsan-admin-caret');
+          if (caret) caret.style.transform = 'rotate(180deg)';
+        }
+      } catch(e) {}
+
+      adminWrap.appendChild(starBtn);
+      adminWrap.appendChild(dropdown);
+      bar.appendChild(adminWrap);
+    }
+
     if (me.role !== 'viewer') {
-      // Create new SOP (any editor, only when inside a dept page)
-      if (false) {
-        /* moved above — kept shell for diff-safety */
-      }
-
-      if (me.role === 'admin') {
-        bar.appendChild(h('button', {
-          class:'arsan-topbar-btn',
-          title:'إعدادات النظام',
-          onclick: () => {
-            if (typeof window.openArsanSettings === 'function') {
-              window.openArsanSettings();
-            } else {
-              alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');
-            }
-          }
-        }, '⚙️ إعدادات النظام'));
-        bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'users.html'; }}, '👥 المستخدمون'));
-        /* Admin panel now opens via the embedded FAB (admin-fab.js) — removed from topbar. */
-      }
-
       document.body.classList.add('editor-mode');
     }
 

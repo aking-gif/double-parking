@@ -387,6 +387,9 @@
     <button class="icon-btn" id="refreshBtn" title="تحديث الصفحة" aria-label="تحديث">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
+    <button class="icon-btn" id="logoutBtn" title="تسجيل الخروج" aria-label="تسجيل الخروج" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
     <button class="icon-btn" id="langToggle" title="اللغة">
       <span id="langLabel" style="font-size:12px;font-weight:600">EN</span>
     </button>
@@ -407,7 +410,7 @@
 </main>
 
 <!-- ========== شريط أدوات الأدمن (مشترك) ========== -->
-<script src="themes.js?v=21"></script>
+<script src="themes.js?v=22"></script>
 <script src="brand.js?v=21"></script>
 <script>
   // حقن الشعار في الـ topbar
@@ -706,21 +709,36 @@
   }
 
   // ============================================================
-  // 9. الثيم (داكن/فاتح)
+  // 9. الثيم — يفتح منتقي ثيمات أرسان (متناسق مع باقي الصفحات)
   // ============================================================
   const themeToggle = document.getElementById('themeToggle');
-  const themeIcon = document.getElementById('themeIcon');
-  function setTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    themeIcon.innerHTML = t === 'dark'
-      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'
-      : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-  }
-  setTheme(localStorage.getItem('arsan_theme') || 'light');
   themeToggle.addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('arsan_theme', next);
+    if (window.ArsanThemes && window.ArsanThemes.openPicker) {
+      window.ArsanThemes.openPicker();
+    }
+  });
+
+  // ============================================================
+  // 9b. زر تسجيل الخروج
+  // ============================================================
+  const logoutBtn = document.getElementById('logoutBtn');
+  function showLogoutBtn(){
+    try {
+      const me = JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || 'null');
+      if (me && me.email) logoutBtn.style.display = '';
+    } catch(_){}
+  }
+  showLogoutBtn();
+  window.addEventListener('arsan:login', showLogoutBtn);
+  logoutBtn.addEventListener('click', async () => {
+    if (!confirm('هل تريد تسجيل الخروج؟')) return;
+    try {
+      if (window.ArsanAPI && window.ArsanAPI.logout) await window.ArsanAPI.logout();
+    } catch(_){}
+    ['arsan_token_v1','arsan_token','arsan_me_v1','arsan_me','arsan_profile_v1'].forEach(k => {
+      try { localStorage.removeItem(k); } catch(_){}
+    });
+    location.reload();
   });
 
   // ============================================================

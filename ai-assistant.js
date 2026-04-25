@@ -70,11 +70,13 @@
         color:#5E4F36;
         font-size:24px;
         cursor:pointer;
-        box-shadow:0 6px 20px rgba(133,113,77,.45), 0 2px 6px rgba(0,0,0,.2);
-        transition:transform .2s, box-shadow .2s;
+        box-shadow:0 6px 20px rgba(133,113,77,.35), 0 2px 6px rgba(0,0,0,.18);
+        transition:transform .2s, box-shadow .2s, opacity .2s;
         display:flex;align-items:center;justify-content:center;
+        opacity:.78;
       }
       .arsan-ai-fab:hover{
+        opacity:1;
         transform:translateY(-2px) scale(1.05);
         box-shadow:0 10px 28px rgba(133,113,77,.55), 0 4px 10px rgba(0,0,0,.25);
       }
@@ -601,6 +603,14 @@
   function openKB(){
     document.getElementById('arsan-kb-bd')?.remove();
     const KB_KEY = 'arsan_adham_knowledge_v1';
+    const PENDING_KEY = 'adham_kb_pending_v1';
+
+    // Determine role
+    let me = null;
+    try { me = JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || 'null'); } catch(_){}
+    const role = (me && me.role) || 'guest';
+    const isAdmin = role === 'admin';
+
     const initial = (() => {
       try { return localStorage.getItem(KB_KEY) || ''; } catch(_) { return ''; }
     })();
@@ -608,32 +618,58 @@
     const bd = document.createElement('div');
     bd.id = 'arsan-kb-bd';
     bd.className = 'arsan-kb-bd';
+
+    // ----- Body content depends on role -----
+    const adminBody = `
+      <div class="arsan-kb-body">
+        <p class="lead">${t(
+          'كل ما تكتبه هنا يصبح جزءاً من معرفة الأدهم. استخدمه لتغذيته بمعلومات شركتك، سياساتك، مصطلحاتك، أو أي شيء يجب أن يعرفه.',
+          'Anything you write here becomes part of Al-Adham\'s knowledge. Use it to teach him about your company, policies, terminology, or anything else he should know.'
+        )}</p>
+        <textarea id="arsan-kb-text" placeholder="${t('مثال:\nشركة أرسان متخصّصة في حلول مواقف السيارات الذكية.\nنستخدم نظام KPIs ربعي.\n…','Example: Arsan specializes in smart parking solutions...')}">${initial.replace(/</g,'&lt;')}</textarea>
+        <div class="arsan-kb-info">
+          <strong>${t('ما يعرفه الأدهم تلقائياً','What Adham already knows')}:</strong><br>
+          • ${t('كل الإجراءات (SOPs) في كل الإدارات','All SOPs across all departments')}<br>
+          • ${t('الإدارة الحالية والإجراء المفتوح','Current department & open SOP')}<br>
+          • ${t('قائمة الإدارات وأرقامها','Departments & their codes')}<br>
+          • ${t('اللغة الحالية (عربي/إنجليزي)','Current language')}
+        </div>
+        <div id="arsan-kb-pending-host" style="margin-top:14px"></div>
+      </div>
+      <div class="arsan-kb-foot">
+        <span class="status" id="arsan-kb-status"></span>
+        <button class="clear" type="button" id="arsan-kb-clear">${t('مسح','Clear')}</button>
+        <button class="save" type="button" id="arsan-kb-save">${t('حفظ','Save')}</button>
+      </div>
+    `;
+
+    const userBody = `
+      <div class="arsan-kb-body">
+        <p class="lead">${t(
+          'تقدر ترسل اقتراح لتغذية الأدهم بمعلومات (سياسات، مصطلحات، …). الاقتراح يصل للأدمن للمراجعة قبل ما يُضاف لذاكرة الأدهم.',
+          'You can suggest knowledge for Al-Adham (policies, terminology, …). Your suggestion is sent to the admin for review before it is added to Adham\'s memory.'
+        )}</p>
+        <textarea id="arsan-kb-text" placeholder="${t('اكتب اقتراحك هنا…','Write your suggestion here…')}"></textarea>
+        <div class="arsan-kb-info" style="border-color:rgba(133,113,77,.28); background:rgba(133,113,77,.06);">
+          <strong>📤 ${t('اقتراحك سيُراجع','Your suggestion will be reviewed')}</strong><br>
+          ${t('سيظهر للأدمن في نافذة الذاكرة. عند الموافقة يُضاف لذاكرة الأدهم.','It appears in the admin\'s memory window. Once approved, it is added to Adham\'s memory.')}
+        </div>
+      </div>
+      <div class="arsan-kb-foot">
+        <span class="status" id="arsan-kb-status"></span>
+        <button class="save" type="button" id="arsan-kb-submit">${t('إرسال للمراجعة','Submit for review')}</button>
+      </div>
+    `;
+
     bd.innerHTML = `
       <div class="arsan-kb-modal" role="dialog" aria-modal="true">
         <h2>
           <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center"><img src="./adham.png" style="width:100%;height:100%;object-fit:contain"/></span>
           ${t('ذاكرة الأدهم','Adham Memory')}
+          ${isAdmin ? `<span style="font-size:11px;font-weight:600;background:rgba(133,113,77,.18);color:#c9b27a;padding:3px 10px;border-radius:999px;margin-inline-start:8px">Admin</span>` : ''}
           <button class="x" type="button" aria-label="Close">✕</button>
         </h2>
-        <div class="arsan-kb-body">
-          <p class="lead">${t(
-            'كل ما تكتبه هنا يصبح جزءاً من معرفة الأدهم. استخدمه لتغذيته بمعلومات شركتك، سياساتك، مصطلحاتك، أو أي شيء يجب أن يعرفه.',
-            'Anything you write here becomes part of Al-Adham\'s knowledge. Use it to teach him about your company, policies, terminology, or anything else he should know.'
-          )}</p>
-          <textarea id="arsan-kb-text" placeholder="${t('مثال:\nشركة أرسان متخصّصة في حلول مواقف السيارات الذكية.\nنستخدم نظام KPIs ربعي.\nلا نسمح بالعمل خارج الدوام بدون موافقة المدير المباشر.\n…','Example: Arsan specializes in smart parking solutions...')}">${initial.replace(/</g,'&lt;')}</textarea>
-          <div class="arsan-kb-info">
-            <strong>${t('ما يعرفه الأدهم تلقائياً','What Adham already knows')}:</strong><br>
-            • ${t('كل الإجراءات (SOPs) في كل الإدارات','All SOPs across all departments')}<br>
-            • ${t('الإدارة الحالية والإجراء المفتوح','Current department & open SOP')}<br>
-            • ${t('قائمة الإدارات وأرقامها','Departments & their codes')}<br>
-            • ${t('اللغة الحالية (عربي/إنجليزي)','Current language')}
-          </div>
-        </div>
-        <div class="arsan-kb-foot">
-          <span class="status" id="arsan-kb-status"></span>
-          <button class="clear" type="button" id="arsan-kb-clear">${t('مسح','Clear')}</button>
-          <button class="save" type="button" id="arsan-kb-save">${t('حفظ','Save')}</button>
-        </div>
+        ${isAdmin ? adminBody : userBody}
       </div>
     `;
     document.body.appendChild(bd);
@@ -644,31 +680,141 @@
 
     bd.addEventListener('click', e => { if (e.target === bd) close(); });
     bd.querySelector('.x').addEventListener('click', close);
-    bd.querySelector('#arsan-kb-save').addEventListener('click', () => {
-      try {
-        localStorage.setItem(KB_KEY, txt.value || '');
-        if (window.ArsanAPI && window.ArsanAPI.put) {
-          window.ArsanAPI.put('adham_kb_v1', { text: txt.value || '', updatedAt: Date.now() }).catch(()=>{});
+
+    if (isAdmin) {
+      // Admin: save directly + load & render pending suggestions
+      bd.querySelector('#arsan-kb-save').addEventListener('click', () => {
+        try {
+          localStorage.setItem(KB_KEY, txt.value || '');
+          if (window.ArsanAPI && window.ArsanAPI.put) {
+            window.ArsanAPI.put('adham_kb_v1', { text: txt.value || '', updatedAt: Date.now() }).catch(()=>{});
+          }
+          status.textContent = '✓ ' + t('تم الحفظ. الأدهم يتذكّر الآن.','Saved. Adham will remember.');
+          status.style.color = '#5ec28b';
+          setTimeout(close, 900);
+        } catch(e){
+          status.textContent = '⚠ ' + t('فشل الحفظ','Save failed');
+          status.style.color = '#d97757';
         }
-        status.textContent = '✓ ' + t('تم الحفظ. الأدهم يتذكّر الآن.','Saved. Adham will remember.');
-        status.style.color = '#5ec28b';
-        setTimeout(close, 900);
-      } catch(e){
-        status.textContent = '⚠ ' + t('فشل الحفظ','Save failed');
-        status.style.color = '#d97757';
+      });
+      bd.querySelector('#arsan-kb-clear').addEventListener('click', () => {
+        if (!confirm(t('مسح كل ذاكرة الأدهم؟ هذا لا يمكن التراجع عنه.','Clear all Adham memory? This cannot be undone.'))) return;
+        txt.value = '';
+        try { localStorage.removeItem(KB_KEY); } catch(_){}
+        if (window.ArsanAPI && window.ArsanAPI.put) {
+          window.ArsanAPI.put('adham_kb_v1', { text:'', updatedAt: Date.now() }).catch(()=>{});
+        }
+        status.textContent = t('تم المسح.','Cleared.');
+        status.style.color = '#9b958a';
+      });
+      // Render pending suggestions
+      renderPendingSuggestions(bd.querySelector('#arsan-kb-pending-host'), txt);
+    } else {
+      // Regular user: submit suggestion to KV (pending)
+      bd.querySelector('#arsan-kb-submit').addEventListener('click', async () => {
+        const v = (txt.value || '').trim();
+        if (!v) {
+          status.textContent = t('اكتب شيئاً أولاً','Write something first');
+          status.style.color = '#d97757';
+          return;
+        }
+        try {
+          const list = (window.ArsanAPI && window.ArsanAPI.get) ? (await window.ArsanAPI.get(PENDING_KEY).catch(()=>[])) || [] : [];
+          const arr = Array.isArray(list) ? list : [];
+          arr.push({
+            id: 'kb_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+            text: v,
+            from: (me && me.email) || 'unknown',
+            at: Date.now()
+          });
+          if (window.ArsanAPI && window.ArsanAPI.put) {
+            await window.ArsanAPI.put(PENDING_KEY, arr);
+          }
+          status.textContent = '✓ ' + t('تم الإرسال. سيراجعه الأدمن.','Submitted. Admin will review.');
+          status.style.color = '#5ec28b';
+          txt.value = '';
+          setTimeout(close, 1100);
+        } catch(e){
+          status.textContent = '⚠ ' + t('فشل الإرسال','Submit failed');
+          status.style.color = '#d97757';
+        }
+      });
+    }
+    setTimeout(() => txt && txt.focus(), 50);
+  }
+
+  // --- Render pending suggestions panel for admin
+  async function renderPendingSuggestions(host, mainTextarea){
+    if (!host) return;
+    const PENDING_KEY = 'adham_kb_pending_v1';
+    const KB_KEY = 'arsan_adham_knowledge_v1';
+    let list = [];
+    try {
+      if (window.ArsanAPI && window.ArsanAPI.get) {
+        list = await window.ArsanAPI.get(PENDING_KEY).catch(()=>[]) || [];
       }
+    } catch(_){}
+    if (!Array.isArray(list)) list = [];
+    if (!list.length){
+      host.innerHTML = `
+        <div style="padding:12px 14px;border:1px dashed rgba(133,113,77,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
+          ${t('لا توجد اقتراحات بانتظار المراجعة','No pending suggestions')}
+        </div>`;
+      return;
+    }
+    host.innerHTML = `
+      <div style="font-weight:700;color:#c9b27a;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        📥 ${t('اقتراحات بانتظار المراجعة','Pending suggestions')}
+        <span style="background:rgba(230,57,70,.18);color:#e63946;font-size:11px;padding:2px 8px;border-radius:999px">${list.length}</span>
+      </div>
+      <div id="arsan-kb-pending-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto"></div>
+    `;
+    const listHost = host.querySelector('#arsan-kb-pending-list');
+    list.slice().reverse().forEach(item => {
+      const card = document.createElement('div');
+      card.style.cssText = 'border:1px solid rgba(133,113,77,.25);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)';
+      const dt = new Date(item.at || Date.now());
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:#9b958a;margin-bottom:6px">
+          <span>${item.from || ''}</span>
+          <span>${dt.toLocaleString('ar-SA')}</span>
+        </div>
+        <div style="font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word">${(item.text||'').replace(/</g,'&lt;')}</div>
+        <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
+          <button type="button" class="kb-reject" style="padding:5px 12px;border:1px solid rgba(217,119,87,.4);background:transparent;color:#d97757;border-radius:6px;cursor:pointer;font-size:12px">${t('رفض','Reject')}</button>
+          <button type="button" class="kb-approve" style="padding:5px 12px;border:none;background:#5ec28b;color:#0E0F10;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">${t('موافقة وإضافة','Approve & add')}</button>
+        </div>
+      `;
+      card.querySelector('.kb-reject').addEventListener('click', async () => {
+        if (!confirm(t('رفض هذا الاقتراح؟','Reject this suggestion?'))) return;
+        await removePending(item.id);
+        card.remove();
+      });
+      card.querySelector('.kb-approve').addEventListener('click', async () => {
+        // Append to main textarea
+        const sep = (mainTextarea.value && !mainTextarea.value.endsWith('\n')) ? '\n\n' : '\n';
+        mainTextarea.value = (mainTextarea.value || '') + sep + (item.text || '');
+        await removePending(item.id);
+        card.remove();
+      });
+      listHost.appendChild(card);
     });
-    bd.querySelector('#arsan-kb-clear').addEventListener('click', () => {
-      if (!confirm(t('مسح كل ذاكرة الأدهم؟ هذا لا يمكن التراجع عنه.','Clear all Adham memory? This cannot be undone.'))) return;
-      txt.value = '';
-      try { localStorage.removeItem(KB_KEY); } catch(_){}
-      if (window.ArsanAPI && window.ArsanAPI.put) {
-        window.ArsanAPI.put('adham_kb_v1', { text:'', updatedAt: Date.now() }).catch(()=>{});
-      }
-      status.textContent = t('تم المسح.','Cleared.');
-      status.style.color = '#9b958a';
-    });
-    setTimeout(() => txt.focus(), 50);
+
+    async function removePending(id){
+      try {
+        const cur = (window.ArsanAPI && window.ArsanAPI.get) ? (await window.ArsanAPI.get(PENDING_KEY).catch(()=>[])) || [] : [];
+        const next = (Array.isArray(cur) ? cur : []).filter(x => x.id !== id);
+        if (window.ArsanAPI && window.ArsanAPI.put) await window.ArsanAPI.put(PENDING_KEY, next);
+        // refresh count badge if all gone
+        const remaining = host.querySelectorAll('#arsan-kb-pending-list > div').length - 1;
+        if (remaining <= 0) {
+          host.innerHTML = `
+            <div style="padding:12px 14px;border:1px dashed rgba(133,113,77,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
+              ${t('لا توجد اقتراحات بانتظار المراجعة','No pending suggestions')}
+            </div>`;
+        }
+      } catch(_){}
+    }
   }
 
   // --- open/close

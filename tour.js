@@ -278,38 +278,36 @@
       .at-confirm-card p{ margin:0 0 18px; font-size:13.5px; line-height:1.7; opacity:.85; }
       .at-confirm-actions{ display:flex; gap:10px; justify-content:flex-end; }
 
-      /* manual-trigger button — square icon, sits next to bell */
+      /* manual-trigger button — small floating circle ABOVE the Adham FAB */
       #at-launch{
         position:fixed;
-        top:16px;
-        inset-inline-start:68px;   /* RTL: bell at 16, gap 8, btn at 68 */
-        inset-inline-end:auto;
-        z-index:9100;
+        bottom:92px;                 /* sits above the 56px Adham FAB (24+56+12) */
+        inset-inline-end:30px;       /* aligned with FAB centre (FAB at 24, +4 to centre 44 vs 56) */
+        inset-inline-start:auto;
+        z-index:9450;                /* below FAB so panel can overlay both */
         width:44px; height:44px;
         padding:0;
-        background:rgba(26,21,16,.75);
-        backdrop-filter:blur(16px) saturate(180%);
-        -webkit-backdrop-filter:blur(16px) saturate(180%);
+        background:rgba(26,21,16,.55);
+        backdrop-filter:blur(14px) saturate(180%);
+        -webkit-backdrop-filter:blur(14px) saturate(180%);
         color:#f3e9c9;
-        border:1px solid rgba(133,113,77,.3);
-        border-radius:12px;
+        border:1px solid rgba(133,113,77,.35);
+        border-radius:50%;
         cursor:pointer;
         display:none;
         align-items:center; justify-content:center;
-        box-shadow:0 4px 16px rgba(0,0,0,.25);
-        transition:background .15s, border-color .15s, transform .15s;
-      }
-      html[dir="ltr"] #at-launch{
-        inset-inline-start:auto;
-        inset-inline-end:68px;
+        box-shadow:0 4px 14px rgba(0,0,0,.25);
+        transition:background .15s, border-color .15s, transform .15s, opacity .15s;
+        opacity:.85;
       }
       html[data-theme="light"] #at-launch{
-        background:rgba(255,255,255,.75);
+        background:rgba(255,255,255,.55);
         color:#3a2f15;
         border-color:rgba(133,113,77,.35);
       }
       #at-launch:hover{
-        background:rgba(133,113,77,.2);
+        opacity:1;
+        background:rgba(133,113,77,.25);
         border-color:rgba(133,113,77,.6);
         transform:translateY(-1px);
       }

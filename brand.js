@@ -18,45 +18,30 @@
     blackSoft:  '#1A1A1A',
   };
 
-  /* —— شعار أرسان: المعيّن المائل ثلاثي الأبعاد (Pantone 871) ——
-     مطابق للأصل: parallelogram أصفر/ذهبي بدون نص داخلي
+  /* —— شعار أرسان: علامة ذهبية أنيقة (حرف "أ" stylized + موجة) ——
+     استبدلت المكعّب 3D بشعار مسطّح راقٍ
   */
   const LOGO_SVG = (size = 32, color = COLORS.gold) => {
     const w = size;
-    const h = Math.round(size * 0.92);
+    const h = size;
+    const uid = 'ar' + Math.random().toString(36).slice(2,7);
     return `
-    <svg width="${w}" height="${h}" viewBox="0 0 100 92" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <svg width="${w}" height="${h}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
       <defs>
-        <linearGradient id="arsan-front-${size}" x1="10" y1="20" x2="70" y2="85" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#A89066"/>
-          <stop offset=".55" stop-color="${color}"/>
+        <linearGradient id="${uid}-g" x1="20" y1="10" x2="80" y2="90" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#C2A977"/>
+          <stop offset=".5" stop-color="${color}"/>
           <stop offset="1" stop-color="#5E4F36"/>
         </linearGradient>
-        <linearGradient id="arsan-side-${size}" x1="70" y1="5" x2="95" y2="80" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#5E4F36"/>
-          <stop offset="1" stop-color="#2e2511"/>
-        </linearGradient>
-        <linearGradient id="arsan-top-${size}" x1="0" y1="0" x2="100" y2="20" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#C2A977"/>
-          <stop offset="1" stop-color="#7a6638"/>
-        </linearGradient>
       </defs>
-      <!-- الوجه الجانبي اليمين (العمق) -->
-      <path d="M70 13 L95 30 L95 78 L70 90 Z"
-            fill="url(#arsan-side-${size})"/>
-      <!-- الوجه العلوي (الحافة المضيئة) -->
-      <path d="M15 18 L70 4 L95 18 L70 28 Z"
-            fill="url(#arsan-top-${size})"/>
-      <!-- الوجه الأمامي الكبير -->
-      <path d="M15 18 L70 13 L70 90 L15 75 Z"
-            fill="url(#arsan-front-${size})"
-            stroke="${color}"
-            stroke-width=".8"
-            stroke-linejoin="round"/>
-      <!-- لمعة (highlight) -->
-      <path d="M22 28 L62 22 L62 30 L22 35 Z"
-            fill="#FFFFFF"
-            opacity=".12"/>
+      <!-- الإطار الدائري الذهبي -->
+      <circle cx="50" cy="50" r="44" fill="none" stroke="url(#${uid}-g)" stroke-width="3"/>
+      <!-- نقطة علوية صغيرة (تاج) -->
+      <circle cx="50" cy="14" r="3.5" fill="url(#${uid}-g)"/>
+      <!-- الحرف "أ" مركزياً -->
+      <path d="M50 30 L50 70 M40 70 L60 70 M44 50 L56 50"
+            stroke="url(#${uid}-g)" stroke-width="4.5"
+            stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </svg>
   `;
   };

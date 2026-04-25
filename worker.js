@@ -417,12 +417,48 @@ export default {
       if (path === "/api/me" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ role: "viewer" }, 200, req);
+        const profRaw = await env.ARSAN.get(`profile_${s.email}`);
+        const profile = profRaw ? JSON.parse(profRaw) : null;
         return json({
           email: s.email,
           role: s.role,
           departments: s.departments || [],
-          permissions: s.permissions || null
+          permissions: s.permissions || null,
+          profile
         }, 200, req);
+      }
+
+      // ---------- USER PROFILE ----------
+      // GET /api/profile  → profile of current user
+      if (path === "/api/profile" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(`profile_${s.email}`);
+        const profile = raw ? JSON.parse(raw) : { firstName:"", lastName:"", phone:"" };
+        return json({ email: s.email, ...profile }, 200, req);
+      }
+      // PUT /api/profile  { firstName, lastName, phone }
+      if (path === "/api/profile" && method === "PUT") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const profile = {
+          firstName: String(body.firstName || "").trim().slice(0, 50),
+          lastName:  String(body.lastName  || "").trim().slice(0, 50),
+          phone:     String(body.phone     || "").trim().slice(0, 30),
+          updatedAt: Date.now()
+        };
+        await env.ARSAN.put(`profile_${s.email}`, JSON.stringify(profile));
+        await logActivity(env, { actor: s.email, action: "update-profile" });
+        return json({ ok: true, profile }, 200, req);
+      }
+      // GET /api/profile/:email  → admin only (for users.html)
+      if (path.match(/^\/api\/profile\/[^\/]+$/) && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const email = decodeURIComponent(path.split("/")[3]);
+        const raw = await env.ARSAN.get(`profile_${email}`);
+        return json(raw ? JSON.parse(raw) : { firstName:"", lastName:"", phone:"" }, 200, req);
       }
 
       // ---------- BOOTSTRAP ----------

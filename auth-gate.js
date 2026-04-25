@@ -529,6 +529,12 @@
       }
     });
 
+    items.push({
+      icon: '👤',
+      label: t('الملف الشخصي', 'My Profile'),
+      action: () => { location.href = 'profile.html'; }
+    });
+
     if (isAdmin) {
       items.push({
         icon: '👥',

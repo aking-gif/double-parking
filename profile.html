@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أرسان — الملف الشخصي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0c; --surface:#141416; --surface-2:#1c1c1f; --surface-3:#222226;
+  --line:#2a2a2e; --ink:#f5f5f7; --ink-2:#c8c8cc; --ink-3:#8e8e93;
+  --accent:#e7c66a; --accent-soft:rgba(231,198,106,.12); --accent-line:rgba(231,198,106,.25);
+  --ok:#4ade80; --danger:#ef4444;
+  --radius:14px;
+  --font:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-mono:'Space Grotesk', monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;background:transparent;color:inherit}
+input{font-family:inherit;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:14px;padding:11px 13px;transition:.15s}
+input:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
+input:disabled{opacity:.55;cursor:not-allowed}
+
+.shell{max-width:880px;margin:0 auto;padding:28px 24px 80px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:32px}
+.crumbs{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:13px}
+.crumbs a:hover{color:var(--accent)}
+.crumbs .sep{opacity:.5}
+.crumbs strong{color:var(--ink);font-weight:600}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--ink-2);transition:.15s}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.page-head{margin-bottom:32px}
+.page-title{font-size:30px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.page-sub{color:var(--ink-3);font-size:14px;line-height:1.6}
+
+/* hero card */
+.hero{background:linear-gradient(135deg, rgba(231,198,106,.08), rgba(231,198,106,.02));border:1px solid var(--accent-line);border-radius:18px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:18px}
+.avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#e7c66a,#85714D);display:grid;place-items:center;color:#1a1a1a;font-weight:700;font-size:28px;letter-spacing:.5px;flex-shrink:0;box-shadow:0 4px 18px rgba(231,198,106,.3)}
+.hero-info{flex:1;min-width:0}
+.hero-name{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.hero-name .placeholder{color:var(--ink-3);font-style:italic;font-weight:500}
+.hero-email{color:var(--ink-3);font-size:13px;direction:ltr;text-align:right;font-family:var(--font-mono)}
+.hero-role{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;margin-top:8px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+
+/* form */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:18px}
+.card h3{margin:0 0 4px;font-size:16px;font-weight:600}
+.card p.muted{margin:0 0 18px;color:var(--ink-3);font-size:13px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px;letter-spacing:.2px}
+.field .hint{font-size:11px;color:var(--ink-3);margin-top:5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){ .row2{grid-template-columns:1fr} }
+
+/* actions */
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;font-size:14px;font-weight:500;transition:.15s;border:1px solid var(--line);color:var(--ink)}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);color:#1a1a1a;border-color:var(--accent);font-weight:600}
+.btn.primary:hover{background:#efd888}
+.btn.primary:disabled{opacity:.5;cursor:wait}
+
+.toast{position:fixed;bottom:30px;right:30px;background:var(--ok);color:#0a3a1a;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(100px);opacity:0;transition:.3s;pointer-events:none;z-index:9999}
+.toast.show{transform:none;opacity:1}
+.toast.err{background:var(--danger);color:#fff}
+
+.skeleton{display:inline-block;width:120px;height:14px;background:linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2));background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="top-bar">
+    <div class="crumbs">
+      <a href="index.html">الرئيسية</a>
+      <span class="sep">/</span>
+      <strong>الملف الشخصي</strong>
+    </div>
+    <a class="back-btn" href="index.html">→ رجوع</a>
+  </div>
+
+  <div class="page-head">
+    <h1 class="page-title">الملف الشخصي</h1>
+    <p class="page-sub">معلوماتك الأساسية. تظهر في سجل النشاط، الرسائل، والإشارات (@mentions).</p>
+  </div>
+
+  <div class="hero">
+    <div class="avatar" id="avatar">—</div>
+    <div class="hero-info">
+      <div class="hero-name" id="heroName"><span class="skeleton"></span></div>
+      <div class="hero-email" id="heroEmail"><span class="skeleton"></span></div>
+      <div class="hero-role" id="heroRole" style="display:none">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5z"/></svg>
+        <span id="roleLabel"></span>
+      </div>
+    </div>
+  </div>
+
+  <form class="card" id="profileForm">
+    <h3>المعلومات الشخصية</h3>
+    <p class="muted">سيراها زملاؤك عند الإشارة إليك أو إرسال رسالة لإدارتك.</p>
+
+    <div class="row2">
+      <div class="field">
+        <label for="firstName">الاسم الأول *</label>
+        <input id="firstName" type="text" placeholder="مثال: أحمد" maxlength="50" required>
+      </div>
+      <div class="field">
+        <label for="lastName">الاسم الأخير *</label>
+        <input id="lastName" type="text" placeholder="مثال: العتيبي" maxlength="50" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="phone">رقم الجوال</label>
+      <input id="phone" type="tel" placeholder="+966 5XXXXXXXX" style="direction:ltr;text-align:left" maxlength="30">
+      <div class="hint">يستخدم للتواصل المباشر داخل الفريق. اختياري.</div>
+    </div>
+
+    <div class="field">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="emailField" disabled style="direction:ltr;text-align:left">
+      <div class="hint">لا يمكن تغيير البريد. تواصل مع الأدمن إذا لزم.</div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn primary" id="saveBtn">حفظ التغييرات</button>
+    </div>
+  </form>
+
+</div>
+
+<div class="toast" id="toast">تم الحفظ ✓</div>
+
+<script>window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";</script>
+<script src="brand.js?v=3"></script>
+<script src="auth-gate.js?v=10"></script>
+<script>
+(function(){
+  'use strict';
+  const API = window.API_BASE;
+  function token(){ return localStorage.getItem('arsan_token') || localStorage.getItem('arsan_token_v1') || ''; }
+  function showToast(msg, ok=true){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (ok ? '' : ' err');
+    setTimeout(()=> t.className='toast', 2200);
+  }
+  function avatarLetter(first, last, email){
+    if (first) return first.trim().charAt(0).toUpperCase();
+    if (email) return String(email).charAt(0).toUpperCase();
+    return '؟';
+  }
+  function roleArabic(r){
+    return r==='admin'?'الأدمن':r==='editor'?'محرّر':r==='viewer'?'مشاهد':'ضيف';
+  }
+
+  async function api(path, opts={}){
+    const r = await fetch(API + path, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token() ? { 'Authorization': 'Bearer ' + token() } : {}),
+        ...(opts.headers || {})
+      }
+    });
+    return r.json();
+  }
+
+  async function load(){
+    if (!token()){
+      // auth-gate سيتولى عرض شاشة الدخول
+      return;
+    }
+    const me = await api('/api/me');
+    if (!me || !me.email){
+      showToast('لم يتم التعرّف على الجلسة', false);
+      return;
+    }
+    const prof = await api('/api/profile');
+
+    document.getElementById('emailField').value = me.email;
+    document.getElementById('heroEmail').textContent = me.email;
+    document.getElementById('firstName').value = prof.firstName || '';
+    document.getElementById('lastName').value  = prof.lastName  || '';
+    document.getElementById('phone').value     = prof.phone     || '';
+
+    refreshHero(me.email, me.role, prof.firstName, prof.lastName);
+  }
+
+  function refreshHero(email, role, fn, ln){
+    const fullName = [fn, ln].filter(Boolean).join(' ').trim();
+    const nameEl = document.getElementById('heroName');
+    if (fullName){
+      nameEl.textContent = fullName;
+    } else {
+      nameEl.innerHTML = '<span class="placeholder">— لم تُكمِل ملفك بعد —</span>';
+    }
+    document.getElementById('avatar').textContent = avatarLetter(fn, ln, email);
+    if (role){
+      const r = document.getElementById('heroRole');
+      r.style.display = 'inline-flex';
+      document.getElementById('roleLabel').textContent = roleArabic(role);
+    }
+  }
+
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fn = document.getElementById('firstName').value.trim();
+    const ln = document.getElementById('lastName').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    if (!fn || !ln){
+      showToast('الاسم الأول والأخير مطلوبان', false);
+      return;
+    }
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'جارٍ الحفظ…';
+    try {
+      const r = await api('/api/profile', {
+        method: 'PUT',
+        body: JSON.stringify({ firstName: fn, lastName: ln, phone: ph })
+      });
+      if (r.error) throw new Error(r.error);
+      showToast('تم الحفظ ✓');
+      const email = document.getElementById('emailField').value;
+      refreshHero(email, null, fn, ln);
+    } catch(err){
+      showToast('فشل الحفظ: ' + (err.message||err), false);
+    } finally {
+      btn.disabled = false; btn.textContent = 'حفظ التغييرات';
+    }
+  });
+
+  // init when auth-gate confirms session (or immediately if already logged in)
+  if (token()){
+    load();
+  } else {
+    setTimeout(load, 500); // wait for auth-gate
+  }
+})();
+</script>
+</body>
+</html>

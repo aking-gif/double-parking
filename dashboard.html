@@ -1651,10 +1651,12 @@ const DEPARTMENTS_CONFIG = {
 function getCurrentDept(){
   const params = new URLSearchParams(window.location.search);
   let id = params.get('dept');
+  // 🔒 GUARD: reject literal "undefined" / "null" strings from bad URLs
+  if (id === 'undefined' || id === 'null' || id === '') id = null;
   if (!id) {
     try {
       const saved = JSON.parse(localStorage.getItem('arsan_department') || 'null');
-      if (saved && saved.id) id = saved.id;
+      if (saved && saved.id && saved.id !== 'undefined' && saved.id !== 'null') id = saved.id;
     } catch(_){}
   }
   if (!id) id = 'projects';
@@ -1783,19 +1785,94 @@ async function fetchRemoteSOPs(){
   try {
     if (!window.ArsanAPI || !window.ArsanAPI.hasBackend || !window.ArsanAPI.hasBackend()) return;
     const data = await window.ArsanAPI.bootstrap();
+    
+    // 🧹 AUTO-HEAL: نقل الإجراءات اليتيمة من "undefined" للإدارة الصحيحة
+    try {
+      const orphans = data?.sops?.undefined || {};
+      const orphanCodes = Object.keys(orphans);
+      if (orphanCodes.length > 0 && window.ArsanAPI?.me?.()?.role === 'admin') {
+        const me = window.ArsanAPI.me();
+        if (me && me.role === 'admin') {
+          // map: code prefix -> dept id
+          const PREFIX_MAP = {
+            'EXE': 'executive', 'BD': 'bizdev', 'PRJ': 'projects', 'PROJ': 'projects',
+            'OPS': 'operations', 'FIN': 'finance', 'PROC': 'procurement',
+            'HR': 'hr', 'PC': 'people-culture', 'CUL': 'culture', 'SOP': window.CURRENT_DEPT_ID
+          };
+          const tok = (window.ArsanAPI.getToken && window.ArsanAPI.getToken()) || localStorage.getItem('arsan_token');
+          for (const code of orphanCodes) {
+            const o = orphans[code];
+            const prefix = (code.split('-')[0] || '').toUpperCase();
+            const targetDept = PREFIX_MAP[prefix] || window.CURRENT_DEPT_ID;
+            if (!targetDept || targetDept === 'undefined') continue;
+            try {
+              const url = (window.API_BASE || '') + `/api/sops/${targetDept}/${code}`;
+              await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok },
+                body: JSON.stringify({
+                  title: o.title || code, purpose: o.purpose, scope: o.scope,
+                  owner: o.owner, inputs: o.inputs, outputs: o.outputs,
+                  steps: o.steps, kpis: o.kpis, sla: o.sla,
+                  forms: o.forms || [], roles: o.roles || [], tools: o.tools || [],
+                  risks: o.risks || [], notes: o.notes || '',
+                  phase: o.phase || 'governance'
+                })
+              });
+              await fetch((window.API_BASE || '') + `/api/sops/undefined/${code}`, {
+                method: 'DELETE',
+                headers: { Authorization: 'Bearer ' + tok }
+              });
+              console.log(`[Arsann] 🧹 healed orphan ${code} → ${targetDept}`);
+            } catch(e) { console.warn('heal failed for', code, e); }
+          }
+        }
+      }
+    } catch(e) { console.warn('[Arsann] auto-heal skipped:', e); }
+    
     const remote = (data && data.sops && data.sops[CURRENT_DEPT_ID]) || {};
     if (!remote || typeof remote !== 'object') return;
     let changed = false;
+    // 1) update existing SOPs
     SOPS.forEach(s => {
       if (remote[s.code]) {
         Object.assign(s, remote[s.code]);
         changed = true;
       }
     });
+    // 2) APPEND any remote SOPs not yet in local SOPS (newly imported / from custom dept)
+    const localCodes = new Set(SOPS.map(s => s.code));
+    Object.keys(remote).forEach(code => {
+      if (!localCodes.has(code)) {
+        const r = remote[code];
+        // Build a complete SOP object (fill missing fields with placeholders)
+        SOPS.push({
+          code,
+          phase: r.phase || (DEPT.groups && DEPT.groups[0]?.id) || 'general',
+          title: r.title || code,
+          desc: r.desc || PH,
+          purpose: r.purpose || PH,
+          scope: r.scope || PH,
+          owner: r.owner || PH,
+          inputs: r.inputs || PH,
+          outputs: r.outputs || PH,
+          sla: r.sla || PH,
+          kpis: r.kpis || PH,
+          forms: r.forms || [],
+          steps: r.steps || [PH, PH, PH],
+          note: r.note || '',
+          ...r
+        });
+        changed = true;
+      }
+    });
     // cache locally for offline
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remote)); } catch(_){}
-    if (changed && typeof renderGrid === 'function') {
-      try { renderGrid(); } catch(_){}
+    if (changed) {
+      window.SOPS = SOPS; // re-expose
+      if (typeof renderGrid === 'function') { try { renderGrid(); } catch(_){} }
+      if (typeof updateStats === 'function') { try { updateStats(); } catch(_){} }
+      if (typeof renderChips === 'function') { try { renderChips(); } catch(_){} }
     }
   } catch(e) { console.warn('[Arsan] fetchRemoteSOPs failed:', e); }
 }
@@ -3838,6 +3915,15 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
   async function addSOP(dept, sop) {
     if (!me() || !me().email) throw new Error("login-required");
+    // 🔒 GUARD: prevent dept = undefined / empty / "undefined" string
+    if (!dept || dept === 'undefined' || dept === 'null' || typeof dept !== 'string') {
+      const fallback = window.CURRENT_DEPT_ID;
+      if (!fallback || fallback === 'undefined') {
+        throw new Error('dept-required: لا يمكن حفظ الإجراء بدون تحديد الإدارة');
+      }
+      console.warn('[Arsann] addSOP called with invalid dept, using CURRENT_DEPT_ID:', fallback);
+      dept = fallback;
+    }
     if (hasBackend()) return apiFetch(`/api/sops/${dept}`, { method: "POST", body: sop });
     const key = `arsan_sops_${dept}`;
     const raw = localStorage.getItem(key);

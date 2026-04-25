@@ -1110,7 +1110,7 @@
         el('button', { class: 'asst-close', onclick: () => bd.remove(), 'aria-label':'إغلاق' }, '×')
       ),
       tabs,
-      el('div', { class: 'asst-body' }, pane1, pane2, pane4, pane5, pane6, pane3)
+      el('div', { class: 'asst-body' }, pane1, pane2, pane7, pane4, pane5, pane6, pane3)
     );
 
     bd.appendChild(modal);

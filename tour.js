@@ -278,30 +278,50 @@
       .at-confirm-card p{ margin:0 0 18px; font-size:13.5px; line-height:1.7; opacity:.85; }
       .at-confirm-actions{ display:flex; gap:10px; justify-content:flex-end; }
 
-      /* manual-trigger button */
+      /* manual-trigger button — square icon, sits next to bell */
       #at-launch{
-        position:fixed; bottom:24px; inset-inline-start:24px;
-        z-index:9400;
-        padding:10px 16px;
-        background:rgba(26,21,16,.92); color:#c9b27a;
-        border:1px solid rgba(133,113,77,.4);
-        border-radius:30px; cursor:pointer;
-        font-family:"IBM Plex Sans Arabic", system-ui, sans-serif;
-        font-size:13px; font-weight:600;
-        display:none; align-items:center; gap:8px;
-        backdrop-filter:blur(10px);
-        box-shadow:0 6px 20px rgba(0,0,0,.3);
-        transition:all .2s;
+        position:fixed;
+        top:16px;
+        inset-inline-start:68px;   /* RTL: bell at 16, gap 8, btn at 68 */
+        inset-inline-end:auto;
+        z-index:9100;
+        width:44px; height:44px;
+        padding:0;
+        background:rgba(26,21,16,.75);
+        backdrop-filter:blur(16px) saturate(180%);
+        -webkit-backdrop-filter:blur(16px) saturate(180%);
+        color:#f3e9c9;
+        border:1px solid rgba(133,113,77,.3);
+        border-radius:12px;
+        cursor:pointer;
+        display:none;
+        align-items:center; justify-content:center;
+        box-shadow:0 4px 16px rgba(0,0,0,.25);
+        transition:background .15s, border-color .15s, transform .15s;
       }
-      #at-launch:hover{ background:rgba(133,113,77,.18); transform:translateY(-2px); }
+      html[dir="ltr"] #at-launch{
+        inset-inline-start:auto;
+        inset-inline-end:68px;
+      }
+      html[data-theme="light"] #at-launch{
+        background:rgba(255,255,255,.75);
+        color:#3a2f15;
+        border-color:rgba(133,113,77,.35);
+      }
+      #at-launch:hover{
+        background:rgba(133,113,77,.2);
+        border-color:rgba(133,113,77,.6);
+        transform:translateY(-1px);
+      }
       #at-launch.show{ display:inline-flex; }
+      /* Hide the text label — icon-only button */
+      #at-launch > span:not(.ic){ display:none; }
       #at-launch .ic{
-        width:24px; height:24px; display:inline-flex;
-        background:radial-gradient(circle at 30% 30%, #EFE7D5, #C9B58A 70%, #A89066 100%);
-        border-radius:50%; padding:3px; box-sizing:border-box;
-        box-shadow:inset 0 1px 1px rgba(255,255,255,.4);
+        width:22px; height:22px;
+        display:inline-flex;
+        align-items:center; justify-content:center;
       }
-      #at-launch .ic img{ width:100%; height:100%; object-fit:contain; }
+      #at-launch .ic svg{ width:100%; height:100%; }
 
       @media (max-width:560px){
         .at-bubble{ max-width:calc(100vw - 32px); min-width:0; }
@@ -517,7 +537,9 @@
     const btn = document.createElement('button');
     btn.id = 'at-launch';
     btn.type = 'button';
-    btn.innerHTML = `<span class="ic"><img src="${HORSE}" alt=""/></span><span>${t('بدء الجولة','Start tour')}</span>`;
+    btn.title = t('بدء الجولة','Start tour');
+    btn.setAttribute('aria-label', t('بدء الجولة','Start tour'));
+    btn.innerHTML = `<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2Z"/></svg></span><span>${t('بدء الجولة','Start tour')}</span>`;
     btn.addEventListener('click', () => {
       if (bd) finish();
       setTimeout(start, 100);

@@ -458,8 +458,14 @@
   }
 
   function finish(){
-    if (bd) bd.remove();
+    try { if (bd) bd.remove(); } catch(_){}
+    try { if (spot) spot.remove(); } catch(_){}
+    try { if (bubble) bubble.remove(); } catch(_){}
+    // Remove any leftover skip-confirm cards too
+    document.querySelectorAll('.at-confirm').forEach(c => { try { c.remove(); } catch(_){} });
     bd = mask = spot = bubble = null;
+    window.removeEventListener('resize', repositionCurrent);
+    window.removeEventListener('scroll', repositionCurrent, true);
     try { localStorage.setItem(SEEN_KEY, '1'); } catch(_){}
   }
 

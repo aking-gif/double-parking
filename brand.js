@@ -33,17 +33,24 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
      LOGO GENERATORS
   =============================== */
 
-  /* الحصان الأسود — صورة الأدهم الرسمية */
+  /* الحصان الأسود — صورة الأدهم — للاستخدام في المساعد الذكي فقط */
   const HORSE_IMG = './adham.png';
 
+  /* شعار الشركة الرسمي — SVG path */
   const LOGO_SVG = (size = 32, color = COLORS.gold) => `
-    <img src="${HORSE_IMG}" alt="Arsann" width="${size}" height="${size}"
-         style="display:block;object-fit:contain;width:${size}px;height:${size}px"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"
+         viewBox="940 395 30 290" preserveAspectRatio="xMidYMid meet"
+         style="display:block">
+      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
+    </svg>
   `;
 
   const LOGO_MARK_SVG = (size = 24, color = COLORS.gold) => `
-    <img src="${HORSE_IMG}" alt="Arsann" width="${size}" height="${size}"
-         style="display:block;object-fit:contain;width:${size}px;height:${size}px"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"
+         viewBox="940 395 30 290" preserveAspectRatio="xMidYMid meet"
+         style="display:block">
+      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
+    </svg>
   `;
 
   const LOGO_WITH_NAME = (opts = {}) => {
@@ -102,14 +109,17 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
   function injectFavicon() {
     try {
       document.querySelectorAll("link[rel*='icon']").forEach(l => l.remove());
+      // Build a small SVG favicon from the official path
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="940 395 30 290"><path d="${ARSANN_OFFICIAL_PATH}" fill="${COLORS.gold}"/></svg>`;
+      const dataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
       const link = document.createElement('link');
       link.rel = 'icon';
-      link.type = 'image/png';
-      link.href = HORSE_IMG;
+      link.type = 'image/svg+xml';
+      link.href = dataUri;
       document.head.appendChild(link);
       const apple = document.createElement('link');
       apple.rel = 'apple-touch-icon';
-      apple.href = HORSE_IMG;
+      apple.href = dataUri;
       document.head.appendChild(apple);
     } catch (e) {}
   }

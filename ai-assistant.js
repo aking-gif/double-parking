@@ -66,8 +66,8 @@
         width:56px;height:56px;
         border-radius:50%;
         border:none;
-        background:linear-gradient(135deg, #85714D 0%, #5E4F36 100%);
-        color:#fff;
+        background:radial-gradient(circle at 30% 30%, #EFE7D5 0%, #C9B58A 50%, #A89066 100%);
+        color:#5E4F36;
         font-size:24px;
         cursor:pointer;
         box-shadow:0 6px 20px rgba(133,113,77,.45), 0 2px 6px rgba(0,0,0,.2);
@@ -139,11 +139,14 @@
       }
       .arsan-ai-head .avatar{
         width:40px;height:40px;border-radius:50%;
-        background:linear-gradient(135deg, #2a2014, #1a1510);
-        border:1.5px solid rgba(133,113,77,.5);
+        background:radial-gradient(circle at 30% 30%, #EFE7D5, #C9B58A 70%, #A89066 100%);
+        border:1px solid rgba(133,113,77,.45);
+        box-shadow:0 0 0 2px rgba(133,113,77,.18), inset 0 1px 2px rgba(255,255,255,.4);
         display:flex;align-items:center;justify-content:center;
         flex-shrink:0;
         overflow:hidden;
+        padding:4px;
+        box-sizing:border-box;
       }
       .arsan-ai-head .avatar svg{
         width:28px;height:28px;

@@ -542,6 +542,41 @@
           log(!!(t && me), 'localStorage', `token: ${t ? '✓' : '✗'} · me: ${me ? '✓' : '✗'}`);
         } catch(e) { log(false, 'localStorage', e.message); }
 
+        // 8) Orphan SOPs (under "undefined" dept) — admin-only feature
+        try {
+          const data = await apiCall('/api/bootstrap');
+          const orphans = (data && data.sops && data.sops.undefined) || {};
+          const count = Object.keys(orphans).length;
+          if (count > 0) {
+            out.push(`<div style="padding:10px;margin-top:8px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;color:#78350F">
+              ⚠️ <strong>${count} إجراء يتيم</strong> (تحت dept = "undefined")
+              <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                <button id="moveOrphans" style="padding:6px 12px;background:#D4A64A;color:#000;border:0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">نقل لـ archive</button>
+                <button id="deleteOrphans" style="padding:6px 12px;background:#dc2626;color:#fff;border:0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">حذف نهائي</button>
+              </div>
+            </div>`);
+            r.innerHTML = out.join('');
+            document.getElementById('moveOrphans').onclick = async () => {
+              if (!confirm(`نقل ${count} إجراء إلى إدارة "archive"؟`)) return;
+              try {
+                const res = await apiCall('/api/admin/cleanup-undefined-dept', { method: 'POST', body: { targetDept: 'archive' } });
+                alert(`✅ تم نقل ${res.moved} إجراء إلى archive`);
+                location.reload();
+              } catch(e) { alert('فشل: ' + e.message); }
+            };
+            document.getElementById('deleteOrphans').onclick = async () => {
+              if (!confirm(`حذف ${count} إجراء نهائياً؟ لا يمكن التراجع.`)) return;
+              try {
+                const res = await apiCall('/api/admin/cleanup-undefined-dept', { method: 'POST', body: { delete: true } });
+                alert(`✅ تم حذف ${res.deleted} إجراء`);
+                location.reload();
+              } catch(e) { alert('فشل: ' + e.message); }
+            };
+          } else {
+            log(true, 'الإجراءات اليتيمة', 'لا توجد');
+          }
+        } catch(e) { log(false, 'الإجراءات اليتيمة', e.message); }
+
         out.push('<hr style="border:none;border-top:1px solid #E7E3D8;margin:10px 0">');
         out.push('<div style="color:#6B7280;font-size:12px">انتهى الفحص.</div>');
         r.innerHTML = out.join('');

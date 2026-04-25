@@ -503,6 +503,44 @@ export default {
         return json({ ok: true }, 200, req);
       }
 
+      // ---------- ADMIN UTILITIES ----------
+      // POST /api/admin/cleanup-undefined-dept { targetDept? }
+      // ينقل كل الإجراءات اليتيمة من sops["undefined"] إلى الإدارة المطلوبة (default: archive)
+      // أو يحذفها إذا { delete: true }
+      if (path === "/api/admin/cleanup-undefined-dept" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const targetDept = body.targetDept || "archive";
+        const shouldDelete = body.delete === true;
+        const raw = await env.ARSAN.get(KEYS.sops);
+        const all = raw ? JSON.parse(raw) : {};
+        const orphans = all["undefined"] || {};
+        const codes = Object.keys(orphans);
+        if (codes.length === 0) {
+          return json({ ok: true, moved: 0, message: "لا توجد إجراءات يتيمة" }, 200, req);
+        }
+        if (shouldDelete) {
+          delete all["undefined"];
+          await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
+          await logActivity(env, { actor: ad.session.email, action: "cleanup-orphans", target: `deleted ${codes.length}` });
+          return json({ ok: true, deleted: codes.length, codes }, 200, req);
+        }
+        // نقل
+        if (!all[targetDept]) all[targetDept] = {};
+        let moved = 0;
+        for (const code of codes) {
+          if (!all[targetDept][code]) {
+            all[targetDept][code] = orphans[code];
+            moved++;
+          }
+        }
+        delete all["undefined"];
+        await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
+        await logActivity(env, { actor: ad.session.email, action: "cleanup-orphans", target: `moved ${moved} → ${targetDept}` });
+        return json({ ok: true, moved, targetDept, codes }, 200, req);
+      }
+
       // ---------- DEPS ----------
       if (path === "/api/deps" && method === "GET") {
         const raw = await env.ARSAN.get(KEYS.deps);

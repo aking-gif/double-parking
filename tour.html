@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>أرسان — جولة تعريفية للفريق</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFAF6;
+  --surface:#fff;
+  --ink-1:#1A1510;
+  --ink-2:#5C5247;
+  --ink-3:#9A8E80;
+  --line:#E7E0CF;
+  --brand:#8B6F00;
+  --brand-soft:#F4EFD9;
+  --accent:#D4B24A;
+  --shadow:0 4px 20px rgba(26,21,16,.08);
+  --shadow-md:0 12px 40px rgba(26,21,16,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;
+  background:var(--bg); color:var(--ink-1);
+  line-height:1.7; direction:rtl;
+}
+/* Header */
+header.t-hero{
+  background:linear-gradient(135deg, #1A1510 0%, #2D241A 100%);
+  color:#fff;
+  padding:60px 24px 80px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+header.t-hero::before{
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 20% 50%, rgba(212,178,74,.15), transparent 50%),
+             radial-gradient(circle at 80% 30%, rgba(139,111,0,.12), transparent 50%);
+}
+.t-hero-inner{ position:relative; max-width:900px; margin:0 auto }
+.t-logo{ font-size:14px; color:var(--accent); letter-spacing:3px; font-weight:600; margin-bottom:12px }
+.t-hero h1{
+  font-size:clamp(32px,5vw,56px);
+  font-weight:700; margin:0 0 16px;
+  letter-spacing:-.5px;
+}
+.t-hero p{ font-size:clamp(16px,2vw,20px); color:#D7CFC0; max-width:640px; margin:0 auto 28px }
+.t-cta{ display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center }
+.t-btn{
+  background:var(--accent); color:#1A1510;
+  padding:14px 28px; border-radius:999px;
+  font-weight:700; text-decoration:none;
+  font-size:15px; transition:.2s; border:0; cursor:pointer;
+  font-family:inherit;
+}
+.t-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,178,74,.4) }
+.t-btn-ghost{ background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,.3) }
+.t-btn-ghost:hover{ background:rgba(255,255,255,.1) }
+
+/* Nav */
+nav.t-nav{
+  background:#fff; border-bottom:1px solid var(--line);
+  padding:14px 24px; position:sticky; top:0; z-index:50;
+  display:flex; gap:8px; overflow-x:auto;
+  scrollbar-width:none;
+}
+nav.t-nav::-webkit-scrollbar{ display:none }
+nav.t-nav a{
+  padding:8px 16px; border-radius:999px;
+  color:var(--ink-2); text-decoration:none;
+  font-size:13px; font-weight:500;
+  white-space:nowrap; transition:.15s;
+  border:1px solid transparent;
+}
+nav.t-nav a:hover{ background:var(--brand-soft); color:var(--brand); border-color:var(--accent) }
+
+/* Sections */
+main{ max-width:1100px; margin:0 auto; padding:0 24px 80px }
+section.t-sec{
+  padding:60px 0 40px;
+  border-bottom:1px solid var(--line);
+}
+section.t-sec:last-child{ border-bottom:0 }
+.t-sec-num{
+  display:inline-block;
+  background:var(--brand-soft); color:var(--brand);
+  padding:4px 14px; border-radius:999px;
+  font-size:12px; font-weight:700; letter-spacing:.5px;
+  margin-bottom:14px;
+}
+section.t-sec h2{
+  font-size:clamp(24px,3.5vw,38px);
+  margin:0 0 12px; font-weight:700;
+  letter-spacing:-.3px;
+}
+section.t-sec > p.lede{
+  font-size:clamp(16px,1.6vw,18px);
+  color:var(--ink-2); max-width:720px;
+  margin:0 0 32px;
+}
+
+/* Feature cards */
+.t-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+  gap:20px;
+  margin-top:24px;
+}
+.t-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:24px;
+  transition:.2s;
+}
+.t-card:hover{
+  border-color:var(--accent);
+  box-shadow:var(--shadow);
+  transform:translateY(-2px);
+}
+.t-card-icon{
+  width:48px; height:48px;
+  background:var(--brand-soft); color:var(--brand);
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; margin-bottom:14px;
+}
+.t-card h3{
+  font-size:18px; margin:0 0 8px;
+  font-weight:600;
+}
+.t-card p{ color:var(--ink-2); font-size:14px; margin:0 }
+
+/* Steps */
+.t-steps{ counter-reset:step; margin-top:24px }
+.t-step{
+  display:flex; gap:20px;
+  padding:20px 0;
+  border-bottom:1px dashed var(--line);
+  counter-increment:step;
+}
+.t-step:last-child{ border-bottom:0 }
+.t-step::before{
+  content:counter(step);
+  flex-shrink:0;
+  width:42px; height:42px;
+  background:var(--brand); color:#fff;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:18px;
+}
+.t-step-content h4{ margin:8px 0 6px; font-size:17px; font-weight:600 }
+.t-step-content p{ margin:0; color:var(--ink-2); font-size:14px }
+
+/* Roles table */
+.t-roles{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  margin-top:24px;
+}
+.t-role-row{
+  display:grid;
+  grid-template-columns:140px 1fr 1fr;
+  padding:18px 20px;
+  border-bottom:1px solid var(--line);
+  align-items:start;
+  gap:16px;
+}
+.t-role-row:last-child{ border-bottom:0 }
+.t-role-row.head{
+  background:var(--brand-soft);
+  font-weight:700; font-size:13px;
+  color:var(--brand);
+}
+.t-role-badge{
+  display:inline-block;
+  padding:4px 12px; border-radius:999px;
+  font-size:13px; font-weight:600;
+}
+.t-role-badge.admin{ background:#FEF3C7; color:#92400E }
+.t-role-badge.editor{ background:#DBEAFE; color:#1E40AF }
+.t-role-badge.viewer{ background:#E5E7EB; color:#374151 }
+.t-role-row li{ margin:4px 0; font-size:14px; color:var(--ink-2) }
+.t-role-row ul{ margin:0; padding-right:18px }
+
+/* Tips */
+.t-tip{
+  background:linear-gradient(135deg, var(--brand-soft) 0%, #FCFAF2 100%);
+  border:1px solid var(--accent);
+  border-right:4px solid var(--brand);
+  border-radius:12px;
+  padding:18px 22px;
+  margin:20px 0;
+  font-size:14px; color:var(--ink-1);
+}
+.t-tip strong{ color:var(--brand) }
+
+/* FAQ */
+.t-faq{ margin-top:20px }
+.t-faq details{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px 20px;
+  margin-bottom:10px;
+}
+.t-faq details[open]{ border-color:var(--accent) }
+.t-faq summary{
+  cursor:pointer; font-weight:600; font-size:15px;
+  list-style:none; outline:none;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.t-faq summary::after{
+  content:'+'; font-size:22px; color:var(--brand);
+  transition:.2s;
+}
+.t-faq details[open] summary::after{ transform:rotate(45deg) }
+.t-faq p{
+  margin:12px 0 0; padding-top:12px;
+  border-top:1px dashed var(--line);
+  color:var(--ink-2); font-size:14px;
+}
+
+/* Footer */
+footer.t-foot{
+  background:#1A1510; color:#D7CFC0;
+  text-align:center; padding:40px 24px;
+  font-size:14px;
+}
+footer.t-foot a{ color:var(--accent); text-decoration:none; font-weight:600 }
+footer.t-foot strong{ color:#fff; display:block; margin-bottom:8px; font-size:16px }
+
+/* Print-friendly */
+@media print{
+  nav.t-nav, .t-cta{ display:none }
+  body{ background:#fff }
+  section.t-sec{ page-break-inside:avoid }
+}
+@media (max-width:600px){
+  header.t-hero{ padding:40px 16px 60px }
+  .t-role-row{ grid-template-columns:1fr; gap:8px }
+  .t-role-row.head{ display:none }
+}
+</style>
+</head>
+<body>
+
+<header class="t-hero">
+  <div class="t-hero-inner">
+    <div class="t-logo">★ منصة أرسان للتشغيل</div>
+    <h1>جولة تعريفية في المنصّة</h1>
+    <p>كل ما يحتاج فريقك معرفته للبدء — في 5 دقائق.</p>
+    <div class="t-cta">
+      <a href="index.html" class="t-btn">ابدأ الآن →</a>
+      <a href="#first-time" class="t-btn t-btn-ghost">دليل المبتدئ</a>
+    </div>
+  </div>
+</header>
+
+<nav class="t-nav">
+  <a href="#what">ما هي المنصّة؟</a>
+  <a href="#first-time">للمبتدئين</a>
+  <a href="#features">الخصائص</a>
+  <a href="#workflow">سير العمل</a>
+  <a href="#roles">الأدوار</a>
+  <a href="#tips">نصائح</a>
+  <a href="#faq">أسئلة شائعة</a>
+</nav>
+
+<main>
+
+<!-- 1 -->
+<section class="t-sec" id="what">
+  <span class="t-sec-num">01 — تعريف</span>
+  <h2>ما هي منصّة أرسان؟</h2>
+  <p class="lede">منصّة موحّدة لإدارة الإجراءات التشغيلية القياسية (SOPs) عبر كل إدارات الشركة — مكان واحد للتوثيق، التنفيذ، التواصل، والاعتماد.</p>
+  
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">📚</div>
+      <h3>مرجع موحّد</h3>
+      <p>كل الإجراءات في كل الإدارات — مفهرسة، قابلة للبحث، ومحفوظة بشكل آمن.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔗</div>
+      <h3>ترابط بين الإدارات</h3>
+      <p>إجراء في إدارة قد يعتمد على إجراء في إدارة أخرى — المنصّة تتتبّع هذه العلاقات تلقائياً.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🤝</div>
+      <h3>تعاون حيّ</h3>
+      <p>تعليقات، رسائل، إشعارات، واعتمادات — كل التواصل داخل سياق الإجراء.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔍</div>
+      <h3>شفافية كاملة</h3>
+      <p>سجل تعديلات لكل تغيير، إصدارات قابلة للمقارنة، ومسار مراجعة موثّق.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="t-sec" id="first-time">
+  <span class="t-sec-num">02 — للمبتدئين</span>
+  <h2>أول مرة تدخل المنصّة؟</h2>
+  <p class="lede">اتبع هذه الخطوات الخمس للبدء. لن تستغرق أكثر من 3 دقائق.</p>
+
+  <div class="t-steps">
+    <div class="t-step">
+      <div class="t-step-content">
+        <h4>سجّل دخولك بإيميل أرسان</h4>
+        <p>افتح <a href="index.html">الصفحة الرئيسية</a> وسجّل دخولك ببريدك على نطاق <code>@arsann.com</code>. ستحصل على وصول تلقائي حسب دورك.</p>
+      </div>
+    </div>
+    <div class="t-step">
+      <div class="t-step-content">
+        <h4>اختر إدارتك</h4>
+        <p>من شبكة الإدارات في الصفحة الرئيسية، اضغط على البطاقة التي تخصّ عملك. ستفتح لوحة الإدارة الكاملة.</p>
+      </div>
+    </div>
+    <div class="t-step">
+      <div class="t-step-content">
+        <h4>تصفّح الإجراءات</h4>
+        <p>كل إدارة فيها مجموعة إجراءات مرتّبة حسب المرحلة. استخدم البحث في أعلى الشبكة، أو فلتر "المرحلة" لتضييق النتائج.</p>
+      </div>
+    </div>
+    <div class="t-step">
+      <div class="t-step-content">
+        <h4>افتح إجراءً وتعرّف عليه</h4>
+        <p>كل إجراء يعرض: الغرض، النطاق، الخطوات، KPIs، النماذج، المسؤوليات، والتبعيّات. استخدم الفلاتر السريعة (الكل / استلام / تنفيذ / مراجعة).</p>
+      </div>
+    </div>
+    <div class="t-step">
+      <div class="t-step-content">
+        <h4>تواصل مع زملائك</h4>
+        <p>استخدم زر "💬 الرسائل" لإرسال نقاش بين الإدارات، أو "🔗 التبعيّات" لمعرفة الإجراءات المرتبطة، أو "🌐 الخريطة الشاملة" لرؤية كل الترابطات.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="t-tip">
+    <strong>💡 نصيحة:</strong> إذا لم تجد إدارتك في الشبكة، اطلب من الأدمن إضافتها — تستغرق دقيقة.
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="t-sec" id="features">
+  <span class="t-sec-num">03 — الخصائص</span>
+  <h2>ماذا تستطيع أن تفعل؟</h2>
+  <p class="lede">المنصّة مليئة بالأدوات. هنا أهمها مصنّفة حسب الاستخدام.</p>
+
+  <h3 style="margin-top:32px;color:var(--brand)">📖 العرض والاستكشاف</h3>
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">🔎</div>
+      <h3>البحث الشامل (⌘K)</h3>
+      <p>اضغط Cmd+K (Mac) أو Ctrl+K (Windows) للبحث في كل الإجراءات عبر كل الإدارات فوراً.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🗺️</div>
+      <h3>الخريطة الذهنية</h3>
+      <p>كل إدارة لها خريطة تفاعلية تعرض إجراءاتها مع الترابطات بينها. اضغط أي عقدة للتفاصيل.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🌐</div>
+      <h3>الخريطة الشاملة</h3>
+      <p>عرض شجري لكل الإدارات مع كل الإجراءات المترابطة عبر الشركة كلها.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">⭐</div>
+      <h3>المفضّلة</h3>
+      <p>ضع نجمة على الإجراءات التي تستخدمها كثيراً للوصول السريع.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:40px;color:var(--brand)">✏️ التحرير والإضافة</h3>
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">➕</div>
+      <h3>إضافة إجراء</h3>
+      <p>زر "+ إجراء جديد" في شريط الأدوات يفتح نموذج كامل لإضافة إجراء بكل تفاصيله.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📥</div>
+      <h3>استيراد ذكي</h3>
+      <p>الصق ملف PDF / Word / Google Doc — والذكاء الاصطناعي يستخرج البنية تلقائياً.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">✏️</div>
+      <h3>تعديل مباشر</h3>
+      <p>انقر على أي حقل في الإجراء لتعديله مباشرة — يُحفظ تلقائياً.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📋</div>
+      <h3>قوالب جاهزة</h3>
+      <p>إجراءات تعليمية محمّلة افتراضياً لتبدأ منها بدلاً من ورقة بيضاء.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:40px;color:var(--brand)">🤝 التعاون والتواصل</h3>
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">💬</div>
+      <h3>التعليقات</h3>
+      <p>علّق على أي إجراء — مع إشارات @إدارة لتنبيه الأشخاص المعنيين.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📨</div>
+      <h3>مركز الرسائل</h3>
+      <p>تواصل مباشر بين الإدارات — مع تتبّع للحالة (جديد، قيد القراءة، مُعالج).</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📢</div>
+      <h3>إعلانات</h3>
+      <p>الأدمن ينشر إعلانات تظهر لكل المستخدمين مع جرس إشعارات.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">✅</div>
+      <h3>سير الاعتماد</h3>
+      <p>إجراءات حساسة تمرّ بمراحل: مراجعة → اعتماد → نشر.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:40px;color:var(--brand)">🔧 الإدارة والتحليل</h3>
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">📊</div>
+      <h3>سجل النشاط</h3>
+      <p>كل تعديل، إضافة، أو حذف يُسجَّل تلقائياً مع وقت ومستخدم.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📚</div>
+      <h3>سجل التعديلات</h3>
+      <p>تاريخ كامل لكل إصدار من الإجراء — مع إمكانية المقارنة والاستعادة.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔔</div>
+      <h3>الإشعارات</h3>
+      <p>جرس يجمع كل التنبيهات: إعلانات، إشارات، اعتمادات معلّقة.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🌍</div>
+      <h3>دعم العربية + الإنجليزية</h3>
+      <p>بدّل اللغة بنقرة واحدة — كل المحتوى مترجم.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="t-sec" id="workflow">
+  <span class="t-sec-num">04 — سير العمل</span>
+  <h2>كيف تستخدم المنصّة يومياً؟</h2>
+  <p class="lede">سيناريوهان شائعان لتوضيح كيف تتدفّق المعلومات.</p>
+
+  <div class="t-grid" style="grid-template-columns:1fr 1fr">
+    <div class="t-card">
+      <div class="t-card-icon">📌</div>
+      <h3>سيناريو 1: محرّر يوثّق إجراءً جديداً</h3>
+      <ol style="padding-right:18px;color:var(--ink-2);font-size:14px;line-height:1.9">
+        <li>يدخل إدارته من الصفحة الرئيسية</li>
+        <li>يضغط "+ إجراء جديد" في شريط الأدوات</li>
+        <li>يملأ: الكود، العنوان، المرحلة، الغرض</li>
+        <li>يفتح الإجراء ويكمل الخطوات والـ KPIs</li>
+        <li>إذا الإجراء يعتمد على إدارة أخرى، يضيف تبعيّة من زر "🔗 التبعيّات"</li>
+        <li>يرسل رسالة للإدارة المتأثّرة عبر "💬"</li>
+      </ol>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔄</div>
+      <h3>سيناريو 2: إدارة تستفسر عن إجراء</h3>
+      <ol style="padding-right:18px;color:var(--ink-2);font-size:14px;line-height:1.9">
+        <li>تستخدم Cmd+K للبحث عن الإجراء بالكود أو الكلمة</li>
+        <li>تفتحه وتقرأ الخطوات والمسؤوليات</li>
+        <li>إذا فيه غموض، تضع تعليقاً بإشارة @الإدارة المعنية</li>
+        <li>تحصل على رد عبر جرس الإشعارات</li>
+        <li>إن لزم، تطلب نسخة معتمدة عبر سير الاعتماد</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="t-sec" id="roles">
+  <span class="t-sec-num">05 — الأدوار والصلاحيات</span>
+  <h2>من يستطيع فعل ماذا؟</h2>
+  <p class="lede">ثلاثة أدوار رئيسية. كل دور له نطاق واضح.</p>
+
+  <div class="t-roles">
+    <div class="t-role-row head">
+      <div>الدور</div>
+      <div>يستطيع</div>
+      <div>لا يستطيع</div>
+    </div>
+    <div class="t-role-row">
+      <div><span class="t-role-badge admin">👑 الأدمن</span></div>
+      <div>
+        <ul>
+          <li>إضافة وحذف الإدارات</li>
+          <li>إدارة كل المستخدمين والأدوار</li>
+          <li>نشر إعلانات على المنصّة</li>
+          <li>إعدادات النظام والربط (Slack)</li>
+          <li>عرض كل سجلات النشاط</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>—</li>
+        </ul>
+      </div>
+    </div>
+    <div class="t-role-row">
+      <div><span class="t-role-badge editor">✏️ المحرّر</span></div>
+      <div>
+        <ul>
+          <li>إضافة/تعديل/حذف الإجراءات في إدارته</li>
+          <li>إدارة المستخدمين داخل إدارته</li>
+          <li>إضافة تبعيّات من إدارته</li>
+          <li>إرسال رسائل بين الإدارات</li>
+          <li>الاعتماد داخل سير العمل</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>تعديل إدارات أخرى</li>
+          <li>إضافة إدارات جديدة</li>
+          <li>الوصول لإعدادات النظام</li>
+        </ul>
+      </div>
+    </div>
+    <div class="t-role-row">
+      <div><span class="t-role-badge viewer">👁️ المشاهد</span></div>
+      <div>
+        <ul>
+          <li>قراءة كل الإجراءات</li>
+          <li>البحث والتصفية</li>
+          <li>وضع الإجراءات في المفضّلة</li>
+          <li>إضافة تعليقات</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li>تعديل الإجراءات</li>
+          <li>الإضافة أو الحذف</li>
+          <li>إدارة المستخدمين</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="t-tip">
+    <strong>💡 ملاحظة:</strong> الدور يُحدَّد من الأدمن في صفحة "👥 المستخدمون". أي محرّر يحصل على صلاحيات أدمن داخل إدارته فقط — بدون الوصول لإدارات أخرى أو إعدادات النظام.
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="t-sec" id="tips">
+  <span class="t-sec-num">06 — نصائح للفريق</span>
+  <h2>أفضل الممارسات</h2>
+  <p class="lede">قواعد بسيطة تجعل المنصّة أداة فعّالة وليس عبئاً.</p>
+
+  <div class="t-grid">
+    <div class="t-card">
+      <div class="t-card-icon">⚡</div>
+      <h3>اكتب الكود مرة واحدة</h3>
+      <p>اتفق مع إدارتك على نمط أكواد ثابت (مثل: HR-001, FIN-002) — يجعل البحث والترابط أسرع.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🎯</div>
+      <h3>الغرض في سطرين</h3>
+      <p>وصف الإجراء يجب أن يكون مفهوماً لأي شخص في الشركة — حتى لو لم يكن في إدارتك.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔗</div>
+      <h3>وثّق التبعيّات فوراً</h3>
+      <p>كلما أنشأت إجراءً يحتاج إجراءً آخر، سجّل التبعيّة. يوفّر ساعات على الجميع لاحقاً.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">💬</div>
+      <h3>استخدم التعليقات لا الإيميل</h3>
+      <p>كل نقاش حول إجراء يجب أن يكون داخله — حتى يبقى محفوظاً ومرتبطاً بالسياق.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">📊</div>
+      <h3>راجع سجل التعديلات أسبوعياً</h3>
+      <p>إن كنت محرّراً، خصّص 10 دقائق أسبوعياً لمراجعة ما تغيّر في إدارتك.</p>
+    </div>
+    <div class="t-card">
+      <div class="t-card-icon">🔍</div>
+      <h3>استخدم البحث (Cmd+K)</h3>
+      <p>قبل ما تسأل، ابحث. 90% من الأسئلة موجود جوابها في إجراء موثّق.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="t-sec" id="faq">
+  <span class="t-sec-num">07 — أسئلة شائعة</span>
+  <h2>أسئلة قد تخطر ببالك</h2>
+  
+  <div class="t-faq">
+    <details>
+      <summary>كيف أحصل على وصول؟</summary>
+      <p>تواصل مع الأدمن (a.king@arsann.com) ليرسل لك دعوة عبر بريد أرسان. ستتلقّى رابطاً لتحديد كلمة السر والدخول.</p>
+    </details>
+    <details>
+      <summary>نسيت كلمة السر، ماذا أفعل؟</summary>
+      <p>اضغط "نسيت كلمة السر" في صفحة الدخول، أو اطلب من الأدمن إعادة تعيينها لك.</p>
+    </details>
+    <details>
+      <summary>هل المنصّة آمنة؟</summary>
+      <p>نعم. كل البيانات مخزّنة في Cloudflare، الوصول محمي بإيميل وكلمة سر، وكل تعديل يُسجَّل في سجل النشاط للمراجعة.</p>
+    </details>
+    <details>
+      <summary>هل أستطيع استخدامها على الجوال؟</summary>
+      <p>نعم — المنصّة مصمّمة لتعمل على الجوال والتابلت. كل الخصائص متاحة.</p>
+    </details>
+    <details>
+      <summary>ماذا لو حذفت إجراءً بالخطأ؟</summary>
+      <p>الإجراء يبقى في سجل التعديلات ويمكن استعادته. تواصل مع الأدمن لاستعادته فوراً.</p>
+    </details>
+    <details>
+      <summary>كيف أضيف إدارة جديدة؟</summary>
+      <p>الأدمن فقط يضيف إدارات. اطلب منه عبر الرسائل أو الإيميل، وسيُنشئها خلال دقائق.</p>
+    </details>
+    <details>
+      <summary>هل هناك تطبيق موبايل؟</summary>
+      <p>المنصّة ويب-فيرست، لكنها تعمل على الموبايل بنفس جودة سطح المكتب. يمكنك إضافتها كـ "Add to Home Screen" لتظهر كتطبيق.</p>
+    </details>
+    <details>
+      <summary>أين أجد المساعدة؟</summary>
+      <p>زر "🤖 مساعد الذكاء" في أسفل الصفحة يجيب على معظم الأسئلة. للمشاكل التقنية، تواصل مع الأدمن.</p>
+    </details>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="t-sec" style="text-align:center">
+  <h2 style="font-size:32px">مستعد للبدء؟</h2>
+  <p class="lede" style="margin:0 auto 24px">افتح المنصّة الآن وابدأ رحلتك مع أرسان.</p>
+  <div class="t-cta">
+    <a href="index.html" class="t-btn">🏠 الصفحة الرئيسية →</a>
+    <a href="diagnose.html" class="t-btn t-btn-ghost" style="background:transparent;color:var(--brand);border-color:var(--brand)">🔬 صفحة التشخيص</a>
+    <button class="t-btn t-btn-ghost" style="background:transparent;color:var(--brand);border-color:var(--brand)" onclick="window.print()">🖨️ طباعة الجولة</button>
+  </div>
+</section>
+
+</main>
+
+<footer class="t-foot">
+  <strong>منصّة أرسان للتشغيل</strong>
+  للأسئلة والاقتراحات: <a href="mailto:a.king@arsann.com">a.king@arsann.com</a><br>
+  <span style="opacity:.6;font-size:12px;margin-top:8px;display:inline-block">الإصدار 3.9 — 2026</span>
+</footer>
+
+</body>
+</html>

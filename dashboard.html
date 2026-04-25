@@ -4858,6 +4858,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   }
 
   // ================= DEPS EDITOR =================
+  window.showDepsEditor = showDepsEditor;
   function showDepsEditor() {
     const tbody = h('tbody');
     const addBtn = h('button', { class:'arsan-btn primary', onclick: () => showAddDep(reload) }, '+ إضافة تبعية');
@@ -4977,6 +4978,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   };
 
   // ================= UNIFIED MAP =================
+  window.showUnifiedMap = showUnifiedMap;
   function showUnifiedMap() {
     const DEPT_CFG = window.DEPARTMENTS_CONFIG || {};
     const deptIds = Object.keys(DEPT_CFG);
@@ -5171,6 +5173,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   }
 
   // ================= NEW SOP =================
+  window.showNewSopModal = showNewSopModal;
   async function showNewSopModal() {
     if (!API.isLoggedIn()) { showLogin(); return; }
     const deptId = window.CURRENT_DEPT_ID;
@@ -5265,6 +5268,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   }
 
   // ================= IMPORT =================
+  window.showImportModal = showImportModal;
   async function showImportModal() {
     if (!API.isLoggedIn()) { showLogin(); return; }
     const deptId = window.CURRENT_DEPT_ID;

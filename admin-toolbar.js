@@ -82,6 +82,13 @@
   .arsan-at button.is-primary{ background:#8B6F00; color:#fff }
   .arsan-at button.is-primary:hover{ filter:brightness(1.15) }
   .arsan-at button svg{ width:14px; height:14px; flex-shrink:0 }
+  .arsan-at button .at-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:16px; height:16px; padding:0 5px;
+    background:#ef4444; color:#fff; border-radius:8px;
+    font-size:10px; font-weight:700; line-height:1;
+    margin-right:2px;
+  }
   .arsan-at .at-divider{
     width:1px; height:20px;
     background:rgba(255,255,255,.10);
@@ -620,6 +627,18 @@
     tb.className = 'arsan-at';
     tb.setAttribute('role', 'toolbar');
     const showAddSopBtn = isLoggedIn() && inDashboard();
+    const showMapBtns = inDashboard();
+    const mapBtnsHTML = showMapBtns ? `
+      <button data-act="unified-map" title="🌐 الخريطة الشاملة — كل الإدارات والتبعيات">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span class="at-text">الخريطة</span>
+      </button>
+      <button data-act="deps-editor" title="🔗 محرر التبعيّات">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span class="at-text">التبعيّات</span>
+      </button>
+      <span class="at-divider"></span>
+    ` : '';
     const sopBtnsHTML = showAddSopBtn ? `
       <button class="is-primary" data-act="new-sop" title="إضافة إجراء جديد">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -633,6 +652,7 @@
     ` : '';
     tb.innerHTML = `
       <span class="at-label">${isAdmin() ? 'أدوات الأدمن' : 'أدوات سريعة'}</span>
+      ${mapBtnsHTML}
       ${sopBtnsHTML}
       <button class="is-primary" data-act="add-dept" title="إدارة الإدارات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -658,6 +678,7 @@
       <button data-act="messages" title="مركز الرسائل بين الإدارات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span class="at-text">الرسائل</span>
+        <span class="at-badge" id="atBadgeMessages" style="display:none"></span>
       </button>
       <button data-act="audit" title="سجل التعديلات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
@@ -699,6 +720,14 @@
         else if (act === 'settings') showSettingsModal();
         else if (act === 'new-sop') openNewSopModal();
         else if (act === 'import-sop') openImportSopModal();
+        else if (act === 'unified-map') {
+          if (typeof window.showUnifiedMap === 'function') window.showUnifiedMap();
+          else alert('الخريطة الشاملة غير جاهزة — حدّث الصفحة');
+        }
+        else if (act === 'deps-editor') {
+          if (typeof window.showDepsEditor === 'function') window.showDepsEditor();
+          else alert('محرر التبعيّات غير جاهز — حدّث الصفحة');
+        }
       };
     });
   }
@@ -860,4 +889,29 @@
     maintenance: showMaintenanceModal,
     settings: showSettingsModal
   };
+
+  // ===== polling: badge للرسائل =====
+  async function refreshMessagesBadge(){
+    try {
+      const badge = document.getElementById('atBadgeMessages');
+      if (!badge) return;
+      if (!window.ArsanMessaging?.getUnreadCount) { badge.style.display='none'; return; }
+      const me = window.ArsanAPI?.me?.();
+      if (!me?.email) { badge.style.display='none'; return; }
+      const deptId = window.CURRENT_DEPT_ID || (me.departments||[])[0];
+      if (!deptId) { badge.style.display='none'; return; }
+      const n = await window.ArsanMessaging.getUnreadCount(deptId);
+      if (n > 0) { badge.textContent = n > 99 ? '99+' : String(n); badge.style.display='inline-flex'; }
+      else { badge.style.display='none'; }
+    } catch(e){}
+  }
+  // run every 30s + once after 2s
+  setTimeout(refreshMessagesBadge, 2000);
+  setInterval(refreshMessagesBadge, 30000);
+  // refresh after closing the messaging modal
+  document.addEventListener('click', (e)=>{
+    if (e.target.closest('.amsg-overlay') || e.target.closest('[data-act="messages"]')) {
+      setTimeout(refreshMessagesBadge, 1500);
+    }
+  });
 })();

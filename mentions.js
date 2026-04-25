@@ -75,6 +75,10 @@
   }
 
   function renderBell(){
+    // Disabled — using unified notifications bell from notifications.js instead
+    const existing = document.querySelector('.amen-bell');
+    if (existing) existing.remove();
+    return;
     let bell = document.querySelector('.amen-bell');
     if (!bell){
       bell = document.createElement('button');

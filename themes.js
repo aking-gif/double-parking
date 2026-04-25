@@ -7,13 +7,15 @@
 (function(){
   'use strict';
 
+  // Arsan brand palette: gold #85714D, deep brown #5E4F36, ivory #f3e9c9, dark #1a1510
+  // All themes harmonize around the brand gold or use it as a subtle accent.
   const THEMES = [
     {
       key: 'royal-gold',
       label: { ar: 'الذهب الملكي', en: 'Royal Gold' },
-      desc: { ar: 'الهوية الأساسية — دافئة وكلاسيكية', en: 'Core identity — warm & classic' },
+      desc: { ar: 'الهوية الأساسية — دافئة وكلاسيكية', en: 'Core brand — warm & classic' },
       mode: 'dark',
-      swatches: ['#1a1510', '#2a2014', '#85714D', '#f3e9c9'],
+      swatches: ['#0f0c08', '#1a1510', '#85714D', '#f3e9c9'],
       vars: {
         '--arsan-bg-0':   '#0f0c08',
         '--arsan-bg-1':   '#1a1510',
@@ -29,73 +31,91 @@
     {
       key: 'desert-ivory',
       label: { ar: 'العاج الصحراوي', en: 'Desert Ivory' },
-      desc: { ar: 'وضع نهاري فاخر — بيج ودافئ', en: 'Elevated light mode — beige & warm' },
+      desc: { ar: 'وضع نهاري — بيج فاخر مع ذهبي أرسان', en: 'Light mode — luxe beige + Arsan gold' },
       mode: 'light',
-      swatches: ['#faf6ea', '#f3ead0', '#85714D', '#3a2f15'],
+      swatches: ['#fdfaf0', '#f3ead0', '#85714D', '#3a2f15'],
       vars: {
         '--arsan-bg-0':   '#fdfaf0',
-        '--arsan-bg-1':   '#faf6ea',
-        '--arsan-bg-2':   '#f3ead0',
+        '--arsan-bg-1':   '#f8f1dc',
+        '--arsan-bg-2':   '#f0e4c2',
         '--arsan-ink-0':  '#3a2f15',
         '--arsan-ink-1':  '#5a4e30',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#5E4F36',
-        '--arsan-accent-2':'#a17d26',
+        '--arsan-accent': '#85714D',
+        '--arsan-accent-2':'#5E4F36',
         '--arsan-danger': '#c5303c',
       }
     },
     {
-      key: 'midnight-sapphire',
-      label: { ar: 'ياقوت الليل', en: 'Midnight Sapphire' },
-      desc: { ar: 'زرقة ليلية — هادئة وعميقة', en: 'Night blue — calm & deep' },
+      key: 'obsidian-gold',
+      label: { ar: 'سبج وذهب', en: 'Obsidian Gold' },
+      desc: { ar: 'أسود فحمي مع لمسات ذهبية — مسائي وفاخر', en: 'Charcoal + gold accents — evening luxury' },
       mode: 'dark',
-      swatches: ['#0b1020', '#162038', '#6e9cf7', '#e8efff'],
+      swatches: ['#0a0a0c', '#16161a', '#c9a85c', '#ede0bf'],
       vars: {
-        '--arsan-bg-0':   '#060b18',
-        '--arsan-bg-1':   '#0b1020',
-        '--arsan-bg-2':   '#162038',
-        '--arsan-ink-0':  '#e8efff',
-        '--arsan-ink-1':  '#b8c4df',
-        '--arsan-ink-2':  '#6d7a9a',
-        '--arsan-accent': '#6e9cf7',
-        '--arsan-accent-2':'#4a7ed3',
-        '--arsan-danger': '#ef476f',
+        '--arsan-bg-0':   '#06060a',
+        '--arsan-bg-1':   '#0e0e12',
+        '--arsan-bg-2':   '#1c1c22',
+        '--arsan-ink-0':  '#ede0bf',
+        '--arsan-ink-1':  '#bfb393',
+        '--arsan-ink-2':  '#7a7363',
+        '--arsan-accent': '#c9a85c',
+        '--arsan-accent-2':'#9c7f3a',
+        '--arsan-danger': '#e63946',
       }
     },
     {
-      key: 'emerald-oasis',
-      label: { ar: 'واحة الزمرد', en: 'Emerald Oasis' },
-      desc: { ar: 'أخضر طبيعي — رمضاني ومعاصر', en: 'Natural green — Ramadan & contemporary' },
-      mode: 'dark',
-      swatches: ['#0a1812', '#14281f', '#5ec28b', '#e6f5ed'],
+      key: 'sand-stone',
+      label: { ar: 'الحجر الرملي', en: 'Sandstone' },
+      desc: { ar: 'بيج ترابي ناعم — هادئ ومريح للقراءة', en: 'Warm stone — calm & easy to read' },
+      mode: 'light',
+      swatches: ['#f7f1e3', '#ebe0c4', '#9b6b3f', '#3d2817'],
       vars: {
-        '--arsan-bg-0':   '#05110c',
-        '--arsan-bg-1':   '#0a1812',
-        '--arsan-bg-2':   '#14281f',
-        '--arsan-ink-0':  '#e6f5ed',
-        '--arsan-ink-1':  '#b5d4c2',
-        '--arsan-ink-2':  '#6b8c78',
-        '--arsan-accent': '#5ec28b',
-        '--arsan-accent-2':'#3e9e6b',
-        '--arsan-danger': '#e06b6b',
+        '--arsan-bg-0':   '#fbf7ec',
+        '--arsan-bg-1':   '#f4ecd6',
+        '--arsan-bg-2':   '#e8dcb8',
+        '--arsan-ink-0':  '#3d2817',
+        '--arsan-ink-1':  '#6b4a2d',
+        '--arsan-ink-2':  '#8c7458',
+        '--arsan-accent': '#9b6b3f',
+        '--arsan-accent-2':'#6e4a28',
+        '--arsan-danger': '#b83a30',
+      }
+    },
+    {
+      key: 'midnight-bronze',
+      label: { ar: 'برونز الليل', en: 'Midnight Bronze' },
+      desc: { ar: 'كحلي عميق مع برونزي — هويّة مكتبية', en: 'Deep navy + bronze — executive feel' },
+      mode: 'dark',
+      swatches: ['#0c1220', '#172238', '#b88a4d', '#e8d9b8'],
+      vars: {
+        '--arsan-bg-0':   '#070b18',
+        '--arsan-bg-1':   '#0e1525',
+        '--arsan-bg-2':   '#1a2440',
+        '--arsan-ink-0':  '#e8d9b8',
+        '--arsan-ink-1':  '#bcb494',
+        '--arsan-ink-2':  '#7a8099',
+        '--arsan-accent': '#b88a4d',
+        '--arsan-accent-2':'#8a6532',
+        '--arsan-danger': '#ef476f',
       }
     },
     {
       key: 'pearl-dawn',
       label: { ar: 'فجر اللؤلؤ', en: 'Pearl Dawn' },
-      desc: { ar: 'فاتح ومينيمال — أناقة أوروبية', en: 'Clean & minimal — European refinement' },
+      desc: { ar: 'أبيض ناصع مع ذهبي خفيف — مينيمال', en: 'Crisp white + soft gold — minimal' },
       mode: 'light',
-      swatches: ['#ffffff', '#f5f5f7', '#6c5ce7', '#1a1a2e'],
+      swatches: ['#ffffff', '#f5f1e8', '#85714D', '#1a1510'],
       vars: {
         '--arsan-bg-0':   '#ffffff',
-        '--arsan-bg-1':   '#f8f8fb',
-        '--arsan-bg-2':   '#eceef5',
-        '--arsan-ink-0':  '#1a1a2e',
-        '--arsan-ink-1':  '#4a4a68',
-        '--arsan-ink-2':  '#7a7a95',
-        '--arsan-accent': '#6c5ce7',
-        '--arsan-accent-2':'#5546c7',
-        '--arsan-danger': '#e03e52',
+        '--arsan-bg-1':   '#fbf8f1',
+        '--arsan-bg-2':   '#f0ead9',
+        '--arsan-ink-0':  '#1a1510',
+        '--arsan-ink-1':  '#4a4032',
+        '--arsan-ink-2':  '#8a7d5d',
+        '--arsan-accent': '#85714D',
+        '--arsan-accent-2':'#5E4F36',
+        '--arsan-danger': '#c5303c',
       }
     },
   ];
@@ -227,32 +247,50 @@
       .arsan-theme-grid{
         padding:18px;
         display:grid;
-        grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));
-        gap:12px;
+        grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+        gap:14px;
+        max-height:65vh;
+        overflow-y:auto;
       }
       .arsan-theme-swatch{
-        border-radius:12px;
-        padding:14px;
-        border:2px solid transparent;
+        border-radius:14px;
+        padding:0;
+        border:2px solid rgba(133,113,77,.15);
         cursor:pointer;
         transition:transform .15s, border-color .15s, box-shadow .15s;
         position:relative;
         overflow:hidden;
+        background:rgba(255,255,255,.02);
       }
-      .arsan-theme-swatch:hover{ transform:translateY(-2px); }
+      html[data-theme="light"] .arsan-theme-swatch{
+        background:rgba(0,0,0,.02);
+        border-color:rgba(133,113,77,.2);
+      }
+      .arsan-theme-swatch:hover{
+        transform:translateY(-2px);
+        border-color:rgba(133,113,77,.5);
+        box-shadow:0 8px 20px rgba(0,0,0,.3);
+      }
       .arsan-theme-swatch.active{
         border-color:#85714D;
-        box-shadow:0 0 0 3px rgba(133,113,77,.25);
+        box-shadow:0 0 0 3px rgba(133,113,77,.35);
       }
       .arsan-theme-swatch .preview{
-        height:70px;
-        border-radius:8px;
+        height:90px;
         display:flex;
-        margin-bottom:10px;
         overflow:hidden;
-        box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+        position:relative;
       }
-      .arsan-theme-swatch .preview span{ flex:1; }
+      .arsan-theme-swatch .preview span{
+        flex:1;
+        position:relative;
+      }
+      .arsan-theme-swatch .preview span:not(:last-child){
+        border-inline-end:1px solid rgba(0,0,0,.08);
+      }
+      .arsan-theme-swatch .meta{
+        padding:12px 14px 14px;
+      }
       .arsan-theme-swatch .name{
         font-size:13px;font-weight:600;margin-bottom:2px;
       }
@@ -296,8 +334,10 @@
         <div class="arsan-theme-swatch ${isActive?'active':''}" data-key="${theme.key}">
           <div class="check">✓</div>
           <div class="preview">${colors}</div>
-          <div class="name">${theme.label[getLang()] || theme.label.en}</div>
-          <div class="desc">${theme.desc[getLang()] || theme.desc.en}</div>
+          <div class="meta">
+            <div class="name">${theme.label[getLang()] || theme.label.en}</div>
+            <div class="desc">${theme.desc[getLang()] || theme.desc.en}</div>
+          </div>
         </div>
       `;
     }).join('');

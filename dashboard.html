@@ -1326,43 +1326,7 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
   <section class="brain-map" id="brainMap" style="display:none" aria-live="polite"></section>
 </main>
 
-<!-- =================== AI ASSISTANT (floating) =================== -->
-<button id="aiFab" class="fab" type="button" aria-label="مساعد الذكاء الاصطناعي">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
-  <span>مساعد الذكاء</span>
-</button>
-
-<div class="ai-panel" id="aiPanel" aria-hidden="true">
-  <div class="ai-head">
-    <div>
-      <div class="ai-title">مساعد الذكاء الاصطناعي</div>
-      <div class="ai-sub">لتوليد وتحسين محتوى الإجراءات</div>
-    </div>
-    <button class="ai-close" id="aiClose" type="button" aria-label="إغلاق">✕</button>
-  </div>
-  <div class="ai-body" id="aiBody">
-    <div class="ai-msg ai-bot">
-      مرحباً! يمكنني مساعدتك في:
-      <ul style="margin:8px 0 0;padding-inline-start:18px">
-        <li>توليد خطوات إجراء معيّن</li>
-        <li>صياغة الغرض أو النطاق</li>
-        <li>اقتراح مؤشرات أداء (KPIs)</li>
-        <li>تحسين لغة إجراء مكتوب</li>
-      </ul>
-    </div>
-  </div>
-  <div class="ai-quick" id="aiQuick">
-    <button type="button" data-prompt="اقترح خطوات تنفيذية لإجراء عن %TITLE% في %DEPT%">اقتراح خطوات</button>
-    <button type="button" data-prompt="اقترح 3 مؤشرات أداء (KPIs) لإجراء %TITLE%">اقتراح KPIs</button>
-    <button type="button" data-prompt="صغ غرضاً واضحاً لإجراء %TITLE% في %DEPT%">صياغة الغرض</button>
-  </div>
-  <form class="ai-input" id="aiForm">
-    <textarea id="aiInput" placeholder="اكتب طلبك هنا… مثلاً: اقترح خطوات لتنفيذ الصيانة الوقائية" rows="2"></textarea>
-    <button type="submit" class="ai-send" aria-label="إرسال">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
-    </button>
-  </form>
-</div>
+<!-- =================== AI ASSISTANT REMOVED =================== -->
 
 <!-- =================== MODAL =================== -->
 <div class="modal-backdrop" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -3303,136 +3267,40 @@ function renderComments(code){
   } catch(_){}
 })();
 
-/* ================= AI ASSISTANT ================= */
-const aiFab = $("#aiFab");
-const aiPanel = $("#aiPanel");
-const aiBody = $("#aiBody");
-const aiForm = $("#aiForm");
-const aiInput = $("#aiInput");
-const aiClose = $("#aiClose");
-
-aiFab.addEventListener('click', () => {
-  const open = aiPanel.getAttribute('aria-hidden') === 'false';
-  aiPanel.setAttribute('aria-hidden', open ? 'true' : 'false');
-  if (!open) setTimeout(() => aiInput.focus(), 200);
-});
-aiClose.addEventListener('click', () => aiPanel.setAttribute('aria-hidden','true'));
-
-function aiAddMsg(text, cls){
-  const el = document.createElement('div');
-  el.className = 'ai-msg ' + (cls || 'ai-bot');
-  el.textContent = text;
-  aiBody.appendChild(el);
-  aiBody.scrollTop = aiBody.scrollHeight;
-  return el;
-}
-
-async function aiAsk(prompt){
-  aiAddMsg(prompt, 'ai-user');
-  const loading = aiAddMsg('يفكّر…', 'ai-bot loading');
-  const context = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
-  const contextStr = context
-    ? `السياق الحالي:\n- الإدارة: ${DEPT.name}\n- الإجراء: ${context.code} — ${context.title}\n- الفئة: ${phaseLabel(context.phase)}\n- الغرض: ${isPH(context.purpose) ? '(غير مكتوب)' : context.purpose}\n- الخطوات الحالية: ${(context.steps||[]).map(s=>isPH(s)?'(فارغ)':s).join(' | ')}`
-    : `السياق: لوحة مرجع الإجراءات لـ ${DEPT.name} (${DEPT.groupVerb}).`;
-  const fullPrompt = `أنت مساعد خبير في صياغة إجراءات العمل القياسية (SOPs) باللغة العربية لشركة "أرسان للتشغيل". أجب بشكل عملي ومباشر وباللغة العربية الفصحى، مع ترقيم عند الحاجة.\n\n${contextStr}\n\nطلب المستخدم: ${prompt}`;
-  try {
-    const reply = await callAI(fullPrompt);
-    loading.remove();
-    const el = aiAddMsg(reply, 'ai-bot');
-    el.style.whiteSpace = 'pre-wrap';
-  } catch(err) {
-    loading.remove();
-    const msg = err && err.message ? err.message : String(err);
-    let userMsg;
-    if (msg.includes('ai-not-configured') || msg.includes('503')) {
-      userMsg = '⚠️ مساعد الذكاء غير مفعّل بعد على الخادم.\n\nيحتاج الأدمن لإضافة مفتاح Anthropic في إعدادات Cloudflare Worker:\n• اذهب إلى Workers → arsan-api → Settings → Variables\n• أضف Secret باسم: ANTHROPIC_API_KEY\n• القيمة: مفتاحك من console.anthropic.com\n• ثم Save & Deploy';
-    } else if (msg.includes('unauthorized') || msg.includes('401')) {
-      userMsg = '⚠️ لاستخدام مساعد الذكاء، يرجى تسجيل الدخول أولاً.';
-    } else if (msg.includes('rate-limit') || msg.includes('429')) {
-      userMsg = '⚠️ تجاوزت الحد المسموح من الطلبات هذه الساعة. حاول بعد قليل.';
-    } else if (msg.includes('ai-unavailable')) {
-      userMsg = '⚠️ مساعد الذكاء غير متاح حالياً.\n\nتأكد من تسجيل الدخول، أو اطلب من الأدمن تفعيل مفتاح ANTHROPIC_API_KEY على الخادم.';
-    } else {
-      userMsg = 'تعذّر الاتصال بالمساعد:\n' + msg + '\n\nقد تحتاج لإعادة المحاولة، أو إعداد المفتاح من الأدمن.';
-    }
-    aiAddMsg(userMsg, 'ai-bot');
-    console.error(err);
-  }
-}
-
-/* ====== AI Provider Router ======
-   يحاول بالترتيب:
-   1) window.claude.complete  (داخل معاينة Claude فقط)
-   2) API_BASE + /api/ai       (Cloudflare Worker)
-   3) Anthropic API مباشرة باستخدام مفتاح محفوظ في localStorage
-*/
+/* ================= AI ASSISTANT REMOVED ================= */
+// تم إزالة لوحة "مساعد الذكاء" العائمة بناءً على طلب المستخدم.
+// لا تزال callAI متوفّرة لاستخدامها في modal "إجراء جديد" (✨ اقترح بالذكاء).
 async function callAI(prompt){
-  // 1. ArsanAPI.ai — Worker with auth token (preferred when logged in)
   if (window.ArsanAPI && typeof window.ArsanAPI.ai === 'function' && window.ArsanAPI.getToken && window.ArsanAPI.getToken()) {
     try { return await window.ArsanAPI.ai(prompt); } catch(e) { console.warn('ArsanAPI.ai failed:', e); }
   }
-  // 2. Claude artifacts runtime (inside claude.ai preview only)
   if (typeof window.claude === 'object' && window.claude && typeof window.claude.complete === 'function') {
     return await window.claude.complete(prompt);
   }
-  // 3. Direct Anthropic with user-supplied key (localStorage fallback)
   const key = localStorage.getItem('arsan_anthropic_key');
   if (key) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
+        'Content-Type': 'application/json', 'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 2048,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
     });
     if (!res.ok) throw new Error('Anthropic ' + res.status);
     const data = await res.json();
     return (data.content && data.content[0] && data.content[0].text) || 'لا رد.';
   }
-  throw new Error('يلزم تسجيل الدخول لاستخدام مساعد الذكاء.');
+  throw new Error('يلزم تسجيل الدخول لاستخدام الذكاء الاصطناعي.');
 }
-
-/* إعداد مفتاح Anthropic من الواجهة */
 window.setupAIKey = function(){
   const cur = localStorage.getItem('arsan_anthropic_key') || '';
-  const k = prompt('أدخل Anthropic API key (يبدأ بـ sk-ant-...):\n\nيُحفظ محلياً في متصفحك فقط، لا يُرسل لأي خادم.\n\nللحذف: اترك الحقل فارغاً.', cur);
+  const k = prompt('أدخل Anthropic API key (يبدأ بـ sk-ant-...):\n\nيُحفظ محلياً في متصفحك فقط.\n\nللحذف: اترك الحقل فارغاً.', cur);
   if (k === null) return;
-  if (k.trim() === '') { localStorage.removeItem('arsan_anthropic_key'); alert('تم حذف مفتاح الاتصال بنجاح.'); }
-  else { localStorage.setItem('arsan_anthropic_key', k.trim()); alert('تم حفظ مفتاح الاتصال. يمكنك الآن استخدام المساعد الذكي.'); }
+  if (k.trim() === '') { localStorage.removeItem('arsan_anthropic_key'); alert('تم حذف المفتاح.'); }
+  else { localStorage.setItem('arsan_anthropic_key', k.trim()); alert('تم حفظ المفتاح.'); }
 };
-
-aiForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const q = aiInput.value.trim();
-  if (!q) return;
-  aiInput.value = '';
-  aiAsk(q);
-});
-aiInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    aiForm.requestSubmit();
-  }
-});
-
-// Quick prompts
-document.querySelectorAll('.ai-quick button').forEach(b => {
-  b.addEventListener('click', () => {
-    const current = state.openIdx >= 0 ? SOPS[state.openIdx] : null;
-    const title = current ? current.title : DEPT.name;
-    const prompt = b.dataset.prompt
-      .replace('%TITLE%', title)
-      .replace('%DEPT%', DEPT.name);
-    aiAsk(prompt);
-  });
-});
 
 /* ================= TWEAKS (host integration) ================= */
 /* يسمح لمحرّر Tweaks الخارجي بتفعيل التبديل عبر postMessage */
@@ -3736,9 +3604,9 @@ function applyLang(lang){
   if (aiS) aiS.textContent = T('aiSub');
   const aiInputEl = document.getElementById('aiInput');
   if (aiInputEl) aiInputEl.placeholder = T('aiInputPh');
-  const aiFabLabel = document.querySelector('#aiFab span');
-  if (aiFabLabel) aiFabLabel.textContent = T('aiFab');
-  document.querySelectorAll('.ai-quick button').forEach((b, i) => {
+  // (تم إلغاء aiFab — لا تحديث للأزرار العائمة)
+  // (تم إلغاء ai-quick — لا أزرار اقتراح سريعة)
+  if (false) document.querySelectorAll('.ai-quick button').forEach((b, i) => {
     const txts = [T('aiSuggestSteps'), T('aiSuggestKpis'), T('aiWritePurpose')];
     if (txts[i]) b.textContent = txts[i];
   });
@@ -6054,11 +5922,11 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 <script src="cache-bust.js?v=20"></script>
 <script src="sidebar.js?v=20"></script>
 <script src="i18n.js?v=20"></script>
-<script src="themes.js?v=20"></script>
+<script src="themes.js?v=21"></script>
 <script src="settings.js?v=20"></script>
 <script src="favorites.js?v=20"></script>
 <script src="logout-button.js?v=20"></script>
-<script src="quick-actions.js?v=20"></script>
+<!-- <script src="quick-actions.js?v=20"></script> --> <!-- removed: زر + البرتقالي -->
 <script src="notifications.js?v=20"></script>
 <script src="maintenance.js?v=20"></script>
 <script src="changelog.js?v=20"></script>

@@ -94,6 +94,21 @@
     background:rgba(255,255,255,.10);
     margin:0 2px;
   }
+  /* Admin drawer toggle */
+  .arsan-at .at-admin-toggle{
+    background:rgba(255,255,255,.06)!important;
+    border:1px dashed rgba(255,255,255,.20)!important;
+    margin-right:4px;
+  }
+  .arsan-at .at-admin-toggle:hover{ background:rgba(255,255,255,.14)!important }
+  .arsan-at .at-admin-toggle .at-caret{ font-size:10px; opacity:.7; transition:transform .2s }
+  .arsan-at .at-admin-toggle[aria-expanded="true"] .at-caret{ transform:rotate(180deg) }
+  .arsan-at .at-admin-toggle[aria-expanded="true"]{
+    background:rgba(212,166,74,.20)!important;
+    border-color:rgba(212,166,74,.50)!important;
+  }
+  .arsan-at .at-admin-group{ display:contents }
+  .arsan-at .at-admin-group[data-collapsed="1"]{ display:none }
   @media (max-width:600px){
     .arsan-at{ bottom:12px; padding:6px; gap:2px }
     .arsan-at button{ padding:7px 10px; font-size:12px }
@@ -651,9 +666,16 @@
       <span class="at-divider"></span>
     ` : '';
     tb.innerHTML = `
-      <span class="at-label">${isAdmin() ? 'أدوات الأدمن' : 'أدوات سريعة'}</span>
+      <span class="at-label">${isAdmin() ? 'أرسان' : 'أدوات سريعة'}</span>
       ${mapBtnsHTML}
       ${sopBtnsHTML}
+      ${isAdmin() ? `
+      <button class="at-admin-toggle" data-act="toggle-admin" title="أدوات الأدمن" aria-expanded="false">
+        <span style="font-size:14px">⭐</span>
+        <span class="at-text">أدوات الأدمن</span>
+        <span class="at-caret">▾</span>
+      </button>
+      <span class="at-admin-group" data-collapsed="1">
       <button class="is-primary" data-act="add-dept" title="إدارة الإدارات">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span class="at-text">الإدارات</span>
@@ -701,12 +723,25 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span class="at-text">الإعدادات</span>
       </button>
+      ${isAdmin() ? '</span>' : ''}
     `;
     document.body.appendChild(tb);
 
     tb.querySelectorAll('button[data-act]').forEach(b => {
       b.onclick = () => {
         const act = b.getAttribute('data-act');
+        if (act === 'toggle-admin') {
+          const grp = tb.querySelector('.at-admin-group');
+          const expanded = b.getAttribute('aria-expanded') === 'true';
+          if (expanded) {
+            b.setAttribute('aria-expanded','false');
+            if (grp) grp.setAttribute('data-collapsed','1');
+          } else {
+            b.setAttribute('aria-expanded','true');
+            if (grp) grp.removeAttribute('data-collapsed');
+          }
+          return;
+        }
         if (act === 'add-dept') showManageDeptsModal();
         else if (act === 'users') location.href = 'users.html';
         else if (act === 'announce') showAnnounceModal();

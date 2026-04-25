@@ -132,9 +132,9 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
   }
 
   /* ===============================
-     GLOBAL EXPORT
+     GLOBAL EXPORT — both spellings for backwards compat
   =============================== */
-  window.ArsannBrand = {
+  const api = {
     COLORS,
     logo: LOGO_SVG,
     logoMark: LOGO_MARK_SVG,
@@ -142,5 +142,9 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
     injectFavicon,
     injectCSSVars,
   };
+
+  window.ArsannBrand = api;
+  // Backwards-compat alias for older code that uses the single-N spelling
+  window.ArsanBrand = api;
 
 })();

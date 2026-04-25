@@ -550,6 +550,7 @@
 
   /* ===== INIT ===== */
   function init(){
+    injectStyles();
     injectLauncher();
     maybeAutoStart();
   }

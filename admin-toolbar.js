@@ -786,6 +786,18 @@
       refresh();
       if (retries > 20) clearInterval(t);
     }, 600);
+    // 🔁 راقب CURRENT_DEPT_ID — لو اتعرّف بعد init، أعد بناء الـ toolbar
+    let lastDeptId = window.CURRENT_DEPT_ID;
+    const watcher = setInterval(() => {
+      if (window.CURRENT_DEPT_ID !== lastDeptId) {
+        lastDeptId = window.CURRENT_DEPT_ID;
+        const tb = document.getElementById('arsanAdminToolbar');
+        if (tb) tb.remove();
+        buildToolbar();
+        refresh();
+      }
+    }, 500);
+    setTimeout(() => clearInterval(watcher), 30000);
   }
 
   if (document.readyState === 'loading') {

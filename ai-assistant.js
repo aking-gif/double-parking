@@ -490,17 +490,48 @@
     sendBtn.disabled = true;
     showTyping();
 
-    // Build prompt with light context
+    // Build prompt with rich context (Adham's "feed")
     let context = '';
     try {
-      if (window.SOPS && Array.isArray(window.SOPS) && window.DEPT) {
-        context = `أنت مساعد لمنصة أرسان لإدارة الإجراءات (SOPs).
-الإدارة الحالية: ${window.DEPT.name || ''}
-عدد الإجراءات: ${window.SOPS.length}
-أجب باللغة ${LANG()==='en'?'الإنجليزية':'العربية'} باختصار وعملياً.
+      const lang = LANG()==='en'?'English':'العربية';
+      const parts = [];
+      parts.push(`أنت "الأدهم" — المساعد الذكي لمنصّة أرسان لإدارة الإجراءات التشغيلية القياسية (SOPs).`);
+      parts.push(`أجب باللغة ${lang} بأسلوب واضح وعملي ومختصر. استخدم نقاطاً بدل الفقرات الطويلة.`);
 
-`;
+      // 1. Custom knowledge base (admin-fed)
+      try {
+        const kb = localStorage.getItem('arsan_adham_knowledge_v1');
+        if (kb && kb.trim()) {
+          parts.push(`\n=== معرفة خاصة بأرسان (يُعتمد عليها أولاً) ===\n${kb.slice(0, 8000)}`);
+        }
+      } catch(_){}
+
+      // 2. Live SOPs context
+      if (window.SOPS && Array.isArray(window.SOPS) && window.SOPS.length) {
+        const dept = window.DEPT?.name || (window.DEPARTMENTS_CONFIG?.find(d => d.id === window.CURRENT_DEPT_ID)?.name) || '';
+        parts.push(`\n=== السياق الحالي ===\nالإدارة: ${dept}\nعدد الإجراءات: ${window.SOPS.length}`);
+        // Top 20 SOP titles + codes
+        const sample = window.SOPS.slice(0, 20).map(s => `- ${s.code || ''} ${s.title || ''} ${s.phase ? `[${s.phase}]` : ''}`).join('\n');
+        if (sample) parts.push(`\nقائمة الإجراءات (أول 20):\n${sample}`);
       }
+
+      // 3. Open SOP details (if a modal is open)
+      try {
+        const openModal = document.querySelector('.modal[style*="display: flex"], #sopModal[style*="flex"]');
+        if (openModal && window.__openSopId) {
+          const sop = (window.SOPS || []).find(s => s.id === window.__openSopId);
+          if (sop) {
+            parts.push(`\n=== الإجراء المفتوح حالياً ===\nالكود: ${sop.code}\nالعنوان: ${sop.title}\nالغرض: ${sop.purpose || '—'}\nالنطاق: ${sop.scope || '—'}\nعدد الخطوات: ${(sop.steps||[]).length}`);
+          }
+        }
+      } catch(_){}
+
+      // 4. Departments overview
+      if (window.DEPARTMENTS_CONFIG && Array.isArray(window.DEPARTMENTS_CONFIG)) {
+        parts.push(`\n=== الإدارات (${window.DEPARTMENTS_CONFIG.length}) ===\n${window.DEPARTMENTS_CONFIG.map(d => `- ${d.id}: ${d.name}`).join('\n')}`);
+      }
+
+      context = parts.join('\n') + '\n\n=== سؤال المستخدم ===\n';
     } catch(_){}
     const prompt = context + q;
 

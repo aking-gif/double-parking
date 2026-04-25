@@ -999,12 +999,91 @@
       impStatus
     );
 
+    /* ===== Pane 7: Adham knowledge ===== */
+    const adhamTextarea = el('textarea', {
+      id: 'asst-adham-kb',
+      rows: 14,
+      placeholder: 'مثال:\n• شركتنا تعمل في مجال…\n• قواعد الجودة الأساسية: …\n• المصطلحات الداخلية: …\n• الإدارات وأهدافها: …\n• سياسات الأمن السيبراني: …\n\nالأدهم سيستخدم كل ما تكتبه هنا في إجاباته كمصدر معرفة موثوق.',
+      style: 'width:100%; min-height:300px; padding:14px 16px; border-radius:14px; border:1px solid var(--border, rgba(0,0,0,.12)); background:var(--surface-soft, #faf9f6); font-family:inherit; font-size:14px; line-height:1.7; resize:vertical; direction:rtl;'
+    });
+    try { adhamTextarea.value = localStorage.getItem('arsan_adham_knowledge_v1') || ''; } catch(_){}
+    const adhamCount = el('div', { style: 'color:var(--ink-3,#888); font-size:12px; margin-top:6px;' }, '0 / 8000 حرف');
+    function updateAdhamCount(){
+      const n = (adhamTextarea.value || '').length;
+      adhamCount.textContent = `${n.toLocaleString('ar')} / 8,000 حرف${n > 8000 ? ' — سيُقتطع' : ''}`;
+      adhamCount.style.color = n > 8000 ? '#c44' : 'var(--ink-3,#888)';
+    }
+    adhamTextarea.addEventListener('input', updateAdhamCount);
+    setTimeout(updateAdhamCount, 50);
+    const adhamStatus = el('div', { style: 'margin-top:10px; min-height:20px; font-size:13px; color:#2a8c3a;' });
+    const adhamSaveBtn = el('button', {
+      class: 'asst-btn asst-btn-primary',
+      onclick: () => {
+        try {
+          localStorage.setItem('arsan_adham_knowledge_v1', adhamTextarea.value || '');
+          // Also try to sync to Worker if available
+          if (window.ArsanAPI && window.ArsanAPI.put) {
+            window.ArsanAPI.put('adham_kb_v1', { text: adhamTextarea.value || '', updatedAt: Date.now() }).catch(()=>{});
+          }
+          adhamStatus.textContent = '✓ تم حفظ ذاكرة الأدهم. ستُستخدم في الإجابات الجديدة.';
+          adhamStatus.style.color = '#2a8c3a';
+          setTimeout(() => { adhamStatus.textContent = ''; }, 3500);
+        } catch(e) {
+          adhamStatus.textContent = '⚠ تعذّر الحفظ: ' + e.message;
+          adhamStatus.style.color = '#c44';
+        }
+      }
+    }, 'حفظ ذاكرة الأدهم');
+    const adhamClearBtn = el('button', {
+      class: 'asst-btn',
+      style: 'margin-inline-start:8px;',
+      onclick: () => {
+        if (!confirm('مسح كل ذاكرة الأدهم؟ هذا الإجراء لا يمكن التراجع عنه.')) return;
+        adhamTextarea.value = '';
+        try { localStorage.removeItem('arsan_adham_knowledge_v1'); } catch(_){}
+        updateAdhamCount();
+        adhamStatus.textContent = '🗑 تم مسح الذاكرة.';
+        adhamStatus.style.color = '#c44';
+      }
+    }, 'مسح');
+
+    const pane7 = el('div', { class:'asst-pane', id:'asst-pane-adham' },
+      el('div', { class:'asst-section-head' },
+        el('div', { class:'lead' },
+          el('strong', {}, '🐎 ذاكرة الأدهم — '),
+          'كل ما تكتبه هنا يصبح جزءاً من معرفة المساعد الذكي. استخدمه لإطعامه:'
+        )
+      ),
+      el('ul', { style:'color:var(--ink-2,#555); font-size:13px; line-height:1.9; margin:0 0 16px; padding-inline-start:20px;' },
+        el('li', {}, 'تعريف الشركة وأنشطتها وعملائها'),
+        el('li', {}, 'المصطلحات الداخلية والاختصارات الخاصة'),
+        el('li', {}, 'سياسات الجودة، الأمن، الموارد البشرية'),
+        el('li', {}, 'القواعد والإجراءات غير المُوثَّقة في SOPs'),
+        el('li', {}, 'إجابات الأسئلة الشائعة لتوفير وقت الموظفين')
+      ),
+      adhamTextarea,
+      adhamCount,
+      el('div', { style: 'margin-top:14px;' }, adhamSaveBtn, adhamClearBtn),
+      adhamStatus,
+      el('div', { style: 'margin-top:24px; padding:14px 16px; background:var(--surface-soft, #faf9f6); border-radius:12px; border:1px solid var(--border, rgba(0,0,0,.08));' },
+        el('div', { style:'font-weight:700; margin-bottom:8px;' }, 'ℹ️ ماذا يعرف الأدهم تلقائياً؟'),
+        el('div', { style:'color:var(--ink-2,#555); font-size:13px; line-height:1.8;' },
+          '• كل الإجراءات (SOPs) في كل الإدارات', el('br'),
+          '• الإدارة الحالية والإجراء المفتوح', el('br'),
+          '• قائمة الإدارات وأرقامها', el('br'),
+          '• اللغة الحالية (عربي/إنجليزي)'
+        )
+      )
+    );
+
     /* ===== Tabs ===== */
     const tabs = el('div', { class: 'asst-tabs', role:'tablist' },
       el('button', { class: 'asst-tab active', 'data-tab': 'updates', role:'tab', onclick: (e) => switchTab(e, 'updates') },
         el('span',{class:'ic'},'📣'), ' شريط التحديثات'),
       el('button', { class: 'asst-tab', 'data-tab': 'depts', role:'tab', onclick: (e) => switchTab(e, 'depts') },
         el('span',{class:'ic'},'🏢'), ' الإدارات'),
+      el('button', { class: 'asst-tab', 'data-tab': 'adham', role:'tab', onclick: (e) => switchTab(e, 'adham') },
+        el('span',{class:'ic'},'🐎'), ' ذاكرة الأدهم'),
       el('button', { class: 'asst-tab', 'data-tab': 'perms', role:'tab', onclick: (e) => switchTab(e, 'perms') },
         el('span',{class:'ic'},'🔐'), ' الصلاحيات'),
       el('button', { class: 'asst-tab', 'data-tab': 'template', role:'tab', onclick: (e) => switchTab(e, 'template') },

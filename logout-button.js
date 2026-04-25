@@ -115,6 +115,15 @@
         color:#e0a7af;
         border-color:rgba(224,167,175,.25);
       }
+
+      @keyframes arsan-logout-fade {
+        from { opacity:0 }
+        to { opacity:1 }
+      }
+      @keyframes arsan-logout-pop {
+        from { opacity:0; transform:scale(.92) translateY(8px) }
+        to   { opacity:1; transform:none }
+      }
     `;
     const s = document.createElement('style');
     s.id = 'arsan-logout-btn-styles';
@@ -163,50 +172,70 @@
   function confirmLogout(anchor){
     return new Promise(resolve => {
       document.getElementById('arsan-logout-confirm')?.remove();
-      const pop = document.createElement('div');
-      pop.id = 'arsan-logout-confirm';
-      pop.style.cssText = `
-        position:fixed; z-index:10000;
-        background:#fff; color:#111;
-        border:1px solid rgba(0,0,0,.12);
-        border-radius:12px;
-        box-shadow:0 12px 40px rgba(0,0,0,.18);
-        padding:14px 16px; font:inherit; font-size:13px;
-        min-width:240px; max-width:300px;
-        animation: arsan-logout-pop .14s ease;
+      // Backdrop + centered card (replaces old corner popover)
+      const bd = document.createElement('div');
+      bd.id = 'arsan-logout-confirm';
+      bd.style.cssText = `
+        position:fixed; inset:0; z-index:100000;
+        background:rgba(20,20,22,.55);
+        backdrop-filter:blur(6px);
+        display:flex; align-items:center; justify-content:center;
+        padding:20px; direction:rtl;
+        font-family:"IBM Plex Sans Arabic", system-ui, sans-serif;
+        animation: arsan-logout-fade .18s ease;
       `;
-      pop.innerHTML =
-        '<div style="margin-bottom:10px;font-weight:600">تسجيل الخروج من الحساب؟</div>' +
-        '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-          '<button type="button" data-a="cancel" style="padding:6px 12px;border:1px solid rgba(0,0,0,.12);background:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px">إلغاء</button>' +
-          '<button type="button" data-a="ok" style="padding:6px 12px;border:1px solid #b4423c;background:#b4423c;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600">خروج</button>' +
+      const m = (function(){ try { return JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || 'null'); } catch(_) { return null; } })();
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const cardBg = isDark ? '#1a1a1c' : '#fff';
+      const cardFg = isDark ? '#F3F1EA' : '#111';
+      const cardBd = isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)';
+      const subFg  = isDark ? '#a8a89e' : '#6B7280';
+      const cancelBg = isDark ? 'transparent' : '#fff';
+      const cancelBd = isDark ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.12)';
+      const cancelFg = isDark ? '#D7D3C7' : '#374151';
+
+      bd.innerHTML =
+        '<div style="' +
+          'background:' + cardBg + '; color:' + cardFg + ';' +
+          'border:1px solid ' + cardBd + ';' +
+          'border-radius:18px; padding:24px 22px;' +
+          'box-shadow:0 24px 60px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.18);' +
+          'min-width:300px; max-width:420px; width:100%;' +
+          'animation:arsan-logout-pop .22s cubic-bezier(.34,1.56,.64,1);' +
+        '">' +
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
+            '<div style="width:44px;height:44px;border-radius:50%;background:rgba(180,66,60,.12);display:flex;align-items:center;justify-content:center;color:#b4423c;flex-shrink:0">' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>' +
+                '<polyline points="16 17 21 12 16 7"/>' +
+                '<line x1="21" y1="12" x2="9" y2="12"/>' +
+              '</svg>' +
+            '</div>' +
+            '<div>' +
+              '<div style="font-weight:700;font-size:16px;margin-bottom:2px">تسجيل الخروج</div>' +
+              (m?.email ? '<div style="font-size:12px;color:' + subFg + '">' + m.email + '</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="font-size:14px;color:' + subFg + ';line-height:1.55;margin-bottom:18px">هل تريد فعلاً تسجيل الخروج من حسابك؟ ستحتاج لإعادة تسجيل الدخول للوصول إلى الإدارات والإجراءات.</div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end">' +
+            '<button type="button" data-a="cancel" style="padding:9px 18px;border:1px solid ' + cancelBd + ';background:' + cancelBg + ';color:' + cancelFg + ';border-radius:10px;cursor:pointer;font:inherit;font-size:13.5px;font-weight:500">إلغاء</button>' +
+            '<button type="button" data-a="ok" style="padding:9px 20px;border:0;background:#b4423c;color:#fff;border-radius:10px;cursor:pointer;font:inherit;font-size:13.5px;font-weight:600;box-shadow:0 4px 12px rgba(180,66,60,.3)">نعم، خروج</button>' +
+          '</div>' +
         '</div>';
-      // Position under the anchor (or center if no anchor)
-      try {
-        const r = anchor?.getBoundingClientRect?.();
-        if (r) {
-          pop.style.top = Math.min(window.innerHeight - 120, r.bottom + 8) + 'px';
-          pop.style.insetInlineStart = Math.max(8, r.left - 8) + 'px';
-        } else {
-          pop.style.top = '80px';
-          pop.style.insetInlineStart = '24px';
-        }
-      } catch(_){
-        pop.style.top = '80px'; pop.style.insetInlineStart = '24px';
-      }
-      const cleanup = (val) => { pop.remove(); document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDoc, true); resolve(val); };
+
+      const cleanup = (val) => { bd.remove(); document.removeEventListener('keydown', onKey); resolve(val); };
       const onKey = (e) => { if (e.key==='Escape') cleanup(false); if (e.key==='Enter') cleanup(true); };
-      const onDoc = (e) => { if (!pop.contains(e.target) && e.target !== anchor) cleanup(false); };
-      pop.addEventListener('click', (e) => {
+      bd.addEventListener('click', (e) => {
+        if (e.target === bd) { cleanup(false); return; }
         const a = e.target.closest('[data-a]'); if (!a) return;
         cleanup(a.dataset.a === 'ok');
       });
-      document.body.appendChild(pop);
-      // Defer global listeners a tick to avoid catching the same click
+      document.body.appendChild(bd);
+      // Focus the confirm button so Enter works
       setTimeout(() => {
+        bd.querySelector('[data-a="ok"]')?.focus();
         document.addEventListener('keydown', onKey);
-        document.addEventListener('mousedown', onDoc, true);
-      }, 0);
+      }, 50);
     });
   }
 
@@ -291,24 +320,13 @@
       return;
     }
 
-    // Fallback: floating pill
+    // No anchor found — do NOT fall back to a floating FAB
+    // (the user explicitly asked to remove that). The logout
+    // button is also reachable from the avatar dropdown menu
+    // (auth-gate.js), so we leave it at that.
+    if (oldFab) oldFab.remove();
     if (oldInline) oldInline.remove();
-    if (oldFab) return;
-    const fab = document.createElement('button');
-    fab.id = 'arsan-logout-fab';
-    fab.type = 'button';
-    fab.title = 'تسجيل الخروج';
-    const m = me();
-    fab.innerHTML =
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>' +
-        '<polyline points="16 17 21 12 16 7"/>' +
-        '<line x1="21" y1="12" x2="9" y2="12"/>' +
-      '</svg>' +
-      '<span>خروج</span>' +
-      (m?.email ? '<span class="arsan-logout-email">' + m.email + '</span>' : '');
-    fab.addEventListener('click', (e) => { e.preventDefault(); doLogout(fab); });
-    document.body.appendChild(fab);
+    return;
   }
 
   function boot(){

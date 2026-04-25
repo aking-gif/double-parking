@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>لوحة إجراءات إدارة المشاريع — أرسان للتشغيل</title>
@@ -1218,7 +1222,7 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
   .arsan-topbar{ background:linear-gradient(180deg, #1a1510, #231a10) !important; }
 }
 </style>
-<link rel="stylesheet" href="design-polish.css?v=1">
+<link rel="stylesheet" href="design-polish.css?v=20">
 </head>
 <body>
 <!-- =================== HEADER =================== -->
@@ -3339,7 +3343,19 @@ async function aiAsk(prompt){
   } catch(err) {
     loading.remove();
     const msg = err && err.message ? err.message : String(err);
-    aiAddMsg('تعذّر الاتصال بالمساعد: ' + msg + '\n\nلتفعيل المساعد على GitHub Pages، يمكنك:\n• ضبط رابط Cloudflare Worker في window.API_BASE\n• أو إدخال مفتاح Anthropic API بالنقر على زر "إعداد AI" أسفل المحادثة.', 'ai-bot');
+    let userMsg;
+    if (msg.includes('ai-not-configured') || msg.includes('503')) {
+      userMsg = '⚠️ مساعد الذكاء غير مفعّل بعد على الخادم.\n\nيحتاج الأدمن لإضافة مفتاح Anthropic في إعدادات Cloudflare Worker:\n• اذهب إلى Workers → arsan-api → Settings → Variables\n• أضف Secret باسم: ANTHROPIC_API_KEY\n• القيمة: مفتاحك من console.anthropic.com\n• ثم Save & Deploy';
+    } else if (msg.includes('unauthorized') || msg.includes('401')) {
+      userMsg = '⚠️ لاستخدام مساعد الذكاء، يرجى تسجيل الدخول أولاً.';
+    } else if (msg.includes('rate-limit') || msg.includes('429')) {
+      userMsg = '⚠️ تجاوزت الحد المسموح من الطلبات هذه الساعة. حاول بعد قليل.';
+    } else if (msg.includes('ai-unavailable')) {
+      userMsg = '⚠️ مساعد الذكاء غير متاح حالياً.\n\nتأكد من تسجيل الدخول، أو اطلب من الأدمن تفعيل مفتاح ANTHROPIC_API_KEY على الخادم.';
+    } else {
+      userMsg = 'تعذّر الاتصال بالمساعد:\n' + msg + '\n\nقد تحتاج لإعادة المحاولة، أو إعداد المفتاح من الأدمن.';
+    }
+    aiAddMsg(userMsg, 'ai-bot');
     console.error(err);
   }
 }
@@ -6013,8 +6029,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 })();
 </script>
 
-<script src="updates-banner.js?v=3"></script>
-<script src="brand.js?v=3"></script>
+<script src="updates-banner.js?v=20"></script>
+<script src="brand.js?v=20"></script>
 <script>
   /* حقن شعار أرسان في زاوية الصفحة (badge) و title bar */
   (function injectBrandLogo(){
@@ -6033,30 +6049,30 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     }
   })();
 </script>
-<script src="cache-bust.js?v=1"></script>
-<script src="sidebar.js?v=9"></script>
-<script src="i18n.js?v=4"></script>
-<script src="themes.js?v=2"></script>
-<script src="settings.js?v=2"></script>
-<script src="favorites.js?v=1"></script>
-<script src="logout-button.js?v=2"></script>
-<script src="quick-actions.js?v=1"></script>
-<script src="notifications.js?v=3"></script>
-<script src="maintenance.js?v=1"></script>
-<script src="changelog.js?v=2"></script>
-<script src="admin-fab.js?v=5"></script>
-<script src="welcome-popup.js?v=3"></script>
-<script src="features-pack.js?v=1"></script>
-<script src="admin-toolbar.js?v=6"></script>
-<script src="messaging.js?v=1"></script>
-<script src="mentions.js?v=1"></script>
-<script src="audit-viewer.js?v=1"></script>
-<script src="webhooks-admin.js?v=1"></script>
-<script src="tasks.js?v=1"></script>
-<script src="comments.js?v=1"></script>
-<script src="approval-flow.js?v=1"></script>
-<script src="cmdk.js?v=1"></script>
-<script src="auth-gate.js?v=10"></script>
+<script src="cache-bust.js?v=20"></script>
+<script src="sidebar.js?v=20"></script>
+<script src="i18n.js?v=20"></script>
+<script src="themes.js?v=20"></script>
+<script src="settings.js?v=20"></script>
+<script src="favorites.js?v=20"></script>
+<script src="logout-button.js?v=20"></script>
+<script src="quick-actions.js?v=20"></script>
+<script src="notifications.js?v=20"></script>
+<script src="maintenance.js?v=20"></script>
+<script src="changelog.js?v=20"></script>
+<script src="admin-fab.js?v=20"></script>
+<script src="welcome-popup.js?v=20"></script>
+<script src="features-pack.js?v=20"></script>
+<script src="admin-toolbar.js?v=20"></script>
+<script src="messaging.js?v=20"></script>
+<script src="mentions.js?v=20"></script>
+<script src="audit-viewer.js?v=20"></script>
+<script src="webhooks-admin.js?v=20"></script>
+<script src="tasks.js?v=20"></script>
+<script src="comments.js?v=20"></script>
+<script src="approval-flow.js?v=20"></script>
+<script src="cmdk.js?v=20"></script>
+<script src="auth-gate.js?v=20"></script>
  
 </body>
 </html>

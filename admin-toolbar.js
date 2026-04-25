@@ -44,78 +44,113 @@
 
   // -------- inject CSS --------
   const css = `
-  .arsan-at{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:#141414; color:#F7F6F2;
-    border-radius:999px; padding:8px;
-    box-shadow:0 12px 40px rgba(0,0,0,.25), 0 4px 12px rgba(0,0,0,.18);
-    display:none; align-items:center; gap:4px;
-    z-index:99000;
+  /* FAB button - الزر العائم الوحيد */
+  .arsan-fab{
+    position:fixed; bottom:24px; right:24px;
+    width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg, #D4B24A, #85714D);
+    color:#1a1a1a; border:0;
+    box-shadow:0 8px 24px rgba(212,178,74,.35), 0 2px 8px rgba(0,0,0,.2);
+    display:none; align-items:center; justify-content:center;
+    cursor:pointer; z-index:99000;
+    font-size:28px; font-weight:300; line-height:1;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+  }
+  .arsan-fab.is-visible{ display:flex }
+  .arsan-fab:hover{ transform:scale(1.08); box-shadow:0 12px 32px rgba(212,178,74,.5) }
+  .arsan-fab:active{ transform:scale(.95) }
+  .arsan-fab.is-open{ transform:rotate(45deg); background:linear-gradient(135deg,#a04040,#7a2e2e); color:#fff }
+  .arsan-fab.is-open:hover{ transform:rotate(45deg) scale(1.05) }
+
+  /* Sheet menu - يظهر فوق الزر */
+  .arsan-fab-sheet{
+    position:fixed; bottom:96px; right:24px;
+    background:#1a1a1c; color:#F7F6F2;
+    border-radius:20px; padding:10px;
+    box-shadow:0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.3);
+    display:none; flex-direction:column; gap:2px;
+    z-index:98999;
     border:1px solid rgba(255,255,255,.08);
-    backdrop-filter:blur(20px);
-    max-width:calc(100vw - 32px);
-    overflow-x:auto; scrollbar-width:none;
+    min-width:240px; max-width:320px;
+    max-height:calc(100vh - 140px); overflow-y:auto;
     font-family:"IBM Plex Sans Arabic", system-ui, sans-serif;
     direction:rtl;
+    opacity:0; transform:translateY(20px) scale(.95);
+    transition:opacity .2s, transform .25s cubic-bezier(.34,1.56,.64,1);
   }
-  .arsan-at::-webkit-scrollbar{ display:none }
-  .arsan-at.is-visible{ display:flex }
-  .arsan-at .at-label{
-    display:inline-flex; align-items:center; gap:6px;
-    padding:0 14px 0 10px;
-    font-size:11px; font-weight:600;
-    color:#D4B24A;
-    border-right:1px solid rgba(255,255,255,.10);
-    white-space:nowrap; height:36px; letter-spacing:.3px;
+  .arsan-fab-sheet.is-open{
+    display:flex; opacity:1; transform:none;
   }
-  .arsan-at .at-label::before{ content:'⭐'; font-size:13px }
-  .arsan-at button{
-    display:inline-flex; align-items:center; gap:6px;
-    padding:8px 14px; height:36px;
-    border-radius:999px;
-    background:transparent; color:#F7F6F2;
-    font-size:13px; font-weight:500; transition:.15s;
-    white-space:nowrap; border:0; cursor:pointer;
+  .arsan-fab-sheet::-webkit-scrollbar{ width:6px }
+  .arsan-fab-sheet::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.1); border-radius:3px }
+  .arsan-fab-sheet .at-section{
+    font-size:10px; font-weight:700; letter-spacing:.6px;
+    color:#D4B24A; padding:10px 14px 6px; opacity:.85;
+    text-transform:uppercase;
+  }
+  .arsan-fab-sheet .at-section:first-child{ padding-top:6px }
+  .arsan-fab-sheet button{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 14px; height:auto;
+    background:transparent; border:0; border-radius:10px;
+    color:#F7F6F2; font-size:14px; font-weight:500;
+    cursor:pointer; text-align:right; width:100%;
+    transition:background .15s;
     font-family:inherit;
+    line-height:1.3;
   }
-  .arsan-at button:hover{ background:rgba(255,255,255,.10) }
-  .arsan-at button.is-primary{ background:#8B6F00; color:#fff }
-  .arsan-at button.is-primary:hover{ filter:brightness(1.15) }
-  .arsan-at button svg{ width:14px; height:14px; flex-shrink:0 }
-  .arsan-at button .at-badge{
+  .arsan-fab-sheet button:hover{ background:rgba(255,255,255,.08) }
+  .arsan-fab-sheet button.is-primary{
+    background:rgba(212,178,74,.15);
+    color:#E7C66A;
+  }
+  .arsan-fab-sheet button.is-primary:hover{ background:rgba(212,178,74,.22) }
+  .arsan-fab-sheet button svg{
+    width:18px; height:18px; flex-shrink:0;
+    opacity:.85;
+  }
+  .arsan-fab-sheet button .at-icn{
+    width:32px; height:32px; border-radius:8px;
+    background:rgba(255,255,255,.05);
     display:inline-flex; align-items:center; justify-content:center;
-    min-width:16px; height:16px; padding:0 5px;
-    background:#ef4444; color:#fff; border-radius:8px;
-    font-size:10px; font-weight:700; line-height:1;
-    margin-right:2px;
+    flex-shrink:0;
   }
-  .arsan-at .at-divider{
-    width:1px; height:20px;
-    background:rgba(255,255,255,.10);
-    margin:0 2px;
+  .arsan-fab-sheet button.is-primary .at-icn{
+    background:rgba(212,178,74,.2);
   }
-  /* Admin drawer toggle */
-  .arsan-at .at-admin-toggle{
-    background:rgba(255,255,255,.06)!important;
-    border:1px dashed rgba(255,255,255,.20)!important;
-    margin-right:4px;
+  .arsan-fab-sheet .at-divider{
+    height:1px; background:rgba(255,255,255,.08);
+    margin:6px 0;
   }
-  .arsan-at .at-admin-toggle:hover{ background:rgba(255,255,255,.14)!important }
-  .arsan-at .at-admin-toggle .at-caret{ font-size:10px; opacity:.7; transition:transform .2s }
-  .arsan-at .at-admin-toggle[aria-expanded="true"] .at-caret{ transform:rotate(180deg) }
-  .arsan-at .at-admin-toggle[aria-expanded="true"]{
-    background:rgba(212,166,74,.20)!important;
-    border-color:rgba(212,166,74,.50)!important;
+  .arsan-fab-sheet button .at-badge{
+    margin-right:auto;
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:18px; height:18px; padding:0 6px;
+    border-radius:9px; background:#D4B24A; color:#1a1a1a;
+    font-size:10px; font-weight:700;
   }
-  .arsan-at .at-admin-group{ display:contents }
-  .arsan-at .at-admin-group[data-collapsed="1"]{ display:none }
+  /* backdrop click-to-close */
+  .arsan-fab-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.3);
+    backdrop-filter:blur(2px);
+    z-index:98998;
+    display:none;
+    animation:arsan-fab-fade .2s;
+  }
+  .arsan-fab-backdrop.is-open{ display:block }
+  @keyframes arsan-fab-fade{ from{opacity:0} to{opacity:1} }
+
+  /* Mobile - smaller */
   @media (max-width:600px){
-    .arsan-at{ bottom:12px; padding:6px; gap:2px }
-    .arsan-at button{ padding:7px 10px; font-size:12px }
-    .arsan-at button span.at-text{ display:none }
-    .arsan-at .at-label{ padding:0 10px 0 8px; font-size:10px }
+    .arsan-fab{ width:52px; height:52px; bottom:18px; right:18px; font-size:26px }
+    .arsan-fab-sheet{ bottom:84px; right:18px; left:18px; max-width:none; min-width:0 }
   }
 
+  /* RTL: zero out the LTR FAB defaults if dir=ltr */
+  html[dir="ltr"] .arsan-fab,
+  html[dir="ltr"] .arsan-fab-sheet{ right:auto; left:24px }
+  
   /* Modals */
   .arsan-md-bd{
     position:fixed; inset:0; background:rgba(0,0,0,.55);
@@ -634,139 +669,168 @@
     });
   }
 
-  // -------- Build the toolbar --------
+  // -------- Action dispatcher (shared by FAB sheet items) --------
+  function dispatchAction(act) {
+    if (act === 'add-dept') showManageDeptsModal();
+    else if (act === 'users') location.href = 'users.html';
+    else if (act === 'announce') showAnnounceModal();
+    else if (act === 'updates') showUpdatesModal();
+    else if (act === 'activity') showActivityModal();
+    else if (act === 'messages') { if (window.ArsanMessaging) window.ArsanMessaging.open(); else alert('messaging.js لم يُحمَّل'); }
+    else if (act === 'audit') { if (window.ArsanAudit) window.ArsanAudit.open(); else alert('audit-viewer.js لم يُحمَّل'); }
+    else if (act === 'webhooks') { if (window.ArsanWebhooks) window.ArsanWebhooks.open(); else alert('webhooks-admin.js لم يُحمَّل'); }
+    else if (act === 'slack') showSlackModal();
+    else if (act === 'maintenance') showMaintenanceModal();
+    else if (act === 'settings') showSettingsModal();
+    else if (act === 'new-sop') openNewSopModal();
+    else if (act === 'import-sop') openImportSopModal();
+    else if (act === 'unified-map') {
+      if (typeof window.showUnifiedMap === 'function') window.showUnifiedMap();
+      else alert('الخريطة الشاملة غير جاهزة — حدّث الصفحة');
+    }
+    else if (act === 'deps-editor') {
+      if (typeof window.showDepsEditor === 'function') window.showDepsEditor();
+      else alert('محرر التبعيّات غير جاهز — حدّث الصفحة');
+    }
+  }
+
+  // -------- Build the FAB + Sheet --------
   function buildToolbar() {
     if (document.getElementById('arsanAdminToolbar')) return;
-    const tb = document.createElement('div');
-    tb.id = 'arsanAdminToolbar';
-    tb.className = 'arsan-at';
-    tb.setAttribute('role', 'toolbar');
+
+    // FAB
+    const fab = document.createElement('button');
+    fab.id = 'arsanAdminToolbar';
+    fab.className = 'arsan-fab';
+    fab.setAttribute('aria-label', 'فتح أدوات أرسان');
+    fab.setAttribute('aria-expanded', 'false');
+    fab.innerHTML = '+';
+
+    // Backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'arsan-fab-backdrop';
+
+    // Sheet
+    const sheet = document.createElement('div');
+    sheet.id = 'arsanAdminSheet';
+    sheet.className = 'arsan-fab-sheet';
+    sheet.setAttribute('role', 'menu');
+
     const showAddSopBtn = isLoggedIn() && inDashboard();
     const showMapBtns = inDashboard();
     const mapBtnsHTML = showMapBtns ? `
-      <button data-act="unified-map" title="🌐 الخريطة الشاملة — كل الإدارات والتبعيات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span class="at-text">الخريطة</span>
+      <button data-act="unified-map">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+        الخريطة الشاملة
       </button>
-      <button data-act="deps-editor" title="🔗 محرر التبعيّات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        <span class="at-text">التبعيّات</span>
+      <button data-act="deps-editor">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+        محرر التبعيّات
       </button>
-      <span class="at-divider"></span>
     ` : '';
     const sopBtnsHTML = showAddSopBtn ? `
-      <button class="is-primary" data-act="new-sop" title="إضافة إجراء جديد">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span class="at-text">إجراء جديد</span>
+      <button class="is-primary" data-act="new-sop">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+        إضافة إجراء جديد
       </button>
-      <button data-act="import-sop" title="استيراد إجراء من ملف">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span class="at-text">استيراد</span>
+      <button data-act="import-sop">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+        استيراد إجراء
       </button>
-      <span class="at-divider"></span>
     ` : '';
-    const adminToggleHTML = isAdmin() ? (
-      '<button class="at-admin-toggle" data-act="toggle-admin" title="أدوات الأدمن" aria-expanded="false">' +
-        '<span style="font-size:14px">⭐</span>' +
-        '<span class="at-text">أدوات الأدمن</span>' +
-        '<span class="at-caret">▾</span>' +
-      '</button>' +
-      '<span class="at-admin-group" data-collapsed="1">'
-    ) : '';
-    const adminGroupCloseHTML = isAdmin() ? '</span>' : '';
-
-    tb.innerHTML = `
-      <span class="at-label">${isAdmin() ? 'أرسان' : 'أدوات سريعة'}</span>
-      ${mapBtnsHTML}
-      ${sopBtnsHTML}
-      ${adminToggleHTML}
-      <button class="is-primary" data-act="add-dept" title="إدارة الإدارات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span class="at-text">الإدارات</span>
+    const adminSection = isAdmin() ? `
+      <div class="at-divider"></div>
+      <div class="at-section">أدوات الأدمن</div>
+      <button data-act="add-dept">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        الإدارات
       </button>
-      <span class="at-divider"></span>
-      <button data-act="users" title="إدارة المستخدمين">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="at-text">المستخدمون</span>
+      <button data-act="users">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        المستخدمون
       </button>
-      <button data-act="announce" title="إعلان جديد">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/></svg>
-        <span class="at-text">إعلان</span>
+      <button data-act="announce">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/></svg></span>
+        إعلان جديد
       </button>
-      <button data-act="updates" title="شريط التحديثات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span class="at-text">التحديثات</span>
+      <button data-act="updates">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg></span>
+        شريط التحديثات
       </button>
-      <button data-act="activity" title="سجل النشاط">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span class="at-text">النشاط</span>
+      <button data-act="activity">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        سجل النشاط
       </button>
-      <button data-act="messages" title="مركز الرسائل بين الإدارات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span class="at-text">الرسائل</span>
+      <button data-act="messages">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        مركز الرسائل
         <span class="at-badge" id="atBadgeMessages" style="display:none"></span>
       </button>
-      <button data-act="audit" title="سجل التعديلات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        <span class="at-text">السجل</span>
+      <button data-act="audit">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
+        سجل التعديلات
       </button>
-      <button data-act="webhooks" title="Webhooks">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6m-10 0H1"/></svg>
-        <span class="at-text">تكامل</span>
+      <button data-act="webhooks">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6m-10 0H1"/></svg></span>
+        Webhooks / تكامل
       </button>
-      <span class="at-divider"></span>
-      <button data-act="slack" title="ربط Slack">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
-        <span class="at-text">Slack</span>
+      <button data-act="slack">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg></span>
+        ربط Slack
       </button>
-      <button data-act="maintenance" title="وكيل الصيانة">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        <span class="at-text">الصيانة</span>
+      <button data-act="maintenance">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+        وكيل الصيانة
       </button>
-      <button data-act="settings" title="الإعدادات">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="at-text">الإعدادات</span>
+      <button data-act="settings">
+        <span class="at-icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg></span>
+        الإعدادات
       </button>
-      ${adminGroupCloseHTML}
-    `;
-    document.body.appendChild(tb);
+    ` : '';
 
-    tb.querySelectorAll('button[data-act]').forEach(b => {
+    const quickSection = (mapBtnsHTML || sopBtnsHTML) ? `
+      <div class="at-section">إجراءات سريعة</div>
+      ${sopBtnsHTML}
+      ${mapBtnsHTML}
+    ` : '';
+
+    sheet.innerHTML = quickSection + adminSection;
+    if (!sheet.innerHTML.trim()) {
+      // ما في شيء يعرضه — لا تُظهر الزر
+      return;
+    }
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(sheet);
+    document.body.appendChild(fab);
+
+    function closeSheet() {
+      sheet.classList.remove('is-open');
+      backdrop.classList.remove('is-open');
+      fab.classList.remove('is-open');
+      fab.setAttribute('aria-expanded', 'false');
+    }
+    function openSheet() {
+      sheet.classList.add('is-open');
+      backdrop.classList.add('is-open');
+      fab.classList.add('is-open');
+      fab.setAttribute('aria-expanded', 'true');
+    }
+    fab.onclick = (e) => {
+      e.stopPropagation();
+      if (sheet.classList.contains('is-open')) closeSheet();
+      else openSheet();
+    };
+    backdrop.onclick = closeSheet;
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sheet.classList.contains('is-open')) closeSheet();
+    });
+
+    sheet.querySelectorAll('button[data-act]').forEach(b => {
       b.onclick = () => {
         const act = b.getAttribute('data-act');
-        if (act === 'toggle-admin') {
-          const grp = tb.querySelector('.at-admin-group');
-          const expanded = b.getAttribute('aria-expanded') === 'true';
-          if (expanded) {
-            b.setAttribute('aria-expanded','false');
-            if (grp) grp.setAttribute('data-collapsed','1');
-          } else {
-            b.setAttribute('aria-expanded','true');
-            if (grp) grp.removeAttribute('data-collapsed');
-          }
-          return;
-        }
-        if (act === 'add-dept') showManageDeptsModal();
-        else if (act === 'users') location.href = 'users.html';
-        else if (act === 'announce') showAnnounceModal();
-        else if (act === 'updates') showUpdatesModal();
-        else if (act === 'activity') showActivityModal();
-        else if (act === 'messages') { if (window.ArsanMessaging) window.ArsanMessaging.open(); else alert('messaging.js لم يُحمَّل'); }
-        else if (act === 'audit') { if (window.ArsanAudit) window.ArsanAudit.open(); else alert('audit-viewer.js لم يُحمَّل'); }
-        else if (act === 'webhooks') { if (window.ArsanWebhooks) window.ArsanWebhooks.open(); else alert('webhooks-admin.js لم يُحمَّل'); }
-        else if (act === 'slack') showSlackModal();
-        else if (act === 'maintenance') showMaintenanceModal();
-        else if (act === 'settings') showSettingsModal();
-        else if (act === 'new-sop') openNewSopModal();
-        else if (act === 'import-sop') openImportSopModal();
-        else if (act === 'unified-map') {
-          if (typeof window.showUnifiedMap === 'function') window.showUnifiedMap();
-          else alert('الخريطة الشاملة غير جاهزة — حدّث الصفحة');
-        }
-        else if (act === 'deps-editor') {
-          if (typeof window.showDepsEditor === 'function') window.showDepsEditor();
-          else alert('محرر التبعيّات غير جاهز — حدّث الصفحة');
-        }
+        closeSheet();
+        setTimeout(() => dispatchAction(act), 150);
       };
     });
   }
@@ -875,8 +939,13 @@
     if (!tb) return;
     // الظهور: أدمن دائماً، أو أي مستخدم مسجّل داخل dashboard
     const shouldShow = isAdmin() || (isLoggedIn() && inDashboard());
-    if (shouldShow) tb.classList.add('is-visible');
-    else tb.classList.remove('is-visible');
+    const sheet = document.getElementById('arsanAdminSheet');
+    if (shouldShow) {
+      tb.classList.add('is-visible');
+    } else {
+      tb.classList.remove('is-visible');
+      if (sheet) sheet.classList.remove('is-open');
+    }
   }
 
   function init() {

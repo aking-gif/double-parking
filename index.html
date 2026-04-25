@@ -489,12 +489,23 @@
   }
 
   // ============================================================
-  // 5. رسم البطاقات الافتراضية
+  // 5. رسم البطاقات الافتراضية + تطبيق التعديلات
   // ============================================================
+  let DEPT_OVERRIDES = {};
+  function renderAll() {
+    grid.innerHTML = '';
+    // built-ins with overrides applied
+    DEPARTMENTS.forEach(d => {
+      const ov = DEPT_OVERRIDES[d.id] || {};
+      renderDeptCard({ ...d, ...ov, id: d.id }, false);
+    });
+    // re-load customs
+    loadCustomDepts();
+  }
   DEPARTMENTS.forEach(d => renderDeptCard(d, false));
 
   // ============================================================
-  // 6. تحميل الإدارات المخصّصة من Worker
+  // 6. تحميل الإدارات المخصّصة + التعديلات من Worker
   // ============================================================
   async function loadCustomDepts() {
     try {
@@ -515,6 +526,24 @@
       maybeShowAddBtn(); // re-add the "+" card at end
     } catch(_) {}
   }
+
+  async function loadOverrides() {
+    try {
+      const token = getArsanToken();
+      if (!token) return;
+      const res = await fetch(window.API_BASE + '/api/dept-overrides', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return;
+      DEPT_OVERRIDES = await res.json() || {};
+      renderAll();
+    } catch(_) {}
+  }
+
+  // refresh on changes
+  window.addEventListener('arsan:depts-changed', () => {
+    loadOverrides();
+  });
 
   // ============================================================
   // 7. زر "إضافة إدارة" للأدمن فقط
@@ -899,7 +928,7 @@
   // 13. تشغيل
   // ============================================================
   showUserPill();
-  loadCustomDepts();
+  loadOverrides();
   maybeShowAddBtn();
 
   setTimeout(() => {
@@ -909,7 +938,7 @@
 
   window.addEventListener('arsan:login', () => {
     showUserPill();
-    loadCustomDepts();
+    loadOverrides();
     maybeShowAddBtn();
   });
 
@@ -917,7 +946,7 @@
   window.addEventListener('arsan:depts-changed', () => {
     // امسح بطاقات الإدارات المخصّصة الحالية واعد البناء
     document.querySelectorAll('.dept-card.is-custom').forEach(c => c.remove());
-    loadCustomDepts();
+    loadOverrides();
     maybeShowAddBtn();
   });
 </script>

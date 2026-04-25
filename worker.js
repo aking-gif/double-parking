@@ -39,6 +39,7 @@ const KEYS = {
   slack:    "slack_webhook_v1",
   sessions: (token) => `sess_${token}`,
   customDepts: "custom_depts_v1",
+  deptOverrides: "dept_overrides_v1",
   updatesUrl:  "updates_url_v1",
   updatesCache:"updates_cache_v1",
   announcements: "announcements_v1",
@@ -838,9 +839,7 @@ export default {
       // GET /api/updates → public, returns { html, fetchedAt, items[] }
       // Caches for 5 minutes. Fetches the configured URL (Google Doc published-to-web, or any URL returning HTML/text)
       if (path === "/api/updates" && method === "GET") {
-        const s = await getSession(req, env);
-        if (!s) return json({ error: "unauthorized" }, 401, req);
-
+        // public — no auth needed (banner shows on login screen too)
         const cacheRaw = await env.ARSAN.get(KEYS.updatesCache);
         const now = Date.now();
         if (cacheRaw) {
@@ -850,10 +849,24 @@ export default {
           }
         }
 
-        const srcUrl = await env.ARSAN.get(KEYS.updatesUrl);
+        let srcUrl = await env.ARSAN.get(KEYS.updatesUrl);
         if (!srcUrl) {
-          return json({ html: "", items: [], fetchedAt: now, source: null }, 200, req);
+          return json({ html: "", items: [], fetchedAt: now, source: null, error: "no-url-configured" }, 200, req);
         }
+
+        // Auto-convert common Google Docs URL forms to a fetchable "publish to web" URL
+        // 1) /document/d/<ID>/edit  →  /document/d/<ID>/pub?embedded=true
+        // 2) /document/d/e/<PUBID>/pub  →  /document/d/e/<PUBID>/pub?embedded=true
+        // 3) already pub?embedded=true → leave as-is
+        try {
+          const m1 = srcUrl.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)\/(edit|view)/i);
+          const m2 = srcUrl.match(/docs\.google\.com\/document\/d\/e\/([a-zA-Z0-9_-]+)\/pub/i);
+          if (m1) {
+            srcUrl = `https://docs.google.com/document/d/${m1[1]}/pub?embedded=true`;
+          } else if (m2 && !/embedded=true/.test(srcUrl)) {
+            srcUrl = `https://docs.google.com/document/d/e/${m2[1]}/pub?embedded=true`;
+          }
+        } catch(_) {}
 
         try {
           const res = await fetch(srcUrl, {
@@ -962,6 +975,51 @@ export default {
         if (filtered.length === list.length) return json({ error: "not-found" }, 404, req);
         await env.ARSAN.put(KEYS.customDepts, JSON.stringify(filtered));
         await logActivity(env, { actor: ad.session.email, action: "delete-dept", target: id });
+        return json({ ok: true }, 200, req);
+      }
+
+      // ---------- DEPT OVERRIDES (تعديل الإدارات الافتراضية) ----------
+      // GET /api/dept-overrides → { [id]: {name?, icon?, color?, desc?, head?, email?, members?, notes?} }
+      if (path === "/api/dept-overrides" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.deptOverrides);
+        return json(raw ? JSON.parse(raw) : {}, 200, req);
+      }
+      // PUT /api/dept-overrides/:id  { name?, icon?, color?, desc?, head?, email?, members?, notes? } — admin only
+      if (path.match(/^\/api\/dept-overrides\/[^\/]+$/) && method === "PUT") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = decodeURIComponent(path.split("/")[3]);
+        const body = await req.json().catch(() => ({}));
+        const raw = await env.ARSAN.get(KEYS.deptOverrides);
+        const map = raw ? JSON.parse(raw) : {};
+        map[id] = {
+          ...(map[id]||{}),
+          ...(body.name!==undefined?{name:body.name}:{}),
+          ...(body.icon!==undefined?{icon:body.icon}:{}),
+          ...(body.color!==undefined?{color:body.color}:{}),
+          ...(body.desc!==undefined?{desc:body.desc}:{}),
+          ...(body.head!==undefined?{head:body.head}:{}),
+          ...(body.email!==undefined?{email:body.email}:{}),
+          ...(body.members!==undefined?{members:body.members}:{}),
+          ...(body.notes!==undefined?{notes:body.notes}:{}),
+          updatedAt: Date.now(),
+          updatedBy: ad.session.email
+        };
+        await env.ARSAN.put(KEYS.deptOverrides, JSON.stringify(map));
+        await logActivity(env, { actor: ad.session.email, action: "override-dept", target: id });
+        return json({ ok: true, override: map[id] }, 200, req);
+      }
+      // DELETE /api/dept-overrides/:id — admin only (يلغي التعديل ويعيد الافتراضي)
+      if (path.match(/^\/api\/dept-overrides\/[^\/]+$/) && method === "DELETE") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const id = decodeURIComponent(path.split("/")[3]);
+        const raw = await env.ARSAN.get(KEYS.deptOverrides);
+        const map = raw ? JSON.parse(raw) : {};
+        delete map[id];
+        await env.ARSAN.put(KEYS.deptOverrides, JSON.stringify(map));
         return json({ ok: true }, 200, req);
       }
 

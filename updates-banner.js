@@ -277,9 +277,29 @@
   async function fetchAndRender(){
     try {
       const res = await fetch((window.API_BASE||'') + '/api/updates', { credentials: 'include' });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data.items || data.items.length === 0) return;
+      const data = await res.json().catch(() => ({}));
+
+      // — Diagnostic for admins —
+      const me = (() => { try { return JSON.parse(localStorage.getItem('arsan_me')||'null'); } catch { return null; } })();
+      const isAdmin = me && (me.role === 'admin' || (me.email||'').toLowerCase() === 'a.king@arsann.com');
+
+      if (!data.items || data.items.length === 0) {
+        // Show admin-only diagnostic banner so they know what to do
+        if (isAdmin) {
+          const existing = document.querySelector('.arsan-updates-banner');
+          if (existing) existing.remove();
+          injectStyles();
+          const bar = document.createElement('div');
+          bar.className = 'arsan-updates-banner';
+          let msg;
+          if (data.error === 'no-url-configured') msg = 'شريط التحديثات: لم يُضبط رابط Google Doc بعد. اذهب لـ "إدارة المنصّة" → الإعدادات.';
+          else if (data.error) msg = 'شريط التحديثات: فشل الجلب — ' + data.error + '. تأكد من نشر المستند للويب (File → Share → Publish to web).';
+          else msg = 'شريط التحديثات: المستند فارغ أو لا يحتوي على عناصر قابلة للعرض.';
+          bar.innerHTML = `<div class="arsan-ub-inner" style="max-width:1280px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:12px;color:#fff;font-size:13px"><span style="font-size:16px">⚠️</span><span style="flex:1">${msg}</span><button onclick="this.parentElement.parentElement.remove()" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px">إخفاء</button></div>`;
+          document.body.insertBefore(bar, document.body.firstChild);
+        }
+        return;
+      }
 
       const contentHash = hash(data.items.join('|') + (data.html || ''));
       if (isDismissedForCurrentContent(contentHash)) return;

@@ -211,20 +211,28 @@
       const listEl = bd.querySelector('#dList');
       listEl.innerHTML = '⏳ جارٍ التحميل...';
       let custom = [];
+      let overrides = {};
       try { custom = await apiCall('/api/custom-depts'); } catch(_) {}
+      try { overrides = await apiCall('/api/dept-overrides'); } catch(_) {}
+      // Apply overrides to BUILTIN
+      const builtinMerged = BUILTIN.map(d => {
+        const ov = overrides[d.id] || {};
+        return { ...d, ...ov, id: d.id, builtin: true };
+      });
       const all = [
-        ...BUILTIN.map(d => ({ ...d, builtin: true })),
+        ...builtinMerged,
         ...custom.map(d => ({ ...d, builtin: false }))
       ];
       listEl.innerHTML = all.map(d => `
         <div class="dept-row" data-id="${d.id}" style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #E7E3D8;border-radius:10px;margin-bottom:8px;background:#fff">
-          <span style="font-size:22px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:#F4EFD9;border-radius:8px">${d.icon || '🏢'}</span>
+          <span style="font-size:22px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:${d.color||'#F4EFD9'};border-radius:8px">${d.icon || '🏢'}</span>
           <div style="flex:1;min-width:0">
             <div style="font-weight:600">${d.name}</div>
-            <div style="font-size:11px;color:#6B7280;font-family:monospace;direction:ltr;text-align:right">${d.id}${d.builtin ? ' · افتراضية' : ''}</div>
+            <div style="font-size:11px;color:#6B7280;font-family:monospace;direction:ltr;text-align:right">${d.id}${d.builtin ? ' · افتراضية' : ''}${d.head ? ' · '+d.head : ''}</div>
+            ${d.desc ? `<div style="font-size:11px;color:#9CA3AF;margin-top:2px">${d.desc}</div>` : ''}
           </div>
+          <button class="btn-edit" data-id="${d.id}" data-builtin="${d.builtin?1:0}" title="تعديل" style="border:1px solid #E7E3D8;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:#374151">تعديل</button>
           ${d.builtin ? '' : `
-            <button class="btn-edit" data-id="${d.id}" title="تعديل" style="border:1px solid #E7E3D8;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:#374151">تعديل</button>
             <button class="btn-del" data-id="${d.id}" title="حذف" style="border:1px solid #E7E3D8;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;color:#c43">حذف</button>
           `}
         </div>
@@ -234,7 +242,10 @@
       listEl.querySelectorAll('.btn-edit').forEach(b => {
         b.onclick = () => {
           const id = b.getAttribute('data-id');
-          const dept = custom.find(x => x.id === id);
+          const isBuiltin = b.getAttribute('data-builtin') === '1';
+          const dept = isBuiltin
+            ? builtinMerged.find(x => x.id === id)
+            : custom.find(x => x.id === id);
           if (dept) showEditDeptModal(dept, refreshList);
         };
       });
@@ -288,28 +299,56 @@
 
   // -------- Edit Department --------
   function showEditDeptModal(dept, onDone) {
-    openModal('✏️ تعديل: ' + dept.name, `
+    const isBuiltin = !!dept.builtin;
+    openModal((isBuiltin?'✏️ تعديل (إدارة افتراضية): ':'✏️ تعديل: ') + dept.name, `
       <label>المعرّف</label>
       <input id="dId" type="text" value="${dept.id}" disabled style="font-family:monospace;direction:ltr;opacity:.6">
       <label>الاسم بالعربية *</label>
       <input id="dName" type="text" value="${(dept.name||'').replace(/"/g,'&quot;')}">
-      <label>أيقونة (Emoji)</label>
-      <input id="dIcon" type="text" value="${dept.icon || '🏢'}" style="font-size:18px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label>أيقونة (Emoji)</label>
+        <input id="dIcon" type="text" value="${dept.icon || '🏢'}" style="font-size:18px"></div>
+        <div><label>لون الخلفية</label>
+        <input id="dColor" type="color" value="${dept.color || '#F4EFD9'}" style="height:38px;padding:2px"></div>
+      </div>
       <label>وصف قصير</label>
-      <input id="dDesc" type="text" value="${(dept.desc||'').replace(/"/g,'&quot;')}">
+      <input id="dDesc" type="text" value="${(dept.desc||'').replace(/"/g,'&quot;')}" placeholder="مثال: التوظيف والرواتب">
+      <label>رئيس الإدارة</label>
+      <input id="dHead" type="text" value="${(dept.head||'').replace(/"/g,'&quot;')}" placeholder="اسم رئيس الإدارة">
+      <label>البريد الإلكتروني للإدارة</label>
+      <input id="dEmail" type="email" value="${(dept.email||'').replace(/"/g,'&quot;')}" placeholder="hr@arsann.com" style="direction:ltr">
+      <label>أعضاء الفريق (إيميلات مفصولة بفاصلة)</label>
+      <textarea id="dMembers" rows="2" style="direction:ltr">${(dept.members||[]).join(', ')}</textarea>
+      <label>ملاحظات / تفاصيل إضافية</label>
+      <textarea id="dNotes" rows="3" placeholder="رؤية الإدارة، أهدافها، KPIs...">${(dept.notes||'').replace(/</g,'&lt;')}</textarea>
     `, {
+      width: 560,
       saveLabel: 'حفظ التعديلات',
       onSave: async (bd) => {
         const name = bd.querySelector('#dName').value.trim();
         const icon = bd.querySelector('#dIcon').value.trim() || '🏢';
+        const color = bd.querySelector('#dColor').value;
         const desc = bd.querySelector('#dDesc').value.trim();
+        const head = bd.querySelector('#dHead').value.trim();
+        const email = bd.querySelector('#dEmail').value.trim();
+        const members = bd.querySelector('#dMembers').value.split(',').map(s=>s.trim()).filter(Boolean);
+        const notes = bd.querySelector('#dNotes').value.trim();
         const err = bd.querySelector('#mdErr');
         if (!name) { err.textContent = 'الاسم مطلوب.'; return; }
+        const payload = { name, icon, color, desc, head, email, members, notes };
         try {
-          await apiCall('/api/custom-depts/' + encodeURIComponent(dept.id), {
-            method: 'PATCH',
-            body: { name, icon, desc }
-          });
+          if (isBuiltin) {
+            // Save as override
+            await apiCall('/api/dept-overrides/' + encodeURIComponent(dept.id), {
+              method: 'PUT',
+              body: payload
+            });
+          } else {
+            await apiCall('/api/custom-depts/' + encodeURIComponent(dept.id), {
+              method: 'PATCH',
+              body: payload
+            });
+          }
           bd.remove();
           window.dispatchEvent(new CustomEvent('arsan:depts-changed'));
           if (onDone) onDone();

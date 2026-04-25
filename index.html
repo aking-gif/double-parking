@@ -475,14 +475,19 @@
     card.type = 'button';
     card.className = 'dept-card' + (isCustom ? ' is-custom' : '');
     card.setAttribute('data-id', dept.id);
+    // 🎨 تطبيق اللون المخصّص (إن وُجد)
+    if (dept.color) {
+      card.style.setProperty('--dept-color', dept.color);
+      card.style.background = `linear-gradient(135deg, ${dept.color}22 0%, ${dept.color}0a 100%)`;
+      card.style.borderColor = dept.color + '55';
+    }
     card.innerHTML = `
       ${isCustom ? '<span class="dept-badge">مخصّصة</span>' : ''}
-      <span class="dept-icon">${dept.icon || '🏢'}</span>
+      <span class="dept-icon"${dept.color ? ` style="color:${dept.color}"` : ''}>${dept.icon || '🏢'}</span>
       <h3 class="dept-name">${dept.name}</h3>
       <p class="dept-desc">${dept.desc || ''}</p>
       <span class="dept-arrow">←</span>
     `;
-    // نقرة واحدة فقط = انتقال فوري
     card.addEventListener('click', () => goToDept(dept));
     grid.appendChild(card);
     return card;
@@ -522,7 +527,7 @@
       list.forEach(d => {
         if (DEPARTMENTS.find(x => x.id === d.id)) return; // skip duplicates
         renderDeptCard({
-          id: d.id, name: d.name, icon: d.icon || '🏢', desc: d.desc || ''
+          id: d.id, name: d.name, icon: d.icon || '🏢', desc: d.desc || '', color: d.color || ''
         }, true);
       });
       maybeShowAddBtn(); // re-add the "+" card at end

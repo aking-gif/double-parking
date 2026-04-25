@@ -22,6 +22,7 @@
     for (const k in attrs) {
       if (k === 'class') n.className = attrs[k];
       else if (k === 'style') n.style.cssText = attrs[k];
+      else if (k === 'innerHTML') n.innerHTML = attrs[k];
       else if (k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
       else if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
     }

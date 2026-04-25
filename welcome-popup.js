@@ -169,7 +169,7 @@
     bd.innerHTML = `
       <div class="arsan-welcome-card" role="dialog" aria-modal="true">
         <button class="arsan-welcome-x" type="button" aria-label="إغلاق">✕</button>
-        <div class="arsan-welcome-logo">أ</div>
+        <div class="arsan-welcome-logo" id="arsan-welcome-logo-mark"></div>
         <div class="arsan-welcome-hello">${greeting}</div>
         <h2 class="arsan-welcome-title">${q.t}</h2>
         <p class="arsan-welcome-sub">${q.s}</p>
@@ -178,6 +178,18 @@
       </div>
     `;
     document.body.appendChild(bd);
+    // حقن شعار أرسان
+    try {
+      const logoEl = bd.querySelector('#arsan-welcome-logo-mark');
+      if (logoEl && window.ArsanBrand && window.ArsanBrand.logo) {
+        logoEl.innerHTML = window.ArsanBrand.logo(64);
+        logoEl.style.background = 'transparent';
+        logoEl.style.boxShadow = 'none';
+        logoEl.style.display = 'flex';
+        logoEl.style.alignItems = 'center';
+        logoEl.style.justifyContent = 'center';
+      }
+    } catch(e) {}
     requestAnimationFrame(() => bd.classList.add('open'));
 
     const close = () => {

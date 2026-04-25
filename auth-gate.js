@@ -600,16 +600,19 @@
   }
 
   function filterDepartments(me){
+    // ⚠️ تم تعطيل هذه الدالة عمداً — كل مستخدم مسجّل يرى كل الإدارات.
+    // الصلاحيات الفعلية تُطبَّق على مستوى dashboard.html (تعديل/حذف/إضافة).
+    const cards = $$('.dept-card');
+    cards.forEach(card => {
+      card.style.display = '';
+      card.classList.remove('ag-locked');
+      card.removeAttribute('title');
+    });
+    return; // الكود القديم بالأسفل لم يعد يُنفّذ
+
+    /* OLD LOGIC — disabled
     const isAdmin = me.role === 'admin';
     const allowed = new Set((me.departments || []).map(d => String(d).toLowerCase()));
-
-    const cards = $$('.dept-card');
-    if (cards.length === 0) {
-      // Cards not rendered yet — retry shortly
-      setTimeout(() => filterDepartments(me), 150);
-      return;
-    }
-
     let visibleCount = 0;
     cards.forEach(card => {
       const id = (card.getAttribute('data-id') || '').toLowerCase();
@@ -618,32 +621,10 @@
         card.classList.remove('ag-locked');
         visibleCount++;
       } else {
-        // Option A: hide completely
         card.style.display = 'none';
-        // Option B (alternative): show locked — uncomment the two lines below and remove the display:none above
-        // card.classList.add('ag-locked');
-        // card.setAttribute('title', 'ليس لديك صلاحية الوصول إلى هذه الإدارة');
       }
     });
-
-    // If no visible depts, show a message
-    const grid = document.querySelector('.dept-grid');
-    let emptyMsg = document.getElementById('ag-no-access');
-    if (!isAdmin && visibleCount === 0 && grid) {
-      if (!emptyMsg) {
-        emptyMsg = el('div', {
-          id: 'ag-no-access',
-          style: 'grid-column:1/-1;padding:40px 20px;text-align:center;color:#8a7c55;font-size:14px;line-height:1.7;border:1px dashed #d6ccaa;border-radius:12px'
-        },
-          el('div', { style: 'font-size:32px;margin-bottom:8px' }, '🔒'),
-          el('div', { style: 'font-weight:600;color:#5a4e30;margin-bottom:6px' }, 'لم يتم تعيين إدارات لحسابك'),
-          el('div', {}, 'تواصل مع الأدمن (a.king@arsann.com) لمنحك صلاحية الوصول.')
-        );
-        grid.appendChild(emptyMsg);
-      }
-    } else if (emptyMsg) {
-      emptyMsg.remove();
-    }
+    */
   }
 
   async function hydrateUser(){

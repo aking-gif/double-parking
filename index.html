@@ -547,10 +547,18 @@
   // 7. زر "إضافة إدارة" للأدمن فقط
   // ============================================================
   function isAdmin() {
-    try {
-      const me = JSON.parse(localStorage.getItem('arsan_me') || 'null');
-      return !!(me && (me.role === 'admin' || (me.email||'').toLowerCase() === 'a.king@arsann.com'));
-    } catch(_) { return false; }
+    // افحص كل المصادر الممكنة
+    const sources = [
+      window.ArsanCurrentUser,
+      (() => { try { return JSON.parse(localStorage.getItem('arsan_me') || 'null'); } catch(_) { return null; } })(),
+      (() => { try { return JSON.parse(localStorage.getItem('arsan_me_v1') || 'null'); } catch(_) { return null; } })()
+    ];
+    for (const me of sources) {
+      if (!me) continue;
+      if (me.role === 'admin') return true;
+      if ((me.email || '').toLowerCase() === 'a.king@arsann.com') return true;
+    }
+    return false;
   }
 
   function maybeShowAddBtn() {
@@ -739,6 +747,30 @@
     maybeShowAddBtn();
     showAdminToolbar();
   }, 1500);
+
+  // فحص دوري كل 800ms لمدة 10 ثوانٍ — يلتقط أي تحديث متأخر
+  let _retries = 0;
+  const _checkInterval = setInterval(() => {
+    _retries++;
+    if (isAdmin()) {
+      showAdminToolbar();
+      maybeShowAddBtn();
+      console.log('[ARSAN] Admin toolbar shown after', _retries, 'retries');
+      clearInterval(_checkInterval);
+    }
+    if (_retries > 12) clearInterval(_checkInterval);
+  }, 800);
+
+  // تشخيص — اطبع في console عند التحميل
+  console.log('[ARSAN DEBUG] arsan_me:', localStorage.getItem('arsan_me'));
+  console.log('[ARSAN DEBUG] arsan_me_v1:', localStorage.getItem('arsan_me_v1'));
+  console.log('[ARSAN DEBUG] isAdmin() =', isAdmin());
+
+  // أمر يدوي للتشخيص
+  window.arsanForceShowToolbar = () => {
+    document.getElementById('adminToolbar').classList.add('is-visible');
+    console.log('✅ تم إظهار الشريط يدوياً');
+  };
 
   window.addEventListener('arsan:login', () => {
     showUserPill();

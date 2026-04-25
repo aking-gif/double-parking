@@ -14,28 +14,7 @@
   const isRTL = () => LANG() === 'ar';
 
   // --- Black horse SVG logo (Arsan brand mark)
-  const HORSE_SVG = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="ah-grad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#1a1510"/>
-        <stop offset="100%" stop-color="#0a0806"/>
-      </linearGradient>
-      <linearGradient id="ah-mane" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#85714D"/>
-        <stop offset="100%" stop-color="#5E4F36"/>
-      </linearGradient>
-    </defs>
-    <!-- Horse silhouette: arched neck, alert ears, flowing mane -->
-    <path d="M44 16 L46 10 L48 16 L50 10 L52 17 Q54 22 52 28 Q56 32 56 38 Q56 48 50 52 L48 50 Q47 46 48 42 L42 40 Q36 38 32 34 Q28 32 24 36 Q20 40 18 46 Q16 48 14 46 Q12 44 14 38 Q16 30 22 26 Q28 22 34 22 Q40 20 44 16 Z"
-          fill="url(#ah-grad)" stroke="#85714D" stroke-width="0.8"/>
-    <!-- Mane flowing back -->
-    <path d="M44 16 Q40 14 36 18 Q32 22 30 26 Q28 28 30 30 Q34 28 38 26 Q42 22 44 18 Z"
-          fill="url(#ah-mane)" opacity="0.85"/>
-    <!-- Eye -->
-    <circle cx="42" cy="24" r="1.2" fill="#85714D"/>
-    <!-- Nostril -->
-    <ellipse cx="50" cy="22" rx="0.8" ry="1.2" fill="#85714D" opacity="0.7"/>
-  </svg>`;
+  const HORSE_SVG = `<img src="./adham.png" alt="Adham" style="width:100%;height:100%;object-fit:contain;display:block"/>`;
 
   // --- AI caller (resilient)
   async function ask(prompt){
@@ -189,6 +168,70 @@
         display:flex;align-items:center;justify-content:center;
       }
       .arsan-ai-head .x:hover{ opacity:1; background:rgba(133,113,77,.15); }
+      .arsan-ai-head .kb{
+        background:transparent;border:1px solid rgba(133,113,77,.3);color:inherit;
+        font-size:14px;cursor:pointer;opacity:.7;
+        width:32px;height:32px;border-radius:8px;
+        display:flex;align-items:center;justify-content:center;
+        transition:all .15s;
+      }
+      .arsan-ai-head .kb:hover{ opacity:1; background:rgba(133,113,77,.18); border-color:rgba(133,113,77,.55); }
+
+      /* === Adham Memory inline modal === */
+      .arsan-kb-bd{
+        position:fixed; inset:0; z-index:9700;
+        background:rgba(10,8,6,.55); backdrop-filter:blur(8px);
+        display:flex; align-items:center; justify-content:center;
+        padding:24px; animation:arsan-ai-fade .18s ease;
+      }
+      .arsan-kb-modal{
+        background:#1a1510; color:#f3e9c9;
+        border:1px solid rgba(133,113,77,.35); border-radius:16px;
+        max-width:720px; width:100%; max-height:85vh;
+        display:flex; flex-direction:column;
+        box-shadow:0 30px 80px rgba(0,0,0,.6);
+        font-family:"IBM Plex Sans Arabic", system-ui, sans-serif;
+      }
+      .arsan-kb-modal h2{
+        margin:0; padding:18px 20px; font-size:16px; font-weight:700;
+        border-bottom:1px solid rgba(133,113,77,.2);
+        display:flex; align-items:center; gap:10px;
+      }
+      .arsan-kb-modal h2 .x{
+        margin-inline-start:auto; background:transparent; border:none; color:inherit;
+        font-size:20px; cursor:pointer; opacity:.6; width:30px; height:30px; border-radius:8px;
+      }
+      .arsan-kb-modal h2 .x:hover{ opacity:1; background:rgba(133,113,77,.15); }
+      .arsan-kb-body{ padding:20px; overflow-y:auto; flex:1; }
+      .arsan-kb-body p.lead{ margin:0 0 12px; font-size:13px; opacity:.78; line-height:1.7; }
+      .arsan-kb-body textarea{
+        width:100%; min-height:280px; box-sizing:border-box;
+        background:#0e0a08; color:#f3e9c9;
+        border:1px solid rgba(133,113,77,.3); border-radius:10px;
+        padding:14px; font-family:"IBM Plex Sans Arabic", system-ui, monospace;
+        font-size:13px; line-height:1.7; resize:vertical;
+        direction:rtl;
+      }
+      .arsan-kb-body textarea:focus{ outline:none; border-color:#85714D; box-shadow:0 0 0 3px rgba(133,113,77,.15); }
+      .arsan-kb-foot{
+        padding:14px 20px; border-top:1px solid rgba(133,113,77,.2);
+        display:flex; gap:10px; align-items:center;
+      }
+      .arsan-kb-foot .status{ flex:1; font-size:12px; opacity:.7; }
+      .arsan-kb-foot button{
+        padding:9px 18px; border-radius:9px; font-size:13px; font-weight:600;
+        cursor:pointer; border:1px solid transparent; font-family:inherit;
+      }
+      .arsan-kb-foot .save{ background:#85714D; color:#fff; border-color:#85714D; }
+      .arsan-kb-foot .save:hover{ background:#9a8559; }
+      .arsan-kb-foot .clear{ background:transparent; color:#d97757; border-color:rgba(217,119,87,.4); }
+      .arsan-kb-foot .clear:hover{ background:rgba(217,119,87,.1); }
+      .arsan-kb-info{
+        margin-top:14px; padding:12px 14px;
+        background:rgba(133,113,77,.08); border:1px solid rgba(133,113,77,.18);
+        border-radius:9px; font-size:12px; line-height:1.8; opacity:.85;
+      }
+      .arsan-kb-info strong{ color:#c9b27a; }
 
       .arsan-ai-body{
         flex:1;
@@ -371,6 +414,7 @@
           <h3>${t('الأدهم','Al-Adham')}</h3>
           <div class="status">${t('مساعد أرسان الذكي','Arsan AI Assistant')}</div>
         </div>
+        <button class="kb" id="arsan-ai-kb" type="button" aria-label="${t('ذاكرة الأدهم','Adham Memory')}" title="${t('ذاكرة الأدهم','Adham Memory')}">⚙</button>
         <button class="x" type="button" aria-label="Close">✕</button>
       </div>
       <div class="arsan-ai-body" id="arsan-ai-body"></div>
@@ -387,6 +431,7 @@
     sendBtn = panel.querySelector('#arsan-ai-send');
 
     panel.querySelector('.x').addEventListener('click', close);
+    panel.querySelector('#arsan-ai-kb').addEventListener('click', openKB);
     sendBtn.addEventListener('click', send);
     textarea.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -547,6 +592,80 @@
       sendBtn.disabled = false;
       textarea.focus();
     }
+  }
+
+  // --- Adham Memory (Knowledge Base) modal
+  function openKB(){
+    document.getElementById('arsan-kb-bd')?.remove();
+    const KB_KEY = 'arsan_adham_knowledge_v1';
+    const initial = (() => {
+      try { return localStorage.getItem(KB_KEY) || ''; } catch(_) { return ''; }
+    })();
+
+    const bd = document.createElement('div');
+    bd.id = 'arsan-kb-bd';
+    bd.className = 'arsan-kb-bd';
+    bd.innerHTML = `
+      <div class="arsan-kb-modal" role="dialog" aria-modal="true">
+        <h2>
+          <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center"><img src="./adham.png" style="width:100%;height:100%;object-fit:contain"/></span>
+          ${t('ذاكرة الأدهم','Adham Memory')}
+          <button class="x" type="button" aria-label="Close">✕</button>
+        </h2>
+        <div class="arsan-kb-body">
+          <p class="lead">${t(
+            'كل ما تكتبه هنا يصبح جزءاً من معرفة الأدهم. استخدمه لتغذيته بمعلومات شركتك، سياساتك، مصطلحاتك، أو أي شيء يجب أن يعرفه.',
+            'Anything you write here becomes part of Al-Adham\'s knowledge. Use it to teach him about your company, policies, terminology, or anything else he should know.'
+          )}</p>
+          <textarea id="arsan-kb-text" placeholder="${t('مثال:\nشركة أرسان متخصّصة في حلول مواقف السيارات الذكية.\nنستخدم نظام KPIs ربعي.\nلا نسمح بالعمل خارج الدوام بدون موافقة المدير المباشر.\n…','Example: Arsan specializes in smart parking solutions...')}">${initial.replace(/</g,'&lt;')}</textarea>
+          <div class="arsan-kb-info">
+            <strong>${t('ما يعرفه الأدهم تلقائياً','What Adham already knows')}:</strong><br>
+            • ${t('كل الإجراءات (SOPs) في كل الإدارات','All SOPs across all departments')}<br>
+            • ${t('الإدارة الحالية والإجراء المفتوح','Current department & open SOP')}<br>
+            • ${t('قائمة الإدارات وأرقامها','Departments & their codes')}<br>
+            • ${t('اللغة الحالية (عربي/إنجليزي)','Current language')}
+          </div>
+        </div>
+        <div class="arsan-kb-foot">
+          <span class="status" id="arsan-kb-status"></span>
+          <button class="clear" type="button" id="arsan-kb-clear">${t('مسح','Clear')}</button>
+          <button class="save" type="button" id="arsan-kb-save">${t('حفظ','Save')}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bd);
+
+    const txt = bd.querySelector('#arsan-kb-text');
+    const status = bd.querySelector('#arsan-kb-status');
+    const close = () => bd.remove();
+
+    bd.addEventListener('click', e => { if (e.target === bd) close(); });
+    bd.querySelector('.x').addEventListener('click', close);
+    bd.querySelector('#arsan-kb-save').addEventListener('click', () => {
+      try {
+        localStorage.setItem(KB_KEY, txt.value || '');
+        if (window.ArsanAPI && window.ArsanAPI.put) {
+          window.ArsanAPI.put('adham_kb_v1', { text: txt.value || '', updatedAt: Date.now() }).catch(()=>{});
+        }
+        status.textContent = '✓ ' + t('تم الحفظ. الأدهم يتذكّر الآن.','Saved. Adham will remember.');
+        status.style.color = '#5ec28b';
+        setTimeout(close, 900);
+      } catch(e){
+        status.textContent = '⚠ ' + t('فشل الحفظ','Save failed');
+        status.style.color = '#d97757';
+      }
+    });
+    bd.querySelector('#arsan-kb-clear').addEventListener('click', () => {
+      if (!confirm(t('مسح كل ذاكرة الأدهم؟ هذا لا يمكن التراجع عنه.','Clear all Adham memory? This cannot be undone.'))) return;
+      txt.value = '';
+      try { localStorage.removeItem(KB_KEY); } catch(_){}
+      if (window.ArsanAPI && window.ArsanAPI.put) {
+        window.ArsanAPI.put('adham_kb_v1', { text:'', updatedAt: Date.now() }).catch(()=>{});
+      }
+      status.textContent = t('تم المسح.','Cleared.');
+      status.style.color = '#9b958a';
+    });
+    setTimeout(() => txt.focus(), 50);
   }
 
   // --- open/close

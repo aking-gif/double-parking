@@ -33,18 +33,17 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
      LOGO GENERATORS
   =============================== */
 
+  /* الحصان الأسود — صورة الأدهم الرسمية */
+  const HORSE_IMG = './adham.png';
+
   const LOGO_SVG = (size = 32, color = COLORS.gold) => `
-    <svg width="${size}" height="${size}" viewBox="930 390 70 300"
-         xmlns="http://www.w3.org/2000/svg" style="display:block">
-      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
-    </svg>
+    <img src="${HORSE_IMG}" alt="Arsann" width="${size}" height="${size}"
+         style="display:block;object-fit:contain;width:${size}px;height:${size}px"/>
   `;
 
   const LOGO_MARK_SVG = (size = 24, color = COLORS.gold) => `
-    <svg width="${size}" height="${size}" viewBox="930 390 70 300"
-         xmlns="http://www.w3.org/2000/svg" style="display:block">
-      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
-    </svg>
+    <img src="${HORSE_IMG}" alt="Arsann" width="${size}" height="${size}"
+         style="display:block;object-fit:contain;width:${size}px;height:${size}px"/>
   `;
 
   const LOGO_WITH_NAME = (opts = {}) => {
@@ -102,18 +101,16 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
   =============================== */
   function injectFavicon() {
     try {
-      const svg = LOGO_MARK_SVG(64, COLORS.gold);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-
       document.querySelectorAll("link[rel*='icon']").forEach(l => l.remove());
-
       const link = document.createElement('link');
       link.rel = 'icon';
-      link.type = 'image/svg+xml';
-      link.href = url;
-
+      link.type = 'image/png';
+      link.href = HORSE_IMG;
       document.head.appendChild(link);
+      const apple = document.createElement('link');
+      apple.rel = 'apple-touch-icon';
+      apple.href = HORSE_IMG;
+      document.head.appendChild(apple);
     } catch (e) {}
   }
 

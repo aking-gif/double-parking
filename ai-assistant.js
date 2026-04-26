@@ -569,11 +569,19 @@
       parts.push(`أنت "الأدهم" — المساعد الذكي لمنصّة أرسان لإدارة الإجراءات التشغيلية القياسية (SOPs).`);
       parts.push(`أجب باللغة ${lang} بأسلوب واضح وعملي ومختصر. استخدم نقاطاً بدل الفقرات الطويلة.`);
 
-      // 1. Custom knowledge base (admin-fed)
+      // 1. Custom knowledge base (admin-fed) — pull latest from server, fallback to local cache
       try {
-        const kb = localStorage.getItem('arsan_adham_knowledge_v1');
-        if (kb && kb.trim()) {
-          parts.push(`\n=== معرفة خاصة بأرسان (يُعتمد عليها أولاً) ===\n${kb.slice(0, 8000)}`);
+        let kbText = localStorage.getItem('arsan_adham_knowledge_v1') || '';
+        // Async refresh from server (non-blocking — uses cache for THIS prompt, freshens for next)
+        if (window.ArsanAPI && window.ArsanAPI.get) {
+          window.ArsanAPI.get('adham_kb_v1').then(d => {
+            if (d && typeof d === 'object' && typeof d.text === 'string') {
+              try { localStorage.setItem('arsan_adham_knowledge_v1', d.text); } catch(_){}
+            }
+          }).catch(()=>{});
+        }
+        if (kbText && kbText.trim()) {
+          parts.push(`\n=== معرفة خاصة بأرسان (يُعتمد عليها أولاً) ===\n${kbText.slice(0, 8000)}`);
         }
       } catch(_){}
 
@@ -635,6 +643,23 @@
     const initial = (() => {
       try { return localStorage.getItem(KB_KEY) || ''; } catch(_) { return ''; }
     })();
+
+    // For admin: pull latest from server in background and update textarea
+    async function pullLatestKB(){
+      if (!isAdmin) return;
+      try {
+        if (window.ArsanAPI && window.ArsanAPI.get) {
+          const data = await window.ArsanAPI.get('adham_kb_v1').catch(()=>null);
+          if (data && typeof data === 'object' && typeof data.text === 'string') {
+            const ta = document.getElementById('arsan-kb-text');
+            if (ta && ta.value !== data.text) {
+              ta.value = data.text;
+              try { localStorage.setItem(KB_KEY, data.text); } catch(_){}
+            }
+          }
+        }
+      } catch(_){}
+    }
 
     const bd = document.createElement('div');
     bd.id = 'arsan-kb-bd';
@@ -730,6 +755,8 @@
       });
       // Render pending suggestions
       renderPendingSuggestions(bd.querySelector('#arsan-kb-pending-host'), txt);
+      // Pull freshest KB from server in background (cross-device sync)
+      pullLatestKB();
     } else {
       // Regular user: submit suggestion to KV (pending)
       bd.querySelector('#arsan-kb-submit').addEventListener('click', async () => {
@@ -857,6 +884,18 @@
     open, close, toggle, ask
   };
 
+  // --- Prefetch Adham KB from server into localStorage cache
+  function prefetchKB(){
+    try {
+      if (!(window.ArsanAPI && window.ArsanAPI.get && window.ArsanAPI.isLoggedIn && window.ArsanAPI.isLoggedIn())) return;
+      window.ArsanAPI.get('adham_kb_v1').then(d => {
+        if (d && typeof d === 'object' && typeof d.text === 'string') {
+          try { localStorage.setItem('arsan_adham_knowledge_v1', d.text); } catch(_){}
+        }
+      }).catch(()=>{});
+    } catch(_){}
+  }
+
   // --- Auto-init when DOM ready
   function init(){
     // Don't show on login screen / before auth
@@ -867,10 +906,11 @@
         const loginOverlay = document.querySelector('.arsan-login-wrap, [data-arsan-login], #arsan-auth-overlay');
         if (loginOverlay && loginOverlay.offsetParent !== null) {
           // Re-check after login
-          window.addEventListener('arsan-login-success', () => build(), { once:true });
+          window.addEventListener('arsan-login-success', () => { build(); prefetchKB(); }, { once:true });
           return;
         }
         build();
+        prefetchKB();
       } catch(e){ console.warn('AI assistant init:', e); }
     }, 600);
   }

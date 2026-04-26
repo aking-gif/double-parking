@@ -325,6 +325,27 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   }
 
   /* ---------- AI ---------- */
+  /* ---------- KV (generic store) ---------- */
+  async function kvGet(key){
+    if (!hasBackend()) {
+      try { return JSON.parse(localStorage.getItem('arsan_kv_'+key) || 'null'); }
+      catch(_){ return null; }
+    }
+    try {
+      return await apiFetch('/api/kv/' + encodeURIComponent(key));
+    } catch(e){
+      // fallback to local cache
+      try { return JSON.parse(localStorage.getItem('arsan_kv_'+key) || 'null'); }
+      catch(_){ return null; }
+    }
+  }
+  async function kvPut(key, value){
+    // always cache locally so reload on same browser still has it
+    try { localStorage.setItem('arsan_kv_'+key, JSON.stringify(value)); } catch(_){}
+    if (!hasBackend()) return { ok: true, local: true };
+    return await apiFetch('/api/kv/' + encodeURIComponent(key), { method:'PUT', body: value });
+  }
+
   async function ai(message, opts = {}) {
     const history = opts.history || [];
     const system  = opts.system;
@@ -357,6 +378,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
     getAnnouncements, addAnnouncement, deleteAnnouncement,
+    get: kvGet, put: kvPut,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };

@@ -923,6 +923,39 @@ export default {
         return json({ ok: true, email: list[idx].email }, 200, req);
       }
 
+      // ---------- KV STORE (general purpose for app data) ----------
+      // GET /api/kv/:key  → any logged-in user can read
+      // PUT /api/kv/:key  → admin-only by default; specific keys allowed for any session
+      // Keys allowlist:
+      //   adham_kb_v1            → admin write, all read   (Adham's knowledge)
+      //   adham_kb_pending_v1    → any logged-in write+read (suggestions queue)
+      const KV_ALLOW_READ  = new Set(["adham_kb_v1", "adham_kb_pending_v1"]);
+      const KV_ALLOW_WRITE_ANY = new Set(["adham_kb_pending_v1"]); // any logged-in user
+      const KV_ALLOW_WRITE_ADMIN = new Set(["adham_kb_v1", "adham_kb_pending_v1"]);
+
+      if (path.match(/^\/api\/kv\/[^\/]+$/) && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const key = decodeURIComponent(path.split("/")[3]);
+        if (!KV_ALLOW_READ.has(key)) return json({ error: "forbidden-key" }, 403, req);
+        const raw = await env.ARSAN.get(key);
+        if (!raw) return json(null, 200, req);
+        try { return json(JSON.parse(raw), 200, req); }
+        catch(_){ return json(raw, 200, req); }
+      }
+      if (path.match(/^\/api\/kv\/[^\/]+$/) && method === "PUT") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const key = decodeURIComponent(path.split("/")[3]);
+        const isAdminUser = s.role === "admin" || s.email?.toLowerCase() === (env.ADMIN_EMAIL || "a.king@arsann.com").toLowerCase();
+        const allowed = isAdminUser ? KV_ALLOW_WRITE_ADMIN.has(key) : KV_ALLOW_WRITE_ANY.has(key);
+        if (!allowed) return json({ error: "forbidden-key" }, 403, req);
+        const body = await req.json().catch(() => null);
+        await env.ARSAN.put(key, JSON.stringify(body));
+        await logActivity(env, { actor: s.email, action: "kv-put", target: key });
+        return json({ ok: true }, 200, req);
+      }
+
       // ---------- SLACK WEBHOOK (admin only) ----------
       if (path === "/api/slack-webhook" && method === "GET") {
         const ad = await requireAdmin(req, env);

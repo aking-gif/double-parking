@@ -131,11 +131,17 @@ input:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
   let searchQuery = '';
 
   function avatarLetter(p){
+    const n = fullName(p);
+    if (n) return n.charAt(0).toUpperCase();
     if (p.firstName) return p.firstName.charAt(0).toUpperCase();
     return (p.email||'?').charAt(0).toUpperCase();
   }
   function fullName(p){
-    return [p.firstName, p.lastName].filter(Boolean).join(' ').trim();
+    if (p.name && p.name.trim()) return p.name.trim();
+    const composed = [p.firstName, p.lastName].filter(Boolean).join(' ').trim();
+    if (composed) return composed;
+    // fallback: derive from email local-part
+    return (p.email||'').split('@')[0].replace(/[._]+/g, ' ');
   }
   function roleArabic(r){ return r==='admin'?'أدمن':r==='editor'?'محرّر':r==='viewer'?'مشاهد':'ضيف'; }
 

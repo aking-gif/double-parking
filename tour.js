@@ -23,7 +23,72 @@
   }
 
   /* ===== STEPS ===== */
+  function isHome(){
+    const p = (location.pathname || '').toLowerCase();
+    return p.endsWith('/') || p.endsWith('/index.html') || p === '/index.html' || !!document.getElementById('deptGrid');
+  }
+
+  function getHomeSteps(){
+    return [
+      {
+        target: null,
+        title: t('السلام عليكم 🐎', 'Greetings 🐎'),
+        body: t(
+          'أنا **الأدهم**، مرشدك في منصّة أرسان.\nخلّيني آخذك في جولة سريعة (~دقيقة) قبل ما تختار إدارتك.\n\nجاهز؟',
+          'I am **Al-Adham**, your guide on the Arsan platform.\nLet me take you on a quick (~1-minute) tour before you pick a department.\n\nReady?'
+        ),
+        side: 'center'
+      },
+      {
+        target: '#arsan-brand-logo, .topbar > div:first-child',
+        title: t('هذا الشعار', 'This is the logo'),
+        body: t(
+          'شعار **أرسان** يرجعك دائماً للصفحة الرئيسية.\nمن هنا تختار أي إدارة تبغى تشتغل عليها.',
+          'The **Arsan** logo always brings you back to home.\nFrom here you pick any department to work on.'
+        ),
+        side: 'bottom'
+      },
+      {
+        target: '#userPill, .user-pill',
+        title: t('ملفك الشخصي', 'Your profile'),
+        body: t(
+          'اضغط هنا لتعديل بياناتك، تغيير كلمة السر، أو تسجيل الخروج.',
+          'Click here to edit your info, change password, or log out.'
+        ),
+        side: 'bottom'
+      },
+      {
+        target: '#deptGrid, .dept-grid',
+        title: t('اختر إدارتك', 'Pick your department'),
+        body: t(
+          'هنا تشوف **كل الإدارات** المتاحة لك.\nاضغط أي بطاقة تدخل على إجراءاتها التشغيلية وتتعامل معها.',
+          'Here you see **all departments** available to you.\nTap any card to enter its SOPs and work with them.'
+        ),
+        side: 'top'
+      },
+      {
+        target: '#arsan-ai-fab',
+        title: t('الأدهم — مساعدك', 'Al-Adham — your helper'),
+        body: t(
+          'أنا هنا 24/7. اسألني عن **أي شيء**:\n• "كيف أضيف إجراء؟"\n• "وين أجد ملف الإدارة المالية؟"\n• "اشرح لي خطوات الموافقة"',
+          'I am here 24/7. Ask me **anything**:\n• "How do I add an SOP?"\n• "Where is the finance department file?"\n• "Explain the approval steps"'
+        ),
+        side: 'left'
+      },
+      {
+        target: null,
+        title: t('جاهز للبداية 🎉', 'Ready to start 🎉'),
+        body: t(
+          'الآن اختار إدارتك من الشبكة وابدأ التشغيل.\nأي وقت تحتاج جولة كاملة بداخل الإدارة، اضغط على **الأدهم** واطلب "جولة".',
+          'Now pick your department from the grid and dive in.\nAnytime you want a full tour inside a department, tap **Al-Adham** and ask for "tour".'
+        ),
+        side: 'center'
+      }
+    ];
+  }
+
   function getSteps(){
+    if (isHome()) return getHomeSteps();
     const steps = [
       {
         target: null, // intro modal

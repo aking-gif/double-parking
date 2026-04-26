@@ -632,58 +632,94 @@
   }
 
   function filterDepartments(me){
-    // ⚠️ تم تعطيل هذه الدالة عمداً — كل مستخدم مسجّل يرى كل الإدارات.
-    // الصلاحيات الفعلية تُطبَّق على مستوى dashboard.html (تعديل/حذف/إضافة).
-    const cards = $$('.dept-card');
-    cards.forEach(card => {
-      card.style.display = '';
-      card.classList.remove('ag-locked');
-      card.removeAttribute('title');
-    });
-    return; // الكود القديم بالأسفل لم يعد يُنفّذ
-
-    /* OLD LOGIC — disabled
-    const isAdmin = me.role === 'admin';
+    // ✅ فلترة فعّالة — يرى المستخدم إداراته فقط. الأدمن يرى الكل.
+    const isAdminUser = me.role === 'admin' || (me.email||'').toLowerCase() === 'a.king@arsann.com';
     const allowed = new Set((me.departments || []).map(d => String(d).toLowerCase()));
-    let visibleCount = 0;
-    cards.forEach(card => {
-      const id = (card.getAttribute('data-id') || '').toLowerCase();
-      if (isAdmin || allowed.has(id)) {
-        card.style.display = '';
-        card.classList.remove('ag-locked');
-        visibleCount++;
-      } else {
-        card.style.display = 'none';
+    const apply = () => {
+      const cards = $$('.dept-card');
+      let visible = 0;
+      cards.forEach(card => {
+        const id = (card.getAttribute('data-id') || '').toLowerCase();
+        if (isAdminUser || allowed.has(id)) {
+          card.style.display = '';
+          card.classList.remove('ag-locked');
+          card.removeAttribute('title');
+          visible++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      // إذا لم يعيَّن للمستخدم أي إدارة، اعرض رسالة وديّة
+      const grid = document.getElementById('deptGrid');
+      let empty = document.getElementById('ag-no-depts');
+      if (!isAdminUser && visible === 0) {
+        if (!empty && grid) {
+          empty = document.createElement('div');
+          empty.id = 'ag-no-depts';
+          empty.style.cssText = 'grid-column:1/-1;padding:40px 24px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:14px;color:var(--ink-2)';
+          empty.innerHTML = `
+            <div style="font-size:36px;margin-bottom:10px">🔒</div>
+            <h3 style="margin:0 0 8px;font-size:18px;color:var(--ink-1)">لم يتم تعيينك لأي إدارة بعد</h3>
+            <p style="margin:0;line-height:1.7">تواصل مع مسؤول المنصّة (a.king@arsann.com) ليُضيفك للإدارات المناسبة.</p>
+          `;
+          grid.appendChild(empty);
+        }
+      } else if (empty) {
+        empty.remove();
       }
-    });
-    */
+    };
+    apply();
+    // أعِد الفلترة لما تُضاف بطاقات custom لاحقاً
+    if (!window.__agDeptFilterHooked) {
+      window.__agDeptFilterHooked = true;
+      window.addEventListener('arsan:depts-changed', () => setTimeout(apply, 50));
+      // observe new cards added by loadCustomDepts
+      const grid = document.getElementById('deptGrid');
+      if (grid) {
+        new MutationObserver(() => apply()).observe(grid, { childList:true });
+      }
+    }
   }
 
   async function hydrateUser(){
     const token = getToken();
+    // ✅ استخدم cache محلي فوراً لتفادي وميض شاشة الدخول
+    let cachedMe = null;
+    try { cachedMe = JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || 'null'); } catch(_){}
     if (!token) {
       showLoginScreen();
       return;
     }
+    // إذا عندنا token + cache → اعرض الـ UI فوراً ولا تنتظر /api/me
+    if (cachedMe && cachedMe.email) {
+      showUserBadge(cachedMe);
+      filterDepartments(cachedMe);
+      window.ArsanCurrentUser = cachedMe;
+    }
     try {
       const me = await api('/api/me');
       if (!me || !me.email) {
-        // Token invalid / expired
-        setToken('');
-        showLoginScreen();
+        // ⚠️ لا تطرد المستخدم بسبب رد فارغ — قد يكون خلل في الـ Worker.
+        // اعتبر الجلسة المحلية صالحة إن وُجدت.
+        if (!cachedMe) { setToken(''); showLoginScreen(); }
         return;
       }
       showUserBadge(me);
       filterDepartments(me);
       window.ArsanCurrentUser = me;
       try { localStorage.setItem('arsan_me_v1', JSON.stringify(me)); } catch(_){}
+      try { localStorage.setItem('arsan_me', JSON.stringify(me)); } catch(_){}
     } catch(e) {
       console.warn('[ag] /api/me failed:', e);
-      // If unauthorized, show login. Otherwise let the page render ungated (so a Worker outage doesn't lock out admins)
-      if (String(e.message).includes('401') || String(e.message).includes('unauthorized')) {
+      // فقط 401 الصريح يُجبر تسجيل الدخول مجدّداً
+      const msg = String(e.message || '').toLowerCase();
+      const is401 = msg.includes('401') || msg.includes('unauthorized') || msg.includes('invalid_token') || msg.includes('expired');
+      if (is401) {
         setToken('');
+        try { localStorage.removeItem('arsan_me_v1'); localStorage.removeItem('arsan_me'); } catch(_){}
         showLoginScreen();
       }
+      // غير ذلك: اترك الـ cached UI كما هو — لا تظهر صفحة دخول
     }
   }
 

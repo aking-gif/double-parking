@@ -32,52 +32,55 @@
         display:none;
         align-items:center;
         justify-content:center;
-        width:38px;
-        height:38px;
-        padding:0;
-        border-radius:50%;
-        background:rgba(26,21,16,.55);
+        gap:8px;
+        width:auto;
+        height:42px;
+        padding:0 16px 0 14px;
+        border-radius:21px;
+        background:linear-gradient(135deg, rgba(133,113,77,.85), rgba(94,79,54,.9));
         backdrop-filter:blur(12px) saturate(160%);
         -webkit-backdrop-filter:blur(12px) saturate(160%);
-        border:1px solid rgba(255,255,255,.08);
-        color:rgba(243,233,201,.72);
+        border:1px solid rgba(255,255,255,.12);
+        color:#f3e9c9;
         font-family:inherit;
-        font-size:16px;
+        font-weight:600;
+        font-size:13px;
         line-height:1;
         cursor:pointer;
-        box-shadow:0 4px 12px rgba(0,0,0,.2);
-        transition:all .18s ease;
+        box-shadow:0 6px 20px rgba(133,113,77,.35);
+        transition:all .2s ease;
         user-select:none;
-        opacity:.55;
       }
       html[dir="ltr"] #${BTN_ID}{
         inset-inline-start:auto;
         inset-inline-end:20px;
       }
       html[data-theme="light"] #${BTN_ID}{
-        background:rgba(255,255,255,.5);
-        color:rgba(58,47,21,.65);
-        border-color:rgba(90,70,30,.12);
+        background:linear-gradient(135deg, #85714D, #6B5938);
+        color:#fff;
+        border-color:rgba(255,255,255,.18);
+        box-shadow:0 6px 20px rgba(133,113,77,.4);
       }
       #${BTN_ID}:hover{
-        opacity:1;
-        color:#f3e9c9;
-        border-color:rgba(133,113,77,.4);
-        background:rgba(26,21,16,.78);
+        transform:translateY(-2px);
+        box-shadow:0 10px 28px rgba(133,113,77,.5);
+        background:linear-gradient(135deg, #927d57, #6B5938);
       }
       html[data-theme="light"] #${BTN_ID}:hover{
-        color:#3a2f15;
-        background:rgba(255,255,255,.85);
-        border-color:rgba(133,113,77,.45);
+        background:linear-gradient(135deg, #927d57, #6B5938);
       }
       #${BTN_ID}.visible{ display:inline-flex; }
 
       #${BTN_ID} .ico{
-        display:block;
+        display:inline-block;
+        font-size:16px;
         transition:transform .2s ease;
       }
       #${BTN_ID}:hover .ico{ transform:rotate(20deg); }
-      #${BTN_ID} .label{ display:none; }
+      #${BTN_ID} .label{
+        display:inline-block;
+        white-space:nowrap;
+      }
       #${BTN_ID} .dot{ display:none; }
       #${BTN_ID} .count{
         position:absolute;
@@ -262,10 +265,11 @@
     const btn = document.createElement('button');
     btn.id = BTN_ID;
     btn.type = 'button';
-    btn.title = t('إدارة المنصّة','Platform Admin');
-    btn.setAttribute('aria-label', t('إدارة المنصّة','Platform Admin'));
+    btn.title = t('أدوات الأدمن','Admin Tools');
+    btn.setAttribute('aria-label', t('أدوات الأدمن','Admin Tools'));
     btn.innerHTML = `
       <span class="ico" aria-hidden="true">⚙︎</span>
+      <span class="label">${t('أدوات الأدمن','Admin Tools')}</span>
       <span class="count" aria-label="alerts">0</span>
     `;
     btn.addEventListener('click', openMenu);
@@ -290,7 +294,9 @@
       position:fixed;bottom:62px;
       inset-inline-start:18px;inset-inline-end:auto;
       z-index:9300;
-      min-width:230px;
+      width:280px;
+      max-height:min(70vh, 560px);
+      overflow-y:auto;
       background:linear-gradient(180deg, rgba(26,21,16,.95) 0%, rgba(35,26,16,.92) 100%);
       backdrop-filter:blur(20px) saturate(180%);
       border:1px solid rgba(133,113,77,.3);
@@ -308,14 +314,44 @@
       menuEl.style.insetInlineStart = 'auto';
       menuEl.style.insetInlineEnd = '18px';
     }
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(133,113,77,.2);
+      margin-bottom:6px;
+      position:sticky;top:0;
+      background:inherit;
+      z-index:1;
+    `;
+    header.innerHTML = `
+      <div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px">
+        <span>🛡️</span><span>${t('أدوات الأدمن','Admin Tools')}</span>
+      </div>
+      <div style="font-size:11px;opacity:.6;margin-top:3px">${t('كل أدوات الإدارة في مكان واحد','All admin tools in one place')}</div>
+    `;
+    menuEl.appendChild(header);
     const items = [
       { icon:'📢', label:t('إرسال إعلان','Post Announcement'), action: showComposer },
       { icon:'📋', label:t('مركز الإعلانات','Announcements Center'), action: () => { location.href = 'announcements.html'; } },
       { icon:'🛡️', label:t('لوحة التحكم','Admin Panel'), action: () => window.ArsanUI?.showAdmin?.() },
-      { icon:'👥', label:t('المستخدمون','Users'), action: () => { location.href = 'users.html'; } },
+      { icon:'👥', label:t('المستخدمون والصلاحيات','Users & Permissions'), action: () => { location.href = 'users.html'; } },
+      { icon:'🏢', label:t('إدارة الإدارات','Manage Departments'), action: () => window.ArsanAdminToolbar?.openManageDepts?.() || (location.href='index.html') },
+      { icon:'🗂️', label:t('سجل النشاط (Audit)','Audit Log'), action: () => window.ArsanAudit?.open?.() },
+      { icon:'💬', label:t('مركز الرسائل','Messaging Hub'), action: () => window.ArsanMessaging?.open?.() },
+      { icon:'🔗', label:t('Webhooks وتكاملات','Webhooks & Integrations'), action: () => window.ArsanWebhooks?.open?.() },
+      { icon:'✅', label:t('سير الاعتماد','Approval Flow'), action: () => window.ArsanApprovals?.open?.() },
+      { icon:'📌', label:t('المهام','Tasks'), action: () => window.ArsanTasks?.open?.() },
       { icon:'🎨', label:t('الثيمات','Themes'), action: () => window.ArsanThemes?.showPicker?.() },
+      { icon:'⚙️', label:t('إعدادات المنصّة','Platform Settings'), action: () => {
+          // افتح لوحة الإعدادات إن وُجدت
+          const btn = document.querySelector('[data-arsan-settings], #arsanSettingsBtn');
+          if (btn) btn.click();
+          else if (window.ArsanPlatformCfg) alert(t('استخدم لوحة الإعدادات من الشريط','Use settings panel from toolbar'));
+        } },
       { icon:'💾', label:t('النسخ الاحتياطية','Backups'), action: () => window.ArsanBackup?.open?.() },
       { icon:'🩺', label:t('وكيل الصيانة','Maintenance Agent'), action: () => window.ArsanMaintenance?.showPanel?.() },
+      { icon:'📊', label:t('التشخيص','Diagnostics'), action: () => { location.href = 'diagnose.html'; } },
     ];
     items.forEach(it => {
       const row = document.createElement('button');
@@ -497,8 +533,10 @@
     window.addEventListener('arsan-lang-change', () => {
       const btn = document.getElementById(BTN_ID);
       if (btn) {
-        btn.title = t('إدارة المنصّة','Platform Admin');
-        btn.setAttribute('aria-label', t('إدارة المنصّة','Platform Admin'));
+        btn.title = t('أدوات الأدمن','Admin Tools');
+        btn.setAttribute('aria-label', t('أدوات الأدمن','Admin Tools'));
+        const lbl = btn.querySelector('.label');
+        if (lbl) lbl.textContent = t('أدوات الأدمن','Admin Tools');
       }
     });
   }

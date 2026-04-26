@@ -618,6 +618,8 @@
 
   /* ===== AUTO-TRIGGER ===== */
   function maybeAutoStart(){
+    // 🔒 لا نشغّل الجولة تلقائياً أبداً — تظهر فقط بضغط الزر الخاص بها.
+    return;
     let seen = false;
     try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch(_){}
     if (seen) return;

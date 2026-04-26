@@ -5771,6 +5771,11 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         .arsan-menu-divider{height:1px;background:rgba(200,154,74,.15);margin:8px 0}
 
         body{padding-top:0 !important}
+
+        /* أزرار صفحة الإدارة التنفيذية مخفيّة من الرأس — صارت في القائمة (☰) */
+        #triggers-btn, #sites-btn, #exec-dash-btn,
+        #arsan-approvals-btn, #arsan-compliance-btn,
+        #arsan-approval-chains-btn{ display:none !important }
       `;
       document.head.appendChild(st);
     }
@@ -5838,6 +5843,30 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     panel.appendChild(item('🔗', 'التبعيّات', showDepsEditor));
     panel.appendChild(item('👥', 'دليل الفريق', () => { window.location.href = 'people.html'; }));
     panel.appendChild(item('💬', 'التواصل والشات', toggleChat));
+
+    // ===== الصفحة التنفيذية =====
+    panel.appendChild(divider());
+    panel.appendChild(section('الصفحة التنفيذية'));
+    panel.appendChild(item('📊', 'لوحة التحكم التنفيذية', () => {
+      try { (window.ArsanExecDash && window.ArsanExecDash.open) ? window.ArsanExecDash.open() : (window.location.href = 'exec.html'); } catch(_){ window.location.href = 'exec.html'; }
+    }));
+    panel.appendChild(item('📈', 'لوحة الامتثال (Compliance)', () => {
+      try { window.ArsanExec && window.ArsanExec.showCompliance && window.ArsanExec.showCompliance(); } catch(_){}
+    }));
+    panel.appendChild(item('✅', 'الإجراءات المنتظرة لاعتمادك', () => {
+      try { window.ArsanApprovals && window.ArsanApprovals.open && window.ArsanApprovals.open(); } catch(_){}
+    }));
+    panel.appendChild(item('🔗', 'سلاسل الاعتماد لكل إدارة', () => {
+      try { window.ArsanApprovalChains && window.ArsanApprovalChains.open && window.ArsanApprovalChains.open(); } catch(_){
+        try { window.ArsanApprovals && window.ArsanApprovals.open && window.ArsanApprovals.open(); } catch(__){}
+      }
+    }));
+    panel.appendChild(item('📍', 'المواقع التشغيلية', () => {
+      try { window.ArsanSites && window.ArsanSites.openSitesUI && window.ArsanSites.openSitesUI(); } catch(_){}
+    }));
+    panel.appendChild(item('⏰', 'المشغّلات التلقائية', () => {
+      try { window.ArsanTriggers && window.ArsanTriggers.openTriggersUI && window.ArsanTriggers.openTriggersUI(); } catch(_){}
+    }));
 
     // ===== المظهر واللغة =====
     panel.appendChild(divider());

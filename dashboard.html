@@ -5696,7 +5696,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       st.id = 'arsan-menu-css';
       st.textContent = `
         .arsan-menu-fab{
-          position:fixed;top:14px;right:14px;z-index:10000;
+          position:fixed;bottom:18px;right:18px;z-index:10000;
           display:inline-flex;align-items:center;gap:8px;
           padding:10px 16px;border-radius:999px;
           background:#1a1510;color:#f5ead0;border:1px solid rgba(200,154,74,.4);
@@ -5785,14 +5785,15 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         .header #langToggle,
         .header #themeToggle{ display:none !important }
 
-        /* جرس الإشعارات بجنب زر القائمة */
+        /* جرس الإشعارات بجنب زر القائمة (أسفل اليمين) */
         .amen-bell{
-          top:14px !important; left:auto !important;
-          right:calc(14px + 130px) !important;
+          top:auto !important; left:auto !important;
+          bottom:18px !important;
+          right:calc(18px + 138px) !important;
           width:44px !important; height:44px !important;
         }
         @media (max-width: 700px){
-          .amen-bell{ right:calc(14px + 110px) !important; }
+          .amen-bell{ right:calc(18px + 118px) !important; }
         }
       `;
       document.head.appendChild(st);

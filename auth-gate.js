@@ -466,7 +466,7 @@
     const email = prompt('أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين:', prefillEmail || '');
     if (!email) return;
     try {
-      await api('/api/forgot-password', { method: 'POST', body: { email: email.trim().toLowerCase() } });
+      await api('/api/users/forgot-password', { method: 'POST', body: { email: email.trim().toLowerCase() } });
       alert('✓ تم إرسال الطلب بنجاح.\n\nإذا كان البريد الإلكتروني مسجّلاً لدينا، ستصلك رسالة تحتوي على رابط إعادة تعيين كلمة السر خلال دقائق.\n\nإن لم تصلك الرسالة، تحقّق من مجلد الرسائل غير المرغوب فيها أو تواصل مع المسؤول.');
     } catch(e) {
       alert('تعذّر إرسال الطلب:\n' + (e.message || 'خطأ في الاتصال بالخادم'));

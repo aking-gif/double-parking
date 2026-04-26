@@ -70,6 +70,13 @@ const KEYS = {
   sites:    "sites_v1",                                // المواقع التشغيلية (مولات، مطارات…)
   triggers: "triggers_v1",                             // مشغّلات تلقائية (cron-like)
   triggersLastRun: "triggers_last_run_v1",             // آخر تشغيل لكل trigger
+  // ===== Foundation Layer (v1) =====
+  telemetry: (date) => `telemetry_${date}_v1`,         // events buffered per UTC day
+  telemetryIndex: "telemetry_index_v1",                 // list of dates with telemetry
+  errorLog:  "error_log_v1",                            // last 1000 errors
+  slowLog:   "slow_log_v1",                             // last 1000 slow requests
+  insights:  (week) => `insights_${week}_v1`,          // weekly insights cache
+  orgs:      "orgs_v1",                                 // multi-tenant orgs registry
 };
 
 // Lifecycle states & transitions
@@ -268,6 +275,22 @@ async function requireDeptWrite(req, env, dept) {
   if (!s) return { error: "unauthorized" };
   if (!canWriteDept(s, dept, env)) return { error: "forbidden-dept", dept };
   return { session: s };
+}
+
+function buildRecommendations({ unusedSops, overdue, sopOpens, allSopRefs }) {
+  const recs = [];
+  if (unusedSops.length > 5) {
+    recs.push(`${unusedSops.length} SOPs لم تُستخدم هذا الأسبوع — راجع أهميتها أو أزلها`);
+  }
+  if (overdue.length > 0) {
+    recs.push(`${overdue.length} مهمة متأخرة — تحتاج متابعة فورية`);
+  }
+  const usage = Object.values(sopOpens).reduce((a, b) => a + b, 0);
+  if (allSopRefs.length > 0 && usage / allSopRefs.length < 1) {
+    recs.push(`متوسط فتح SOP أقل من 1 — قد يحتاج النظام تذكيراً للموظفين`);
+  }
+  if (recs.length === 0) recs.push("الأداء العام جيد. واصل المتابعة.");
+  return recs;
 }
 
 async function logActivity(env, entry) {
@@ -2696,6 +2719,538 @@ ${clipped}
 
       // ---------- HEALTH ----------
       if (path === "/api/health") return json({ ok: true, time: Date.now() }, 200, req);
+
+      // =================================================================
+      // ============== FOUNDATION LAYER (Telemetry/Logs/Insights) =======
+      // =================================================================
+
+      // POST /api/telemetry  { events: [...] }  — any logged-in or guest
+      if (path === "/api/telemetry" && method === "POST") {
+        const body = await req.json().catch(() => ({}));
+        const events = Array.isArray(body.events) ? body.events.slice(0, 100) : [];
+        if (!events.length) return json({ ok: true, stored: 0 }, 200, req);
+        const today = new Date().toISOString().slice(0, 10);
+        const key = KEYS.telemetry(today);
+        const raw = await env.ARSAN.get(key);
+        const list = raw ? JSON.parse(raw) : [];
+        // Separate error/slow logs
+        const errors = [], slows = [];
+        events.forEach(e => {
+          if (e.event === "log:error") errors.push({ ...e.data, ts: e.ts, email: e.email, page: e.page });
+          if (e.event === "log:slow") slows.push({ ...e.data, ts: e.ts, email: e.email, page: e.page });
+        });
+        list.push(...events);
+        // Cap per-day at 5000 events
+        const trimmed = list.slice(-5000);
+        await env.ARSAN.put(key, JSON.stringify(trimmed));
+        // Update index
+        const idxRaw = await env.ARSAN.get(KEYS.telemetryIndex);
+        const idx = idxRaw ? JSON.parse(idxRaw) : [];
+        if (!idx.includes(today)) {
+          idx.push(today);
+          // Keep last 60 days
+          const sorted = idx.sort().slice(-60);
+          await env.ARSAN.put(KEYS.telemetryIndex, JSON.stringify(sorted));
+        }
+        // Save errors separately
+        if (errors.length) {
+          const errRaw = await env.ARSAN.get(KEYS.errorLog);
+          const errList = errRaw ? JSON.parse(errRaw) : [];
+          errList.push(...errors);
+          await env.ARSAN.put(KEYS.errorLog, JSON.stringify(errList.slice(-1000)));
+        }
+        if (slows.length) {
+          const slowRaw = await env.ARSAN.get(KEYS.slowLog);
+          const slowList = slowRaw ? JSON.parse(slowRaw) : [];
+          slowList.push(...slows);
+          await env.ARSAN.put(KEYS.slowLog, JSON.stringify(slowList.slice(-1000)));
+        }
+        return json({ ok: true, stored: events.length }, 200, req);
+      }
+
+      // GET /api/telemetry/summary  — admin only — aggregate last 7 days
+      if (path === "/api/telemetry/summary" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const idxRaw = await env.ARSAN.get(KEYS.telemetryIndex);
+        const dates = idxRaw ? JSON.parse(idxRaw) : [];
+        const last7 = dates.sort().slice(-7);
+        let allEvents = [];
+        for (const d of last7) {
+          const raw = await env.ARSAN.get(KEYS.telemetry(d));
+          if (raw) allEvents.push(...JSON.parse(raw));
+        }
+        // Aggregate
+        const eventCounts = {};
+        const userActivity = {};
+        const pageDurations = {};
+        const sessions = new Set();
+        const rapidClicks = [];
+        let clicks = 0;
+        allEvents.forEach(e => {
+          eventCounts[e.event] = (eventCounts[e.event] || 0) + 1;
+          if (e.email && e.email !== "guest") {
+            userActivity[e.email] = (userActivity[e.email] || 0) + 1;
+          }
+          if (e.session) sessions.add(e.session);
+          if (e.event === "click") clicks++;
+          if (e.event === "page:leave" && e.data && e.data.duration_ms) {
+            pageDurations[e.page] = pageDurations[e.page] || [];
+            pageDurations[e.page].push(e.data.duration_ms);
+          }
+          if (e.event === "friction:rapid_clicks") rapidClicks.push(e);
+        });
+        // Avg page durations
+        const pageAvg = {};
+        Object.keys(pageDurations).forEach(p => {
+          const arr = pageDurations[p];
+          pageAvg[p] = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+        });
+        return json({
+          period: { days: 7, dates: last7 },
+          totalEvents: allEvents.length,
+          uniqueSessions: sessions.size,
+          uniqueUsers: Object.keys(userActivity).length,
+          totalClicks: clicks,
+          eventCounts,
+          topUsers: Object.entries(userActivity).sort((a, b) => b[1] - a[1]).slice(0, 10),
+          pageAvgDurationMs: pageAvg,
+          rapidClickIncidents: rapidClicks.length,
+        }, 200, req);
+      }
+
+      // GET /api/logs/errors  — admin only — last N errors
+      if (path === "/api/logs/errors" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const raw = await env.ARSAN.get(KEYS.errorLog);
+        return json({ errors: raw ? JSON.parse(raw).slice(-200) : [] }, 200, req);
+      }
+
+      // GET /api/logs/slow  — admin only — last N slow requests
+      if (path === "/api/logs/slow" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const raw = await env.ARSAN.get(KEYS.slowLog);
+        return json({ slow: raw ? JSON.parse(raw).slice(-200) : [] }, 200, req);
+      }
+
+      // POST /api/logs/clear  — admin only
+      if (path === "/api/logs/clear" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        await env.ARSAN.delete(KEYS.errorLog);
+        await env.ARSAN.delete(KEYS.slowLog);
+        return json({ ok: true }, 200, req);
+      }
+
+      // GET /api/insights/weekly  — admin only — generate or fetch cached
+      if (path === "/api/insights/weekly" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+
+        // Compute current ISO week
+        const now = new Date();
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        const weekNum = Math.ceil(((now - yearStart) / 86400000 + yearStart.getDay() + 1) / 7);
+        const weekKey = `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+
+        const force = url.searchParams.get("regen") === "1";
+        if (!force) {
+          const cached = await env.ARSAN.get(KEYS.insights(weekKey));
+          if (cached) return json({ cached: true, ...JSON.parse(cached) }, 200, req);
+        }
+
+        // Build insights from raw data
+        const [sopsRaw, tasksRaw, telIdxRaw] = await Promise.all([
+          env.ARSAN.get(KEYS.sops),
+          env.ARSAN.get(KEYS.tasks),
+          env.ARSAN.get(KEYS.telemetryIndex),
+        ]);
+        const sopsAll = sopsRaw ? JSON.parse(sopsRaw) : {};
+        const tasksAll = tasksRaw ? JSON.parse(tasksRaw) : [];
+        const telDates = telIdxRaw ? JSON.parse(telIdxRaw) : [];
+
+        // Pull last 7 days telemetry
+        const last7 = telDates.sort().slice(-7);
+        let events = [];
+        for (const d of last7) {
+          const r = await env.ARSAN.get(KEYS.telemetry(d));
+          if (r) events.push(...JSON.parse(r));
+        }
+
+        // SOP usage analysis
+        const sopOpens = {};
+        events.forEach(e => {
+          if (e.event === "sop:open" && e.data && e.data.code) {
+            const k = `${e.data.dept || "?"}/${e.data.code}`;
+            sopOpens[k] = (sopOpens[k] || 0) + 1;
+          }
+        });
+
+        // Find unused SOPs (in directory but no opens in 7 days)
+        const allSopRefs = [];
+        Object.keys(sopsAll).forEach(dept => {
+          const list = sopsAll[dept];
+          if (Array.isArray(list)) {
+            list.forEach(s => allSopRefs.push(`${dept}/${s.code || s.id}`));
+          } else if (list && typeof list === "object") {
+            Object.keys(list).forEach(c => allSopRefs.push(`${dept}/${c}`));
+          }
+        });
+        const unusedSops = allSopRefs.filter(r => !sopOpens[r]).slice(0, 20);
+
+        // Task analytics
+        const weekAgo = Date.now() - 7 * 86400000;
+        const recentTasks = tasksAll.filter(t => (t.createdAt || 0) > weekAgo);
+        const completed = recentTasks.filter(t => t.status === "done").length;
+        const overdue = tasksAll.filter(t => {
+          if (t.status === "done") return false;
+          if (!t.dueDate) return false;
+          return new Date(t.dueDate).getTime() < Date.now();
+        });
+
+        // Top performers (by completed tasks)
+        const completionByUser = {};
+        tasksAll.forEach(t => {
+          if (t.status === "done" && t.assignee) {
+            completionByUser[t.assignee] = (completionByUser[t.assignee] || 0) + 1;
+          }
+        });
+
+        // Site performance (if sites exist)
+        const sitesRaw = await env.ARSAN.get(KEYS.sites);
+        const sites = sitesRaw ? JSON.parse(sitesRaw) : [];
+        const siteScores = sites.map(s => {
+          const siteTasks = tasksAll.filter(t => t.site === s.id);
+          const done = siteTasks.filter(t => t.status === "done").length;
+          const total = siteTasks.length;
+          return {
+            id: s.id,
+            name: s.name,
+            completionRate: total ? Math.round((done / total) * 100) : 0,
+            totalTasks: total,
+          };
+        });
+
+        const insights = {
+          week: weekKey,
+          generatedAt: Date.now(),
+          summary: {
+            totalEvents: events.length,
+            uniqueSessions: new Set(events.map(e => e.session)).size,
+            uniqueUsers: new Set(events.filter(e => e.email !== "guest").map(e => e.email)).size,
+            sopOpens: Object.values(sopOpens).reduce((a, b) => a + b, 0),
+            tasksCreated: recentTasks.length,
+            tasksCompleted: completed,
+            overdueTasks: overdue.length,
+          },
+          topSops: Object.entries(sopOpens).sort((a, b) => b[1] - a[1]).slice(0, 10),
+          unusedSops,
+          topPerformers: Object.entries(completionByUser).sort((a, b) => b[1] - a[1]).slice(0, 5),
+          overdueTasks: overdue.slice(0, 10).map(t => ({
+            id: t.id, title: t.title, assignee: t.assignee, dueDate: t.dueDate
+          })),
+          siteScores: siteScores.sort((a, b) => b.completionRate - a.completionRate),
+          recommendations: buildRecommendations({ unusedSops, overdue, sopOpens, allSopRefs }),
+        };
+
+        await env.ARSAN.put(KEYS.insights(weekKey), JSON.stringify(insights));
+        return json({ cached: false, ...insights }, 200, req);
+      }
+
+      // POST /api/insights/send  — admin sends current insights to Slack + email
+      if (path === "/api/insights/send" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const body = await req.json().catch(() => ({}));
+        const channels = body.channels || ["slack"];
+
+        // Get current insights
+        const now = new Date();
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        const weekNum = Math.ceil(((now - yearStart) / 86400000 + yearStart.getDay() + 1) / 7);
+        const weekKey = `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+        const cached = await env.ARSAN.get(KEYS.insights(weekKey));
+        if (!cached) return json({ error: "no-insights-yet" }, 400, req);
+        const insights = JSON.parse(cached);
+
+        const lines = [
+          `📊 *تقرير أرسان الأسبوعي* — ${weekKey}`,
+          ``,
+          `📈 *الأرقام*`,
+          `• مهام جديدة: ${insights.summary.tasksCreated}`,
+          `• مكتملة: ${insights.summary.tasksCompleted}`,
+          `• متأخرة: ${insights.summary.overdueTasks}`,
+          `• فتح SOPs: ${insights.summary.sopOpens}`,
+          `• مستخدمون نشطون: ${insights.summary.uniqueUsers}`,
+          ``,
+        ];
+        if (insights.topPerformers.length) {
+          lines.push(`🏆 *أفضل أداء*`);
+          insights.topPerformers.forEach(([email, n]) => lines.push(`• ${email}: ${n} مهمة`));
+          lines.push(``);
+        }
+        if (insights.unusedSops.length) {
+          lines.push(`⚠️ *SOPs غير مستخدمة (${insights.unusedSops.length})*`);
+          lines.push(insights.unusedSops.slice(0, 5).join(", "));
+          lines.push(``);
+        }
+        if (insights.recommendations.length) {
+          lines.push(`💡 *توصيات*`);
+          insights.recommendations.forEach(r => lines.push(`• ${r}`));
+        }
+        const text = lines.join("\n");
+
+        let sent = [];
+        if (channels.includes("slack")) {
+          const url = await env.ARSAN.get(KEYS.slack);
+          if (url) {
+            try {
+              await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+              });
+              sent.push("slack");
+            } catch (e) { /* ignore */ }
+          }
+        }
+        return json({ ok: true, sent, preview: text }, 200, req);
+      }
+
+      // GET /api/compliance  — admin only — secret per-user/per-dept score
+      if (path === "/api/compliance" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+
+        const [tasksRaw, usersRaw, sopsRaw, telIdxRaw] = await Promise.all([
+          env.ARSAN.get(KEYS.tasks),
+          env.ARSAN.get(KEYS.users),
+          env.ARSAN.get(KEYS.sops),
+          env.ARSAN.get(KEYS.telemetryIndex),
+        ]);
+        const tasks = tasksRaw ? JSON.parse(tasksRaw) : [];
+        const users = usersRaw ? JSON.parse(usersRaw) : [];
+        const sopsAll = sopsRaw ? JSON.parse(sopsRaw) : {};
+        const telDates = telIdxRaw ? JSON.parse(telIdxRaw) : [];
+
+        // Pull last 30 days telemetry
+        const last30 = telDates.sort().slice(-30);
+        let events = [];
+        for (const d of last30) {
+          const r = await env.ARSAN.get(KEYS.telemetry(d));
+          if (r) events.push(...JSON.parse(r));
+        }
+
+        // Compliance score per user
+        // = (tasks_completed_on_time / total_assigned) * 50%
+        // + (logged_in_recently ? 25% : 0)
+        // + (sop_views / dept_total_sops) * 25%
+        const userScores = {};
+        const usersList = Array.isArray(users) ? users : Object.values(users);
+        usersList.forEach(u => {
+          const email = (u.email || "").toLowerCase();
+          if (!email) return;
+          const userTasks = tasks.filter(t => (t.assignee || "").toLowerCase() === email);
+          const total = userTasks.length;
+          const onTime = userTasks.filter(t => {
+            if (t.status !== "done") return false;
+            if (!t.dueDate || !t.completedAt) return true;
+            return new Date(t.completedAt).getTime() <= new Date(t.dueDate).getTime();
+          }).length;
+          const taskScore = total ? (onTime / total) * 50 : 0;
+
+          // Login recency
+          const userEvents = events.filter(e => (e.email || "").toLowerCase() === email);
+          const recencyScore = userEvents.length > 0 ? 25 : 0;
+
+          // SOP engagement
+          const sopOpens = userEvents.filter(e => e.event === "sop:open" || e.event === "page:enter").length;
+          const engagementScore = Math.min(sopOpens / 10, 1) * 25;
+
+          userScores[email] = {
+            email,
+            name: u.name || u.firstName || email,
+            role: u.role || "viewer",
+            depts: u.departments || u.depts || [],
+            score: Math.round(taskScore + recencyScore + engagementScore),
+            breakdown: {
+              tasks: { total, onTime, score: Math.round(taskScore) },
+              recency: { events: userEvents.length, score: recencyScore },
+              engagement: { opens: sopOpens, score: Math.round(engagementScore) },
+            },
+          };
+        });
+
+        // Compliance score per dept
+        const deptScores = {};
+        Object.keys(sopsAll).forEach(dept => {
+          const sops = sopsAll[dept];
+          const sopsList = Array.isArray(sops) ? sops : (sops ? Object.values(sops) : []);
+          const totalSops = sopsList.length;
+          const activeApproved = sopsList.filter(s =>
+            s.status === "active" || s.status === "approved"
+          ).length;
+          const withOwner = sopsList.filter(s => s.owner).length;
+          const deptTasks = tasks.filter(t => t.dept === dept);
+          const completedTasks = deptTasks.filter(t => t.status === "done").length;
+
+          const sopScore = totalSops ? (activeApproved / totalSops) * 40 : 0;
+          const ownerScore = totalSops ? (withOwner / totalSops) * 30 : 0;
+          const taskScore = deptTasks.length ? (completedTasks / deptTasks.length) * 30 : 0;
+
+          deptScores[dept] = {
+            dept,
+            score: Math.round(sopScore + ownerScore + taskScore),
+            breakdown: {
+              sops: { total: totalSops, activeApproved, score: Math.round(sopScore) },
+              ownership: { withOwner, score: Math.round(ownerScore) },
+              tasks: { total: deptTasks.length, completed: completedTasks, score: Math.round(taskScore) },
+            },
+          };
+        });
+
+        const overallScore = Object.values(userScores).length
+          ? Math.round(Object.values(userScores).reduce((a, u) => a + u.score, 0) / Object.values(userScores).length)
+          : 0;
+
+        return json({
+          overall: overallScore,
+          userScores: Object.values(userScores).sort((a, b) => b.score - a.score),
+          deptScores: Object.values(deptScores).sort((a, b) => b.score - a.score),
+          generatedAt: Date.now(),
+        }, 200, req);
+      }
+
+      // ---------- DEMO SIMULATOR (admin only) ----------
+      // POST /api/demo/seed  → seeds a fake org with sites/sops/tasks
+      if (path === "/api/demo/seed" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+
+        const demoSites = [
+          { id: "demo_site_1", name: "موقع تجريبي - الرياض", region: "central", manager: "demo@arsann.com" },
+          { id: "demo_site_2", name: "موقع تجريبي - جدة", region: "western", manager: "demo@arsann.com" },
+        ];
+        const demoSops = {
+          "demo_dept": {
+            "DEMO-001": { code: "DEMO-001", title: "افتتاح الموقع اليومي", dept: "demo_dept", status: "active", owner: "demo@arsann.com", purpose: "التحقق من جاهزية الموقع للعمل", steps: ["فحص الإضاءة", "تشغيل الأنظمة", "مراجعة الأمن"], stage: "operational" },
+            "DEMO-002": { code: "DEMO-002", title: "إغلاق الموقع", dept: "demo_dept", status: "active", owner: "demo@arsann.com", purpose: "إغلاق آمن", steps: ["إغلاق الأنظمة", "تأمين الأبواب"], stage: "operational" },
+            "DEMO-003": { code: "DEMO-003", title: "استلام البضاعة", dept: "demo_dept", status: "approved", owner: "demo@arsann.com", purpose: "استلام منظم", steps: ["مطابقة الفاتورة", "فحص الجودة"], stage: "operational" },
+          }
+        };
+        const demoTasks = [];
+        const today = Date.now();
+        for (let i = 0; i < 20; i++) {
+          const dueDays = (i % 7) - 2; // some overdue, some current
+          demoTasks.push({
+            id: `demo_task_${i}`,
+            title: `مهمة تجريبية رقم ${i + 1}`,
+            assignee: `demo${(i % 3) + 1}@arsann.com`,
+            site: i % 2 === 0 ? "demo_site_1" : "demo_site_2",
+            sopRef: `demo_dept/DEMO-00${(i % 3) + 1}`,
+            dueDate: new Date(today + dueDays * 86400000).toISOString().slice(0, 10),
+            status: i < 10 ? "done" : (i < 15 ? "in_progress" : "todo"),
+            completedAt: i < 10 ? today - (10 - i) * 3600000 : null,
+            dept: "demo_dept",
+            createdAt: today - (i * 86400000 / 2),
+          });
+        }
+
+        // Save under demo_* keys (separate namespace)
+        await env.ARSAN.put("demo_sites_v1", JSON.stringify(demoSites));
+        await env.ARSAN.put("demo_sops_v1", JSON.stringify(demoSops));
+        await env.ARSAN.put("demo_tasks_v1", JSON.stringify(demoTasks));
+        await env.ARSAN.put("demo_meta_v1", JSON.stringify({
+          seededAt: Date.now(),
+          seededBy: ad.session.email,
+          orgName: "Demo Co.",
+          users: ["demo1@arsann.com", "demo2@arsann.com", "demo3@arsann.com"],
+        }));
+
+        return json({
+          ok: true,
+          sites: demoSites.length,
+          sops: 3,
+          tasks: demoTasks.length,
+          message: "بيئة العرض جاهزة. زر demo.html للمشاهدة.",
+        }, 200, req);
+      }
+
+      // GET /api/demo/data  → returns demo seed data (public read)
+      if (path === "/api/demo/data" && method === "GET") {
+        const [sites, sops, tasks, meta] = await Promise.all([
+          env.ARSAN.get("demo_sites_v1"),
+          env.ARSAN.get("demo_sops_v1"),
+          env.ARSAN.get("demo_tasks_v1"),
+          env.ARSAN.get("demo_meta_v1"),
+        ]);
+        if (!meta) return json({ error: "demo-not-seeded" }, 404, req);
+        return json({
+          meta: JSON.parse(meta),
+          sites: sites ? JSON.parse(sites) : [],
+          sops: sops ? JSON.parse(sops) : {},
+          tasks: tasks ? JSON.parse(tasks) : [],
+        }, 200, req);
+      }
+
+      // POST /api/demo/clear  → admin clears demo data
+      if (path === "/api/demo/clear" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        await Promise.all([
+          env.ARSAN.delete("demo_sites_v1"),
+          env.ARSAN.delete("demo_sops_v1"),
+          env.ARSAN.delete("demo_tasks_v1"),
+          env.ARSAN.delete("demo_meta_v1"),
+        ]);
+        return json({ ok: true }, 200, req);
+      }
+
+      // POST /api/demo/simulate-tick  → simulates 1 day of demo activity (advances tasks)
+      if (path === "/api/demo/simulate-tick" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const tasksRaw = await env.ARSAN.get("demo_tasks_v1");
+        if (!tasksRaw) return json({ error: "no-demo" }, 404, req);
+        const tasks = JSON.parse(tasksRaw);
+        let changed = 0;
+        // Move random tasks forward
+        tasks.forEach(t => {
+          const r = Math.random();
+          if (t.status === "todo" && r < 0.3) { t.status = "in_progress"; changed++; }
+          else if (t.status === "in_progress" && r < 0.4) {
+            t.status = "done";
+            t.completedAt = Date.now();
+            changed++;
+          }
+        });
+        await env.ARSAN.put("demo_tasks_v1", JSON.stringify(tasks));
+        return json({ ok: true, changed }, 200, req);
+      }
+
+      // GET /api/health/full  — admin only — system health
+      if (path === "/api/health/full" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const [errRaw, slowRaw, telIdxRaw] = await Promise.all([
+          env.ARSAN.get(KEYS.errorLog),
+          env.ARSAN.get(KEYS.slowLog),
+          env.ARSAN.get(KEYS.telemetryIndex),
+        ]);
+        const errors = errRaw ? JSON.parse(errRaw) : [];
+        const slow = slowRaw ? JSON.parse(slowRaw) : [];
+        const recent = errors.filter(e => Date.now() - (e.ts || 0) < 86400000);
+        const slowRecent = slow.filter(e => Date.now() - (e.ts || 0) < 86400000);
+        return json({
+          time: Date.now(),
+          errors24h: recent.length,
+          slow24h: slowRecent.length,
+          telemetryDays: telIdxRaw ? JSON.parse(telIdxRaw).length : 0,
+          status: recent.length > 50 ? "degraded" : "healthy",
+        }, 200, req);
+      }
 
       return json({ error: "not-found", path }, 404, req);
     } catch (e) {

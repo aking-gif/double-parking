@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Arsann SOPs · منصّة إدارة الإجراءات التشغيلية</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="منصّة عربية لإدارة الإجراءات التشغيلية القياسية — SOPs، مهام، اعتمادات، مراقبة أداء، رؤى أسبوعية.">
+<link rel="icon" href="favicon.png">
+<style>
+  :root {
+    --bg:#1a1510; --bg-2:#241c14; --surface:#2a2118;
+    --ink:#f5ead0; --ink-2:#c8b89a; --ink-3:#8a7a5e;
+    --brand:#c89a4a; --brand-2:#e8b85f; --line:rgba(255,255,255,.08);
+    --ok:#3a8f66; --err:#b3261e;
+    --max:1200px;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font:16px/1.7 'Tajawal','Segoe UI',sans-serif}
+  body{
+    background:radial-gradient(circle at 80% -10%,rgba(200,154,74,.12) 0%,transparent 50%),
+               radial-gradient(circle at -10% 100%,rgba(200,154,74,.08) 0%,transparent 50%),var(--bg);
+    min-height:100vh;
+  }
+
+  /* ===== NAV ===== */
+  nav{
+    position:sticky;top:0;z-index:50;background:rgba(20,18,12,.85);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--brand);font-size:18px}
+  nav .brand img{width:36px;height:36px;border-radius:8px}
+  nav .links{display:flex;gap:24px;align-items:center}
+  nav .links a{color:var(--ink-2);text-decoration:none;font-size:14px;transition:color .15s}
+  nav .links a:hover{color:var(--brand)}
+  nav .cta{
+    padding:8px 20px;background:var(--brand);color:#1a1510;border-radius:8px;
+    text-decoration:none;font-weight:600;font-size:14px;transition:filter .15s;
+  }
+  nav .cta:hover{filter:brightness(1.1)}
+  @media (max-width:700px){ nav .links a:not(.cta){display:none} }
+
+  /* ===== HERO ===== */
+  .hero{padding:80px 24px 60px;text-align:center;max-width:var(--max);margin:0 auto}
+  .hero .eyebrow{
+    display:inline-block;padding:6px 14px;border-radius:20px;
+    background:rgba(200,154,74,.15);color:var(--brand);font-size:12px;font-weight:600;
+    border:1px solid rgba(200,154,74,.3);margin-bottom:24px;
+  }
+  .hero h1{
+    font-size:clamp(32px,6vw,56px);line-height:1.15;font-weight:800;
+    background:linear-gradient(135deg,var(--ink) 0%,var(--brand) 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:20px;
+  }
+  .hero p{font-size:clamp(16px,2.4vw,20px);color:var(--ink-2);max-width:720px;margin:0 auto 36px}
+  .hero .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;
+    text-decoration:none;cursor:pointer;border:none;font-family:inherit;
+    transition:all .15s;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn.primary{background:var(--brand);color:#1a1510}
+  .btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--brand);color:var(--brand)}
+
+  /* ===== SECTIONS ===== */
+  section{padding:80px 24px;max-width:var(--max);margin:0 auto}
+  section h2{
+    font-size:clamp(28px,4vw,40px);text-align:center;margin-bottom:16px;font-weight:700;
+  }
+  section .sub{text-align:center;color:var(--ink-2);max-width:600px;margin:0 auto 48px;font-size:17px}
+
+  /* ===== FEATURES ===== */
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+  .feature{
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;
+    padding:28px;transition:all .2s;
+  }
+  .feature:hover{border-color:rgba(200,154,74,.4);transform:translateY(-2px)}
+  .feature .icon{
+    width:48px;height:48px;border-radius:12px;
+    background:linear-gradient(135deg,var(--brand) 0%,#8a6a30 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin-bottom:18px;
+  }
+  .feature h3{font-size:18px;margin-bottom:10px;font-weight:700;color:var(--ink)}
+  .feature p{color:var(--ink-2);font-size:14px;line-height:1.6}
+
+  /* ===== STATS ===== */
+  .stats{
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;
+    padding:48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:32px;text-align:center;
+  }
+  .stats .n{font-size:42px;font-weight:800;color:var(--brand);line-height:1}
+  .stats .l{color:var(--ink-2);font-size:14px;margin-top:8px}
+
+  /* ===== HOW ===== */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;counter-reset:s}
+  .step{counter-increment:s;position:relative;padding-top:56px}
+  .step::before{
+    content:counter(s);position:absolute;top:0;right:0;
+    width:40px;height:40px;border-radius:50%;background:var(--brand);color:#1a1510;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;
+  }
+  .step h4{font-size:17px;margin-bottom:8px;color:var(--ink)}
+  .step p{color:var(--ink-2);font-size:14px}
+
+  /* ===== CTA BAND ===== */
+  .cta-band{
+    background:linear-gradient(135deg,var(--brand) 0%,#8a6a30 100%);
+    border-radius:16px;padding:60px 32px;text-align:center;color:#1a1510;
+  }
+  .cta-band h2{color:#1a1510;background:none;-webkit-text-fill-color:#1a1510;margin-bottom:14px}
+  .cta-band p{color:rgba(26,21,16,.8);margin-bottom:28px;font-size:17px}
+  .cta-band .btn{background:#1a1510;color:var(--brand);font-size:16px;padding:16px 32px}
+  .cta-band .btn:hover{background:#000}
+
+  footer{
+    border-top:1px solid var(--line);padding:32px 24px;text-align:center;
+    color:var(--ink-3);font-size:13px;
+  }
+
+  /* ===== ONBOARDING WIZARD ===== */
+  .wizard-bd{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+    z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .wizard-bd.open{display:flex}
+  .wizard{
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    width:100%;max-width:560px;max-height:90vh;overflow:auto;
+  }
+  .wizard-head{padding:24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .wizard-head h3{font-size:18px;color:var(--brand)}
+  .wizard-close{background:none;border:none;color:var(--ink-3);font-size:24px;cursor:pointer}
+  .wizard-body{padding:24px}
+  .wizard-progress{display:flex;gap:6px;margin-bottom:24px}
+  .wizard-progress .dot{
+    flex:1;height:4px;background:var(--bg-2);border-radius:2px;transition:background .3s;
+  }
+  .wizard-progress .dot.active{background:var(--brand)}
+  .wizard-step{display:none}
+  .wizard-step.active{display:block}
+  .wizard-step h4{font-size:20px;margin-bottom:8px;color:var(--ink)}
+  .wizard-step p{color:var(--ink-2);margin-bottom:20px;font-size:14px}
+  .wizard input,.wizard textarea,.wizard select{
+    width:100%;padding:12px 14px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg-2);color:var(--ink);font-family:inherit;font-size:14px;
+    margin-bottom:14px;
+  }
+  .wizard input:focus,.wizard textarea:focus{outline:none;border-color:var(--brand)}
+  .wizard label{display:block;color:var(--ink-2);font-size:13px;margin-bottom:6px;font-weight:500}
+  .wizard-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+  .checks{display:flex;flex-direction:column;gap:8px}
+  .check{
+    display:flex;align-items:center;gap:10px;padding:12px;
+    background:var(--bg-2);border-radius:8px;cursor:pointer;
+    border:1px solid transparent;transition:border-color .15s;
+  }
+  .check:hover{border-color:var(--brand)}
+  .check input{width:auto;margin:0}
+  .check.done{background:rgba(58,143,102,.15);border-color:var(--ok)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">
+    <img src="adham.png" alt="Arsann">
+    <span>Arsann SOPs</span>
+  </a>
+  <div class="links">
+    <a href="#features">المزايا</a>
+    <a href="#how">كيف يعمل</a>
+    <a href="#pricing">الأسعار</a>
+    <a href="index.html" class="cta">دخول</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">منصّة عربية · جاهزة للتشغيل</div>
+  <h1>أوقف الفوضى التشغيلية.<br>ابدأ بإجراءات قياسية.</h1>
+  <p>منصّة شاملة لإدارة الإجراءات التشغيلية القياسية (SOPs) — اعتمادات، مهام، رؤى أسبوعية، ومراقبة أداء حية. لمواقعك ومدرائك وفرقك.</p>
+  <div class="cta-row">
+    <button class="btn primary" onclick="openWizard()">🚀 ابدأ مجاناً</button>
+    <a href="#how" class="btn ghost">شاهد كيف يعمل</a>
+  </div>
+</div>
+
+<section id="stats">
+  <div class="stats">
+    <div><div class="n">5</div><div class="l">حالات دورة الحياة</div></div>
+    <div><div class="n">∞</div><div class="l">مستخدمون لكل مؤسسة</div></div>
+    <div><div class="n">7</div><div class="l">إدارات افتراضية</div></div>
+    <div><div class="n">24/7</div><div class="l">مراقبة وتنبيهات</div></div>
+  </div>
+</section>
+
+<section id="features">
+  <h2>كل ما تحتاجه التشغيلات في مكان واحد</h2>
+  <p class="sub">بُنيت أرسان على ١٢ شهراً من تجربة الواقع التشغيلي السعودي. ليست تجريبية — حقيقية.</p>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">📋</div>
+      <h3>مكتبة إجراءات حيّة</h3>
+      <p>دورة حياة كاملة: مسوّدة → مراجعة → معتمد → نشط → مؤرشف. مع تبعيّات بين الإجراءات.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">✅</div>
+      <h3>مهام مرتبطة بالإجراءات</h3>
+      <p>كل مهمة لها مسؤول، تاريخ استحقاق، موقع، وإجراء مرجعي. لا أعمال تتم خارج النظام.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🔗</div>
+      <h3>سلاسل اعتماد مرنة</h3>
+      <p>صمم سلسلة اعتماد لكل إدارة: محرّر → مدير → معتمد. مع إشعارات عند كل خطوة.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">📊</div>
+      <h3>رؤى أسبوعية تلقائية</h3>
+      <p>تقرير يصلك كل أحد بأكثر الإجراءات استخداماً، الأقل استخداماً، وتوصيات للتحسين.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🎯</div>
+      <h3>درجات الالتزام</h3>
+      <p>قياس صامت لأداء كل مستخدم وكل إدارة (سرّي للمدير التنفيذي فقط).</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🌐</div>
+      <h3>عربي/إنجليزي بالكامل</h3>
+      <p>RTL طبيعي، خطوط عربية أصيلة، وكل تنبيه قابل للترجمة. صُنعت من الصفر للسوق العربي.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">📱</div>
+      <h3>يعمل بدون إنترنت</h3>
+      <p>المهام والإجراءات تظل متاحة. كل تغيير يُحفظ محلياً ويُرفع تلقائياً عند عودة الاتصال.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🔌</div>
+      <h3>تكامل Slack &amp; webhooks</h3>
+      <p>إشعارات فورية لكل إدارة على قناتها الخاصة. تكامل مفتوح لأي نظام خارجي.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">🛡️</div>
+      <h3>أدوار وصلاحيات</h3>
+      <p>أدمن، محرّر، عارض. مع نطاقات إدارات. كل تعديل مسجّل في Audit Trail كامل.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <h2>ابدأ في 5 دقائق</h2>
+  <p class="sub">لا تركيب، لا خوادم، لا قواعد بيانات. فقط أنشئ مؤسستك وادعُ فريقك.</p>
+  <div class="steps">
+    <div class="step">
+      <h4>أنشئ مؤسستك</h4>
+      <p>اسم الشركة، الإدارات الأولى، والمواقع. كل شيء قابل للتعديل لاحقاً.</p>
+    </div>
+    <div class="step">
+      <h4>ادعُ فريقك</h4>
+      <p>إيميلات بسيطة. كل عضو يصله رابط مباشر لتعيين كلمة سر.</p>
+    </div>
+    <div class="step">
+      <h4>استورد إجراءاتك</h4>
+      <p>من PDF، Word، Google Doc، أو ابدأ من قوالب جاهزة. AI يساعدك في التحويل.</p>
+    </div>
+    <div class="step">
+      <h4>أطلق التشغيل</h4>
+      <p>أسند مهام، اعتمد إجراءات، وراقب الأداء — كل شيء حيّ في لوحة تحكم واحدة.</p>
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="cta-band">
+    <h2>جاهز لإيقاف الفوضى؟</h2>
+    <p>أطلق مؤسستك على Arsann خلال 5 دقائق. تجربة كاملة، لا حدود، لا بطاقة ائتمان.</p>
+    <button class="btn" onclick="openWizard()">🚀 ابدأ الآن</button>
+  </div>
+</section>
+
+<footer>
+  © 2026 Arsann · جميع الحقوق محفوظة · 
+  <a href="index.html" style="color:var(--brand)">الدخول للمنصّة</a>
+</footer>
+
+<!-- ============== ONBOARDING WIZARD ============== -->
+<div class="wizard-bd" id="wizard-bd">
+  <div class="wizard">
+    <div class="wizard-head">
+      <h3>🚀 إعداد مؤسستك</h3>
+      <button class="wizard-close" onclick="closeWizard()">×</button>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-progress" id="wiz-progress">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+
+      <!-- STEP 1: Org -->
+      <div class="wizard-step active" data-step="1">
+        <h4>عرّفنا بمؤسستك</h4>
+        <p>هذه المعلومات الأساسية. يمكنك تغييرها لاحقاً.</p>
+        <label>اسم المؤسسة *</label>
+        <input id="w-org" placeholder="مثل: شركة أرسان">
+        <label>المجال</label>
+        <select id="w-industry">
+          <option>الضيافة والمطاعم</option>
+          <option>التجزئة</option>
+          <option>الخدمات اللوجستية</option>
+          <option>الإنشاءات</option>
+          <option>الصحة</option>
+          <option>أخرى</option>
+        </select>
+        <label>عدد المواقع التشغيلية</label>
+        <select id="w-sites-count">
+          <option value="1">موقع واحد</option>
+          <option value="2-5">2 - 5 مواقع</option>
+          <option value="6-20">6 - 20 موقع</option>
+          <option value="20+">أكثر من 20</option>
+        </select>
+      </div>
+
+      <!-- STEP 2: Sites -->
+      <div class="wizard-step" data-step="2">
+        <h4>المواقع</h4>
+        <p>أضف موقعاً واحداً لتبدأ. يمكن إضافة المزيد لاحقاً.</p>
+        <label>اسم الموقع الأول *</label>
+        <input id="w-site-name" placeholder="مثل: فيا الرياض">
+        <label>المنطقة</label>
+        <select id="w-region">
+          <option value="central">الوسطى</option>
+          <option value="western">الغربية</option>
+          <option value="eastern">الشرقية</option>
+          <option value="northern">الشمالية</option>
+          <option value="southern">الجنوبية</option>
+        </select>
+      </div>
+
+      <!-- STEP 3: Departments -->
+      <div class="wizard-step" data-step="3">
+        <h4>الإدارات</h4>
+        <p>اختر الإدارات الأولية. كل إدارة ستحتوي على إجراءاتها الخاصة.</p>
+        <div class="checks" id="w-depts">
+          <label class="check"><input type="checkbox" value="ops" checked> 🛠️ العمليات</label>
+          <label class="check"><input type="checkbox" value="hr" checked> 👥 الموارد البشرية</label>
+          <label class="check"><input type="checkbox" value="finance"> 💰 المالية</label>
+          <label class="check"><input type="checkbox" value="marketing"> 📢 التسويق</label>
+          <label class="check"><input type="checkbox" value="quality"> ✅ الجودة</label>
+          <label class="check"><input type="checkbox" value="security"> 🔒 الأمن</label>
+        </div>
+      </div>
+
+      <!-- STEP 4: Admin user -->
+      <div class="wizard-step" data-step="4">
+        <h4>حسابك (الأدمن)</h4>
+        <p>ستكون الأدمن الرئيسي. يمكنك دعوة المزيد من الفريق لاحقاً.</p>
+        <label>اسمك *</label>
+        <input id="w-name" placeholder="الاسم الكامل">
+        <label>بريدك الإلكتروني *</label>
+        <input id="w-email" type="email" placeholder="you@company.com">
+        <label>كلمة المرور (٦ أحرف على الأقل) *</label>
+        <input id="w-pass" type="password" placeholder="••••••••">
+      </div>
+
+      <!-- STEP 5: Done -->
+      <div class="wizard-step" data-step="5">
+        <h4>🎉 كل شيء جاهز!</h4>
+        <p>تم إعداد مؤسستك. اضغط "اذهب للمنصّة" لتسجيل الدخول وبدء العمل.</p>
+        <div style="background:var(--bg-2);padding:16px;border-radius:8px;margin-top:14px">
+          <div style="color:var(--ink-3);font-size:12px;margin-bottom:8px">معرّف المؤسسة:</div>
+          <div id="w-org-id" style="font-family:monospace;color:var(--brand);font-weight:600"></div>
+        </div>
+        <p style="margin-top:14px;font-size:13px;color:var(--ink-3)">
+          ⚠️ ملاحظة: هذه نسخة تجريبية للعرض. الإصدار الإنتاجي يتضمن إعداداً كاملاً للقاعدة.
+        </p>
+      </div>
+    </div>
+    <div class="wizard-foot">
+      <button class="btn ghost" id="wiz-back" onclick="prevStep()" style="display:none">رجوع</button>
+      <button class="btn primary" id="wiz-next" onclick="nextStep()">التالي</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let step = 1;
+const TOTAL = 5;
+const data = {};
+
+function openWizard(){ document.getElementById('wizard-bd').classList.add('open'); step = 1; updateUI(); }
+function closeWizard(){ document.getElementById('wizard-bd').classList.remove('open'); }
+
+function updateUI(){
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  document.querySelector(`[data-step="${step}"]`).classList.add('active');
+  document.querySelectorAll('#wiz-progress .dot').forEach((d,i) => {
+    d.classList.toggle('active', i < step);
+  });
+  document.getElementById('wiz-back').style.display = step > 1 && step < TOTAL ? '' : 'none';
+  document.getElementById('wiz-next').textContent =
+    step === TOTAL ? 'اذهب للمنصّة' :
+    step === TOTAL - 1 ? '🚀 إنشاء المؤسسة' :
+    'التالي';
+}
+
+function nextStep(){
+  if (step === 1) {
+    const v = document.getElementById('w-org').value.trim();
+    if (!v) { alert('اسم المؤسسة مطلوب'); return; }
+    data.org = v;
+    data.industry = document.getElementById('w-industry').value;
+    data.sitesCount = document.getElementById('w-sites-count').value;
+  }
+  if (step === 2) {
+    const v = document.getElementById('w-site-name').value.trim();
+    if (!v) { alert('اسم الموقع مطلوب'); return; }
+    data.siteName = v;
+    data.region = document.getElementById('w-region').value;
+  }
+  if (step === 3) {
+    data.depts = Array.from(document.querySelectorAll('#w-depts input:checked')).map(c => c.value);
+    if (!data.depts.length) { alert('اختر إدارة واحدة على الأقل'); return; }
+  }
+  if (step === 4) {
+    const name = document.getElementById('w-name').value.trim();
+    const email = document.getElementById('w-email').value.trim();
+    const pass = document.getElementById('w-pass').value;
+    if (!name || !email || pass.length < 6) {
+      alert('جميع الحقول مطلوبة، وكلمة السر ٦ أحرف على الأقل');
+      return;
+    }
+    data.adminName = name;
+    data.adminEmail = email;
+    data.adminPass = pass;
+    // Generate org id
+    data.orgId = 'org_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    document.getElementById('w-org-id').textContent = data.orgId;
+    // In production: POST /api/onboard with data
+    console.log('Onboarding data:', data);
+  }
+  if (step === TOTAL) {
+    // Open the platform
+    closeWizard();
+    window.location.href = 'index.html';
+    return;
+  }
+  step++;
+  updateUI();
+}
+function prevStep(){ if (step > 1) { step--; updateUI(); } }
+
+// Open wizard if hash
+if (location.hash === '#start') openWizard();
+</script>
+
+</body>
+</html>

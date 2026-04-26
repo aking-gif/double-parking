@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>أرسان · رؤى ومراقبة النظام</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="favicon.png">
+<style>
+  :root {
+    --bg:#1a1510; --bg-2:#241c14; --surface:#2a2118;
+    --ink:#f5ead0; --ink-2:#c8b89a; --ink-3:#8a7a5e;
+    --brand:#c89a4a; --line:rgba(255,255,255,.08);
+    --ok:#3a8f66; --warn:#c89a4a; --err:#b3261e;
+    --card:rgba(255,255,255,.04);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 'Tajawal','Segoe UI',sans-serif;padding-top:80px}
+
+  .top{
+    position:fixed;top:0;right:0;left:0;z-index:50;
+    background:rgba(20,18,12,.92);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .top h1{margin:0;font-size:18px;font-weight:700;color:var(--brand)}
+  .top .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{
+    background:var(--bg-2);color:var(--ink);border:1px solid var(--line);
+    padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;
+    transition:all .15s;font-family:inherit;
+  }
+  .btn:hover{background:var(--surface);border-color:var(--brand)}
+  .btn.primary{background:var(--brand);color:#1a1510;border-color:var(--brand);font-weight:600}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.ghost{background:transparent}
+
+  .container{max-width:1400px;margin:0 auto;padding:24px}
+
+  .tabs{
+    display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;
+    overflow-x:auto;scrollbar-width:thin;
+  }
+  .tab{
+    padding:10px 18px;background:transparent;color:var(--ink-2);
+    border:none;border-bottom:3px solid transparent;cursor:pointer;
+    font-family:inherit;font-size:14px;white-space:nowrap;transition:all .15s;
+  }
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+
+  .pane{display:none}
+  .pane.active{display:block}
+
+  .grid{display:grid;gap:16px}
+  .grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+  .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px;
+  }
+  .card h3{margin:0 0 14px;font-size:14px;color:var(--ink-2);font-weight:600}
+  .stat{font-size:32px;font-weight:700;color:var(--brand);line-height:1.1}
+  .stat .unit{font-size:14px;color:var(--ink-3);font-weight:400;margin-inline-start:6px}
+  .stat-label{font-size:12px;color:var(--ink-3);margin-top:4px}
+
+  .bar-list{display:flex;flex-direction:column;gap:8px}
+  .bar-row{display:flex;align-items:center;gap:8px;font-size:13px}
+  .bar-row .name{flex:0 0 auto;min-width:140px;max-width:200px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-row .bar{flex:1;height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden}
+  .bar-row .bar .fill{height:100%;background:var(--brand);border-radius:4px}
+  .bar-row .val{flex:0 0 auto;min-width:50px;text-align:end;color:var(--ink);font-weight:600}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:start;border-bottom:1px solid var(--line)}
+  th{color:var(--ink-3);font-weight:600;font-size:12px;text-transform:uppercase}
+  tr:hover td{background:rgba(255,255,255,.02)}
+
+  .badge{
+    display:inline-block;padding:2px 8px;border-radius:4px;
+    font-size:11px;font-weight:600;
+  }
+  .badge.ok{background:rgba(58,143,102,.2);color:#7ad8aa}
+  .badge.warn{background:rgba(200,154,74,.2);color:var(--brand)}
+  .badge.err{background:rgba(179,38,30,.2);color:#ff8a82}
+
+  .err-row{font-family:'Courier New',monospace;font-size:12px;color:#ff9a90}
+  .empty{text-align:center;padding:40px;color:var(--ink-3)}
+  .loading{text-align:center;padding:60px;color:var(--ink-3)}
+  pre{background:var(--bg-2);padding:12px;border-radius:8px;overflow:auto;font-size:12px;color:var(--ink-2);max-height:400px}
+
+  .health-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-inline-end:6px}
+  .health-dot.ok{background:var(--ok)}
+  .health-dot.warn{background:var(--warn)}
+  .health-dot.err{background:var(--err)}
+
+  .recs li{padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .recs li:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>📊 رؤى أرسان — لوحة المراقبة</h1>
+  <div class="actions">
+    <button class="btn ghost" onclick="window.location.href='dashboard.html'">← العودة</button>
+    <button class="btn" onclick="loadAll()">🔄 تحديث</button>
+    <button class="btn primary" onclick="sendInsights()">📤 إرسال التقرير الأسبوعي</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">نظرة عامة</button>
+    <button class="tab" data-tab="insights">التقرير الأسبوعي</button>
+    <button class="tab" data-tab="friction">نقاط الاحتكاك</button>
+    <button class="tab" data-tab="errors">سجل الأخطاء</button>
+    <button class="tab" data-tab="slow">الطلبات البطيئة</button>
+    <button class="tab" data-tab="users">نشاط المستخدمين</button>
+    <button class="tab" data-tab="compliance" style="color:#ff9a82;border-bottom-color:transparent">🔒 Compliance (سرّي)</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="pane active" id="pane-overview">
+    <div class="grid cols-4" id="health-cards">
+      <div class="loading">جارٍ التحميل…</div>
+    </div>
+    <div class="grid cols-2" style="margin-top:16px">
+      <div class="card">
+        <h3>أكثر الصفحات نشاطاً (آخر 7 أيام)</h3>
+        <div id="page-activity" class="bar-list"><div class="empty">…</div></div>
+      </div>
+      <div class="card">
+        <h3>الأحداث الأكثر تكراراً</h3>
+        <div id="event-counts" class="bar-list"><div class="empty">…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="pane" id="pane-insights">
+    <div id="insights-content" class="loading">جارٍ التحميل…</div>
+  </div>
+
+  <!-- FRICTION -->
+  <div class="pane" id="pane-friction">
+    <div class="grid cols-3" id="friction-stats"><div class="loading">…</div></div>
+    <div class="card" style="margin-top:16px">
+      <h3>أكثر الصفحات بطئاً (متوسط زمن الجلسة)</h3>
+      <div id="page-durations" class="bar-list"></div>
+    </div>
+  </div>
+
+  <!-- ERRORS -->
+  <div class="pane" id="pane-errors">
+    <div class="card">
+      <h3>آخر الأخطاء (200)</h3>
+      <table id="errors-table"><thead>
+        <tr><th>الوقت</th><th>المستخدم</th><th>الصفحة</th><th>الخطأ</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- SLOW -->
+  <div class="pane" id="pane-slow">
+    <div class="card">
+      <h3>أبطأ الطلبات (>1.5 ثانية)</h3>
+      <table id="slow-table"><thead>
+        <tr><th>الوقت</th><th>الـ Endpoint</th><th>الزمن</th><th>الحالة</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="pane" id="pane-users">
+    <div class="card">
+      <h3>أكثر المستخدمين نشاطاً (آخر 7 أيام)</h3>
+      <div id="top-users" class="bar-list"></div>
+    </div>
+  </div>
+
+  <!-- COMPLIANCE (admin secret) -->
+  <div class="pane" id="pane-compliance">
+    <div style="background:rgba(179,38,30,.1);border:1px solid rgba(179,38,30,.3);padding:14px;border-radius:8px;margin-bottom:16px;font-size:13px;color:#ff9a82">
+      🔒 <strong>سرّي للأدمن فقط</strong> — هذه الدرجات مرئية لك فقط، ولا تظهر للمستخدمين أنفسهم. استخدمها لتقييم الأداء التشغيلي.
+    </div>
+    <div id="compliance-overall" class="grid cols-3"></div>
+    <div class="grid cols-2" style="margin-top:16px">
+      <div class="card">
+        <h3>📊 درجة المستخدمين (من 100)</h3>
+        <div id="compliance-users"></div>
+      </div>
+      <div class="card">
+        <h3>🏢 درجة الإدارات</h3>
+        <div id="compliance-depts"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="api.js"></script>
+<script>
+const API = window.API_BASE || '';
+const fmt = (n) => Number(n).toLocaleString('ar-SA');
+const fmtDate = (ts) => new Date(ts).toLocaleString('ar-SA', { dateStyle:'short', timeStyle:'short' });
+const trim = (s, n) => (s || '').length > n ? s.slice(0, n) + '…' : (s || '');
+
+function authFetch(url, opts={}) {
+  const t = localStorage.getItem('arsan_token');
+  return fetch(API + url, {
+    credentials: 'include',
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(t ? { Authorization: `Bearer ${t}` } : {}),
+      ...(opts.headers || {}),
+    },
+  }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e)));
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('pane-' + t.dataset.tab).classList.add('active');
+  };
+});
+
+// ===== OVERVIEW =====
+async function loadOverview() {
+  try {
+    const [health, summary] = await Promise.all([
+      authFetch('/api/health/full'),
+      authFetch('/api/telemetry/summary'),
+    ]);
+    const statusBadge = health.status === 'healthy'
+      ? '<span class="health-dot ok"></span>صحي'
+      : '<span class="health-dot warn"></span>متراجع';
+    document.getElementById('health-cards').innerHTML = `
+      <div class="card">
+        <h3>حالة النظام</h3>
+        <div class="stat">${statusBadge}</div>
+        <div class="stat-label">آخر 24 ساعة</div>
+      </div>
+      <div class="card">
+        <h3>أحداث (7 أيام)</h3>
+        <div class="stat">${fmt(summary.totalEvents)}</div>
+        <div class="stat-label">عبر ${fmt(summary.uniqueSessions)} جلسة</div>
+      </div>
+      <div class="card">
+        <h3>مستخدمون نشطون</h3>
+        <div class="stat">${fmt(summary.uniqueUsers)}</div>
+        <div class="stat-label">${fmt(summary.totalClicks)} نقرة</div>
+      </div>
+      <div class="card">
+        <h3>أخطاء / بطء</h3>
+        <div class="stat">${fmt(health.errors24h)} <span style="color:var(--ink-3);font-size:18px">/</span> ${fmt(health.slow24h)}</div>
+        <div class="stat-label">آخر 24 ساعة</div>
+      </div>
+    `;
+
+    // Page activity
+    const pages = Object.entries(summary.pageAvgDurationMs || {})
+      .sort((a,b) => b[1] - a[1]).slice(0, 8);
+    const pmax = Math.max(...pages.map(p => p[1]), 1);
+    document.getElementById('page-activity').innerHTML = pages.length ? pages.map(([p,ms]) => `
+      <div class="bar-row">
+        <div class="name" title="${p}">${trim(p, 30)}</div>
+        <div class="bar"><div class="fill" style="width:${(ms/pmax*100).toFixed(0)}%"></div></div>
+        <div class="val">${(ms/1000).toFixed(1)}s</div>
+      </div>
+    `).join('') : '<div class="empty">لا بيانات بعد</div>';
+
+    // Event counts
+    const events = Object.entries(summary.eventCounts || {})
+      .sort((a,b) => b[1] - a[1]).slice(0, 10);
+    const emax = Math.max(...events.map(e => e[1]), 1);
+    document.getElementById('event-counts').innerHTML = events.length ? events.map(([e,c]) => `
+      <div class="bar-row">
+        <div class="name">${e}</div>
+        <div class="bar"><div class="fill" style="width:${(c/emax*100).toFixed(0)}%"></div></div>
+        <div class="val">${fmt(c)}</div>
+      </div>
+    `).join('') : '<div class="empty">لا بيانات بعد</div>';
+
+    // Top users
+    document.getElementById('top-users').innerHTML = (summary.topUsers || []).map(([email, n]) => {
+      const max = summary.topUsers[0][1];
+      return `
+        <div class="bar-row">
+          <div class="name" title="${email}">${trim(email, 30)}</div>
+          <div class="bar"><div class="fill" style="width:${(n/max*100).toFixed(0)}%"></div></div>
+          <div class="val">${fmt(n)}</div>
+        </div>
+      `;
+    }).join('') || '<div class="empty">لا بيانات</div>';
+  } catch (e) {
+    document.getElementById('health-cards').innerHTML = `<div class="empty">خطأ: ${e.error || e.message || 'تعذّر التحميل'}</div>`;
+  }
+}
+
+// ===== INSIGHTS =====
+async function loadInsights() {
+  const el = document.getElementById('insights-content');
+  el.innerHTML = '<div class="loading">جارٍ توليد التقرير…</div>';
+  try {
+    const data = await authFetch('/api/insights/weekly');
+    const s = data.summary;
+    el.innerHTML = `
+      <div class="grid cols-4">
+        <div class="card"><h3>مهام جديدة</h3><div class="stat">${fmt(s.tasksCreated)}</div></div>
+        <div class="card"><h3>مكتملة</h3><div class="stat" style="color:var(--ok)">${fmt(s.tasksCompleted)}</div></div>
+        <div class="card"><h3>متأخرة</h3><div class="stat" style="color:var(--err)">${fmt(s.overdueTasks)}</div></div>
+        <div class="card"><h3>فتح SOPs</h3><div class="stat">${fmt(s.sopOpens)}</div></div>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card">
+          <h3>🏆 أفضل أداء</h3>
+          ${data.topPerformers.length ? `<table><tbody>${data.topPerformers.map(([e,n]) => `
+            <tr><td>${e}</td><td><span class="badge ok">${n} مهمة</span></td></tr>
+          `).join('')}</tbody></table>` : '<div class="empty">لا بيانات</div>'}
+        </div>
+        <div class="card">
+          <h3>📍 أداء المواقع</h3>
+          ${data.siteScores.length ? `<table><tbody>${data.siteScores.map(s => `
+            <tr><td>${s.name}</td><td>
+              <span class="badge ${s.completionRate>=80?'ok':s.completionRate>=50?'warn':'err'}">${s.completionRate}%</span>
+              <span style="color:var(--ink-3);font-size:11px">(${s.totalTasks} مهمة)</span>
+            </td></tr>
+          `).join('')}</tbody></table>` : '<div class="empty">لا مواقع</div>'}
+        </div>
+        <div class="card">
+          <h3>🔝 أكثر SOPs استخداماً</h3>
+          ${data.topSops.length ? `<div class="bar-list">${data.topSops.map(([ref,n]) => {
+            const max = data.topSops[0][1];
+            return `<div class="bar-row">
+              <div class="name">${ref}</div>
+              <div class="bar"><div class="fill" style="width:${(n/max*100).toFixed(0)}%"></div></div>
+              <div class="val">${n}</div>
+            </div>`;
+          }).join('')}</div>` : '<div class="empty">لا بيانات</div>'}
+        </div>
+        <div class="card">
+          <h3>⚠️ SOPs غير مستخدمة</h3>
+          ${data.unusedSops.length ? `<div style="font-size:12px;color:var(--ink-2);line-height:1.8">${data.unusedSops.map(r => `<span class="badge warn" style="margin:2px">${r}</span>`).join(' ')}</div>` : '<div class="empty">كلها مستخدمة 🎉</div>'}
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>💡 توصيات</h3>
+        <ul class="recs" style="margin:0;padding-inline-start:20px">
+          ${data.recommendations.map(r => `<li>${r}</li>`).join('')}
+        </ul>
+      </div>
+      <div style="margin-top:12px;color:var(--ink-3);font-size:12px;text-align:center">
+        أسبوع ${data.week} · ${data.cached ? '(مخزّن)' : '(مولّد الآن)'} · 
+        <a href="javascript:loadInsights()" style="color:var(--brand)">إعادة توليد</a>
+      </div>
+    `;
+  } catch (e) {
+    el.innerHTML = `<div class="empty">خطأ: ${e.error || e.message || 'تعذّر التحميل'}</div>`;
+  }
+}
+
+// ===== FRICTION =====
+async function loadFriction() {
+  try {
+    const summary = await authFetch('/api/telemetry/summary');
+    const stats = document.getElementById('friction-stats');
+    stats.innerHTML = `
+      <div class="card">
+        <h3>نقرات مكثّفة (rapid clicks)</h3>
+        <div class="stat" style="color:var(--warn)">${fmt(summary.rapidClickIncidents || 0)}</div>
+        <div class="stat-label">مؤشر إحباط محتمل</div>
+      </div>
+      <div class="card">
+        <h3>إجمالي النقرات</h3>
+        <div class="stat">${fmt(summary.totalClicks)}</div>
+      </div>
+      <div class="card">
+        <h3>متوسط الجلسة</h3>
+        <div class="stat">${summary.uniqueSessions ? Math.round(summary.totalEvents / summary.uniqueSessions) : 0}<span class="unit">حدث</span></div>
+      </div>
+    `;
+
+    const pages = Object.entries(summary.pageAvgDurationMs || {})
+      .sort((a,b) => b[1] - a[1]);
+    const pmax = Math.max(...pages.map(p => p[1]), 1);
+    document.getElementById('page-durations').innerHTML = pages.length ? pages.map(([p,ms]) => `
+      <div class="bar-row">
+        <div class="name">${p}</div>
+        <div class="bar"><div class="fill" style="width:${(ms/pmax*100).toFixed(0)}%;background:${ms>30000?'var(--err)':ms>15000?'var(--warn)':'var(--brand)'}"></div></div>
+        <div class="val">${(ms/1000).toFixed(1)}s</div>
+      </div>
+    `).join('') : '<div class="empty">لا بيانات</div>';
+  } catch (e) {
+    document.getElementById('friction-stats').innerHTML = `<div class="empty">خطأ: ${e.error || e.message}</div>`;
+  }
+}
+
+// ===== ERRORS =====
+async function loadErrors() {
+  const tb = document.querySelector('#errors-table tbody');
+  tb.innerHTML = '<tr><td colspan="4" class="empty">…</td></tr>';
+  try {
+    const data = await authFetch('/api/logs/errors');
+    if (!data.errors.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="empty">لا أخطاء — رائع! 🎉</td></tr>';
+      return;
+    }
+    tb.innerHTML = data.errors.reverse().map(e => `
+      <tr>
+        <td style="white-space:nowrap;color:var(--ink-3);font-size:12px">${fmtDate(e.ts)}</td>
+        <td style="font-size:12px">${e.email || '—'}</td>
+        <td style="font-size:12px">${e.page || '—'}</td>
+        <td class="err-row">${trim(e.message, 200)}</td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">خطأ: ${e.error || e.message}</td></tr>`;
+  }
+}
+
+// ===== SLOW =====
+async function loadSlow() {
+  const tb = document.querySelector('#slow-table tbody');
+  tb.innerHTML = '<tr><td colspan="4" class="empty">…</td></tr>';
+  try {
+    const data = await authFetch('/api/logs/slow');
+    if (!data.slow.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="empty">كل الطلبات سريعة 🎉</td></tr>';
+      return;
+    }
+    tb.innerHTML = data.slow.reverse().map(s => `
+      <tr>
+        <td style="white-space:nowrap;color:var(--ink-3);font-size:12px">${fmtDate(s.ts)}</td>
+        <td style="font-size:12px;font-family:monospace">${trim(s.endpoint, 60)}</td>
+        <td><span class="badge ${s.ms>5000?'err':'warn'}">${(s.ms/1000).toFixed(2)}s</span></td>
+        <td>${s.status || '—'}</td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="4" class="empty">خطأ: ${e.error || e.message}</td></tr>`;
+  }
+}
+
+// ===== COMPLIANCE =====
+async function loadCompliance() {
+  try {
+    const data = await authFetch('/api/compliance');
+    const overall = data.overall;
+    const tone = overall >= 70 ? 'ok' : overall >= 50 ? 'warn' : 'err';
+    document.getElementById('compliance-overall').innerHTML = `
+      <div class="card">
+        <h3>الدرجة الكلية</h3>
+        <div class="stat" style="color:${tone==='ok'?'var(--ok)':tone==='warn'?'var(--warn)':'var(--err)'}">${overall}<span class="unit">/100</span></div>
+        <div class="stat-label">${tone==='ok'?'ممتاز':tone==='warn'?'يحتاج تحسين':'حرج'}</div>
+      </div>
+      <div class="card"><h3>عدد المستخدمين المُقيَّمين</h3><div class="stat">${data.userScores.length}</div></div>
+      <div class="card"><h3>عدد الإدارات</h3><div class="stat">${data.deptScores.length}</div></div>
+    `;
+    document.getElementById('compliance-users').innerHTML = data.userScores.length ? `
+      <table><thead><tr><th>المستخدم</th><th>الدور</th><th>المهام</th><th>التفاعل</th><th>الدرجة</th></tr></thead>
+      <tbody>${data.userScores.map(u => {
+        const t = u.score >= 70 ? 'ok' : u.score >= 50 ? 'warn' : 'err';
+        return `<tr>
+          <td><div style="font-weight:600">${u.name}</div><div style="color:var(--ink-3);font-size:11px">${u.email}</div></td>
+          <td>${u.role}</td>
+          <td><span title="مكتمل في الوقت">${u.breakdown.tasks.onTime}/${u.breakdown.tasks.total}</span></td>
+          <td>${u.breakdown.engagement.opens} فتحة</td>
+          <td><span class="badge ${t}">${u.score}</span></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    ` : '<div class="empty">لا بيانات</div>';
+    document.getElementById('compliance-depts').innerHTML = data.deptScores.length ? `
+      <table><thead><tr><th>الإدارة</th><th>SOPs</th><th>المهام</th><th>الدرجة</th></tr></thead>
+      <tbody>${data.deptScores.map(d => {
+        const t = d.score >= 70 ? 'ok' : d.score >= 50 ? 'warn' : 'err';
+        return `<tr>
+          <td>${d.dept}</td>
+          <td>${d.breakdown.sops.activeApproved}/${d.breakdown.sops.total} نشطة</td>
+          <td>${d.breakdown.tasks.completed}/${d.breakdown.tasks.total}</td>
+          <td><span class="badge ${t}">${d.score}</span></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    ` : '<div class="empty">لا بيانات</div>';
+  } catch (e) {
+    document.getElementById('compliance-overall').innerHTML = `<div class="empty">خطأ: ${e.error || e.message}</div>`;
+  }
+}
+
+// ===== ACTIONS =====
+async function sendInsights() {
+  if (!confirm('إرسال التقرير الأسبوعي إلى Slack؟')) return;
+  try {
+    const res = await authFetch('/api/insights/send', {
+      method: 'POST',
+      body: JSON.stringify({ channels: ['slack'] }),
+    });
+    alert('تم الإرسال إلى: ' + (res.sent.join(', ') || 'لا قنوات مفعّلة'));
+  } catch (e) {
+    alert('خطأ: ' + (e.error || e.message));
+  }
+}
+
+async function loadAll() {
+  await loadOverview();
+  await loadInsights();
+  await loadFriction();
+  await loadErrors();
+  await loadSlow();
+  await loadCompliance();
+}
+
+// ===== AUTH CHECK =====
+(async () => {
+  try {
+    const me = await authFetch('/api/me');
+    if (me.role !== 'admin') {
+      document.body.innerHTML = '<div style="text-align:center;padding:80px;color:#fff"><h2>هذه الصفحة للمسؤولين فقط</h2><a href="dashboard.html" style="color:var(--brand)">العودة</a></div>';
+      return;
+    }
+    loadAll();
+  } catch (e) {
+    document.body.innerHTML = '<div style="text-align:center;padding:80px;color:#fff"><h2>يجب تسجيل الدخول</h2><a href="index.html" style="color:var(--brand)">تسجيل الدخول</a></div>';
+  }
+})();
+</script>
+</body>
+</html>

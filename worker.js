@@ -66,6 +66,10 @@ const KEYS = {
   // ===== Governance Layer (v1) =====
   approvalChains: "approval_chains_v1",               // سلاسل الاعتماد لكل إدارة
   govMigrated: "gov_migrated_v1",                     // علم الترقية (تمت ترقية SOPs الموجودة لـ Draft)
+  // ===== OS Layer (v1) =====
+  sites:    "sites_v1",                                // المواقع التشغيلية (مولات، مطارات…)
+  triggers: "triggers_v1",                             // مشغّلات تلقائية (cron-like)
+  triggersLastRun: "triggers_last_run_v1",             // آخر تشغيل لكل trigger
 };
 
 // Lifecycle states & transitions
@@ -1856,6 +1860,209 @@ ${clipped}
       // ============================================================
       // ===== LAYER 2 — Tasks / Comments / Approvals =====
       // ============================================================
+
+      // ============================================================
+      //                       OS LAYER — Sites
+      // ============================================================
+      if (path === "/api/sites" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        return json({ sites: list }, 200, req);
+      }
+      if (path === "/api/sites" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const body = await req.json().catch(()=>({}));
+        if (!body || !body.id || !body.name) return json({ error:"id+name required" }, 400, req);
+        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        if (list.find(x => x.id === body.id)) return json({ error:"id exists" }, 409, req);
+        const site = {
+          id: body.id, name: body.name,
+          city: body.city || "", type: body.type || "",
+          status: body.status || "active",
+          manager: body.manager || "",
+          createdAt: Date.now()
+        };
+        list.push(site);
+        await env.ARSAN.put(KV.sites, JSON.stringify(list));
+        return json({ ok:true, site }, 200, req);
+      }
+      if (path.match(/^\/api\/sites\/[^\/]+$/) && method === "PATCH") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const idx = list.findIndex(x => x.id === id);
+        if (idx < 0) return json({ error:"not found" }, 404, req);
+        const body = await req.json().catch(()=>({}));
+        list[idx] = { ...list[idx], ...body, id };
+        await env.ARSAN.put(KV.sites, JSON.stringify(list));
+        return json({ ok:true, site: list[idx] }, 200, req);
+      }
+      if (path.match(/^\/api\/sites\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const next = list.filter(x => x.id !== id);
+        await env.ARSAN.put(KV.sites, JSON.stringify(next));
+        return json({ ok:true }, 200, req);
+      }
+
+      // ============================================================
+      //                   OS LAYER — Auto-Triggers
+      // ============================================================
+      if (path === "/api/triggers" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        return json({ triggers: list }, 200, req);
+      }
+      if (path === "/api/triggers" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const body = await req.json().catch(()=>({}));
+        if (!body || !body.sopRef) return json({ error:"sopRef required" }, 400, req);
+        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const trig = {
+          id: "trg_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+          type: body.type || "daily",        // daily | weekly | once
+          time: body.time || "08:00",         // HH:MM
+          dayOfWeek: body.dayOfWeek,          // 0-6 for weekly
+          sopRef: body.sopRef,                // e.g. "operations/SOP-001"
+          site: body.site || "",
+          assignee: body.assignee || "",
+          shift: body.shift || "day",
+          enabled: body.enabled !== false,
+          createdAt: Date.now()
+        };
+        list.push(trig);
+        await env.ARSAN.put(KV.triggers, JSON.stringify(list));
+        return json({ ok:true, trigger: trig }, 200, req);
+      }
+      if (path.match(/^\/api\/triggers\/[^\/]+$/) && method === "PATCH") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const idx = list.findIndex(x => x.id === id);
+        if (idx < 0) return json({ error:"not found" }, 404, req);
+        const body = await req.json().catch(()=>({}));
+        list[idx] = { ...list[idx], ...body, id };
+        await env.ARSAN.put(KV.triggers, JSON.stringify(list));
+        return json({ ok:true, trigger: list[idx] }, 200, req);
+      }
+      if (path.match(/^\/api\/triggers\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        await env.ARSAN.put(KV.triggers, JSON.stringify(list.filter(x => x.id !== id)));
+        return json({ ok:true }, 200, req);
+      }
+      // POST /api/triggers/run — manual run (or cron). Creates tasks for triggers due today.
+      if (path === "/api/triggers/run" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const triggers = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const lastRun = (await env.ARSAN.get(KV.triggersLastRun, "json")) || {};
+        const tasks = (await env.ARSAN.get(KV.tasks, "json")) || [];
+        const now = Date.now();
+        const today = new Date().toISOString().slice(0,10);
+        const created = [];
+        for (const t of triggers) {
+          if (!t.enabled) continue;
+          const stamp = today + "_" + t.id;
+          if (lastRun[t.id] === today) continue;
+          // weekly check
+          if (t.type === "weekly" && typeof t.dayOfWeek === "number" && new Date().getDay() !== t.dayOfWeek) continue;
+          // create task
+          const [hh,mm] = (t.time||"08:00").split(":");
+          const due = new Date(); due.setHours(+hh||8, +mm||0, 0, 0);
+          const task = {
+            id: "tsk_" + now + "_" + Math.random().toString(36).slice(2,6),
+            title: "[تلقائي] " + t.sopRef,
+            sopRef: t.sopRef,
+            site: t.site || "",
+            assignee: t.assignee || "",
+            shift: t.shift || "day",
+            dueAt: due.getTime(),
+            status: "pending",
+            triggerId: t.id,
+            createdAt: now
+          };
+          tasks.push(task);
+          created.push(task);
+          lastRun[t.id] = today;
+        }
+        await env.ARSAN.put(KV.tasks, JSON.stringify(tasks));
+        await env.ARSAN.put(KV.triggersLastRun, JSON.stringify(lastRun));
+        return json({ ok:true, created: created.length, tasks: created }, 200, req);
+      }
+
+      // ============================================================
+      //                  OS LAYER — Compliance summary
+      // ============================================================
+      if (path === "/api/exec/summary" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const sites = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const sopsAll = (await env.ARSAN.get(KV.sops, "json")) || {};
+        const tasks = (await env.ARSAN.get(KV.tasks, "json")) || [];
+        const approvalsP = (await env.ARSAN.get(KV.approvals, "json")) || [];
+        const now = Date.now();
+        // SOPs flat
+        let total = 0, active = 0, draft = 0, review = 0, approved = 0, deprecated = 0;
+        Object.keys(sopsAll||{}).forEach(d => Object.keys(sopsAll[d]||{}).forEach(c => {
+          total++;
+          const st = (sopsAll[d][c].status || "draft").toLowerCase();
+          if (st === "active") active++;
+          else if (st === "draft") draft++;
+          else if (st === "review") review++;
+          else if (st === "approved") approved++;
+          else if (st === "deprecated") deprecated++;
+        }));
+        // Task compliance
+        let tDone = 0, tLate = 0, tMissed = 0;
+        tasks.forEach(t => {
+          if (t.status === "done") {
+            tDone++;
+            if (t.completedAt && t.dueAt && t.completedAt > t.dueAt) tLate++;
+          } else if (t.dueAt && t.dueAt < now) tMissed++;
+        });
+        const totalT = tasks.length || 1;
+        const compliance = Math.max(0, Math.round(((tDone - tLate*0.3 - tMissed*0.5) / totalT) * 100));
+        // Per-site rollup
+        const perSite = sites.map(site => {
+          const t = tasks.filter(x => x.site === site.id);
+          let d=0,l=0,m=0;
+          t.forEach(x => {
+            if (x.status === "done") { d++; if (x.completedAt && x.dueAt && x.completedAt > x.dueAt) l++; }
+            else if (x.dueAt && x.dueAt < now) m++;
+          });
+          const tot = t.length || 1;
+          return {
+            id: site.id, name: site.name, city: site.city, status: site.status,
+            tasks: t.length, completed: d, late: l, missed: m,
+            score: t.length ? Math.max(0, Math.round(((d - l*0.3 - m*0.5) / tot) * 100)) : null
+          };
+        });
+        const pendingApprovals = (approvalsP||[]).filter(a => a.status === "pending").length;
+        return json({
+          sites: { total: sites.length, active: sites.filter(x=>x.status==="active").length },
+          sops: { total, active, draft, review, approved, deprecated },
+          tasks: { total: tasks.length, completed: tDone, late: tLate, missed: tMissed, compliance },
+          approvals: { pending: pendingApprovals },
+          perSite
+        }, 200, req);
+      }
 
       // -------- TASKS --------
       // GET /api/tasks?sopRef=...&assignee=...&status=...

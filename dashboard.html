@@ -1246,11 +1246,11 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
         <span class="v-dot" aria-hidden="true"></span>
         الإصدار 2.0
       </span>
-      <a href="index.html" class="theme-toggle" id="changeDeptBtn" aria-label="تغيير الإدارة" style="text-decoration:none;margin-inline-start:auto">
+      <a href="index.html" class="theme-toggle" id="changeDeptBtn" aria-label="الصفحة الرئيسية" style="text-decoration:none;margin-inline-start:auto">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
         </svg>
-        <span id="changeDeptLabel">تغيير الإدارة</span>
+        <span id="changeDeptLabel">الصفحة الرئيسية</span>
       </a>
       <button class="theme-toggle" id="langToggle" aria-label="تبديل اللغة" type="button" style="margin-inline-start:0">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -5772,12 +5772,23 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
         body{padding-top:0 !important}
 
-        /* أزرار صفحة الإدارة التنفيذية مخفيّة من الرأس — صارت في القائمة (☰) */
+        /* كل الأزرار العائمة مخفيّة — صارت في القائمة (☰) */
         #triggers-btn, #sites-btn, #exec-dash-btn,
         #arsan-approvals-btn, #arsan-compliance-btn,
         #arsan-approval-chains-btn,
         #gov-topbar-btns, #gov-my-approvals, #gov-chains,
-        #exec-compliance-btn{ display:none !important }
+        #exec-compliance-btn,
+        #arsan-admin-fab{ display:none !important }
+
+        /* جرس الإشعارات بجنب زر القائمة */
+        .amen-bell{
+          top:14px !important; left:auto !important;
+          right:calc(14px + 130px) !important;
+          width:44px !important; height:44px !important;
+        }
+        @media (max-width: 700px){
+          .amen-bell{ right:calc(14px + 110px) !important; }
+        }
       `;
       document.head.appendChild(st);
     }
@@ -5870,18 +5881,6 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       try { window.ArsanTriggers && window.ArsanTriggers.openTriggersUI && window.ArsanTriggers.openTriggersUI(); } catch(_){}
     }));
 
-    // ===== المظهر واللغة =====
-    panel.appendChild(divider());
-    panel.appendChild(section('المظهر واللغة'));
-    panel.appendChild(item('🌗', 'تغيير المظهر (الثيم)', () => {
-      const btn = document.getElementById('themeToggle');
-      if (btn) btn.click();
-    }));
-    panel.appendChild(item('🌍', 'تبديل اللغة (AR / EN)', () => {
-      const btn = document.getElementById('langToggle');
-      if (btn) btn.click();
-    }));
-
     // ===== الإجراءات السريعة (داخل إدارة) =====
     if (API.isLoggedIn() && window.CURRENT_DEPT_ID) {
       panel.appendChild(divider());
@@ -5898,17 +5897,17 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         if (typeof window.openArsanSettings === 'function') window.openArsanSettings();
         else alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');
       }));
-      panel.appendChild(item('👥', 'إدارة المستخدمين', () => { window.location.href = 'users.html'; }));
+      panel.appendChild(item('👥', 'المستخدمون والصلاحيات', () => { window.location.href = 'users.html'; }));
+      panel.appendChild(item('🏢', 'إدارة الإدارات', () => { try { (window.ArsanAdminToolbar && window.ArsanAdminToolbar.openManageDepts) ? window.ArsanAdminToolbar.openManageDepts() : (window.location.href='index.html'); } catch(_){ window.location.href='index.html'; } }));
+      panel.appendChild(item('📢', 'إرسال إعلان', () => { try { window.ArsanAdminFab && window.ArsanAdminFab.showComposer && window.ArsanAdminFab.showComposer(); } catch(_){ try{ window.ArsanAnnouncements && window.ArsanAnnouncements.openComposer && window.ArsanAnnouncements.openComposer(); }catch(__){} } }));
+      panel.appendChild(item('📋', 'مركز الإعلانات', () => { window.location.href = 'announcements.html'; }));
+      panel.appendChild(item('💬', 'مركز الرسائل', () => { try { window.ArsanMessaging && window.ArsanMessaging.open && window.ArsanMessaging.open(); } catch(_){} }));
+      panel.appendChild(item('🔗', 'Webhooks وتكاملات', () => { try { window.ArsanWebhooks && window.ArsanWebhooks.open && window.ArsanWebhooks.open(); } catch(_){} }));
+      panel.appendChild(item('🗂️', 'سجل النشاط (Audit)', () => { try { (window.ArsanAudit && window.ArsanAudit.open) ? window.ArsanAudit.open() : (window.ArsanAuditViewer && window.ArsanAuditViewer.open && window.ArsanAuditViewer.open()); } catch(_){} }));
       panel.appendChild(item('📊', 'رؤى ومراقبة', () => { window.location.href = 'insights.html'; }));
-      if (window.ArsanAuditViewer && window.ArsanAuditViewer.open){
-        panel.appendChild(item('📋', 'سجل النشاط (Audit)', () => window.ArsanAuditViewer.open()));
-      }
-      if (window.ArsanWebhooksAdmin && window.ArsanWebhooksAdmin.open){
-        panel.appendChild(item('🔌', 'تكامل Webhooks', () => window.ArsanWebhooksAdmin.open()));
-      }
-      if (window.ArsanAnnouncements && window.ArsanAnnouncements.openComposer){
-        panel.appendChild(item('📢', 'إعلان جديد', () => window.ArsanAnnouncements.openComposer()));
-      }
+      panel.appendChild(item('💾', 'النسخ الاحتياطية', () => { try { window.ArsanBackup && window.ArsanBackup.open && window.ArsanBackup.open(); } catch(_){} }));
+      panel.appendChild(item('🩺', 'وكيل الصيانة', () => { try { window.ArsanMaintenance && window.ArsanMaintenance.showPanel && window.ArsanMaintenance.showPanel(); } catch(_){} }));
+      panel.appendChild(item('📊', 'التشخيص', () => { window.location.href = 'diagnose.html'; }));
     }
 
     // ===== الحساب =====

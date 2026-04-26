@@ -366,6 +366,8 @@
     transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     text-align:start;
     overflow:hidden;
+    content-visibility:auto;
+    contain-intrinsic-size:230px 320px;
   }
   .card::before{
     content:"";
@@ -3145,6 +3147,7 @@ function renderBrainMap(){
   });
 
   let frame = 0;
+  let __bmVisible = true;
   function tick(){
     frame++;
     nodes.forEach(n => {
@@ -3187,8 +3190,27 @@ function renderBrainMap(){
         e._el.setAttribute('d', `M ${a.x},${a.y} Q ${mx+ox},${my+oy} ${b.x},${b.y}`);
       }
     });
-    __bmAnim = requestAnimationFrame(tick);
+    // PERF: stop animation after settling (~6s) — restart on hover/interaction
+    if (frame < 360 && !document.hidden && map.isConnected && __bmVisible) {
+      __bmAnim = requestAnimationFrame(tick);
+    } else {
+      __bmAnim = null;
+    }
   }
+  // PERF: only animate when map is visible in viewport
+  const _io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      __bmVisible = en.isIntersecting;
+      if (__bmVisible && !__bmAnim && map.isConnected) {
+        frame = 0;
+        tick();
+      }
+    });
+  }, { threshold: 0.05 });
+  _io.observe(map);
+  // store for cleanup
+  if (window.__bmIO) { try { window.__bmIO.disconnect(); } catch(_){} }
+  window.__bmIO = _io;
   tick();
 
   // Legend
@@ -4740,8 +4762,16 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     }
     chatPanel._load = loadMessages;
     loadMessages();
-    // poll every 10s while open
-    setInterval(() => { if (chatPanel.classList.contains('open')) loadMessages(); }, 10000);
+    // poll every 10s while open — stop when closed
+    if (window.__chatPollIv) clearInterval(window.__chatPollIv);
+    window.__chatPollIv = setInterval(() => {
+      if (!chatPanel.isConnected || !chatPanel.classList.contains('open')) {
+        clearInterval(window.__chatPollIv);
+        window.__chatPollIv = null;
+        return;
+      }
+      if (!document.hidden) loadMessages();
+    }, 10000);
     return chatPanel;
   }
   function toggleChat() {
@@ -5891,6 +5921,27 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 50);
+
+  /* PERF: scroll safety valve — release any stuck overflow:hidden on body */
+  (function(){
+    const release = () => {
+      // only release if no modal is actually open
+      const modal = document.getElementById('modal');
+      const modalOpen = modal && modal.getAttribute('aria-hidden') === 'false';
+      if (!modalOpen && document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = '';
+      }
+    };
+    // on page load
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', release);
+    else release();
+    // on ESC always release if no modal open
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setTimeout(release, 50);
+    });
+    // periodic safety check
+    setInterval(release, 5000);
+  })();
 
   /* Auto-open admin panel if flag set from index.html (user clicked "Admin Panel" in badge menu) */
   window.addEventListener('load', () => {

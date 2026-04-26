@@ -3091,6 +3091,186 @@ renderChips();
 renderGrid();
 updateStats();
 
+/* ================= DEPT OVERRIDES (تحرير المراحل) ================= */
+async function applyDeptOverrides(){
+  try {
+    const API = window.ArsanAPI;
+    if (!API || !API.hasBackend || !API.hasBackend()) return;
+    const r = await fetch((window.API_BASE||'') + '/api/dept-overrides', {
+      headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('arsan_token')||'') }
+    });
+    if (!r.ok) return;
+    const map = await r.json();
+    const ov = map[CURRENT_DEPT_ID];
+    if (ov && Array.isArray(ov.groups) && ov.groups.length){
+      DEPT.groups = ov.groups.map(g => ({ id: g.id, label: g.label, label_en: g.label_en || g.label }));
+      window.PHASES_OVERRIDDEN = true;
+      // PHASES is a `const` alias to DEPT.groups → must rebind via DEPT
+      try { renderChips(); renderGrid(); updateStats(); } catch(_){}
+    }
+  } catch(e){ console.warn('[Arsan] applyDeptOverrides failed:', e); }
+}
+applyDeptOverrides();
+
+/* زر تحرير المراحل (للأدمن فقط) */
+function isAdmin(){
+  try { const m = JSON.parse(localStorage.getItem('arsan_me')||'null'); return m && m.role === 'admin'; } catch(_){ return false; }
+}
+function openEditPhases(){
+  const cur = (DEPT.groups||[]).map(g => ({ id: g.id, label: g.label, label_en: g.label_en || '' }));
+  const bd = document.createElement('div');
+  bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--card,#fff);color:var(--ink,#1a1a1a);border:1px solid var(--line,#ddd);border-radius:12px;padding:20px;max-width:560px;width:100%;max-height:85vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0;font-size:18px">تحرير الأقسام (المراحل)</h3>
+      <button type="button" data-x style="background:none;border:0;font-size:22px;cursor:pointer;color:var(--ink-2)">×</button>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink-2);margin-bottom:10px">عدّل أسماء الأقسام، رتّبها بالسحب، أو احذف/أضف. الأكواد (id) لا تتغيّر بعد إنشائها لتفادي كسر الإجراءات الموجودة.</div>
+    <div data-rows style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+      <button type="button" data-add style="background:var(--brand,#bf9b30);color:#fff;border:0;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px">+ إضافة قسم</button>
+      <button type="button" data-reset style="background:none;border:1px solid var(--line);color:var(--ink-2);padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px">↩ إعادة الافتراضي</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button type="button" data-cancel style="background:none;border:1px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:6px;cursor:pointer">إلغاء</button>
+      <button type="button" data-save style="background:var(--brand,#bf9b30);color:#fff;border:0;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:600">حفظ</button>
+    </div>
+    <div data-err style="color:#c33;font-size:12.5px;margin-top:8px;min-height:16px"></div>
+  `;
+  bd.appendChild(card);
+  document.body.appendChild(bd);
+
+  const rowsEl = card.querySelector('[data-rows]');
+  const errEl = card.querySelector('[data-err]');
+  const rows = [...cur];
+
+  function renderRows(){
+    rowsEl.innerHTML = '';
+    rows.forEach((r, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px;align-items:center;background:var(--surface,#f8f8f8);border:1px solid var(--line);border-radius:6px;padding:6px';
+      row.innerHTML = `
+        <span style="cursor:grab;color:var(--ink-3);padding:0 4px;user-select:none" data-grip>≡</span>
+        <input data-id placeholder="id" value="${escapeHtml(r.id||'')}" style="width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);font-size:12.5px;font-family:monospace" ${r._isOld?'readonly title="لا يمكن تعديل المعرّف بعد الحفظ"':''}>
+        <input data-label placeholder="العنوان" value="${escapeHtml(r.label||'')}" style="flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);font-size:13px">
+        <input data-en placeholder="EN" value="${escapeHtml(r.label_en||'')}" style="width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);font-size:12.5px">
+        <button type="button" data-del title="حذف" style="background:none;border:0;color:#c33;cursor:pointer;font-size:18px;padding:0 6px">×</button>
+      `;
+      row.querySelector('[data-del]').onclick = () => {
+        // هل هناك إجراءات في هذه المرحلة؟
+        const used = (window.SOPS||[]).some(s => s.phase === r.id);
+        if (used && !confirm(`هذه المرحلة تحتوي إجراءات. هل تريد الحذف؟ ستصبح إجراءاتها بدون تصنيف.`)) return;
+        rows.splice(i,1); renderRows();
+      };
+      row.querySelector('[data-id]').oninput = e => { rows[i].id = e.target.value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_'); };
+      row.querySelector('[data-label]').oninput = e => { rows[i].label = e.target.value; };
+      row.querySelector('[data-en]').oninput = e => { rows[i].label_en = e.target.value; };
+      // drag
+      const grip = row.querySelector('[data-grip]');
+      grip.draggable = true;
+      grip.ondragstart = e => { e.dataTransfer.setData('text/plain', i); row.style.opacity='.5'; };
+      grip.ondragend = () => { row.style.opacity='1'; };
+      row.ondragover = e => { e.preventDefault(); };
+      row.ondrop = e => {
+        e.preventDefault();
+        const from = +e.dataTransfer.getData('text/plain');
+        if (from === i) return;
+        const [moved] = rows.splice(from,1);
+        rows.splice(i,0,moved);
+        renderRows();
+      };
+      rowsEl.appendChild(row);
+    });
+  }
+  // mark which are old (have id matching current PHASES) so id is locked
+  rows.forEach(r => { r._isOld = !!r.id; });
+  renderRows();
+
+  card.querySelector('[data-add]').onclick = () => {
+    rows.push({ id: 'new_'+Date.now().toString(36).slice(-4), label: 'قسم جديد', label_en: 'New Section', _isOld: false });
+    renderRows();
+  };
+  card.querySelector('[data-reset]').onclick = async () => {
+    if (!confirm('إعادة جميع الأقسام للقيم الافتراضية؟ هذا سيلغي كل تخصيصاتك للمراحل.')) return;
+    try {
+      const r = await fetch((window.API_BASE||'') + '/api/dept-overrides/' + encodeURIComponent(CURRENT_DEPT_ID), {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('arsan_token')||'')},
+        body: JSON.stringify({ groups: null })
+      });
+      if (!r.ok) throw new Error(await r.text());
+      bd.remove();
+      location.reload();
+    } catch(e){ errEl.textContent = 'فشل: '+e.message; }
+  };
+  card.querySelector('[data-x]').onclick = () => bd.remove();
+  card.querySelector('[data-cancel]').onclick = () => bd.remove();
+  card.querySelector('[data-save]').onclick = async () => {
+    errEl.textContent = '';
+    // validate
+    const ids = new Set();
+    for (const r of rows){
+      if (!r.id || !r.label){ errEl.textContent = 'كل قسم يحتاج id وعنوان.'; return; }
+      if (ids.has(r.id)){ errEl.textContent = 'معرّف مكرّر: '+r.id; return; }
+      ids.add(r.id);
+    }
+    if (!rows.length){ errEl.textContent = 'يجب وجود قسم واحد على الأقل.'; return; }
+    const groups = rows.map(r => ({ id: r.id, label: r.label, label_en: r.label_en || r.label }));
+    try {
+      const btn = card.querySelector('[data-save]');
+      btn.disabled = true; btn.textContent = '… جارٍ الحفظ';
+      const r = await fetch((window.API_BASE||'') + '/api/dept-overrides/' + encodeURIComponent(CURRENT_DEPT_ID), {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('arsan_token')||'')},
+        body: JSON.stringify({ groups })
+      });
+      if (!r.ok){
+        const txt = await r.text();
+        if (r.status === 403){ errEl.textContent = 'تحرير الأقسام للأدمن فقط.'; }
+        else errEl.textContent = 'فشل الحفظ: ' + txt;
+        btn.disabled = false; btn.textContent = 'حفظ';
+        return;
+      }
+      DEPT.groups = groups;
+      window.PHASES_OVERRIDDEN = true;
+      bd.remove();
+      try { renderChips(); renderGrid(); updateStats(); } catch(_){}
+      // toast
+      const t = document.createElement('div');
+      t.textContent = '✓ تم حفظ الأقسام';
+      t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#2d7a2d;color:#fff;padding:10px 20px;border-radius:8px;z-index:99999;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    } catch(e){
+      errEl.textContent = 'خطأ: ' + e.message;
+    }
+  };
+}
+window.openEditPhases = openEditPhases;
+
+/* أضف زر التحرير بعد chips */
+function injectEditPhasesBtn(){
+  if (!isAdmin()) return;
+  const chipsBar = document.getElementById('chips');
+  if (!chipsBar) return;
+  if (document.getElementById('edit-phases-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'edit-phases-btn';
+  btn.type = 'button';
+  btn.title = 'تحرير الأقسام';
+  btn.innerHTML = '✏️';
+  btn.style.cssText = 'background:transparent;border:1px dashed var(--line);color:var(--ink-2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;margin-inline-start:6px;opacity:.6;transition:opacity .15s';
+  btn.onmouseenter = () => btn.style.opacity = '1';
+  btn.onmouseleave = () => btn.style.opacity = '.6';
+  btn.onclick = openEditPhases;
+  // insert after chips, in same parent
+  if (chipsBar.parentNode) chipsBar.parentNode.insertBefore(btn, chipsBar.nextSibling);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectEditPhasesBtn);
+else injectEditPhasesBtn();
+
 /* ================= VIEW SWITCHER ================= */
 document.querySelectorAll('.view-btn').forEach(btn => {
   btn.addEventListener('click', () => {

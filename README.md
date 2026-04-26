@@ -24,11 +24,11 @@
 ### الخطوة 3 — Environment Variables
 في نفس صفحة Settings → Variables → **Environment Variables**:
 ```
-ADMIN_EMAIL       = a.king@arsann.com
-EDITOR_DOMAIN     = @arsann.com
-DEFAULT_PASSWORD  = arsan2026
-PUBLIC_URL        = https://aking-gif.github.io/arsan-dashboard
-RESEND_API_KEY    = re_xxxxxxxxxxxx   (اختياري — للإرسال عبر Email)
+ADMIN_EMAIL              = a.king@arsann.com
+EDITOR_DOMAIN            = @arsann.com
+ADMIN_BOOTSTRAP_PASSWORD = (set ONCE for first admin login, then remove)
+PUBLIC_URL               = https://aking-gif.github.io/arsan-dashboard
+RESEND_API_KEY           = re_xxxxxxxxxxxx   (اختياري — للإرسال عبر Email)
 FROM_EMAIL        = a.king@arsann.com
 ```
 
@@ -50,7 +50,7 @@ const API_BASE = ""; // ضع رابط الـ Worker هنا
 ### الخطوة 6 (اختياري) — Slack Integration
 1. Slack → Create new app → Incoming Webhooks → Add to channel.
 2. انسخ الـ Webhook URL.
-3. افتح dashboard → سجّل دخول كـ admin (a.king@arsann.com / arsan2026) → افتح Admin Panel → الصق الـ URL → Save.
+3. افتح dashboard → سجّل دخول كـ admin → افتح Admin Panel → الصق الـ URL → Save.
 
 من هذه اللحظة: كل تعديل، إضافة، تبعية، رسالة شات، وتسجيل دخول → يُرسَل إلى Slack تلقائياً.
 
@@ -79,9 +79,13 @@ const API_BASE = ""; // ضع رابط الـ Worker هنا
 | `editor` (`@arsann.com` + كلمة سر) | تعديل الأوصاف، إضافة محاور/إجراءات/تبعيات، شات |
 | `admin` (`a.king@arsann.com` فقط) | كل ما سبق + Activity Log + إدارة المستخدمين + Slack webhook + حذف |
 
-## كلمة السر الافتراضية
-`arsan2026` — غيّرها من الـ Worker Environment Variables (`DEFAULT_PASSWORD`).
-الـ admin يقدر يضيف مستخدمين جدد بكلمات سر مخصصة من لوحة Admin.
+## كلمات السر
+
+- المرور **مُجزّأ** (PBKDF2-SHA256 + salt) — لا تُخزَّن نصاً صريحاً.
+- لأول تسجيل دخول للأدمن، ضع `ADMIN_BOOTSTRAP_PASSWORD` في Cloudflare → سجّل الدخول → امسح المتغيّر فوراً.
+- المستخدمون الجدد يُدعَون عبر "Invite" — يفتحون الرابط ويختارون كلمة السر بأنفسهم.
+- الأدمن يقدر يضيف مستخدمين بكلمات سر مخصصة (٦ أحرف على الأقل).
+- كلمات السر النصية القديمة تُرَحَّل تلقائياً إلى الصيغة الآمنة عند أول تسجيل دخول.
 
 ## النسخ الاحتياطي
 البيانات كلها في Cloudflare KV. لعمل نسخة:

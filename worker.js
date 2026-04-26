@@ -25,9 +25,15 @@
  *
  * KV binding name: ARSAN (في Worker Settings → Variables → KV Namespace Bindings)
  * Environment Variables:
- *   ADMIN_EMAIL      = a.king@arsann.com
- *   EDITOR_DOMAIN    = @arsann.com
- *   DEFAULT_PASSWORD = arsan2026
+ *   ADMIN_EMAIL              = a.king@arsann.com
+ *   EDITOR_DOMAIN            = @arsann.com
+ *   ADMIN_BOOTSTRAP_PASSWORD = (set ONCE for first admin login, then remove)
+ *
+ * Security notes:
+ *   - Passwords are stored as PBKDF2-SHA256 hashes (100k iter + 16-byte salt).
+ *   - Legacy plaintext passwords auto-migrate to hashed on next successful login.
+ *   - DEFAULT_PASSWORD is no longer used; remove it from your env.
+ *   - A new account has NO password until invite is accepted or admin sets one.
  */
 
 const KEYS = {
@@ -109,6 +115,137 @@ async function requireAdmin(req, env) {
   if (!s) return { error: "unauthorized" };
   const adminEmail = (env.ADMIN_EMAIL || "a.king@arsann.com").toLowerCase();
   if (s.email.toLowerCase() !== adminEmail) return { error: "admin-only" };
+  return { session: s };
+}
+
+// ============================================================
+// PASSWORD HASHING — PBKDF2-SHA256 + per-user salt
+// Format stored: pbkdf2$<iterations>$<saltB64>$<hashB64>
+// ============================================================
+const PBKDF2_ITER = 100000;
+const PBKDF2_KEYLEN = 32;
+
+function _b64(buf) {
+  const bytes = new Uint8Array(buf);
+  let s = ""; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+function _b64dec(b64) {
+  const bin = atob(b64); const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function _pbkdf2(password, salt, iter) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]
+  );
+  return await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" },
+    key, PBKDF2_KEYLEN * 8
+  );
+}
+async function hashPassword(plain) {
+  if (!plain || plain.length < 6) throw new Error("password-too-short");
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  const bits = await _pbkdf2(plain, salt, PBKDF2_ITER);
+  return `pbkdf2$${PBKDF2_ITER}$${_b64(salt)}$${_b64(bits)}`;
+}
+async function verifyPassword(plain, stored) {
+  if (!plain || !stored) return false;
+  // New format: pbkdf2$iter$salt$hash
+  if (typeof stored === "string" && stored.startsWith("pbkdf2$")) {
+    const parts = stored.split("$");
+    if (parts.length !== 4) return false;
+    const iter = parseInt(parts[1], 10) || PBKDF2_ITER;
+    const salt = _b64dec(parts[2]);
+    const expected = parts[3];
+    const bits = await _pbkdf2(plain, salt, iter);
+    const got = _b64(bits);
+    // constant-time compare
+    if (got.length !== expected.length) return false;
+    let r = 0;
+    for (let i = 0; i < got.length; i++) r |= got.charCodeAt(i) ^ expected.charCodeAt(i);
+    return r === 0;
+  }
+  // Legacy plaintext fallback (will be migrated on next save)
+  return plain === stored;
+}
+function isLegacyPlaintext(stored) {
+  return typeof stored === "string" && stored.length > 0 && !stored.startsWith("pbkdf2$");
+}
+
+// ============================================================
+// USER SCHEMA NORMALIZER — guarantees consistent shape
+// ============================================================
+function normalizeUser(u) {
+  if (!u || !u.email) return null;
+  const email = String(u.email).trim().toLowerCase();
+  // Migrate legacy `department` (singular) → `departments` array
+  let depts = [];
+  if (Array.isArray(u.departments)) depts = u.departments.filter(Boolean);
+  else if (u.department) depts = [u.department];
+  return {
+    email,
+    name: u.name || u.displayName || email.split("@")[0],
+    role: u.role || (u.isAdmin ? "admin" : "editor"),
+    departments: depts,
+    // password storage (preserve hash if present)
+    passwordHash: u.passwordHash || (u.password ? u.password : null),
+    status: u.status || "active",
+    permissions: u.permissions || null,
+    addedAt: u.addedAt || Date.now(),
+    addedBy: u.addedBy || null,
+    lastLogin: u.lastLogin || null,
+    profile: u.profile || null,
+    // invite/reset state
+    inviteToken: u.inviteToken || null,
+    inviteExpires: u.inviteExpires || null,
+    resetToken: u.resetToken || null,
+    resetExpires: u.resetExpires || null,
+  };
+}
+async function loadUsers(env) {
+  const raw = await env.ARSAN.get(KEYS.users);
+  const list = raw ? JSON.parse(raw) : [];
+  return list.map(normalizeUser).filter(Boolean);
+}
+async function saveUsers(env, list) {
+  const norm = list.map(normalizeUser).filter(Boolean);
+  await env.ARSAN.put(KEYS.users, JSON.stringify(norm));
+  return norm;
+}
+
+// ============================================================
+// DEPARTMENT ACCESS CONTROL
+// ============================================================
+function isAdminEmail(email, env) {
+  const adminEmail = (env.ADMIN_EMAIL || "a.king@arsann.com").toLowerCase();
+  return String(email || "").toLowerCase() === adminEmail;
+}
+function hasDeptAccess(session, dept, env) {
+  if (!session) return false;
+  if (isAdminEmail(session.email, env)) return true;
+  if (!dept) return true; // global resource (e.g., directory)
+  const depts = Array.isArray(session.departments) ? session.departments : [];
+  // Empty departments list = read-only access (handled per-endpoint via requireDeptWrite)
+  return depts.length === 0 || depts.includes(dept);
+}
+function canWriteDept(session, dept, env) {
+  if (!session) return false;
+  if (isAdminEmail(session.email, env)) return true;
+  const role = session.role || "editor";
+  if (role === "viewer") return false;
+  const depts = Array.isArray(session.departments) ? session.departments : [];
+  // Editor with empty list = no write access (must be assigned)
+  if (depts.length === 0) return false;
+  return depts.includes(dept);
+}
+async function requireDeptWrite(req, env, dept) {
+  const s = await getSession(req, env);
+  if (!s) return { error: "unauthorized" };
+  if (!canWriteDept(s, dept, env)) return { error: "forbidden-dept", dept };
   return { session: s };
 }
 
@@ -359,51 +496,75 @@ export default {
         const password = body.password || "";
         const editorDomain = (env.EDITOR_DOMAIN || "@arsann.com").toLowerCase();
         const adminEmail = (env.ADMIN_EMAIL || "a.king@arsann.com").toLowerCase();
-        const defaultPw = env.DEFAULT_PASSWORD || "arsan2026";
 
         if (!email) return json({ error: "email-required" }, 400, req);
+        if (!password) return json({ error: "password-required" }, 400, req);
         if (!email.endsWith(editorDomain)) {
           return json({ error: "invalid-domain", message: `البريد يجب أن ينتهي بـ ${editorDomain}` }, 403, req);
         }
 
-        // check extra users whitelist (admin can add custom passwords)
-        const usersRaw = await env.ARSAN.get(KEYS.users);
-        const users = usersRaw ? JSON.parse(usersRaw) : [];
-        const userIdx = users.findIndex(u => u.email.toLowerCase() === email);
-        const customUser = userIdx >= 0 ? users[userIdx] : null;
-
-        // Admin always uses default pw unless explicitly set
         const isAdmin = email === adminEmail;
-        const validPw = (customUser && customUser.password) ? customUser.password : defaultPw;
+        const users = await loadUsers(env);
+        let userIdx = users.findIndex(u => u.email === email);
+        let customUser = userIdx >= 0 ? users[userIdx] : null;
 
-        if (customUser && customUser.status === "disabled") {
+        // Admin bootstrap: if admin has never logged in, ADMIN_BOOTSTRAP_PASSWORD env var
+        // can be used ONCE to set their initial password. Otherwise admin must exist with hash.
+        if (isAdmin && !customUser) {
+          const bootstrapPw = env.ADMIN_BOOTSTRAP_PASSWORD || env.DEFAULT_PASSWORD || "";
+          if (!bootstrapPw) {
+            return json({ error: "admin-not-initialized", message: "ضع ADMIN_BOOTSTRAP_PASSWORD في متغيّرات Cloudflare لتسجيل الدخول لأول مرة." }, 403, req);
+          }
+          if (password !== bootstrapPw) {
+            return json({ error: "wrong-password" }, 401, req);
+          }
+          // Create the admin record with hashed bootstrap password
+          const hash = await hashPassword(password);
+          const newAdmin = normalizeUser({
+            email, name: "Admin", role: "admin", departments: [],
+            passwordHash: hash, status: "active", addedAt: Date.now()
+          });
+          users.push(newAdmin);
+          await saveUsers(env, users);
+          userIdx = users.length - 1;
+          customUser = users[userIdx];
+        }
+
+        if (!customUser) {
+          return json({ error: "no-account", message: "لا يوجد حساب بهذا البريد. اطلب من الأدمن إرسال دعوة." }, 401, req);
+        }
+        if (customUser.status === "disabled") {
           return json({ error: "account-disabled", message: "هذا الحساب معطّل. راجع المسؤول." }, 403, req);
         }
-        if (customUser && customUser.status === "pending") {
+        if (customUser.status === "pending" || !customUser.passwordHash) {
           return json({ error: "account-pending", message: "الحساب لم يُفعّل بعد. افتح رابط الدعوة لتعيين كلمة السر." }, 403, req);
         }
 
-        if (password !== validPw) {
+        const ok = await verifyPassword(password, customUser.passwordHash);
+        if (!ok) {
+          await logActivity(env, { actor: email, action: "login-failed" });
           return json({ error: "wrong-password" }, 401, req);
         }
 
+        // Auto-migrate legacy plaintext passwords to PBKDF2 on successful login
+        if (isLegacyPlaintext(customUser.passwordHash)) {
+          users[userIdx].passwordHash = await hashPassword(password);
+        }
+
         const token = rand(24);
-        const role = isAdmin ? "admin" : ((customUser && customUser.role) || "editor");
-        const departments = customUser ? (customUser.departments || []) : [];
-        const permissions = customUser ? (customUser.permissions || null) : null;
+        const role = isAdmin ? "admin" : (customUser.role || "editor");
+        const departments = customUser.departments || [];
+        const permissions = customUser.permissions || null;
         const session = { token, email, role, departments, permissions, createdAt: Date.now() };
         await env.ARSAN.put(KEYS.sessions(token), JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 30 });
 
-        // update lastLogin on user record
-        if (userIdx >= 0) {
-          users[userIdx].lastLogin = Date.now();
-          users[userIdx].loginCount = (users[userIdx].loginCount || 0) + 1;
-          await env.ARSAN.put(KEYS.users, JSON.stringify(users));
-        }
+        users[userIdx].lastLogin = Date.now();
+        users[userIdx].loginCount = (users[userIdx].loginCount || 0) + 1;
+        await saveUsers(env, users);
 
         await logActivity(env, { actor: email, action: "login", target: role });
 
-        return json({ token, email, role, departments, permissions }, 200, req);
+        return json({ token, email, role, departments, permissions, name: customUser.name }, 200, req);
       }
 
       if (path === "/api/logout" && method === "POST") {
@@ -531,9 +692,9 @@ export default {
       }
 
       if (path.match(/^\/api\/sops\/[^\/]+\/[^\/]+$/) && method === "PUT") {
-        const ed = await requireSession(req, env);
-        if (ed.error) return json(ed, 403, req);
         const [_, __, ___, dept, code] = path.split("/");
+        const ed = await requireDeptWrite(req, env, dept);
+        if (ed.error) return json(ed, 403, req);
         const body = await req.json();
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
@@ -557,9 +718,9 @@ export default {
       }
 
       if (path.match(/^\/api\/sops\/[^\/]+$/) && method === "POST") {
-        const ed = await requireSession(req, env);
-        if (ed.error) return json(ed, 403, req);
         const dept = path.split("/")[3];
+        const ed = await requireDeptWrite(req, env, dept);
+        if (ed.error) return json(ed, 403, req);
         const body = await req.json();
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
@@ -695,16 +856,14 @@ export default {
       if (path === "/api/directory" && method === "GET") {
         const sess = await requireSession(req, env);
         if (sess.error) return json(sess, 401, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        // safe public-ish view: email, name, role, departments only
+        const list = await loadUsers(env);
         return json(list
-          .filter(u => (u.status || "active") === "active")
+          .filter(u => u.status === "active")
           .map(u => ({
             email: u.email,
-            name: u.name || u.displayName || (u.email || "").split("@")[0],
-            role: u.role || "editor",
-            departments: u.departments || (u.department ? [u.department] : []),
+            name: u.name,
+            role: u.role,
+            departments: u.departments,
           })), 200, req);
       }
 
@@ -712,19 +871,20 @@ export default {
       if (path === "/api/users" && method === "GET") {
         const ad = await requireAdmin(req, env);
         if (ad.error) return json(ad, 403, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        // hide passwords but include department/role/status/lastLogin
+        const list = await loadUsers(env);
+        // never leak passwordHash to client
         return json(list.map(u => ({
           email: u.email,
-          role: u.role || "editor",
-          departments: u.departments || (u.department ? [u.department] : []),
-          status: u.status || "active",
-          lastLogin: u.lastLogin || null,
+          name: u.name,
+          role: u.role,
+          departments: u.departments,
+          status: u.status,
+          lastLogin: u.lastLogin,
           addedAt: u.addedAt,
           addedBy: u.addedBy,
-          permissions: u.permissions || null,
-          hasPassword: !!u.password,
+          permissions: u.permissions,
+          hasPassword: !!u.passwordHash && !isLegacyPlaintext(u.passwordHash),
+          isLegacyPassword: isLegacyPlaintext(u.passwordHash),
           pendingInvite: !!u.inviteToken,
         })), 200, req);
       }
@@ -736,37 +896,42 @@ export default {
         if (!email) return json({ error: "email-required" }, 400, req);
         const editorDomain = (env.EDITOR_DOMAIN || "@arsann.com").toLowerCase();
         if (!email.endsWith(editorDomain)) return json({ error: "invalid-domain" }, 400, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        const idx = list.findIndex(u => u.email.toLowerCase() === email);
-        const existing = idx >= 0 ? list[idx] : {};
-        const entry = {
-          ...existing,
+        const list = await loadUsers(env);
+        const idx = list.findIndex(u => u.email === email);
+        const existing = idx >= 0 ? list[idx] : null;
+
+        // Hash password if provided (no default fallback — if no pw and no existing, account is pending)
+        let passwordHash = existing ? existing.passwordHash : null;
+        if (body.password) {
+          if (body.password.length < 6) return json({ error: "password-too-short" }, 400, req);
+          passwordHash = await hashPassword(body.password);
+        }
+
+        const entry = normalizeUser({
+          ...(existing || {}),
           email,
-          password: body.password !== undefined ? body.password : (existing.password || env.DEFAULT_PASSWORD || "arsan2026"),
-          role: body.role || existing.role || "editor",
-          departments: Array.isArray(body.departments) ? body.departments : (existing.departments || []),
-          status: body.status || existing.status || "active",
-          permissions: body.permissions || existing.permissions || null,
-          addedAt: existing.addedAt || Date.now(),
-          addedBy: existing.addedBy || ad.session.email,
-          updatedAt: Date.now(),
-          updatedBy: ad.session.email,
-        };
+          name: body.name || (existing && existing.name) || email.split("@")[0],
+          passwordHash,
+          role: body.role || (existing && existing.role) || "editor",
+          departments: Array.isArray(body.departments) ? body.departments : (existing && existing.departments) || [],
+          status: body.status || (existing && existing.status) || (passwordHash ? "active" : "pending"),
+          permissions: body.permissions !== undefined ? body.permissions : (existing && existing.permissions) || null,
+          addedAt: (existing && existing.addedAt) || Date.now(),
+          addedBy: (existing && existing.addedBy) || ad.session.email,
+        });
         if (idx >= 0) list[idx] = entry; else list.push(entry);
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        await saveUsers(env, list);
         await logActivity(env, { actor: ad.session.email, action: idx >= 0 ? "update-user" : "add-user", target: email });
-        return json({ ok: true }, 200, req);
+        return json({ ok: true, requiresInvite: !passwordHash }, 200, req);
       }
-      // PATCH: update user (role, departments, status, permissions) without touching password
+      // PATCH: update user (role, departments, status, permissions) — never touches passwordHash
       if (path.match(/^\/api\/users\/[^\/]+$/) && method === "PATCH") {
         const ad = await requireAdmin(req, env);
         if (ad.error) return json(ad, 403, req);
         const email = decodeURIComponent(path.split("/")[3]).toLowerCase();
         const body = await req.json().catch(() => ({}));
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        const idx = list.findIndex(u => u.email.toLowerCase() === email);
+        const list = await loadUsers(env);
+        const idx = list.findIndex(u => u.email === email);
         if (idx < 0) return json({ error: "not-found" }, 404, req);
         const cur = list[idx];
         const patch = {};
@@ -774,8 +939,9 @@ export default {
         if (Array.isArray(body.departments)) patch.departments = body.departments;
         if (body.status !== undefined) patch.status = body.status;
         if (body.permissions !== undefined) patch.permissions = body.permissions;
-        list[idx] = { ...cur, ...patch, updatedAt: Date.now(), updatedBy: ad.session.email };
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        if (body.name !== undefined) patch.name = body.name;
+        list[idx] = normalizeUser({ ...cur, ...patch, updatedAt: Date.now(), updatedBy: ad.session.email });
+        await saveUsers(env, list);
         await logActivity(env, { actor: ad.session.email, action: "update-user", target: email, fields: Object.keys(patch) });
         return json({ ok: true }, 200, req);
       }
@@ -783,10 +949,12 @@ export default {
         const ad = await requireAdmin(req, env);
         if (ad.error) return json(ad, 403, req);
         const email = decodeURIComponent(path.split("/")[3]).toLowerCase();
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        const filtered = list.filter(u => u.email.toLowerCase() !== email);
-        await env.ARSAN.put(KEYS.users, JSON.stringify(filtered));
+        if (email === (env.ADMIN_EMAIL || "a.king@arsann.com").toLowerCase()) {
+          return json({ error: "cannot-delete-admin" }, 403, req);
+        }
+        const list = await loadUsers(env);
+        const filtered = list.filter(u => u.email !== email);
+        await saveUsers(env, filtered);
         await logActivity(env, { actor: ad.session.email, action: "remove-user", target: email });
         return json({ ok: true }, 200, req);
       }
@@ -801,24 +969,24 @@ export default {
         const editorDomain = (env.EDITOR_DOMAIN || "@arsann.com").toLowerCase();
         if (!email.endsWith(editorDomain)) return json({ error: "invalid-domain" }, 400, req);
         const token = rand(20);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        const idx = list.findIndex(u => u.email.toLowerCase() === email);
-        const existing = idx >= 0 ? list[idx] : {};
-        const entry = {
-          ...existing,
+        const list = await loadUsers(env);
+        const idx = list.findIndex(u => u.email === email);
+        const existing = idx >= 0 ? list[idx] : null;
+        const entry = normalizeUser({
+          ...(existing || {}),
           email,
-          role: body.role || existing.role || "editor",
-          departments: Array.isArray(body.departments) ? body.departments : (existing.departments || []),
+          name: body.name || (existing && existing.name) || email.split("@")[0],
+          role: body.role || (existing && existing.role) || "editor",
+          departments: Array.isArray(body.departments) ? body.departments : (existing && existing.departments) || [],
           status: "pending",
           inviteToken: token,
           inviteExpires: Date.now() + 7 * 24 * 3600 * 1000,
-          password: existing.password || null, // invalid until accepted
-          addedAt: existing.addedAt || Date.now(),
-          addedBy: existing.addedBy || ad.session.email,
-        };
+          passwordHash: null, // invalidated until accepted
+          addedAt: (existing && existing.addedAt) || Date.now(),
+          addedBy: (existing && existing.addedBy) || ad.session.email,
+        });
         if (idx >= 0) list[idx] = entry; else list.push(entry);
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        await saveUsers(env, list);
         await logActivity(env, { actor: ad.session.email, action: "invite-user", target: email });
 
         // Build full invite URL
@@ -838,45 +1006,46 @@ export default {
         const body = await req.json().catch(() => ({}));
         const token = (body.token || "").toString();
         const password = (body.password || "").toString();
-        if (!token || password.length < 6) return json({ error: "invalid" }, 400, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
+        if (!token) return json({ error: "token-required" }, 400, req);
+        if (password.length < 6) return json({ error: "password-too-short" }, 400, req);
+        const list = await loadUsers(env);
         const idx = list.findIndex(u => u.inviteToken === token);
         if (idx < 0) return json({ error: "invalid-token" }, 404, req);
         const u = list[idx];
         if (u.inviteExpires && u.inviteExpires < Date.now()) return json({ error: "token-expired" }, 410, req);
-        u.password = password;
+        u.passwordHash = await hashPassword(password);
         u.status = "active";
-        delete u.inviteToken;
-        delete u.inviteExpires;
+        u.inviteToken = null;
+        u.inviteExpires = null;
         u.activatedAt = Date.now();
-        list[idx] = u;
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        list[idx] = normalizeUser(u);
+        await saveUsers(env, list);
         await logActivity(env, { actor: u.email, action: "accept-invite", target: u.email });
         return json({ ok: true, email: u.email }, 200, req);
       }
-      // Reset password: admin issues a reset token
+      // Reset password: admin issues a reset token (or sets directly)
       if (path.match(/^\/api\/users\/[^\/]+\/reset$/) && method === "POST") {
         const ad = await requireAdmin(req, env);
         if (ad.error) return json(ad, 403, req);
         const email = decodeURIComponent(path.split("/")[3]).toLowerCase();
         const body = await req.json().catch(() => ({}));
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
-        const idx = list.findIndex(u => u.email.toLowerCase() === email);
+        const list = await loadUsers(env);
+        const idx = list.findIndex(u => u.email === email);
         if (idx < 0) return json({ error: "not-found" }, 404, req);
         if (body.newPassword) {
-          // direct set
-          list[idx].password = body.newPassword;
-          delete list[idx].resetToken;
-          await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+          if (body.newPassword.length < 6) return json({ error: "password-too-short" }, 400, req);
+          list[idx].passwordHash = await hashPassword(body.newPassword);
+          list[idx].resetToken = null;
+          list[idx].resetExpires = null;
+          list[idx].status = "active";
+          await saveUsers(env, list);
           await logActivity(env, { actor: ad.session.email, action: "reset-password-direct", target: email });
           return json({ ok: true, mode: "direct" }, 200, req);
         }
         const token = rand(20);
         list[idx].resetToken = token;
         list[idx].resetExpires = Date.now() + 2 * 24 * 3600 * 1000;
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        await saveUsers(env, list);
         await logActivity(env, { actor: ad.session.email, action: "reset-password-invite", target: email });
 
         const origin = (env.PUBLIC_URL || req.headers.get("origin") || "").replace(/\/$/, "");
@@ -896,8 +1065,7 @@ export default {
         const body = await req.json().catch(() => ({}));
         const email = (body.email || "").toLowerCase().trim();
         if (!email) return json({ error: "email-required" }, 400, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
+        const list = await loadUsers(env);
         const user = list.find(u => u.email === email);
         // Don't reveal if user exists — always return ok to prevent enumeration
         if (!user) {
@@ -927,16 +1095,15 @@ export default {
         const newPassword = (body.newPassword || "").toString();
         if (!token || !newPassword) return json({ error: "token-and-password-required" }, 400, req);
         if (newPassword.length < 6) return json({ error: "password-too-short" }, 400, req);
-        const raw = await env.ARSAN.get(KEYS.users);
-        const list = raw ? JSON.parse(raw) : [];
+        const list = await loadUsers(env);
         const idx = list.findIndex(u => u.resetToken === token);
         if (idx < 0) return json({ error: "invalid-token" }, 404, req);
         if (list[idx].resetExpires && list[idx].resetExpires < Date.now()) return json({ error: "token-expired" }, 410, req);
-        list[idx].password = newPassword;
+        list[idx].passwordHash = await hashPassword(newPassword);
         list[idx].status = "active";
-        delete list[idx].resetToken;
-        delete list[idx].resetExpires;
-        await env.ARSAN.put(KEYS.users, JSON.stringify(list));
+        list[idx].resetToken = null;
+        list[idx].resetExpires = null;
+        await saveUsers(env, list);
         await logActivity(env, { actor: list[idx].email, action: "apply-reset", target: list[idx].email });
         return json({ ok: true, email: list[idx].email }, 200, req);
       }
@@ -1357,15 +1524,21 @@ export default {
 
       // ---------- SOP: rename/move (change code, dept, or title) ----------
       if (path.match(/^\/api\/sops\/[^\/]+\/[^\/]+\/rename$/) && method === "POST") {
-        const ed = await requireSession(req, env);
-        if (ed.error) return json(ed, 403, req);
         const [_, __, ___, dept, code] = path.split("/");
         const body = await req.json();
+        const newDept = (body.newDept || dept).toString();
+        // need write access to BOTH source and destination depts
+        const edSrc = await requireDeptWrite(req, env, dept);
+        if (edSrc.error) return json(edSrc, 403, req);
+        if (newDept !== dept) {
+          const edDst = await requireDeptWrite(req, env, newDept);
+          if (edDst.error) return json({ error: "forbidden-dept", message: `لا تملك صلاحية الكتابة في ${newDept}` }, 403, req);
+        }
+        const ed = edSrc;
         const raw = await env.ARSAN.get(KEYS.sops);
         const all = raw ? JSON.parse(raw) : {};
         if (!all[dept] || !all[dept][code]) return json({ error: "not-found" }, 404, req);
         const cur = all[dept][code];
-        const newDept = (body.newDept || dept).toString();
         const newCode = (body.newCode || code).toString();
         const newTitle = body.newTitle !== undefined ? body.newTitle : cur.title;
         // Validate: if target exists and isn't the same slot, refuse

@@ -12,7 +12,6 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   const ME_KEY    = "arsan_me_v1";
   const ADMIN_EMAIL = "a.king@arsann.com";
   const EDITOR_DOMAIN = "@arsann.com";
-  const DEFAULT_PASSWORD = "arsan2026";
 
   function getToken(){ return localStorage.getItem(TOKEN_KEY); }
   function setToken(t){ t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
@@ -34,21 +33,16 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     return data;
   }
 
-  /* ---------- Auth ---------- */
+  /* ---------- Auth (backend-only) ---------- */
   async function login(email, password) {
     email = (email || "").trim().toLowerCase();
     if (!email.endsWith(EDITOR_DOMAIN)) throw new Error("invalid-domain");
-    if (hasBackend()) {
-      const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
-      setToken(r.token); setMe({ email: r.email, role: r.role });
-      try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
-      return r;
-    }
-    if (password !== DEFAULT_PASSWORD) throw new Error("wrong-password");
-    const role = email === ADMIN_EMAIL ? "admin" : "editor";
-    const me = { email, role };
-    setToken("local-" + Date.now()); setMe(me);
-    return me;
+    if (!password) throw new Error("password-required");
+    if (!hasBackend()) throw new Error("backend-required");
+    const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
+    setToken(r.token); setMe({ email: r.email, role: r.role, name: r.name, departments: r.departments });
+    try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
+    return r;
   }
   async function logout() {
     if (hasBackend() && getToken()) {
@@ -380,6 +374,6 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getAnnouncements, addAnnouncement, deleteAnnouncement,
     get: kvGet, put: kvPut,
     ai,
-    ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
+    ADMIN_EMAIL, EDITOR_DOMAIN
   };
 })();

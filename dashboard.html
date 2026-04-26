@@ -3980,8 +3980,7 @@ setTimeout(() => applyLang(CURRENT_LANG), 0);
    renderGrid, renderChips, updateStats, renderBrainMap
    ================================================================ */
 
-/* ---------- AUTH ---------- */
-const AUTH_PASSWORD = "arsan2026"; // كلمة السر المطلوبة للتحرير
+/* ---------- AUTH (legacy local-mode shim — Backend session is canonical) ---------- */
 const AUTH_DOMAIN   = "@arsann.com";
 const AUTH_KEY      = "arsan_auth_v1";
 
@@ -4076,7 +4075,7 @@ const DEP_TYPES = {
 
 /* ---------- Expose as window.Arsan ---------- */
 window.Arsan = Object.assign(window.Arsan || {}, {
-  AUTH_PASSWORD, AUTH_DOMAIN, AUTH_KEY,
+  AUTH_DOMAIN, AUTH_KEY,
   loadAuth, saveAuth, isEditor, currentEditor, logout,
   DEPS_KEY, DEFAULT_DEPS,
   loadDeps, saveDeps, addDep, removeDep, depsForDept,
@@ -4099,7 +4098,6 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   const ME_KEY    = "arsan_me_v1";
   const ADMIN_EMAIL = "a.king@arsann.com";
   const EDITOR_DOMAIN = "@arsann.com";
-  const DEFAULT_PASSWORD = "arsan2026";
 
   function getToken(){ return localStorage.getItem(TOKEN_KEY); }
   function setToken(t){ t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); }
@@ -4121,22 +4119,18 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     return data;
   }
 
-  /* ---------- Auth (local fallback if no backend) ---------- */
+  /* ---------- Auth (backend-only — no local fallback) ---------- */
   async function login(email, password) {
     email = (email || "").trim().toLowerCase();
     if (!email.endsWith(EDITOR_DOMAIN)) throw new Error("invalid-domain");
-    if (hasBackend()) {
-      const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
-      setToken(r.token); setMe({ email: r.email, role: r.role });
-      try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
-      return r;
+    if (!password) throw new Error("password-required");
+    if (!hasBackend()) {
+      throw new Error("backend-required: تسجيل الدخول يتطلّب اتصالاً بالخادم.");
     }
-    // local fallback
-    if (password !== DEFAULT_PASSWORD) throw new Error("wrong-password");
-    const role = email === ADMIN_EMAIL ? "admin" : "editor";
-    const me = { email, role };
-    setToken("local-" + Date.now()); setMe(me);
-    return me;
+    const r = await apiFetch("/api/login", { method: "POST", body: { email, password } });
+    setToken(r.token); setMe({ email: r.email, role: r.role, name: r.name, departments: r.departments });
+    try { window.dispatchEvent(new CustomEvent('arsan:login', { detail: { email: r.email, role: r.role } })); } catch(_){}
+    return r;
   }
   async function logout() {
     if (hasBackend() && getToken()) {
@@ -4420,7 +4414,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getSlackWebhook, setSlackWebhook,
     getDirectory,
     ai,
-    ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
+    ADMIN_EMAIL, EDITOR_DOMAIN
   };
 })();
 
@@ -4862,7 +4856,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     // Users
     const emailI = h('input', { type:'email', placeholder:'user@arsann.com' });
-    const pwI    = h('input', { type:'text', placeholder:'كلمة سر (اختياري — الافتراضية arsan2026)' });
+    const pwI    = h('input', { type:'password', placeholder:'كلمة سر (٦ أحرف على الأقل) — اتركها فارغة لإرسال دعوة' });
     const usersList = h('div', { class:'arsan-log' });
     async function reloadUsers(){
       try {

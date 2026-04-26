@@ -5833,10 +5833,23 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     // ===== التنقّل =====
     panel.appendChild(section('التنقّل'));
     panel.appendChild(item('🏠', 'الصفحة الرئيسية', () => { window.location.href = 'index.html'; }));
+    panel.appendChild(item('🔄', 'تغيير الإدارة', () => { window.location.href = 'index.html'; }));
     panel.appendChild(item('🌐', 'الخريطة الشاملة', showUnifiedMap));
     panel.appendChild(item('🔗', 'التبعيّات', showDepsEditor));
     panel.appendChild(item('👥', 'دليل الفريق', () => { window.location.href = 'people.html'; }));
     panel.appendChild(item('💬', 'التواصل والشات', toggleChat));
+
+    // ===== المظهر واللغة =====
+    panel.appendChild(divider());
+    panel.appendChild(section('المظهر واللغة'));
+    panel.appendChild(item('🌗', 'تغيير المظهر (الثيم)', () => {
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.click();
+    }));
+    panel.appendChild(item('🌍', 'تبديل اللغة (AR / EN)', () => {
+      const btn = document.getElementById('langToggle');
+      if (btn) btn.click();
+    }));
 
     // ===== الإجراءات السريعة (داخل إدارة) =====
     if (API.isLoggedIn() && window.CURRENT_DEPT_ID) {

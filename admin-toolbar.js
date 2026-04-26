@@ -44,8 +44,9 @@
 
   // -------- inject CSS --------
   const css = `
-  /* FAB button - الزر العائم الوحيد */
+  /* FAB button - مخفي (كل الوظائف موجودة في الشريط العلوي) */
   .arsan-fab{
+    display:none !important;
     position:fixed; bottom:24px; right:24px;
     width:56px; height:56px; border-radius:50%;
     background:linear-gradient(135deg, #D4B24A, #85714D);

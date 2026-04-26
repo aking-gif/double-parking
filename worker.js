@@ -63,7 +63,24 @@ const KEYS = {
   tasks:    "tasks_v1",                               // كل المهام
   comments: (sopRef) => `comments_${sopRef.replace('/','_')}_v1`,  // تعليقات لكل SOP
   approvals: "approvals_v1",                          // طلبات الاعتماد
+  // ===== Governance Layer (v1) =====
+  approvalChains: "approval_chains_v1",               // سلاسل الاعتماد لكل إدارة
+  govMigrated: "gov_migrated_v1",                     // علم الترقية (تمت ترقية SOPs الموجودة لـ Draft)
 };
+
+// Lifecycle states & transitions
+const LIFECYCLE_STATES = ["draft","review","approved","active","deprecated"];
+const LIFECYCLE_TRANSITIONS = {
+  draft:      ["review"],
+  review:     ["draft","approved"],            // approve OR reject (back to draft)
+  approved:   ["active","draft"],               // publish OR pull back
+  active:     ["review","deprecated"],          // re-review OR retire
+  deprecated: ["draft"]                         // can be revived
+};
+function canTransition(from, to){
+  if (!from) return to === "draft";
+  return (LIFECYCLE_TRANSITIONS[from]||[]).includes(to);
+}
 
 function corsHeaders(req) {
   const origin = req.headers.get("Origin") || "*";
@@ -652,21 +669,26 @@ export default {
       if (path === "/api/people" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ error: "unauthorized" }, 401, req);
-        const usersRaw = await env.ARSAN.get(KEYS.users);
-        const users = usersRaw ? JSON.parse(usersRaw) : {};
-        const list = await Promise.all(Object.entries(users).map(async ([email, u]) => {
-          const profRaw = await env.ARSAN.get(`profile_${email}`);
-          const p = profRaw ? JSON.parse(profRaw) : {};
-          return {
-            email,
-            firstName: p.firstName || "",
-            lastName: p.lastName || "",
-            jobTitle: p.jobTitle || "",
-            department: p.department || u.department || "",
-            avatar: p.avatar || "",
-            role: u.role || "viewer",
-          };
-        }));
+        const users = await loadUsers(env);
+        const list = await Promise.all(users
+          .filter(u => u.status === "active")
+          .map(async (u) => {
+            const profRaw = await env.ARSAN.get(`profile_${u.email}`);
+            const p = profRaw ? JSON.parse(profRaw) : {};
+            const fullName = u.name || (p.firstName || p.lastName ? `${p.firstName||""} ${p.lastName||""}`.trim() : u.email.split("@")[0]);
+            return {
+              email: u.email,
+              name: fullName,
+              firstName: p.firstName || (u.name ? u.name.split(" ")[0] : ""),
+              lastName: p.lastName || (u.name ? u.name.split(" ").slice(1).join(" ") : ""),
+              jobTitle: p.jobTitle || "",
+              department: p.department || (u.departments && u.departments[0]) || "",
+              departments: u.departments || [],
+              avatar: p.avatar || "",
+              phone: p.phone || "",
+              role: u.role || "editor",
+            };
+          }));
         return json(list, 200, req);
       }
 
@@ -1403,6 +1425,7 @@ export default {
           ...(body.email!==undefined?{email:body.email}:{}),
           ...(body.members!==undefined?{members:body.members}:{}),
           ...(body.notes!==undefined?{notes:body.notes}:{}),
+          ...(body.groups!==undefined?{groups:body.groups}:{}),
           updatedAt: Date.now(),
           updatedBy: ad.session.email
         };
@@ -2032,6 +2055,177 @@ ${clipped}
           sopRef: list[idx].sopRef
         });
         return json({ ok: true, approval: list[idx] }, 200, req);
+      }
+
+      // ============================================================
+      // ===== GOVERNANCE LAYER (Lifecycle / Chains / Migration) =====
+      // ============================================================
+
+      // ---- Approval Chains per dept ----
+      // GET /api/approval-chains -> { [dept]: { steps:[{role:'reviewer'|'admin'|'owner'|'dept_head', email?:'...'}] } }
+      if (path === "/api/approval-chains" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.approvalChains);
+        return json(raw ? JSON.parse(raw) : {}, 200, req);
+      }
+      // PUT /api/approval-chains/:dept  { steps:[...] }   (admin only)
+      if (path.match(/^\/api\/approval-chains\/[^\/]+$/) && method === "PUT") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const dept = decodeURIComponent(path.split("/")[3]);
+        const body = await req.json().catch(()=>({}));
+        const steps = Array.isArray(body.steps) ? body.steps.slice(0,8) : [];
+        const raw = await env.ARSAN.get(KEYS.approvalChains);
+        const map = raw ? JSON.parse(raw) : {};
+        map[dept] = { steps, updatedAt: Date.now(), updatedBy: ad.session.email };
+        await env.ARSAN.put(KEYS.approvalChains, JSON.stringify(map));
+        await logAudit(env, { actor: ad.session.email, action: "set-approval-chain", dept, stepsCount: steps.length });
+        return json({ ok: true, chain: map[dept] }, 200, req);
+      }
+
+      // ---- Lifecycle transitions ----
+      // POST /api/sops/:dept/:code/transition  { to: 'review'|'approved'|'active'|'deprecated'|'draft', note? }
+      if (path.match(/^\/api\/sops\/[^\/]+\/[^\/]+\/transition$/) && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const parts = path.split("/");
+        const dept = parts[3], code = parts[4];
+        const body = await req.json().catch(()=>({}));
+        const to = String(body.to||"").toLowerCase();
+        if (!LIFECYCLE_STATES.includes(to)) return json({ error: "invalid-state" }, 400, req);
+        const raw = await env.ARSAN.get(KEYS.sops);
+        const all = raw ? JSON.parse(raw) : {};
+        if (!all[dept] || !all[dept][code]) return json({ error: "not-found" }, 404, req);
+        const cur = all[dept][code];
+        const from = cur.status || (cur.governanceMigrated ? "draft" : null);
+        if (!canTransition(from, to)) return json({ error: "transition-not-allowed", from, to }, 400, req);
+
+        // Permission rules:
+        // - draft→review: owner OR editor
+        // - review→approved / review→draft: chain step OR admin
+        // - approved→active: admin OR owner
+        // - active→review/deprecated: admin OR owner
+        const me = s.email.toLowerCase();
+        const isAdminUser = me === (env.ADMIN_EMAIL||"").toLowerCase();
+        const isOwner = (cur.owner||"").toLowerCase() === me;
+        const isReviewer = (cur.reviewer||"").toLowerCase() === me;
+        let allowed = false;
+        if (to === "review") allowed = isOwner || isAdminUser || me.endsWith((env.EDITOR_DOMAIN||"@arsann.com").toLowerCase());
+        else if (to === "approved" || (from === "review" && to === "draft")) allowed = isAdminUser || isReviewer;
+        else if (to === "active" || to === "deprecated") allowed = isAdminUser || isOwner;
+        else if (to === "draft") allowed = isAdminUser || isOwner;
+        if (!allowed) return json({ error: "forbidden", reason: "not-permitted-for-this-transition" }, 403, req);
+
+        cur.status = to;
+        cur.statusUpdatedAt = Date.now();
+        cur.statusUpdatedBy = s.email;
+        cur.history = cur.history || [];
+        cur.history.unshift({ from, to, at: Date.now(), by: s.email, note: String(body.note||"").slice(0,500) });
+        if (cur.history.length > 50) cur.history.length = 50;
+        if (to === "active") { cur.activatedAt = Date.now(); cur.activatedBy = s.email; }
+        if (to === "approved") { cur.approvedAt = Date.now(); cur.approvedBy = s.email; }
+        all[dept][code] = cur;
+        await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
+        await logAudit(env, { actor: s.email, action: "lifecycle-"+to, dept, code, from, to });
+        await fireWebhook(env, "sop.lifecycle", { dept, code, from, to, by: s.email });
+        // Notify owner/reviewer on key transitions
+        if (to === "review" && cur.reviewer) {
+          await addMention(env, { toEmail: cur.reviewer, fromEmail: s.email, kind: "review-request", message: `طلب مراجعة على ${dept}/${code}`, sopRef: `${dept}/${code}`, dept });
+        }
+        if ((to === "approved" || (from==="review"&&to==="draft")) && cur.owner) {
+          const m = to === "approved" ? `✅ اعتُمد ${dept}/${code}` : `↩️ أُعيد ${dept}/${code} إلى Draft`;
+          await addMention(env, { toEmail: cur.owner, fromEmail: s.email, kind: "review-result", message: m, sopRef: `${dept}/${code}`, dept });
+        }
+        return json({ ok: true, sop: cur }, 200, req);
+      }
+
+      // ---- Migration (one-shot): mark all existing SOPs as Draft ----
+      // POST /api/admin/governance/migrate  -> migrate all SOPs to status:'draft' if they don't have one
+      if (path === "/api/admin/governance/migrate" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const flagRaw = await env.ARSAN.get(KEYS.govMigrated);
+        const force = (await req.json().catch(()=>({}))).force === true;
+        if (flagRaw && !force) return json({ ok: true, alreadyMigrated: true, ts: JSON.parse(flagRaw).ts }, 200, req);
+        const raw = await env.ARSAN.get(KEYS.sops);
+        const all = raw ? JSON.parse(raw) : {};
+        let count = 0;
+        for (const dept of Object.keys(all)){
+          for (const code of Object.keys(all[dept]||{})){
+            const sop = all[dept][code];
+            if (!sop.status){
+              sop.status = "draft";
+              sop.governanceMigrated = true;
+              sop.statusUpdatedAt = Date.now();
+              sop.statusUpdatedBy = ad.session.email;
+              sop.history = [{ from: null, to: "draft", at: Date.now(), by: ad.session.email, note: "migrated" }];
+              count++;
+            }
+          }
+        }
+        await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
+        await env.ARSAN.put(KEYS.govMigrated, JSON.stringify({ ts: Date.now(), by: ad.session.email, count }));
+        await logAudit(env, { actor: ad.session.email, action: "governance-migrate", count });
+        return json({ ok: true, migrated: count }, 200, req);
+      }
+      // GET /api/admin/governance/status
+      if (path === "/api/admin/governance/status" && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const flagRaw = await env.ARSAN.get(KEYS.govMigrated);
+        return json({ migrated: !!flagRaw, info: flagRaw ? JSON.parse(flagRaw) : null }, 200, req);
+      }
+
+      // ---- Overdue scan: SOPs whose nextReviewDue passed → flag + auto-move active→review ----
+      // GET /api/governance/overdue   (any session) -> list of overdue refs (no mutations)
+      // POST /api/governance/overdue/scan  (admin) -> performs auto-transition + mentions
+      if (path === "/api/governance/overdue" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get(KEYS.sops);
+        const all = raw ? JSON.parse(raw) : {};
+        const now = Date.now();
+        const out = [];
+        for (const dept of Object.keys(all)){
+          for (const code of Object.keys(all[dept]||{})){
+            const sop = all[dept][code];
+            if (sop.nextReviewDue && sop.nextReviewDue < now){
+              out.push({ dept, code, title: sop.title, owner: sop.owner, reviewer: sop.reviewer, status: sop.status, nextReviewDue: sop.nextReviewDue, daysOverdue: Math.floor((now - sop.nextReviewDue)/86400000) });
+            }
+          }
+        }
+        return json({ overdue: out, count: out.length }, 200, req);
+      }
+      if (path === "/api/governance/overdue/scan" && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const raw = await env.ARSAN.get(KEYS.sops);
+        const all = raw ? JSON.parse(raw) : {};
+        const now = Date.now();
+        let moved = 0, notified = 0;
+        for (const dept of Object.keys(all)){
+          for (const code of Object.keys(all[dept]||{})){
+            const sop = all[dept][code];
+            if (sop.nextReviewDue && sop.nextReviewDue < now){
+              if (sop.status === "active" && canTransition("active","review")){
+                sop.status = "review";
+                sop.statusUpdatedAt = now;
+                sop.statusUpdatedBy = ad.session.email;
+                sop.history = sop.history || [];
+                sop.history.unshift({ from:"active", to:"review", at: now, by: ad.session.email, note: "auto: overdue review" });
+                moved++;
+              }
+              if (sop.owner){
+                await addMention(env, { toEmail: sop.owner, fromEmail: ad.session.email, kind: "overdue", message: `⚠️ المراجعة متأخرة على ${dept}/${code}`, sopRef: `${dept}/${code}`, dept });
+                notified++;
+              }
+            }
+          }
+        }
+        await env.ARSAN.put(KEYS.sops, JSON.stringify(all));
+        await logAudit(env, { actor: ad.session.email, action: "overdue-scan", moved, notified });
+        return json({ ok: true, moved, notified }, 200, req);
       }
 
       // ============================================================

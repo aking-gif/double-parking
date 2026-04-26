@@ -43,6 +43,18 @@
     if (!Array.isArray(list)) {
       try { list = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
       catch(_){ list = []; }
+    } else {
+      // Backend list found — also merge any LOCAL-ONLY items (those flagged _local).
+      // This is how welcome.js can inject a personal greeting that the user sees in their bell.
+      try {
+        const localList = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+        const localOnly = (localList || []).filter(a => a && a._local);
+        // Avoid duplicates by id
+        const seen = new Set(list.map(a => a && a.id));
+        for (const lo of localOnly) {
+          if (!seen.has(lo.id)) list.unshift(lo);
+        }
+      } catch(_){}
     }
     // Always normalize so renderers see the same shape no matter the source.
     return list.map(normalizeAnn).filter(Boolean);
@@ -89,15 +101,20 @@
     s.textContent = `
       #arsan-notif-bell-host{
         position:fixed;
-        top:16px;
-        /* RTL default: sidebar FAB is on the right → bell on the left */
-        inset-inline-start:16px;
-        inset-inline-end:auto;
+        bottom:80px;
+        inset-inline-end:24px;
+        inset-inline-start:auto;
         z-index:9100;
       }
       html[dir="ltr"] #arsan-notif-bell-host{
+        inset-inline-end:24px;
         inset-inline-start:auto;
-        inset-inline-end:16px;
+      }
+      @media (max-width:640px){
+        #arsan-notif-bell-host{
+          bottom:72px;
+          inset-inline-end:16px;
+        }
       }
       .arsan-notif-btn{
         position:relative;
@@ -143,12 +160,13 @@
         80%{ transform:rotate(4deg); }
       }
 
-      /* Panel — anchored to same side as bell */
+      /* Panel — anchored to same side as bell, opens UPWARD (bell is at bottom) */
       .arsan-notif-panel{
         position:fixed;
-        top:70px;
-        inset-inline-start:16px;
-        inset-inline-end:auto;
+        bottom:140px;
+        top:auto;
+        inset-inline-end:24px;
+        inset-inline-start:auto;
         width:380px; max-width:calc(100vw - 32px);
         max-height:70vh;
         background:linear-gradient(180deg, rgba(26,21,16,.92) 0%, rgba(35,26,16,.88) 100%);
@@ -164,7 +182,7 @@
       }
       html[dir="ltr"] .arsan-notif-panel{
         inset-inline-start:auto;
-        inset-inline-end:16px;
+        inset-inline-end:24px;
       }
       html[data-theme="light"] .arsan-notif-panel{
         background:linear-gradient(180deg, rgba(250,246,234,.92) 0%, rgba(243,234,208,.88) 100%);

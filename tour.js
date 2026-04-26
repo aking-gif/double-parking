@@ -556,6 +556,10 @@
     let seen = false;
     try { seen = localStorage.getItem(SEEN_KEY) === '1'; } catch(_){}
     if (seen) return;
+    // If welcome modal hasn't been seen yet, let it handle the tour launch
+    let welcomeSeen = false;
+    try { welcomeSeen = localStorage.getItem('arsan_welcome_seen_v1') === '1'; } catch(_){}
+    if (!welcomeSeen) return;
     const me = (() => { try { return JSON.parse(localStorage.getItem('arsan_me_v1')||localStorage.getItem('arsan_me')||'null'); } catch(_) { return null; } })();
     if (!me || !me.email) return;
     // Wait for UI to settle

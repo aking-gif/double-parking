@@ -73,7 +73,7 @@
     const b = document.createElement('button');
     b.id = 'exec-dash-btn'; b.type='button'; b.textContent='📊 التنفيذية';
     b.style.cssText = 'background:#0F1B2D;color:#E8C547;border:0;padding:5px 12px;border-radius:5px;font-size:12px;cursor:pointer;margin-inline-start:6px;font-weight:600';
-    b.onclick = open;
+    b.onclick = () => { window.location.href = 'exec.html'; };
     slot.appendChild(b);
   }
   function init(){ injectBtn(); setInterval(injectBtn,3000); }

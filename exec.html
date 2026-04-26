@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم التنفيذية — أرسان</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a; --panel:#10182b; --panel-2:#161f36; --line:rgba(255,255,255,.08);
+  --ink:#E8EEF5; --ink-2:#a8b3c7; --ink-3:#6b7689;
+  --gold:#E8C547; --gold-2:#bf9b30;
+  --green:#37b24d; --orange:#f59f00; --red:#e03131; --blue:#3b5bdb;
+  --shadow:0 10px 40px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;font-size:14px;min-height:100vh}
+a{color:var(--gold);text-decoration:none}
+
+/* Top Bar */
+.topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.topbar .brand{display:flex;align-items:center;gap:12px}
+.topbar .brand h1{margin:0;font-size:16px;font-weight:700;letter-spacing:.5px}
+.topbar .brand .sub{color:var(--ink-3);font-size:11.5px;margin-top:2px}
+.topbar .meta{display:flex;align-items:center;gap:18px;font-size:12.5px;color:var(--ink-2)}
+.topbar .pill{background:var(--panel-2);border:1px solid var(--line);padding:5px 12px;border-radius:18px;font-size:11.5px;display:inline-flex;align-items:center;gap:6px}
+.topbar .alerts-btn{background:transparent;border:1px solid var(--gold-2);color:var(--gold);padding:5px 12px;border-radius:18px;font-size:12px;cursor:pointer;position:relative}
+.topbar .alerts-btn .dot{position:absolute;top:-3px;inset-inline-end:-3px;background:var(--red);width:8px;height:8px;border-radius:50%}
+.topbar .back{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer}
+
+/* Container */
+.wrap{max-width:1440px;margin:0 auto;padding:24px}
+
+/* KPI Row */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;inset-inline-start:0;width:3px;height:100%;background:var(--blue);opacity:.7}
+.kpi.green::after{background:var(--green)}
+.kpi.orange::after{background:var(--orange)}
+.kpi.red::after{background:var(--red)}
+.kpi.gold::after{background:var(--gold)}
+.kpi .lbl{font-size:11px;color:var(--ink-3);font-weight:500;letter-spacing:.3px;text-transform:uppercase}
+.kpi .val{font-size:28px;font-weight:700;margin-top:6px;line-height:1;font-feature-settings:"tnum"}
+.kpi .sub{font-size:10.5px;color:var(--ink-3);margin-top:4px}
+
+/* Two-column rows */
+.row-2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+.row-2.even{grid-template-columns:1fr 1fr}
+@media (max-width:980px){.row-2,.row-2.even{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+
+/* Panel */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;overflow:hidden}
+.panel h3{margin:0 0 14px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.panel h3 .badge{background:var(--panel-2);color:var(--ink-2);font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:500}
+
+/* Sites table */
+.sites-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.sites-tbl th{text-align:start;padding:9px 10px;color:var(--ink-3);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--line)}
+.sites-tbl td{padding:11px 10px;border-bottom:1px solid var(--line)}
+.sites-tbl tr{cursor:pointer;transition:background .15s}
+.sites-tbl tbody tr:hover{background:var(--panel-2)}
+.sites-tbl tr:last-child td{border-bottom:0}
+.sites-tbl .name{font-weight:600;color:var(--ink)}
+.sites-tbl .city{font-size:11px;color:var(--ink-3);margin-top:1px}
+.score-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;font-feature-settings:"tnum"}
+.score-pill.green{background:rgba(55,178,77,.15);color:var(--green)}
+.score-pill.orange{background:rgba(245,159,0,.15);color:var(--orange)}
+.score-pill.red{background:rgba(224,49,49,.15);color:var(--red)}
+.score-pill.gray{background:rgba(255,255,255,.08);color:var(--ink-3)}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-inline-end:5px}
+.status-dot.healthy{background:var(--green)} .status-dot.risk{background:var(--orange)} .status-dot.crit{background:var(--red)} .status-dot.idle{background:var(--ink-3)}
+
+/* Alerts list */
+.alert{display:flex;gap:10px;align-items:flex-start;padding:11px;border-radius:8px;background:var(--panel-2);margin-bottom:8px;cursor:pointer;border:1px solid transparent;transition:border-color .15s}
+.alert:hover{border-color:var(--line)}
+.alert .ic{flex-shrink:0;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.alert.red .ic{background:rgba(224,49,49,.15);color:var(--red)}
+.alert.orange .ic{background:rgba(245,159,0,.15);color:var(--orange)}
+.alert.blue .ic{background:rgba(59,91,219,.15);color:var(--blue)}
+.alert .msg{font-size:12.5px;line-height:1.5;flex:1}
+.alert .when{font-size:10.5px;color:var(--ink-3);margin-top:3px}
+
+/* Lists / cards */
+.lst{display:flex;flex-direction:column;gap:8px}
+.lst-item{padding:10px 12px;background:var(--panel-2);border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;cursor:pointer;border:1px solid transparent}
+.lst-item:hover{border-color:var(--line)}
+.lst-item .meta{font-size:10.5px;color:var(--ink-3)}
+
+/* Bars */
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:grid;grid-template-columns:100px 1fr 50px;gap:10px;align-items:center;font-size:12px}
+.bar-row .lbl{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .bar{height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden;position:relative}
+.bar-row .bar i{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold-2),var(--gold));border-radius:4px;width:0;transition:width .6s ease}
+.bar-row .v{font-feature-settings:"tnum";text-align:end;color:var(--ink)}
+
+/* Activity feed */
+.feed{display:flex;flex-direction:column;gap:6px}
+.feed-item{display:flex;gap:10px;padding:9px 11px;border-radius:6px;font-size:12px;align-items:flex-start}
+.feed-item:hover{background:var(--panel-2)}
+.feed-item .who{color:var(--gold);font-weight:600}
+.feed-item .when{color:var(--ink-3);font-size:10.5px;flex-shrink:0;margin-inline-start:auto}
+
+.empty{text-align:center;padding:30px;color:var(--ink-3);font-size:13px}
+.skeleton{background:linear-gradient(90deg,var(--panel-2),var(--line),var(--panel-2));background-size:200% 100%;animation:sk 1.5s infinite;border-radius:6px;height:12px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div>
+      <h1>📊 لوحة التحكم التنفيذية</h1>
+      <div class="sub">Operating System — Arsann</div>
+    </div>
+  </div>
+  <div class="meta">
+    <span class="pill" id="org-name">Arsann Operations</span>
+    <span class="pill" id="now"></span>
+    <button class="alerts-btn" id="alerts-toggle">⚠️ التنبيهات <span class="dot" id="alerts-dot" style="display:none"></span></button>
+    <button class="back" onclick="location.href='index.html'">← الرئيسية</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- KPI Row -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi"><div class="lbl">المواقع</div><div class="val skeleton"></div><div class="sub" data-sub="sites"></div></div>
+    <div class="kpi green"><div class="lbl">الإجراءات النشطة</div><div class="val skeleton"></div><div class="sub" data-sub="sops"></div></div>
+    <div class="kpi gold"><div class="lbl">درجة الامتثال</div><div class="val skeleton"></div><div class="sub" data-sub="comp"></div></div>
+    <div class="kpi"><div class="lbl">المهام المفتوحة</div><div class="val skeleton"></div><div class="sub" data-sub="tasks"></div></div>
+    <div class="kpi red"><div class="lbl">المتأخرة</div><div class="val skeleton"></div><div class="sub" data-sub="overdue"></div></div>
+    <div class="kpi orange"><div class="lbl">اعتمادات معلّقة</div><div class="val skeleton"></div><div class="sub" data-sub="approvals"></div></div>
+  </div>
+
+  <!-- Sites + Alerts -->
+  <div class="row-2">
+    <div class="panel">
+      <h3>📍 أداء المواقع <span class="badge" id="sites-cnt">—</span></h3>
+      <div id="sites-block"><div class="skeleton" style="height:60px"></div></div>
+    </div>
+    <div class="panel">
+      <h3>⚠️ التنبيهات الحرجة <span class="badge" id="alerts-cnt">—</span></h3>
+      <div id="alerts-block"><div class="skeleton" style="height:40px"></div></div>
+    </div>
+  </div>
+
+  <!-- SOP Intelligence + Task Execution -->
+  <div class="row-2 even">
+    <div class="panel">
+      <h3>🧠 ذكاء الإجراءات</h3>
+      <div id="sop-intel"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+    <div class="panel">
+      <h3>📋 تنفيذ المهام (آخر ٧ أيام)</h3>
+      <div id="task-exec"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+  </div>
+
+  <!-- Activity Feed -->
+  <div class="panel" style="margin-top:16px">
+    <h3>📡 سجل النشاط <span class="badge" id="feed-cnt">—</span></h3>
+    <div id="feed-block"><div class="skeleton" style="height:30px"></div></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+const API_BASE = window.API_BASE || '';
+const tok = () => localStorage.getItem('arsan_token') || '';
+const me = () => { try { return JSON.parse(localStorage.getItem('arsan_me')||'null'); } catch(_){ return null; } };
+const esc = s => String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(p,o){o=o||{};const r=await fetch(API_BASE+p,{method:o.method||'GET',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:o.body?JSON.stringify(o.body):undefined});if(!r.ok)throw new Error(await r.text()||'HTTP '+r.status);return r.json();}
+
+/* Auth gate */
+(function(){
+  const u = me();
+  if (!u) { location.href = 'index.html'; return; }
+  if (u.role !== 'admin') { alert('للأدمن فقط'); location.href = 'index.html'; return; }
+})();
+
+/* Live clock */
+function updateNow(){
+  const d = new Date();
+  document.getElementById('now').textContent = d.toLocaleDateString('ar-SA',{weekday:'long',day:'numeric',month:'long'}) + ' · ' + d.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+}
+updateNow(); setInterval(updateNow, 30000);
+
+/* Render helpers */
+function setKpi(idx, val, sub, klass){
+  const cards = document.querySelectorAll('.kpi-row .kpi');
+  if (!cards[idx]) return;
+  if (klass) cards[idx].className = 'kpi ' + klass;
+  const v = cards[idx].querySelector('.val'); v.classList.remove('skeleton'); v.textContent = val;
+  if (sub) cards[idx].querySelector('.sub').textContent = sub;
+}
+
+function compClass(score){
+  if (score == null) return 'gray';
+  if (score >= 85) return 'green';
+  if (score >= 70) return 'orange';
+  return 'red';
+}
+function siteStatus(score){
+  if (score == null) return { dot:'idle', label:'بانتظار البيانات' };
+  if (score >= 85) return { dot:'healthy', label:'سليم' };
+  if (score >= 70) return { dot:'risk', label:'تحت المراقبة' };
+  return { dot:'crit', label:'حرج' };
+}
+function timeAgo(ts){
+  if (!ts) return '';
+  const s = Math.floor((Date.now()-ts)/1000);
+  if (s<60) return 'الآن';
+  if (s<3600) return Math.floor(s/60)+' د';
+  if (s<86400) return Math.floor(s/3600)+' س';
+  return Math.floor(s/86400)+' يوم';
+}
+
+/* Main render */
+async function render(){
+  let s, audit, sops, tasks;
+  try {
+    [s, audit, sops, tasks] = await Promise.all([
+      api('/api/exec/summary'),
+      api('/api/activity').catch(()=>({activity:[]})),
+      api('/api/bootstrap').catch(()=>({sops:{}})),
+      api('/api/tasks').catch(()=>({tasks:[]}))
+    ]);
+  } catch(e){ alert('فشل تحميل البيانات: '+e.message); return; }
+
+  // KPI Row
+  setKpi(0, `${s.sites.active}/${s.sites.total}`, 'موقع نشط', s.sites.active>0?'green':'');
+  setKpi(1, s.sops.active, `من إجمالي ${s.sops.total}`, 'green');
+  setKpi(2, s.tasks.compliance + '%', `${s.tasks.completed} مكتمل`, compClass(s.tasks.compliance));
+  setKpi(3, s.tasks.total - s.tasks.completed, 'مهمة قيد التنفيذ');
+  setKpi(4, s.tasks.missed, 'مهمة فائتة', s.tasks.missed>0?'red':'green');
+  setKpi(5, s.approvals.pending, s.approvals.pending>0?'بانتظار موافقتك':'لا شيء معلّق', s.approvals.pending>0?'orange':'');
+
+  // Sites table
+  const sitesBlock = document.getElementById('sites-block');
+  document.getElementById('sites-cnt').textContent = s.perSite.length + ' موقع';
+  if (!s.perSite.length) {
+    sitesBlock.innerHTML = '<div class="empty">لا مواقع مسجّلة. <a href="dashboard.html">أضف موقعاً</a></div>';
+  } else {
+    sitesBlock.innerHTML = `<table class="sites-tbl">
+      <thead><tr><th>الموقع</th><th>المهام</th><th>المتأخرة</th><th>الامتثال</th><th>الحالة</th></tr></thead>
+      <tbody>${s.perSite.map(p=>{
+        const ss = siteStatus(p.score);
+        const cc = compClass(p.score);
+        return `<tr data-site="${esc(p.id)}"><td><div class="name">${esc(p.name)}</div><div class="city">${esc(p.city||'—')}</div></td>
+          <td>${p.tasks}</td>
+          <td style="color:${p.missed>0?'var(--red)':'var(--ink-3)'};font-weight:${p.missed>0?'600':'400'}">${p.missed}</td>
+          <td><span class="score-pill ${cc}">${p.score==null?'—':p.score+'%'}</span></td>
+          <td><span class="status-dot ${ss.dot}"></span>${ss.label}</td></tr>`;
+      }).join('')}</tbody></table>`;
+  }
+
+  // Alerts
+  const alerts = [];
+  s.perSite.filter(p => p.score!=null && p.score < 70).forEach(p => alerts.push({ kind:'red', icon:'!', msg:`<b>${esc(p.name)}</b> — درجة الامتثال ${p.score}% (حرجة)`, when:'الآن' }));
+  s.perSite.filter(p => p.missed >= 5).forEach(p => alerts.push({ kind:'orange', icon:'⏰', msg:`<b>${p.missed}</b> مهمة متأخرة في ${esc(p.name)}`, when:'الآن' }));
+  if (s.approvals.pending > 0) alerts.push({ kind:'blue', icon:'✓', msg:`<b>${s.approvals.pending}</b> اعتماد بانتظار موافقتك`, when:'' });
+  // SOPs in review
+  if (s.sops.review > 0) alerts.push({ kind:'orange', icon:'📝', msg:`<b>${s.sops.review}</b> إجراء بحالة "مراجعة"`, when:'' });
+  if (s.sops.deprecated > 0) alerts.push({ kind:'red', icon:'⛔', msg:`<b>${s.sops.deprecated}</b> إجراء مهجور — يحتاج مراجعة`, when:'' });
+
+  document.getElementById('alerts-cnt').textContent = alerts.length;
+  document.getElementById('alerts-dot').style.display = alerts.length ? 'block' : 'none';
+  const alertsBlock = document.getElementById('alerts-block');
+  alertsBlock.innerHTML = alerts.length ?
+    alerts.map(a=>`<div class="alert ${a.kind}"><div class="ic">${a.icon}</div><div class="msg">${a.msg}${a.when?'<div class="when">'+a.when+'</div>':''}</div></div>`).join('') :
+    '<div class="empty">✓ كل شيء على ما يرام</div>';
+
+  // SOP Intelligence — flatten + sort
+  const flatSops = [];
+  Object.keys(sops.sops||{}).forEach(d => Object.keys(sops.sops[d]||{}).forEach(c => {
+    const sop = sops.sops[d][c];
+    flatSops.push({ ...sop, dept:d, code:c });
+  }));
+  // Recently updated
+  const recent = flatSops.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
+  // Most edited
+  const mostEdited = flatSops.slice().sort((a,b)=>((b.editCount||0)-(a.editCount||0))).slice(0,5);
+  // Due for review
+  const due = flatSops.filter(x => x.nextReviewDue && x.nextReviewDue < Date.now() + 14*86400000).slice(0,5);
+
+  document.getElementById('sop-intel').innerHTML = `
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px;font-weight:600">آخر تحديث</div>
+    <div class="lst">${recent.length?recent.map(s=>`<div class="lst-item"><span><b>${esc(s.code)}</b> · ${esc((s.title||'').slice(0,40))}</span><span class="meta">${timeAgo(s.updatedAt)}</span></div>`).join(''):'<div class="empty">لا بيانات</div>'}</div>
+    ${due.length?`<div style="font-size:11px;color:var(--ink-3);margin:14px 0 6px;font-weight:600">📅 مستحقة المراجعة</div>
+      <div class="lst">${due.map(s=>`<div class="lst-item"><span>${esc(s.code)} · ${esc((s.title||'').slice(0,40))}</span><span class="meta" style="color:var(--orange)">${new Date(s.nextReviewDue).toLocaleDateString('ar-SA')}</span></div>`).join('')}</div>`:''}
+  `;
+
+  // Task Execution — last 7 days completion per day
+  const days = [];
+  for (let i=6;i>=0;i--) {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-i);
+    const ds = d.getTime(), de = ds + 86400000;
+    const completed = (tasks.tasks||[]).filter(t => t.status==='done' && t.completedAt && t.completedAt>=ds && t.completedAt<de).length;
+    days.push({ label: d.toLocaleDateString('ar-SA',{weekday:'short',day:'numeric'}), v: completed });
+  }
+  const max = Math.max(...days.map(d=>d.v), 1);
+  document.getElementById('task-exec').innerHTML = `
+    <div class="bar-chart">${days.map(d=>`<div class="bar-row"><span class="lbl">${esc(d.label)}</span><div class="bar"><i style="width:${(d.v/max*100).toFixed(0)}%"></i></div><span class="v">${d.v}</span></div>`).join('')}</div>
+    <div style="font-size:11px;color:var(--ink-3);margin-top:14px;text-align:center">إجمالي ${days.reduce((a,d)=>a+d.v,0)} مهمة مكتملة هذا الأسبوع</div>
+  `;
+
+  // Activity feed
+  const acts = (audit.activity||[]).slice(0,10);
+  document.getElementById('feed-cnt').textContent = acts.length;
+  document.getElementById('feed-block').innerHTML = acts.length ?
+    `<div class="feed">${acts.map(a=>`<div class="feed-item"><span class="who">${esc((a.actor||'').split('@')[0])}</span><span>${esc(a.action||'')} ${esc(a.target||'')}</span><span class="when">${timeAgo(a.ts)}</span></div>`).join('')}</div>` :
+    '<div class="empty">لا نشاط حديث</div>';
+
+  // Click handlers
+  document.querySelectorAll('[data-site]').forEach(r => r.onclick = () => alert('سيتم فتح صفحة الموقع: ' + r.dataset.site));
+}
+
+document.getElementById('alerts-toggle').onclick = () => {
+  document.getElementById('alerts-block').scrollIntoView({behavior:'smooth',block:'center'});
+};
+
+render();
+setInterval(render, 60000); // refresh every minute
+</script>
+</body>
+</html>

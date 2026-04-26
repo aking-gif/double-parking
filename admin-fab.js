@@ -314,6 +314,7 @@
       { icon:'🛡️', label:t('لوحة التحكم','Admin Panel'), action: () => window.ArsanUI?.showAdmin?.() },
       { icon:'👥', label:t('المستخدمون','Users'), action: () => { location.href = 'users.html'; } },
       { icon:'🎨', label:t('الثيمات','Themes'), action: () => window.ArsanThemes?.showPicker?.() },
+      { icon:'💾', label:t('النسخ الاحتياطية','Backups'), action: () => window.ArsanBackup?.open?.() },
       { icon:'🩺', label:t('وكيل الصيانة','Maintenance Agent'), action: () => window.ArsanMaintenance?.showPanel?.() },
     ];
     items.forEach(it => {

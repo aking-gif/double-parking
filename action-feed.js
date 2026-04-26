@@ -1,96 +1,104 @@
 /* ============================================================
-   Action Required Feed — يجمع كل ما يحتاج اهتمام المستخدم
+   Action Required Feed — يدمج مع الجرس الرئيسي (notifications.js)
+   لا يضع جرساً منفصلاً. يحقن العناصر في القائمة الموجودة.
    ============================================================ */
 (function(){
   'use strict';
   const API_BASE = window.API_BASE || '';
   const tok = () => localStorage.getItem('arsan_token') || '';
   const me = () => { try { return JSON.parse(localStorage.getItem('arsan_me')||'null'); } catch(_){ return null; } };
-  const esc = s => String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   async function api(p,o){o=o||{};const r=await fetch(API_BASE+p,{method:o.method||'GET',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:o.body?JSON.stringify(o.body):undefined});if(!r.ok)throw new Error(await r.text()||'HTTP '+r.status);return r.json();}
 
-  async function gather(){
-    const u = me(); if (!u) return { items:[], total:0 };
+  /* Build pseudo-announcements from action items so they appear in the existing bell */
+  async function gatherAsAnnouncements(){
+    const u = me(); if (!u) return [];
     const items = [];
+    const now = Date.now();
+
+    // SOPs awaiting your approval
     try {
-      // SOPs awaiting approval
       const b = await api('/api/bootstrap');
       Object.keys(b.sops||{}).forEach(dept => Object.keys(b.sops[dept]||{}).forEach(code => {
         const s = b.sops[dept][code];
-        if (s.status === 'review' && ((s.reviewer||'').toLowerCase() === (u.email||'').toLowerCase() || u.role==='admin'))
-          items.push({ kind:'approval', label:`اعتمد ${dept}/${code}`, sub: s.title, ts: s.statusUpdatedAt, action: ()=>{ window.location.href = `dashboard.html?dept=${dept}#${code}`; } });
+        if (s.status === 'review' && ((s.reviewer||'').toLowerCase() === (u.email||'').toLowerCase() || u.role==='admin')) {
+          items.push({
+            id: 'action-approval-'+dept+'-'+code,
+            ts: s.statusUpdatedAt || now,
+            author: 'النظام',
+            title: '🔔 يحتاج اعتمادك: ' + (s.title || code),
+            body: 'إجراء بحالة "مراجعة" — ' + dept + '/' + code + '\nاضغط لفتح الإجراء',
+            priority: 'urgent',
+            _action: true,
+            _link: 'dashboard.html?dept=' + encodeURIComponent(dept) + '#' + encodeURIComponent(code)
+          });
+        }
       }));
     } catch(_){}
+
+    // Tasks assigned to you
     try {
       const tasks = (await api('/api/tasks?assignee='+encodeURIComponent(u.email))).tasks || [];
-      tasks.filter(t => t.status !== 'done').forEach(t => items.push({ kind:'task', label:t.title, sub:'مهمة مسندة', ts:t.dueAt, action:null }));
+      tasks.filter(t => t.status !== 'done').slice(0,5).forEach(t => {
+        items.push({
+          id: 'action-task-'+(t.id||t.title),
+          ts: t.dueAt || now,
+          author: 'مهامك',
+          title: '📋 مهمة: ' + (t.title||''),
+          body: (t.description || '') + (t.dueAt ? '\nالاستحقاق: ' + new Date(t.dueAt).toLocaleDateString('ar-SA') : ''),
+          priority: (t.dueAt && t.dueAt < now) ? 'urgent' : 'normal',
+          _action: true
+        });
+      });
     } catch(_){}
+
+    // Mentions
     try {
       const ms = (await api('/api/mentions')).mentions || [];
-      ms.filter(m=>!m.read).slice(0,10).forEach(m => items.push({ kind:'mention', label:m.message, sub:'@إشارة', ts:m.at, action:null }));
+      ms.filter(m => !m.read).slice(0,5).forEach(m => items.push({
+        id: 'action-mention-'+(m.id||m.at),
+        ts: m.at || now,
+        author: m.from || 'إشارة',
+        title: '@ ' + (m.from || 'مستخدم') + ' أشار إليك',
+        body: m.message || '',
+        priority: 'normal',
+        _action: true
+      }));
     } catch(_){}
-    items.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    return { items, total: items.length };
+
+    return items;
   }
 
-  let badge = null;
-  async function tick(){
-    const { total } = await gather();
-    if (!badge) injectFab();
-    if (badge) {
-      badge.textContent = total > 99 ? '99+' : total;
-      badge.style.display = total > 0 ? 'flex' : 'none';
-    }
-  }
+  /* Merge into local announcements store so notifications.js picks them up */
+  const STORE_KEY = 'arsan_announcements_v1';
 
-  function injectFab(){
-    if (document.getElementById('action-feed-fab')) { badge = document.querySelector('#action-feed-fab .badge'); return; }
-    const fab = document.createElement('button');
-    fab.id = 'action-feed-fab';
-    fab.title = 'الإجراءات المطلوبة منك';
-    fab.style.cssText = 'position:fixed;bottom:74px;inset-inline-end:20px;width:48px;height:48px;border-radius:50%;background:var(--brand,#bf9b30);color:#fff;border:0;font-size:18px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:9998;display:flex;align-items:center;justify-content:center;position:fixed';
-    fab.innerHTML = '🔔<span class="badge" style="position:absolute;top:-4px;inset-inline-end:-4px;background:#e03131;color:#fff;font-size:10px;border-radius:10px;padding:1px 5px;display:none;align-items:center;justify-content:center;font-weight:700;min-width:16px;height:16px">0</span>';
-    fab.onclick = openFeed;
-    document.body.appendChild(fab);
-    badge = fab.querySelector('.badge');
-  }
-
-  async function openFeed(){
-    const { items } = await gather();
-    const bd = document.createElement('div');
-    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
-    bd.innerHTML = `<div style="background:var(--card,#fff);color:var(--ink);border-radius:12px;max-width:480px;width:100%;max-height:80vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-      <div style="padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-        <h3 style="margin:0">🔔 يحتاج اهتمامك (${items.length})</h3>
-        <button data-x style="background:none;border:0;font-size:22px;cursor:pointer">×</button>
-      </div>
-      <div data-list>
-        ${items.length ? items.map((it,i)=>{
-          const colors = { approval:'#fff3bf', task:'#d3f9d8', mention:'#dbe4ff' };
-          const fg = { approval:'#8a6d00', task:'#2b7a3a', mention:'#364fc7' };
-          return `<div data-idx="${i}" style="padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:flex-start">
-            <span style="background:${colors[it.kind]||'#eee'};color:${fg[it.kind]||'#333'};padding:3px 9px;border-radius:10px;font-size:10.5px;font-weight:600;flex-shrink:0">${it.kind}</span>
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:600;font-size:13px">${esc(it.label||'')}</div>
-              <div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">${esc(it.sub||'')}</div>
-            </div>
-          </div>`;
-        }).join('') : '<div style="padding:30px;text-align:center;color:var(--ink-3)">كل شيء على ما يرام ✨</div>'}
-      </div>
-    </div>`;
-    document.body.appendChild(bd);
-    bd.querySelector('[data-x]').onclick = () => bd.remove();
-    bd.addEventListener('click', e => { if(e.target===bd) bd.remove(); });
-    bd.querySelectorAll('[data-idx]').forEach(el => {
-      el.onclick = () => { const i = +el.dataset.idx; if (items[i].action) items[i].action(); else bd.remove(); };
-    });
+  async function syncIntoBell(){
+    try {
+      const fresh = await gatherAsAnnouncements();
+      let existing = [];
+      try { existing = JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(_){}
+      // Remove old action items, keep non-action announcements
+      const kept = existing.filter(a => !(a && a._action));
+      // Add fresh action items
+      const merged = kept.concat(fresh);
+      // Cap to 50
+      merged.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      localStorage.setItem(STORE_KEY, JSON.stringify(merged.slice(0,50)));
+      // Tell notifications.js to refresh badge
+      if (window.ArsanNotif && typeof window.ArsanNotif.refresh === 'function') {
+        window.ArsanNotif.refresh();
+      } else {
+        // best-effort: dispatch event
+        window.dispatchEvent(new CustomEvent('arsan:announcements-updated'));
+      }
+    } catch(e){ console.warn('action-feed sync', e); }
   }
 
   function init(){
-    injectFab();
-    tick();
-    setInterval(tick, 30000);
+    syncIntoBell();
+    setInterval(syncIntoBell, 60000); // every minute
   }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  else setTimeout(init, 1500);
+
+  window.ArsanActionFeed = { syncIntoBell, gather: gatherAsAnnouncements };
 })();

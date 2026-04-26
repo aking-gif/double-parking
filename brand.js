@@ -33,10 +33,10 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
      LOGO GENERATORS
   =============================== */
 
-  /* الحصان الأسود — صورة الأدهم — للاستخدام في المساعد الذكي فقط */
+  /* صورة الحصان الأسود (الأدهم) — للجولة التعريفية والمساعد الذكي فقط */
   const HORSE_IMG = './adham.png';
 
-  /* شعار الشركة الرسمي — SVG path */
+  /* شعار الشركة الرسمي — SVG path الموحّد (للموقع كله) */
   const LOGO_SVG = (size = 32, color = COLORS.gold) => `
     <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"
          viewBox="940 395 30 290" preserveAspectRatio="xMidYMid meet"
@@ -45,12 +45,16 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
     </svg>
   `;
 
-  const LOGO_MARK_SVG = (size = 24, color = COLORS.gold) => `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"
-         viewBox="940 395 30 290" preserveAspectRatio="xMidYMid meet"
-         style="display:block">
-      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
-    </svg>
+  const LOGO_MARK_SVG = (size = 24, color = COLORS.gold) => LOGO_SVG(size, color);
+
+  /* alias للتوافق مع الكود القديم */
+  const LOGO_PATH_SVG = LOGO_SVG;
+
+  /* صورة الأدهم — للجولة التعريفية والمساعد الذكي فقط */
+  const HORSE_LOGO = (size = 64) => `
+    <img src="${HORSE_IMG}" alt="الأدهم"
+         style="width:${size}px;height:${size}px;display:block;object-fit:contain;
+                filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))" />
   `;
 
   const LOGO_WITH_NAME = (opts = {}) => {
@@ -145,7 +149,10 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
     COLORS,
     logo: LOGO_SVG,
     logoMark: LOGO_MARK_SVG,
+    logoPath: LOGO_PATH_SVG,
     logoWithName: LOGO_WITH_NAME,
+    horseLogo: HORSE_LOGO,
+    horseImg: HORSE_IMG,
     injectFavicon,
     injectCSSVars,
   };

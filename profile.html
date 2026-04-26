@@ -14,7 +14,7 @@
 :root{
   --bg:#0b0b0c; --surface:#141416; --surface-2:#1c1c1f; --surface-3:#222226;
   --line:#2a2a2e; --ink:#f5f5f7; --ink-2:#c8c8cc; --ink-3:#8e8e93;
-  --accent:#e7c66a; --accent-soft:rgba(231,198,106,.12); --accent-line:rgba(231,198,106,.25);
+  --accent:#7B9DC4; --accent-soft:rgba(123,157,196,.12); --accent-line:rgba(123,157,196,.25);
   --ok:#4ade80; --danger:#ef4444;
   --radius:14px;
   --font:'IBM Plex Sans Arabic', system-ui, sans-serif;
@@ -42,8 +42,8 @@ textarea{resize:vertical;min-height:90px;line-height:1.7}
 .page-title{font-size:30px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
 .page-sub{color:var(--ink-3);font-size:14px;line-height:1.6}
 
-.hero{background:linear-gradient(135deg, rgba(231,198,106,.08), rgba(231,198,106,.02));border:1px solid var(--accent-line);border-radius:18px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:18px}
-.avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#e7c66a,#85714D);display:grid;place-items:center;color:#1a1a1a;font-weight:700;font-size:32px;letter-spacing:.5px;flex-shrink:0;box-shadow:0 4px 18px rgba(231,198,106,.3);overflow:hidden;position:relative}
+.hero{background:linear-gradient(135deg, rgba(123,157,196,.08), rgba(123,157,196,.02));border:1px solid var(--accent-line);border-radius:18px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:18px}
+.avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#7B9DC4,#3D5A80);display:grid;place-items:center;color:#1a1a1a;font-weight:700;font-size:32px;letter-spacing:.5px;flex-shrink:0;box-shadow:0 4px 18px rgba(123,157,196,.3);overflow:hidden;position:relative}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .avatar .upload-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
 .avatar.editable:hover .upload-overlay{display:flex}
@@ -80,7 +80,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.7}
 .skeleton{display:inline-block;width:120px;height:14px;background:linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2));background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-.viewing-banner{background:rgba(231,198,106,.08);border:1px solid var(--accent-line);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:10px}
+.viewing-banner{background:rgba(123,157,196,.08);border:1px solid var(--accent-line);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:10px}
 .viewing-banner svg{color:var(--accent);flex-shrink:0}
 </style>
 </head>

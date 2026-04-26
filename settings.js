@@ -134,7 +134,7 @@
         color:var(--accent-ink, #5E4B00);
         border-bottom-color:var(--accent, #8B6F00);
       }
-      html[data-theme="dark"] .asst-tab.active{ color:var(--accent, #D4B24A) }
+      html[data-theme="dark"] .asst-tab.active{ color:var(--accent, #5C7A9C) }
 
       /* Panes */
       .asst-body{ overflow:auto; flex:1; background:var(--surface, #fff) }
@@ -230,10 +230,10 @@
         border-color:transparent;
       }
       html[data-theme="dark"] .asst-btn.primary{
-        background:var(--accent, #D4B24A); color:#111; border-color:var(--accent, #D4B24A);
+        background:var(--accent, #5C7A9C); color:#111; border-color:var(--accent, #5C7A9C);
       }
       html[data-theme="dark"] .asst-btn.primary:hover{
-        background:color-mix(in oklab, var(--accent, #D4B24A) 85%, white);
+        background:color-mix(in oklab, var(--accent, #5C7A9C) 85%, white);
       }
 
       .asst-btn.danger{
@@ -1034,7 +1034,7 @@
       ),
       el('div', { style:'background:var(--surface-soft,#faf9f6); border:1px solid var(--border,rgba(0,0,0,.08)); border-radius:14px; padding:18px 20px; margin-bottom:18px;' },
         el('div', { style:'display:flex; align-items:center; gap:14px; margin-bottom:14px;' },
-          el('div', { style:'width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#85714D,#5E4F36); display:flex; align-items:center; justify-content:center; padding:8px; box-sizing:border-box; flex-shrink:0;' },
+          el('div', { style:'width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#3D5A80,#293F5C); display:flex; align-items:center; justify-content:center; padding:8px; box-sizing:border-box; flex-shrink:0;' },
             el('img', { src:'./adham.png', alt:'', style:'width:100%; height:100%; object-fit:contain; filter:invert(1) brightness(2);' })
           ),
           el('div', {},
@@ -1051,8 +1051,8 @@
       ),
       el('div', {}, tourStartBtn, tourResetBtn),
       el('div', { id:'asst-tour-status', style:'margin-top:10px; min-height:20px; font-size:13px;' }),
-      el('div', { style: 'margin-top:24px; padding:14px 16px; background:rgba(133,113,77,.08); border-radius:12px; border:1px solid rgba(133,113,77,.18);' },
-        el('div', { style:'font-weight:700; margin-bottom:8px; color:#85714D;' }, '💡 ملاحظة'),
+      el('div', { style: 'margin-top:24px; padding:14px 16px; background:rgba(61,90,128,.08); border-radius:12px; border:1px solid rgba(61,90,128,.18);' },
+        el('div', { style:'font-weight:700; margin-bottom:8px; color:#3D5A80;' }, '💡 ملاحظة'),
         el('div', { style:'color:var(--ink-2,#555); font-size:13px; line-height:1.8;' },
           'لتغذية الأدهم بمعلومات شركتك (السياسات، المصطلحات، إلخ)، افتح نافذة الأدهم من الزر الطافي ثم اضغط ⚙ في رأسها.'
         )

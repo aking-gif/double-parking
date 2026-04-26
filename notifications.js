@@ -57,7 +57,88 @@
       } catch(_){}
     }
     // Always normalize so renderers see the same shape no matter the source.
-    return list.map(normalizeAnn).filter(Boolean);
+    const ann = list.map(normalizeAnn).filter(Boolean);
+
+    // ===== Unified stream: also pull mentions, chat, sop-edits =====
+    const extra = [];
+    try {
+      // Mentions (per-user)
+      if (window.API_BASE && localStorage.getItem('arsan_token')) {
+        const tok = localStorage.getItem('arsan_token');
+        const r = await fetch(window.API_BASE + '/api/mentions', {
+          headers: { Authorization: 'Bearer ' + tok }
+        }).catch(()=>null);
+        if (r && r.ok) {
+          const mentions = await r.json().catch(()=>[]);
+          (Array.isArray(mentions) ? mentions : []).forEach(m => {
+            extra.push({
+              id: 'm-' + m.id,
+              ts: m.ts || Date.now(),
+              author: m.fromEmail || '',
+              title: t('إشارة في إجراء','Mention'),
+              body: m.message || (m.sopRef ? `${m.sopRef}` : ''),
+              priority: 'normal',
+              _kind: 'mention',
+              _link: m.sopRef ? `dashboard.html?dept=${m.dept || ''}&open=${(m.sopRef||'').split('/')[1]||''}` : null,
+            });
+          });
+        }
+      }
+    } catch(_){}
+    try {
+      // Recent SOP edits feed (last 10 of activity)
+      const acts = JSON.parse(localStorage.getItem('arsan_local_activity_v1') || '[]');
+      const myEmail = (me().email || '').toLowerCase();
+      acts.slice(0, 5).forEach(a => {
+        if (!a || a.actor === myEmail) return; // don't notify yourself
+        extra.push({
+          id: 'act-' + (a.ts||0) + '-' + (a.target||''),
+          ts: a.ts || Date.now(),
+          author: a.actor || '',
+          title: t('تعديل إجراء','SOP edit'),
+          body: `${a.actor || ''} ${a.action || ''}: ${a.target || ''}${a.fields ? ` (${(a.fields||[]).join('، ')})` : ''}`,
+          priority: 'normal',
+          _kind: 'sop-edit',
+        });
+      });
+    } catch(_){}
+    try {
+      // Chat — last unread per dept (just show latest 3 channels)
+      const myEmail = (me().email || '').toLowerCase();
+      const seenChats = JSON.parse(localStorage.getItem('arsan_chat_seen_v1') || '{}');
+      for (let i=0; i<localStorage.length; i++){
+        const k = localStorage.key(i);
+        if (!k || !k.startsWith('arsan_chat_')) continue;
+        try {
+          const arr = JSON.parse(localStorage.getItem(k) || '[]');
+          if (!arr.length) continue;
+          const latest = arr[arr.length-1];
+          if (!latest || (latest.author||'').toLowerCase() === myEmail) continue;
+          if (seenChats[k] && seenChats[k] >= latest.ts) continue;
+          extra.push({
+            id: 'chat-' + k + '-' + latest.ts,
+            ts: latest.ts || Date.now(),
+            author: latest.author || '',
+            title: t('رسالة في الشات','Chat message'),
+            body: (latest.text || '').slice(0,140),
+            priority: 'normal',
+            _kind: 'chat',
+          });
+        } catch(_){}
+      }
+    } catch(_){}
+
+    // Merge + dedupe by id, sort by ts desc
+    const merged = ann.concat(extra);
+    const seen = new Set();
+    const out = [];
+    for (const it of merged) {
+      if (!it || !it.id || seen.has(it.id)) continue;
+      seen.add(it.id);
+      out.push(it);
+    }
+    out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    return out.slice(0, 30);
   }
   async function saveAnnouncement(a){
     if (hasBackend() && getAPI().addAnnouncement) {
@@ -124,20 +205,20 @@
         background:rgba(26,21,16,.75);
         backdrop-filter:blur(16px) saturate(180%);
         -webkit-backdrop-filter:blur(16px) saturate(180%);
-        border:1px solid rgba(133,113,77,.3);
-        color:#f3e9c9;
+        border:1px solid rgba(61,90,128,.3);
+        color:#E8EEF5;
         cursor:pointer;
         box-shadow:0 4px 16px rgba(0,0,0,.25);
         transition:background .15s, border-color .15s, transform .15s;
       }
       html[data-theme="light"] .arsan-notif-btn{
         background:rgba(255,255,255,.75);
-        color:#3a2f15;
-        border-color:rgba(133,113,77,.35);
+        color:#1A2942;
+        border-color:rgba(61,90,128,.35);
       }
       .arsan-notif-btn:hover{
-        background:rgba(133,113,77,.2);
-        border-color:rgba(133,113,77,.6);
+        background:rgba(61,90,128,.2);
+        border-color:rgba(61,90,128,.6);
         transform:translateY(-1px);
       }
       .arsan-notif-btn svg{ width:20px;height:20px; }
@@ -148,7 +229,7 @@
         background:#e63946; color:#fff;
         font-size:10px; font-weight:700;
         display:none; align-items:center; justify-content:center;
-        box-shadow:0 0 0 2px #1a1510;
+        box-shadow:0 0 0 2px #0F1B2D;
       }
       html[data-theme="light"] .arsan-notif-btn .badge{ box-shadow:0 0 0 2px #faf6ea; }
       .arsan-notif-btn.has-unread .badge{ display:flex; }
@@ -173,7 +254,7 @@
         background:linear-gradient(180deg, rgba(26,21,16,.92) 0%, rgba(35,26,16,.88) 100%);
         backdrop-filter:blur(24px) saturate(180%);
         -webkit-backdrop-filter:blur(24px) saturate(180%);
-        border:1px solid rgba(133,113,77,.25);
+        border:1px solid rgba(61,90,128,.25);
         border-radius:14px;
         box-shadow:0 20px 60px rgba(0,0,0,.4);
         display:none;
@@ -187,16 +268,16 @@
       }
       html[data-theme="light"] .arsan-notif-panel{
         background:linear-gradient(180deg, rgba(250,246,234,.92) 0%, rgba(243,234,208,.88) 100%);
-        border-color:rgba(133,113,77,.35);
+        border-color:rgba(61,90,128,.35);
       }
       .arsan-notif-panel.open{ display:flex; }
       .arsan-notif-head{
         padding:14px 16px;
-        border-bottom:1px solid rgba(133,113,77,.15);
+        border-bottom:1px solid rgba(61,90,128,.15);
         display:flex; align-items:center; justify-content:space-between;
-        color:#f3e9c9;
+        color:#E8EEF5;
       }
-      html[data-theme="light"] .arsan-notif-head{ color:#3a2f15; border-bottom-color:rgba(133,113,77,.25); }
+      html[data-theme="light"] .arsan-notif-head{ color:#1A2942; border-bottom-color:rgba(61,90,128,.25); }
       .arsan-notif-head h3{
         margin:0; font-size:15px; font-weight:600;
       }
@@ -206,7 +287,7 @@
         cursor:pointer; padding:4px 8px; border-radius:6px;
         opacity:.7;
       }
-      .arsan-notif-head button:hover{ opacity:1; background:rgba(133,113,77,.15); }
+      .arsan-notif-head button:hover{ opacity:1; background:rgba(61,90,128,.15); }
       .arsan-notif-body{
         flex:1; overflow-y:auto;
         padding:8px;
@@ -221,19 +302,19 @@
         padding:12px 14px;
         border-radius:10px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(133,113,77,.12);
-        color:#f3e9c9;
+        border:1px solid rgba(61,90,128,.12);
+        color:#E8EEF5;
         position:relative;
         transition:background .15s;
       }
       html[data-theme="light"] .arsan-notif-item{
         background:rgba(255,255,255,.4);
-        color:#3a2f15;
-        border-color:rgba(133,113,77,.2);
+        color:#1A2942;
+        border-color:rgba(61,90,128,.2);
       }
       .arsan-notif-item.unread{
-        background:rgba(133,113,77,.12);
-        border-color:rgba(133,113,77,.35);
+        background:rgba(61,90,128,.12);
+        border-color:rgba(61,90,128,.35);
       }
       .arsan-notif-item.urgent{
         border-inline-start:3px solid #e63946;
@@ -267,15 +348,15 @@
       .arsan-notif-item .del:hover{ opacity:1; background:rgba(230,57,70,.2); color:#e63946; }
       .arsan-notif-foot{
         padding:10px 14px;
-        border-top:1px solid rgba(133,113,77,.15);
+        border-top:1px solid rgba(61,90,128,.15);
         text-align:center;
       }
       .arsan-notif-foot a{
-        color:#85714D; font-size:12px; font-weight:600;
+        color:#3D5A80; font-size:12px; font-weight:600;
         text-decoration:none;
       }
       .arsan-notif-foot a:hover{ text-decoration:underline; }
-      html[data-theme="light"] .arsan-notif-foot{ border-top-color:rgba(133,113,77,.25); }
+      html[data-theme="light"] .arsan-notif-foot{ border-top-color:rgba(61,90,128,.25); }
     `;
     document.head.appendChild(s);
   }
@@ -443,8 +524,39 @@
     const obs = new MutationObserver(() => tryMount());
     obs.observe(document.body, { childList: true, subtree: true });
 
-    // Refresh badge periodically
-    setInterval(() => updateBadge(), 30000);
+    // Refresh badge periodically (every 20s) — and on tab focus
+    setInterval(() => updateBadge(), 20000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) updateBadge();
+    });
+    // React to live events from other modules
+    window.addEventListener('sop-saved', () => setTimeout(updateBadge, 600));
+    window.addEventListener('arsan-notify', () => updateBadge());
+  }
+
+  /** Push an ad-hoc local notification into the bell stream.
+   *  Other modules call this to make sure the bell shows it.
+   *  Args: { title, body, priority, id?, ts? }
+   */
+  function pushLocal(item){
+    if (!item || !item.title) return;
+    const a = {
+      id: item.id || ('local-' + Date.now() + '-' + Math.random().toString(36).slice(2,5)),
+      ts: item.ts || Date.now(),
+      author: item.author || me().email || '',
+      title: item.title,
+      body: item.body || '',
+      priority: item.priority || 'normal',
+      _local: true,
+    };
+    try {
+      const list = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+      list.unshift(a);
+      localStorage.setItem(STORE_KEY, JSON.stringify(list.slice(0, 50)));
+    } catch(_){}
+    try { window.dispatchEvent(new CustomEvent('arsan-notify', { detail: a })); } catch(_){}
+    updateBadge();
+    return a;
   }
 
   if (document.readyState === 'loading') {
@@ -458,6 +570,7 @@
     post: postAnnouncement,
     refresh: updateBadge,
     loadAll: loadAnnouncements,
-    remove: removeAnnouncement
+    remove: removeAnnouncement,
+    pushLocal: pushLocal,
   };
 })();

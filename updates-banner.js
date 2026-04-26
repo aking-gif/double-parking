@@ -36,7 +36,7 @@
         position:sticky;top:0;z-index:900;
         background:linear-gradient(90deg, #2a3d52 0%, #1f3045 100%);
         color:#fff;
-        border-bottom:1px solid rgba(133,113,77,.3);
+        border-bottom:1px solid rgba(61,90,128,.3);
         overflow:hidden;
         transition:max-height .35s ease, opacity .25s ease;
       }
@@ -52,7 +52,7 @@
       }
       .arsan-ub-icon{
         flex-shrink:0;width:28px;height:28px;border-radius:50%;
-        background:rgba(133,113,77,.22);display:grid;place-items:center;
+        background:rgba(61,90,128,.22);display:grid;place-items:center;
         font-size:14px;
       }
       html[data-theme="light"] .arsan-ub-icon{background:rgba(139,45,60,.12)}
@@ -68,7 +68,7 @@
       .arsan-ub-item.active{opacity:1;transform:translateY(0)}
       .arsan-ub-dot{
         display:inline-block;width:6px;height:6px;border-radius:50%;
-        background:#85714D;flex-shrink:0;
+        background:#3D5A80;flex-shrink:0;
       }
       .arsan-ub-controls{display:flex;align-items:center;gap:6px;flex-shrink:0}
       .arsan-ub-nav{
@@ -78,7 +78,7 @@
         transition:background .15s;
       }
       html[data-theme="light"] .arsan-ub-nav{background:rgba(0,0,0,.08)}
-      .arsan-ub-nav:hover{background:rgba(133,113,77,.3)}
+      .arsan-ub-nav:hover{background:rgba(61,90,128,.3)}
       .arsan-ub-counter{
         font-size:11px;opacity:.7;min-width:28px;text-align:center;
         font-variant-numeric:tabular-nums;
@@ -114,16 +114,16 @@
         max-width:640px;width:100%;max-height:80vh;overflow:auto;
         padding:24px;
       }
-      .arsan-ub-modal h2{margin:0 0 12px;font-size:20px;color:var(--brand,#85714D)}
+      .arsan-ub-modal h2{margin:0 0 12px;font-size:20px;color:var(--brand,#3D5A80)}
       .arsan-ub-modal .muted{font-size:12px;color:var(--ink-3);margin-bottom:16px}
       .arsan-ub-modal .gdoc-content{line-height:1.7;font-size:14px}
       .arsan-ub-modal .gdoc-content h1,
       .arsan-ub-modal .gdoc-content h2,
-      .arsan-ub-modal .gdoc-content h3{margin:16px 0 8px;color:var(--brand,#85714D)}
+      .arsan-ub-modal .gdoc-content h3{margin:16px 0 8px;color:var(--brand,#3D5A80)}
       .arsan-ub-modal .gdoc-content ul,
       .arsan-ub-modal .gdoc-content ol{padding-inline-start:24px;margin:8px 0}
       .arsan-ub-modal .gdoc-content li{margin:4px 0}
-      .arsan-ub-modal .gdoc-content a{color:var(--brand,#85714D)}
+      .arsan-ub-modal .gdoc-content a{color:var(--brand,#3D5A80)}
       .arsan-ub-modal-close{
         float:inline-end;background:none;border:none;cursor:pointer;
         color:var(--ink-2);font-size:22px;line-height:1;padding:0;

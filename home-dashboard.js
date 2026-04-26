@@ -29,17 +29,17 @@
 .ahd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .ahd-card .lbl{font-size:11px;color:var(--ink-2,#9b958a);font-weight:600;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
 .ahd-card .lbl svg{width:14px;height:14px;flex-shrink:0;opacity:.85}
-.ahd-card{background:linear-gradient(135deg, rgba(133,113,77,.10), rgba(212,178,74,.04));backdrop-filter:blur(10px);border-radius:14px;padding:16px;border:1px solid var(--line,rgba(133,113,77,.18));box-shadow:0 4px 14px rgba(0,0,0,.04)}
-html[data-theme="dark"] .ahd-card{background:linear-gradient(135deg, rgba(133,113,77,.16), rgba(26,21,16,.4));border-color:rgba(133,113,77,.25)}
+.ahd-card{background:linear-gradient(135deg, rgba(61,90,128,.10), rgba(152,180,212,.04));backdrop-filter:blur(10px);border-radius:14px;padding:16px;border:1px solid var(--line,rgba(61,90,128,.18));box-shadow:0 4px 14px rgba(0,0,0,.04)}
+html[data-theme="dark"] .ahd-card{background:linear-gradient(135deg, rgba(61,90,128,.16), rgba(26,21,16,.4));border-color:rgba(61,90,128,.25)}
 .ahd-card .num{font-size:28px;font-weight:800;color:var(--ink-1,#0f172a);line-height:1}
 .ahd-card .sub{font-size:11px;color:var(--ink-2,#94a3b8);margin-top:6px}
 .ahd-card.clickable{cursor:pointer;transition:transform .15s}
 .ahd-card.clickable:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
 .ahd-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:flex-start}
-.ahd-quick button{background:linear-gradient(135deg, rgba(133,113,77,.10), rgba(212,178,74,.04));border:1px solid var(--line,rgba(133,113,77,.22));padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-1,#0f172a);font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:transform .15s, box-shadow .15s, border-color .15s}
-html[data-theme="dark"] .ahd-quick button{background:linear-gradient(135deg, rgba(133,113,77,.16), rgba(26,21,16,.4));border-color:rgba(133,113,77,.3);color:#f3e9c9}
+.ahd-quick button{background:linear-gradient(135deg, rgba(61,90,128,.10), rgba(152,180,212,.04));border:1px solid var(--line,rgba(61,90,128,.22));padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-1,#0f172a);font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:transform .15s, box-shadow .15s, border-color .15s}
+html[data-theme="dark"] .ahd-quick button{background:linear-gradient(135deg, rgba(61,90,128,.16), rgba(26,21,16,.4));border-color:rgba(61,90,128,.3);color:#E8EEF5}
 .ahd-quick button svg{width:14px;height:14px;opacity:.85}
-.ahd-quick button:hover{transform:translateY(-1px);border-color:var(--brand,rgba(133,113,77,.5));box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.ahd-quick button:hover{transform:translateY(-1px);border-color:var(--brand,rgba(61,90,128,.5));box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .ahd-quick button kbd{background:var(--bg,rgba(0,0,0,.06));padding:2px 7px;border-radius:5px;font-family:"SFMono-Regular",ui-monospace,monospace;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--ink-2,#64748b);border:1px solid var(--line,rgba(0,0,0,.05))}
 .ahd-tip{margin-top:14px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e}
 .ahd-tip kbd{background:rgba(0,0,0,.08);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:11px}

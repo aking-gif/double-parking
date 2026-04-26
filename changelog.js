@@ -113,7 +113,7 @@
       }
       [data-theme="light"] .arsan-cl-card{
         background:linear-gradient(180deg, rgba(250,246,234,.99), rgba(243,234,208,.97));
-        color:#3a2f15;border-color:rgba(90,70,30,.14);
+        color:#1A2942;border-color:rgba(90,70,30,.14);
       }
       .arsan-cl-head{
         padding:20px 24px 16px;
@@ -145,7 +145,7 @@
       }
       .arsan-cl-tag{
         display:inline-block;padding:2px 9px;border-radius:999px;
-        background:linear-gradient(135deg,#85714D,#5E4F36);
+        background:linear-gradient(135deg,#3D5A80,#293F5C);
         color:#fff;font-size:11px;font-weight:700;letter-spacing:.4px;
       }
       .arsan-cl-release.old .arsan-cl-tag{
@@ -199,7 +199,7 @@
         transition:background .18s, transform .18s;
       }
       .version[role="button"]:hover{
-        background:rgba(133,113,77,.15);
+        background:rgba(61,90,128,.15);
       }
       .version[role="button"]:active{ transform:scale(.96); }
     `;

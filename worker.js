@@ -37,6 +37,7 @@ const KEYS = {
   activity: "activity_v1",
   users:    "users_v1",
   slack:    "slack_webhook_v1",
+  slackByDept: (dept) => `slack_dept_${dept}_v1`,  // قناة Slack لكل إدارة
   sessions: (token) => `sess_${token}`,
   customDepts: "custom_depts_v1",
   deptOverrides: "dept_overrides_v1",
@@ -303,14 +304,14 @@ async function sendUserNotification(env, opts) {
       const htmlBody = `
         <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Tahoma,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f6ef;border-radius:12px;direction:rtl">
           <div style="background:#fff;border-radius:10px;padding:28px;border:1px solid #e5dcc0">
-            <div style="font-size:22px;font-weight:700;color:#6d5a1e;margin-bottom:16px">${subject}</div>
+            <div style="font-size:22px;font-weight:700;color:#293F5C;margin-bottom:16px">${subject}</div>
             <div style="font-size:15px;line-height:1.7;color:#333;white-space:pre-wrap">${bodyText}</div>
             ${actionUrl ? `
               <div style="margin-top:24px;text-align:center">
-                <a href="${actionUrl}" style="display:inline-block;background:#85714D;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:15px">${actionLabel || "فتح الرابط"}</a>
+                <a href="${actionUrl}" style="display:inline-block;background:#3D5A80;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:600;font-size:15px">${actionLabel || "فتح الرابط"}</a>
               </div>
               <div style="margin-top:20px;font-size:12px;color:#888;text-align:center;word-break:break-all">
-                أو انسخ الرابط: <br/><span style="color:#6d5a1e">${actionUrl}</span>
+                أو انسخ الرابط: <br/><span style="color:#293F5C">${actionUrl}</span>
               </div>
             ` : ''}
           </div>
@@ -690,6 +691,23 @@ export default {
         return json(raw ? JSON.parse(raw) : [], 200, req);
       }
 
+      // ---------- DIRECTORY: simple list of users (any logged-in user) ----------
+      if (path === "/api/directory" && method === "GET") {
+        const sess = await requireSession(req, env);
+        if (sess.error) return json(sess, 401, req);
+        const raw = await env.ARSAN.get(KEYS.users);
+        const list = raw ? JSON.parse(raw) : [];
+        // safe public-ish view: email, name, role, departments only
+        return json(list
+          .filter(u => (u.status || "active") === "active")
+          .map(u => ({
+            email: u.email,
+            name: u.name || u.displayName || (u.email || "").split("@")[0],
+            role: u.role || "editor",
+            departments: u.departments || (u.department ? [u.department] : []),
+          })), 200, req);
+      }
+
       // ---------- USERS (admin only) ----------
       if (path === "/api/users" && method === "GET") {
         const ad = await requireAdmin(req, env);
@@ -972,6 +990,66 @@ export default {
         return json({ ok: true }, 200, req);
       }
 
+      // ---------- PER-DEPT SLACK WEBHOOK (admin only) ----------
+      // GET  /api/slack-webhook/:dept   — read the dept's webhook
+      // POST /api/slack-webhook/:dept   — set { url }
+      if (path.startsWith("/api/slack-webhook/") && method === "GET") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const dept = decodeURIComponent(path.split("/")[3] || "");
+        if (!dept) return json({ error: "dept-required" }, 400, req);
+        const url = await env.ARSAN.get(KEYS.slackByDept(dept));
+        return json({ dept, url: url || "" }, 200, req);
+      }
+      if (path.startsWith("/api/slack-webhook/") && method === "POST") {
+        const ad = await requireAdmin(req, env);
+        if (ad.error) return json(ad, 403, req);
+        const dept = decodeURIComponent(path.split("/")[3] || "");
+        if (!dept) return json({ error: "dept-required" }, 400, req);
+        const body = await req.json().catch(() => ({}));
+        await env.ARSAN.put(KEYS.slackByDept(dept), body.url || "");
+        await logActivity(env, { actor: ad.session.email, action: "set-slack-webhook-dept", target: dept });
+        return json({ ok: true, dept }, 200, req);
+      }
+
+      // ---------- SLACK NOTIFY (any logged-in user) ----------
+      // POST /api/slack/notify { kind, dept, code, fields[], actor, text? }
+      // Picks per-dept webhook if set, falls back to global webhook.
+      if (path === "/api/slack/notify" && method === "POST") {
+        const sess = await getSession(req, env);
+        if (!sess) return json({ error: "auth-required" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        const { kind, dept, code, fields, text } = body;
+        let webhookUrl = null;
+        if (dept) webhookUrl = await env.ARSAN.get(KEYS.slackByDept(dept));
+        if (!webhookUrl) webhookUrl = env.SLACK_WEBHOOK_URL || await env.ARSAN.get(KEYS.slack);
+        if (!webhookUrl) return json({ ok: false, reason: "no-webhook" }, 200, req);
+        let msg = text;
+        if (!msg) {
+          if (kind === "sop-edit") {
+            msg = `✏️ *تعديل إجراء* — \`${dept}/${code}\`\n👤 ${sess.email}\n📝 الحقول: ${(fields||[]).join("، ")}`;
+          } else if (kind === "sop-create") {
+            msg = `➕ *إجراء جديد* — \`${dept}/${code}\`\n👤 ${sess.email}`;
+          } else if (kind === "sop-comment") {
+            msg = `💬 *تعليق جديد* على \`${dept}/${code}\`\n👤 ${sess.email}\n${(text||"")}`;
+          } else if (kind === "announcement") {
+            msg = `📣 *إعلان من ${sess.email}*\n${(text||"")}`;
+          } else {
+            msg = `🔔 ${sess.email} — ${kind}${dept?` (${dept}/${code||""})`:""}`;
+          }
+        }
+        try {
+          const r = await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: msg })
+          });
+          return json({ ok: r.ok, status: r.status }, 200, req);
+        } catch (e) {
+          return json({ ok: false, error: e.message }, 200, req);
+        }
+      }
+
       // ---------- UPDATES BANNER ----------
       // GET /api/updates-url → admin only, returns current source URL
       if (path === "/api/updates-url" && method === "GET") {
@@ -1090,7 +1168,7 @@ export default {
         const entry = {
           id, name,
           icon: body.icon || "📂",
-          color: body.color || "#85714D",
+          color: body.color || "#3D5A80",
           addedAt: Date.now(),
           addedBy: ad.session.email
         };

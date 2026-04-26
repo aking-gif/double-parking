@@ -49,16 +49,16 @@
     display:none !important;
     position:fixed; bottom:24px; right:24px;
     width:56px; height:56px; border-radius:50%;
-    background:linear-gradient(135deg, #D4B24A, #85714D);
+    background:linear-gradient(135deg, #5C7A9C, #3D5A80);
     color:#1a1a1a; border:0;
-    box-shadow:0 8px 24px rgba(212,178,74,.35), 0 2px 8px rgba(0,0,0,.2);
+    box-shadow:0 8px 24px rgba(152,180,212,.35), 0 2px 8px rgba(0,0,0,.2);
     display:none; align-items:center; justify-content:center;
     cursor:pointer; z-index:99000;
     font-size:28px; font-weight:300; line-height:1;
     transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
   }
   .arsan-fab.is-visible{ display:flex }
-  .arsan-fab:hover{ transform:scale(1.08); box-shadow:0 12px 32px rgba(212,178,74,.5) }
+  .arsan-fab:hover{ transform:scale(1.08); box-shadow:0 12px 32px rgba(152,180,212,.5) }
   .arsan-fab:active{ transform:scale(.95) }
   .arsan-fab.is-open{ transform:rotate(45deg); background:linear-gradient(135deg,#a04040,#7a2e2e); color:#fff }
   .arsan-fab.is-open:hover{ transform:rotate(45deg) scale(1.05) }
@@ -86,7 +86,7 @@
   .arsan-fab-sheet::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.1); border-radius:3px }
   .arsan-fab-sheet .at-section{
     font-size:10px; font-weight:700; letter-spacing:.6px;
-    color:#D4B24A; padding:10px 14px 6px; opacity:.85;
+    color:#5C7A9C; padding:10px 14px 6px; opacity:.85;
     text-transform:uppercase;
   }
   .arsan-fab-sheet .at-section:first-child{ padding-top:6px }
@@ -102,10 +102,10 @@
   }
   .arsan-fab-sheet button:hover{ background:rgba(255,255,255,.08) }
   .arsan-fab-sheet button.is-primary{
-    background:rgba(212,178,74,.15);
-    color:#E7C66A;
+    background:rgba(152,180,212,.15);
+    color:#7B9DC4;
   }
-  .arsan-fab-sheet button.is-primary:hover{ background:rgba(212,178,74,.22) }
+  .arsan-fab-sheet button.is-primary:hover{ background:rgba(152,180,212,.22) }
   .arsan-fab-sheet button svg{
     width:18px; height:18px; flex-shrink:0;
     opacity:.85;
@@ -117,7 +117,7 @@
     flex-shrink:0;
   }
   .arsan-fab-sheet button.is-primary .at-icn{
-    background:rgba(212,178,74,.2);
+    background:rgba(152,180,212,.2);
   }
   .arsan-fab-sheet .at-divider{
     height:1px; background:rgba(255,255,255,.08);
@@ -127,7 +127,7 @@
     margin-right:auto;
     display:inline-flex; align-items:center; justify-content:center;
     min-width:18px; height:18px; padding:0 6px;
-    border-radius:9px; background:#D4B24A; color:#1a1a1a;
+    border-radius:9px; background:#5C7A9C; color:#1a1a1a;
     font-size:10px; font-weight:700;
   }
   /* backdrop click-to-close */

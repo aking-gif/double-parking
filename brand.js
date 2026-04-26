@@ -11,11 +11,11 @@
      COLORS (Pantone 871C / Black / White)
   =============================== */
   const COLORS = {
-    gold: '#85714D',
-    goldLight: '#A89066',
-    goldDark: '#5E4F36',
-    goldSoft: '#EFE7D5',
-    goldGlow: 'rgba(133,113,77,.35)',
+    gold: '#3D5A80',
+    goldLight: '#98B4D4',
+    goldDark: '#293F5C',
+    goldSoft: '#DCE7F2',
+    goldGlow: 'rgba(61,90,128,.35)',
     white: '#FFFFFF',
     black: '#0A0A0A',
     blackSoft: '#1A1A1A',

@@ -182,7 +182,7 @@
 
     function addSeparator(){
       const sep = document.createElement('div');
-      sep.style.cssText = 'height:1px;width:160px;background:rgba(133,113,77,.2);margin:2px 0;align-self:flex-end;';
+      sep.style.cssText = 'height:1px;width:160px;background:rgba(61,90,128,.2);margin:2px 0;align-self:flex-end;';
       menu.appendChild(sep);
     }
 

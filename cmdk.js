@@ -203,43 +203,43 @@
       .arsan-cmdk{
         width:min(640px, 92vw);
         background:linear-gradient(180deg, rgba(28,22,15,.96), rgba(35,27,18,.94));
-        border:1px solid rgba(212,178,74,.28);
+        border:1px solid rgba(152,180,212,.28);
         border-radius:16px;
-        box-shadow:0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(212,178,74,.08);
+        box-shadow:0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(152,180,212,.08);
         overflow:hidden;
         direction:rtl;
         animation:arsanCmdkPop .18s cubic-bezier(.4,.6,.3,1.2);
       }
       [data-theme="light"] .arsan-cmdk{
         background:linear-gradient(180deg,#fffaee,#fff5e0);
-        border-color:rgba(133,113,77,.32);
+        border-color:rgba(61,90,128,.32);
       }
       @keyframes arsanCmdkPop{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
       .arsan-cmdk-search{
         display:flex; align-items:center; gap:12px;
         padding:14px 18px;
-        border-bottom:1px solid rgba(212,178,74,.18);
+        border-bottom:1px solid rgba(152,180,212,.18);
       }
-      [data-theme="light"] .arsan-cmdk-search{ border-color:rgba(133,113,77,.18); }
+      [data-theme="light"] .arsan-cmdk-search{ border-color:rgba(61,90,128,.18); }
       .arsan-cmdk-search svg{ width:20px;height:20px;color:#c9a85a;flex-shrink:0; }
       .arsan-cmdk-search input{
         flex:1; background:transparent; border:none; outline:none;
-        font-size:16px; font-family:inherit; color:#f3e9c9;
+        font-size:16px; font-family:inherit; color:#E8EEF5;
         padding:4px 0;
       }
       [data-theme="light"] .arsan-cmdk-search input{ color:#2b2416; }
-      .arsan-cmdk-search input::placeholder{ color:rgba(212,178,74,.45); }
+      .arsan-cmdk-search input::placeholder{ color:rgba(152,180,212,.45); }
       .arsan-cmdk-kbd{
         font-size:10px; padding:3px 7px; border-radius:5px;
-        background:rgba(212,178,74,.14); color:#c9a85a;
+        background:rgba(152,180,212,.14); color:#c9a85a;
         font-family:ui-monospace,monospace; letter-spacing:.5px;
-        border:1px solid rgba(212,178,74,.22);
+        border:1px solid rgba(152,180,212,.22);
       }
       .arsan-cmdk-list{
         max-height:50vh; overflow-y:auto; padding:8px;
       }
       .arsan-cmdk-section{
-        font-size:11px; font-weight:700; color:rgba(212,178,74,.65);
+        font-size:11px; font-weight:700; color:rgba(152,180,212,.65);
         padding:8px 12px 6px; letter-spacing:.5px;
         text-transform:uppercase;
       }
@@ -253,16 +253,16 @@
       [data-theme="light"] .arsan-cmdk-item{ color:#2b2416; }
       .arsan-cmdk-item.active,
       .arsan-cmdk-item:hover{
-        background:linear-gradient(90deg, rgba(212,178,74,.18), rgba(212,178,74,.08));
+        background:linear-gradient(90deg, rgba(152,180,212,.18), rgba(152,180,212,.08));
       }
       [data-theme="light"] .arsan-cmdk-item.active,
       [data-theme="light"] .arsan-cmdk-item:hover{
-        background:linear-gradient(90deg, rgba(212,178,74,.22), rgba(212,178,74,.10));
+        background:linear-gradient(90deg, rgba(152,180,212,.22), rgba(152,180,212,.10));
       }
       .arsan-cmdk-item .icon{
         width:32px; height:32px; border-radius:8px;
         display:flex;align-items:center;justify-content:center;
-        background:rgba(212,178,74,.12);
+        background:rgba(152,180,212,.12);
         font-size:16px; flex-shrink:0;
       }
       .arsan-cmdk-item .body{ flex:1; min-width:0; }
@@ -276,25 +276,25 @@
       }
       .arsan-cmdk-item .type-tag{
         font-size:10px; padding:2px 7px; border-radius:5px;
-        background:rgba(212,178,74,.18); color:#c9a85a;
+        background:rgba(152,180,212,.18); color:#c9a85a;
         flex-shrink:0; letter-spacing:.3px;
       }
       .arsan-cmdk-empty{
         padding:32px 18px; text-align:center;
-        color:rgba(212,178,74,.55); font-size:13px;
+        color:rgba(152,180,212,.55); font-size:13px;
       }
       .arsan-cmdk-foot{
         display:flex; justify-content:space-between; align-items:center;
         padding:8px 16px;
-        border-top:1px solid rgba(212,178,74,.15);
-        font-size:11px; color:rgba(212,178,74,.55);
+        border-top:1px solid rgba(152,180,212,.15);
+        font-size:11px; color:rgba(152,180,212,.55);
       }
-      [data-theme="light"] .arsan-cmdk-foot{ border-color:rgba(133,113,77,.15); color:rgba(90,70,30,.55); }
+      [data-theme="light"] .arsan-cmdk-foot{ border-color:rgba(61,90,128,.15); color:rgba(90,70,30,.55); }
       .arsan-cmdk-foot .keys{ display:flex; gap:10px; }
       .arsan-cmdk-foot .keys span{ display:inline-flex; align-items:center; gap:4px; }
       .arsan-cmdk-foot kbd{
         font-size:10px; padding:1px 5px; border-radius:3px;
-        background:rgba(212,178,74,.12); border:1px solid rgba(212,178,74,.2);
+        background:rgba(152,180,212,.12); border:1px solid rgba(152,180,212,.2);
         font-family:ui-monospace,monospace; color:inherit;
       }
     `;

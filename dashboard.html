@@ -122,7 +122,7 @@
     --ink-3:#9A9487;
     --line:#262729;
     --line-2:#1E1F21;
-    --accent:#D4B24A;
+    --accent:#5C7A9C;
     --accent-ink:#F0D88A;
     --accent-soft:#2A2512;
     --accent-softer:#1F1C10;
@@ -169,7 +169,7 @@
     position:absolute; inset:0;
     background-image:
       radial-gradient(1200px 420px at 90% -10%, rgba(139,111,0,.22), transparent 60%),
-      radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.10), transparent 60%);
+      radial-gradient(900px 380px at -5% 110%, rgba(152,180,212,.10), transparent 60%);
     pointer-events:none;
   }
   .header-inner{position:relative;padding:40px 0 56px}
@@ -187,7 +187,7 @@
     width:auto;height:42px;
     background:transparent;
     display:inline-flex;align-items:center;justify-content:center;
-    filter: drop-shadow(0 2px 6px rgba(133,113,77,.3));
+    filter: drop-shadow(0 2px 6px rgba(61,90,128,.3));
   }
   .brandline .logo img{ width:auto; height:100%; display:block; }
   .version{
@@ -223,7 +223,7 @@
     max-width:22ch;
   }
   .title .accent-underline{
-    background-image:linear-gradient(transparent 72%, rgba(212,178,74,.42) 72% 92%, transparent 92%);
+    background-image:linear-gradient(transparent 72%, rgba(152,180,212,.42) 72% 92%, transparent 92%);
   }
   .subtitle{
     color:var(--header-muted);
@@ -251,7 +251,7 @@
     content:"";
     position:absolute; inset-inline-end:-30px; top:-30px;
     width:90px; height:90px; border-radius:50%;
-    background:radial-gradient(circle at 30% 30%, rgba(212,178,74,.18), transparent 70%);
+    background:radial-gradient(circle at 30% 30%, rgba(152,180,212,.18), transparent 70%);
   }
   .stat .n{
     font-size:38px; font-weight:600; letter-spacing:-.02em; line-height:1;
@@ -262,7 +262,7 @@
   .stat .l{color:var(--header-muted);font-size:13px;margin-top:10px}
   .stat.accent{
     background:linear-gradient(180deg, rgba(139,111,0,.18), rgba(139,111,0,.05));
-    border-color:rgba(212,178,74,.25);
+    border-color:rgba(152,180,212,.25);
   }
 
   /* ========== TOOLBAR ========== */
@@ -1161,12 +1161,12 @@
   background:linear-gradient(135deg, rgba(20,20,20,.72) 0%, rgba(35,26,16,.68) 100%) !important;
   backdrop-filter:blur(24px) saturate(180%);
   -webkit-backdrop-filter:blur(24px) saturate(180%);
-  border-bottom:1px solid rgba(133,113,77,.22) !important;
+  border-bottom:1px solid rgba(61,90,128,.22) !important;
   box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 20px 40px -20px rgba(0,0,0,.5);
 }
 html[data-theme="light"] .header{
   background:linear-gradient(135deg, rgba(250,246,234,.72) 0%, rgba(243,234,208,.68) 100%) !important;
-  border-bottom:1px solid rgba(133,113,77,.3) !important;
+  border-bottom:1px solid rgba(61,90,128,.3) !important;
 }
 /* Light-mode header text needs dark ink against cream glass */
 html[data-theme="light"] .header,
@@ -1191,7 +1191,7 @@ html[data-theme="light"] .header button{
 html[data-theme="light"] .header .stat,
 html[data-theme="light"] .header .stat.accent{
   background:linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.3) 100%) !important;
-  border:1px solid rgba(133,113,77,.3) !important;
+  border:1px solid rgba(61,90,128,.3) !important;
 }
 html[data-theme="light"] .header .stat .n{
   color:#2b2416 !important;
@@ -1201,13 +1201,13 @@ html[data-theme="light"] .header .stat .n .u{
   color:#5a4f3a !important;
 }
 html[data-theme="light"] .header .stat.accent{
-  background:linear-gradient(180deg, rgba(133,113,77,.28) 0%, rgba(133,113,77,.12) 100%) !important;
-  border-color:rgba(133,113,77,.5) !important;
+  background:linear-gradient(180deg, rgba(61,90,128,.28) 0%, rgba(61,90,128,.12) 100%) !important;
+  border-color:rgba(61,90,128,.5) !important;
 }
 .header::before{
   background-image:
-    radial-gradient(1200px 420px at 90% -10%, rgba(133,113,77,.28), transparent 60%),
-    radial-gradient(900px 380px at -5% 110%, rgba(212,178,74,.14), transparent 60%) !important;
+    radial-gradient(1200px 420px at 90% -10%, rgba(61,90,128,.28), transparent 60%),
+    radial-gradient(900px 380px at -5% 110%, rgba(152,180,212,.14), transparent 60%) !important;
 }
 
 /* Dashboard sidebar — glass */
@@ -1226,7 +1226,7 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
 /* Feature page: fixed sticky header background fallback */
 @supports not (backdrop-filter: blur(1px)){
   .header{ background:var(--header-bg) !important; }
-  .arsan-topbar{ background:linear-gradient(180deg, #1a1510, #231a10) !important; }
+  .arsan-topbar{ background:linear-gradient(180deg, #0F1B2D, #231a10) !important; }
 }
 </style>
 <link rel="stylesheet" href="design-polish.css?v=24">
@@ -1353,11 +1353,11 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
       <!-- شريط أدوات التحرير (للمحررين فقط) -->
       <div id="m-editbar" style="display:none;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#f9f6ef 0%,#f9f6ef 80%,transparent 100%);padding:6px 2px 14px;margin:-6px 0 8px;border-bottom:1px dashed #d8cba8">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:12px;color:#7a6b45;font-weight:600;margin-inline-end:4px">✏️ وضع التحرير:</span>
-          <button type="button" id="m-edit-inline" class="mini-edit-btn" style="background:#85714D;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✏️ تحرير مباشر</button>
-          <button type="button" id="m-edit-upload" class="mini-edit-btn" style="background:#fff;color:#6d5a1e;border:1px solid #85714D;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📎 رفع ملف</button>
-          <button type="button" id="m-edit-ai" class="mini-edit-btn" style="background:#fff;color:#6d5a1e;border:1px solid #85714D;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✨ توليد بالذكاء</button>
-          <span id="m-edit-status" style="margin-inline-start:auto;font-size:12px;color:#8e7c4f"></span>
+          <span style="font-size:12px;color:#3D5A80;font-weight:600;margin-inline-end:4px">✏️ وضع التحرير:</span>
+          <button type="button" id="m-edit-inline" class="mini-edit-btn" style="background:#3D5A80;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✏️ تحرير مباشر</button>
+          <button type="button" id="m-edit-upload" class="mini-edit-btn" style="background:#fff;color:#293F5C;border:1px solid #3D5A80;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📎 رفع ملف</button>
+          <button type="button" id="m-edit-ai" class="mini-edit-btn" style="background:#fff;color:#293F5C;border:1px solid #3D5A80;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">✨ توليد بالذكاء</button>
+          <span id="m-edit-status" style="margin-inline-start:auto;font-size:12px;color:#5C7A9C"></span>
         </div>
         <div id="m-edit-actions" style="display:none;margin-top:10px;gap:8px">
           <button type="button" id="m-save-btn" style="background:#2d7a3e;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 حفظ التغييرات</button>
@@ -2206,10 +2206,26 @@ function openModal(idx){
     ? `<span class="ph">${isEn ? 'Explain here why this procedure exists and what problem it solves.' : 'اشرح هنا لماذا هذا الإجراء موجود وما المشكلة التي يحلّها.'}</span>`
     : escapeHtml(s.purpose);
 
+  const _dirCache = (window.ArsanAPI && window.ArsanAPI.getDirectory) ? (_peopleDirectory || []) : [];
+  function _displayPerson(v){
+    if (!v) return '';
+    const u = _dirCache.find(x => (x.email === v) || (x.name === v));
+    return u ? u.name : v;
+  }
+  function _displayPeople(v){
+    if (!v) return '';
+    if (Array.isArray(v)) return v.map(_displayPerson).filter(Boolean).join('، ');
+    return _displayPerson(v);
+  }
+  // Kick off background load to refresh names on next render
+  if (window.ArsanAPI && window.ArsanAPI.getDirectory && !_peopleDirectory) {
+    loadPeopleDirectory().then(() => { try { renderMetaPeople(s); } catch(_){} });
+  }
+
   const metaItems = [
     { k: isEn?'Owner':'الجهة المالكة', v:s.owner, icon:"user"  },
-    { k: isEn?'Responsible':'المسؤول عن الإجراء', v:s.responsible, icon:"user" },
-    { k: isEn?'Executors':'المنفّذون', v: Array.isArray(s.executors) ? s.executors.join('، ') : s.executors, icon:"users" },
+    { k: isEn?'Responsible':'المسؤول عن الإجراء', v: _displayPeople(s.responsible), icon:"user" },
+    { k: isEn?'Executors':'المنفّذون', v: _displayPeople(s.executors), icon:"users" },
     { k: isEn?'SLA':'الإطار الزمني (SLA)', v:s.sla, icon:"clock" },
     { k: isEn?'Scope':'النطاق', v:s.scope, icon:"target" },
     { k: isEn?'Inputs':'المدخلات', v:s.inputs, icon:"in" },
@@ -2295,11 +2311,13 @@ function makeEditable(el, multiline){
   if (!el) return;
   el.setAttribute('contenteditable','true');
   el.setAttribute('data-editing','1');
-  el.style.outline = '2px dashed #85714D';
+  el.style.outline = '2px dashed #3D5A80';
   el.style.outlineOffset = '4px';
   el.style.borderRadius = '6px';
   el.style.padding = (el.style.padding||'') + ' 6px';
-  el.style.background = '#fffdf5';
+  el.style.background = '#F4F8FD';
+  el.style.color = '#1a1a1a';
+  el.style.caretColor = '#3D5A80';
   el.style.cursor = 'text';
   el.style.minHeight = multiline ? '60px' : '28px';
   // clear placeholder if empty
@@ -2313,6 +2331,8 @@ function stopEditable(el){
   el.style.outline = '';
   el.style.outlineOffset = '';
   el.style.background = '';
+  el.style.color = '';
+  el.style.caretColor = '';
   el.style.cursor = '';
 }
 function enterEditMode(){
@@ -2321,8 +2341,9 @@ function enterEditMode(){
   _editOriginal = JSON.parse(JSON.stringify(s));
   // purpose
   makeEditable(document.getElementById('m-purpose'), true);
-  // meta cells
+  // meta cells (skip the people pickers — index 1 = responsible, 2 = executors)
   document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
+    if (i === 1 || i === 2) return; // handled by people pickers
     makeEditable(el, false);
     el.setAttribute('data-meta-idx', i);
   });
@@ -2330,6 +2351,8 @@ function enterEditMode(){
   document.querySelectorAll('#m-steps li').forEach(li=> makeEditable(li, false));
   // kpis
   makeEditable(document.getElementById('m-kpis'), true);
+  // people pickers
+  mountPeoplePickers(s);
   // show save/cancel
   const acts = document.getElementById('m-edit-actions');
   if (acts) acts.style.display = 'flex';
@@ -2339,9 +2362,174 @@ function exitEditMode(){
   ['m-purpose','m-kpis'].forEach(id=> stopEditable(document.getElementById(id)));
   document.querySelectorAll('#m-meta .meta-cell .v').forEach(stopEditable);
   document.querySelectorAll('#m-steps li').forEach(stopEditable);
+  // tear down people pickers
+  document.querySelectorAll('#m-meta .people-picker').forEach(p => p.remove());
+  document.querySelectorAll('#m-meta .meta-cell[data-people]').forEach(c => {
+    c.removeAttribute('data-people');
+    const v = c.querySelector('.v');
+    if (v) v.style.display = '';
+  });
   const acts = document.getElementById('m-edit-actions');
   if (acts) acts.style.display = 'none';
   _editOriginal = null;
+}
+
+/* ---------- People pickers (responsible + executors) ---------- */
+let _peopleDirectory = null;
+async function loadPeopleDirectory(){
+  if (_peopleDirectory) return _peopleDirectory;
+  try {
+    if (window.ArsanAPI && window.ArsanAPI.getDirectory) {
+      _peopleDirectory = await window.ArsanAPI.getDirectory() || [];
+    } else { _peopleDirectory = []; }
+  } catch(_){ _peopleDirectory = []; }
+  return _peopleDirectory;
+}
+function renderMetaPeople(s){
+  if (!s) return;
+  const cells = document.querySelectorAll('#m-meta .meta-cell');
+  if (!cells.length) return;
+  // Skip if currently editing
+  if (cells[1]?.getAttribute('data-people')) return;
+  const find = (v) => {
+    if (!v || !_peopleDirectory) return v;
+    const u = _peopleDirectory.find(x => x.email === v || x.name === v);
+    return u ? u.name : v;
+  };
+  const respCell = cells[1]?.querySelector('.v');
+  const execCell = cells[2]?.querySelector('.v');
+  if (respCell) {
+    const r = Array.isArray(s.responsible) ? s.responsible[0] : s.responsible;
+    respCell.textContent = find(r) || '—';
+  }
+  if (execCell) {
+    const ex = Array.isArray(s.executors) ? s.executors : (s.executors ? [s.executors] : []);
+    execCell.textContent = ex.map(find).filter(Boolean).join('، ') || '—';
+  }
+}
+function _personLabel(u){
+  if (!u) return '';
+  if (typeof u === 'string') return u;
+  return u.name || u.email || '';
+}
+function _personKey(u){
+  if (!u) return '';
+  if (typeof u === 'string') return u;
+  return u.email || u.name || '';
+}
+function _normalizeIdentifiers(v){
+  if (!v) return [];
+  if (Array.isArray(v)) return v.map(x => String(x).trim()).filter(Boolean);
+  return String(v).split(/[،,]+/).map(s=>s.trim()).filter(Boolean);
+}
+async function mountPeoplePickers(s){
+  const dir = await loadPeopleDirectory();
+  const cells = document.querySelectorAll('#m-meta .meta-cell');
+  // index 1 = responsible (single), 2 = executors (multi)
+  const cellResp = cells[1];
+  const cellExec = cells[2];
+  if (cellResp) buildSinglePicker(cellResp, _normalizeIdentifiers(s.responsible)[0] || '', dir, 'responsible');
+  if (cellExec) buildMultiPicker(cellExec, _normalizeIdentifiers(s.executors), dir, 'executors');
+}
+function buildSinglePicker(cell, current, dir, field){
+  cell.setAttribute('data-people', field);
+  const v = cell.querySelector('.v');
+  if (v) v.style.display = 'none';
+  const wrap = document.createElement('div');
+  wrap.className = 'people-picker';
+  wrap.style.cssText = 'margin-top:6px';
+  const sel = document.createElement('select');
+  sel.style.cssText = 'width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#F4F8FD;color:#1a1a1a;font-size:14px';
+  const optEmpty = document.createElement('option');
+  optEmpty.value = ''; optEmpty.textContent = '— غير محدّد —';
+  sel.appendChild(optEmpty);
+  // "free text" preserved if no match
+  let matched = false;
+  for (const u of dir) {
+    const key = _personKey(u);
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = _personLabel(u) + (u.email && u.name ? ` (${u.email})` : '');
+    if (key && (key === current || u.email === current || u.name === current)) {
+      opt.selected = true; matched = true;
+    }
+    sel.appendChild(opt);
+  }
+  if (!matched && current) {
+    const opt = document.createElement('option');
+    opt.value = current; opt.textContent = current + ' (نص حر)'; opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.dataset.peopleField = field;
+  wrap.appendChild(sel);
+  cell.appendChild(wrap);
+}
+function buildMultiPicker(cell, currentArr, dir, field){
+  cell.setAttribute('data-people', field);
+  const v = cell.querySelector('.v');
+  if (v) v.style.display = 'none';
+  const wrap = document.createElement('div');
+  wrap.className = 'people-picker';
+  wrap.style.cssText = 'margin-top:6px;display:flex;flex-direction:column;gap:6px';
+  const chipBox = document.createElement('div');
+  chipBox.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;min-height:28px';
+  const selected = new Set(currentArr);
+  function renderChips(){
+    chipBox.innerHTML = '';
+    selected.forEach(key => {
+      const u = dir.find(x => _personKey(x) === key);
+      const label = u ? _personLabel(u) : key;
+      const chip = document.createElement('span');
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:rgba(61,90,128,.18);color:var(--ink);padding:4px 10px;border-radius:14px;font-size:12.5px';
+      chip.textContent = label;
+      const x = document.createElement('button');
+      x.type = 'button'; x.textContent = '×';
+      x.style.cssText = 'background:none;border:0;color:var(--ink-2);cursor:pointer;font-size:16px;line-height:1;padding:0';
+      x.onclick = () => { selected.delete(key); renderChips(); };
+      chip.appendChild(x);
+      chipBox.appendChild(chip);
+    });
+  }
+  renderChips();
+  const sel = document.createElement('select');
+  sel.style.cssText = 'width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#F4F8FD;color:#1a1a1a;font-size:14px';
+  const optAdd = document.createElement('option');
+  optAdd.value = ''; optAdd.textContent = '+ إضافة منفّذ…';
+  sel.appendChild(optAdd);
+  for (const u of dir) {
+    const key = _personKey(u);
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = _personLabel(u) + (u.email && u.name ? ` (${u.email})` : '');
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => {
+    const k = sel.value;
+    if (k && !selected.has(k)) { selected.add(k); renderChips(); }
+    sel.value = '';
+  };
+  // free-text add (for non-directory people)
+  const freeRow = document.createElement('div');
+  freeRow.style.cssText = 'display:flex;gap:6px';
+  const free = document.createElement('input');
+  free.type = 'text'; free.placeholder = 'أو اكتب اسماً/إيميل ثم Enter';
+  free.style.cssText = 'flex:1;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:#F4F8FD;color:#1a1a1a;font-size:13px';
+  free.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      const val = free.value.trim();
+      if (val && !selected.has(val)) { selected.add(val); renderChips(); }
+      free.value = '';
+    }
+  });
+  freeRow.appendChild(free);
+  wrap.appendChild(chipBox);
+  wrap.appendChild(sel);
+  wrap.appendChild(freeRow);
+  wrap.dataset.peopleField = field;
+  // expose getter for save
+  wrap._getValues = () => Array.from(selected);
+  cell.appendChild(wrap);
 }
 async function saveEdits(){
   const s = SOPS[state.openIdx];
@@ -2353,13 +2541,22 @@ async function saveEdits(){
   };
   // meta fields in order: owner, responsible, executors, sla, scope, inputs, outputs
   const metaKeys = ['owner','responsible','executors','sla','scope','inputs','outputs'];
-  document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
+  const cells = document.querySelectorAll('#m-meta .meta-cell');
+  cells.forEach((cell,i)=>{
     const k = metaKeys[i]; if (!k) return;
-    let v = txt(el);
-    if (k === 'executors') {
-      // split comma/Arabic-comma list back to array
-      v = v.split(/[،,]+/).map(s=>s.trim()).filter(Boolean);
+    // people picker for responsible (single) / executors (multi)
+    if (i === 1) {
+      const sel = cell.querySelector('select[data-people-field="responsible"]');
+      patch.responsible = sel ? sel.value.trim() : (cell.querySelector('.v')?.innerText || '').trim();
+      return;
     }
+    if (i === 2) {
+      const wrap = cell.querySelector('.people-picker[data-people-field="executors"]');
+      patch.executors = wrap && wrap._getValues ? wrap._getValues() : [];
+      return;
+    }
+    const el = cell.querySelector('.v');
+    let v = txt(el);
     patch[k] = v;
   });
   // steps
@@ -2715,17 +2912,17 @@ function openAppearanceMenu(){
         background:rgba(26,21,16,.92);
         backdrop-filter:blur(24px) saturate(180%);
         -webkit-backdrop-filter:blur(24px) saturate(180%);
-        border:1px solid rgba(133,113,77,.28);
+        border:1px solid rgba(61,90,128,.28);
         border-radius:14px;
-        color:#f3e9c9;
+        color:#E8EEF5;
         box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
         font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
         animation: arsan-app-in .18s ease-out both;
       }
       html[data-theme="light"] #arsan-appearance-menu{
         background:rgba(252,248,236,.96);
-        border-color:rgba(133,113,77,.3);
-        color:#3a2f15;
+        border-color:rgba(61,90,128,.3);
+        color:#1A2942;
         box-shadow:0 24px 60px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.6);
       }
       @keyframes arsan-app-in{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
@@ -2740,26 +2937,26 @@ function openAppearanceMenu(){
         display:flex; align-items:center; gap:8px;
         padding:10px 12px; border-radius:10px;
         background:rgba(255,255,255,.04);
-        border:1px solid rgba(133,113,77,.15);
+        border:1px solid rgba(61,90,128,.15);
         color:inherit; font:inherit; font-size:13px; cursor:pointer;
         transition:background .15s, border-color .15s;
       }
       html[data-theme="light"] #arsan-appearance-menu .mode-btn{
         background:rgba(255,255,255,.4);
-        border-color:rgba(133,113,77,.2);
+        border-color:rgba(61,90,128,.2);
       }
       #arsan-appearance-menu .mode-btn:hover{
-        background:rgba(133,113,77,.15);
-        border-color:rgba(133,113,77,.35);
+        background:rgba(61,90,128,.15);
+        border-color:rgba(61,90,128,.35);
       }
       #arsan-appearance-menu .mode-btn.active{
-        background:rgba(133,113,77,.22);
-        border-color:rgba(133,113,77,.5);
+        background:rgba(61,90,128,.22);
+        border-color:rgba(61,90,128,.5);
       }
       #arsan-appearance-menu .mode-btn svg{ width:14px; height:14px; flex-shrink:0; }
       #arsan-appearance-menu hr{
         border:none; height:1px; margin:4px 0;
-        background:rgba(133,113,77,.18);
+        background:rgba(61,90,128,.18);
       }
       #arsan-appearance-menu .theme-list{
         display:flex; flex-direction:column; gap:3px;
@@ -2772,8 +2969,8 @@ function openAppearanceMenu(){
         font:inherit; font-size:13px; cursor:pointer; text-align:start;
         transition:background .12s;
       }
-      #arsan-appearance-menu .theme-row:hover{ background:rgba(133,113,77,.14); }
-      #arsan-appearance-menu .theme-row.active{ background:rgba(133,113,77,.2); }
+      #arsan-appearance-menu .theme-row:hover{ background:rgba(61,90,128,.14); }
+      #arsan-appearance-menu .theme-row.active{ background:rgba(61,90,128,.2); }
       #arsan-appearance-menu .chips{
         display:inline-flex; border-radius:6px; overflow:hidden;
         width:46px; height:18px; flex-shrink:0;
@@ -2788,7 +2985,7 @@ function openAppearanceMenu(){
       }
       #arsan-appearance-menu .check{
         width:16px; height:16px; border-radius:50%;
-        background:#85714D; color:#fff; font-size:10px;
+        background:#3D5A80; color:#fff; font-size:10px;
         display:none; align-items:center; justify-content:center;
         flex-shrink:0;
       }
@@ -4189,6 +4386,26 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     throw new Error("ai-unavailable");
   }
 
+  /* ---------- Directory (any logged-in user) ---------- */
+  let _directoryCache = null;
+  let _directoryAt = 0;
+  async function getDirectory(forceRefresh) {
+    if (!hasBackend()) return [];
+    const now = Date.now();
+    if (!forceRefresh && _directoryCache && (now - _directoryAt) < 60000) {
+      return _directoryCache;
+    }
+    try {
+      const list = await apiFetch("/api/directory");
+      _directoryCache = Array.isArray(list) ? list : [];
+      _directoryAt = now;
+      return _directoryCache;
+    } catch(e) {
+      console.warn("[ArsanAPI] getDirectory failed:", e?.message || e);
+      return _directoryCache || [];
+    }
+  }
+
   /* ---------- Expose ---------- */
   window.ArsanAPI = {
     hasBackend, getToken, me, isEditor, isAdmin, isLoggedIn,
@@ -4201,6 +4418,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     getUsers, addUser, updateUser, disableUser, enableUser, removeUser,
     inviteUser, acceptInvite, resetUserPassword, applyReset, forgotPassword,
     getSlackWebhook, setSlackWebhook,
+    getDirectory,
     ai,
     ADMIN_EMAIL, EDITOR_DOMAIN, DEFAULT_PASSWORD
   };
@@ -4406,7 +4624,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         submit
       ),
       h('div', { style:'margin-top:14px;text-align:center' },
-        h('a', { href:'#', style:'color:var(--brand,#85714D);font-size:13px;text-decoration:underline;cursor:pointer',
+        h('a', { href:'#', style:'color:var(--brand,#3D5A80);font-size:13px;text-decoration:underline;cursor:pointer',
           onclick: (e) => { e.preventDefault(); bd.remove(); showForgot(emailInput.value); } },
           'نسيت كلمة السر؟')
       ),
@@ -4510,7 +4728,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     [pw1, pw2].forEach(i => i.addEventListener('keydown', e => { if (e.key==='Enter') submit.click(); }));
 
     const modal = h('div', { class:'arsan-modal' },
-      h('h2', { style:'color:var(--brand,#85714D)' }, '🎉 مرحباً بك في أرسان'),
+      h('h2', { style:'color:var(--brand,#3D5A80)' }, '🎉 مرحباً بك في أرسان'),
       h('div', { class:'sub', style:'line-height:1.7' },
         prefillEmail
           ? `تم إنشاء حساب لك على البريد: ${prefillEmail}. اختر كلمة سر جديدة لتفعيل حسابك.`
@@ -4966,27 +5184,27 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     // ---- Container with toolbar ----
     const container = h('div', { class:'arsan-unified-i' });
-    container.style.cssText = 'position:relative;width:100%;height:78vh;background:radial-gradient(ellipse at center, rgba(133,113,77,.04), transparent 70%), var(--bg-0);border-radius:14px;overflow:hidden;border:1px solid var(--line)';
+    container.style.cssText = 'position:relative;width:100%;height:78vh;background:radial-gradient(ellipse at center, rgba(61,90,128,.04), transparent 70%), var(--bg-0);border-radius:14px;overflow:hidden;border:1px solid var(--line)';
 
     // Toolbar (top-right)
     const toolbar = document.createElement('div');
-    toolbar.style.cssText = 'position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:6px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:6px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5';
-    const btnStyle = 'background:transparent;border:none;color:#f3e9c9;width:34px;height:34px;border-radius:7px;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:all .15s';
+    toolbar.style.cssText = 'position:absolute;top:12px;inset-inline-end:12px;display:flex;gap:6px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:6px;border-radius:10px;border:1px solid rgba(61,90,128,.3);z-index:5';
+    const btnStyle = 'background:transparent;border:none;color:#E8EEF5;width:34px;height:34px;border-radius:7px;cursor:pointer;font-size:16px;display:grid;place-items:center;transition:all .15s';
     toolbar.innerHTML = `
       <button id="um-zoom-in"  title="تكبير"     style="${btnStyle}">＋</button>
       <button id="um-zoom-out" title="تصغير"    style="${btnStyle}">−</button>
       <button id="um-fit"      title="ملاءمة"   style="${btnStyle}">⊡</button>
       <button id="um-reset"    title="إعادة"   style="${btnStyle}">⟲</button>
-      <input id="um-search" placeholder="ابحث…" style="background:rgba(0,0,0,.4);border:1px solid rgba(133,113,77,.3);color:#f3e9c9;padding:6px 10px;border-radius:7px;font-size:12px;width:140px;outline:none">
+      <input id="um-search" placeholder="ابحث…" style="background:rgba(0,0,0,.4);border:1px solid rgba(61,90,128,.3);color:#E8EEF5;padding:6px 10px;border-radius:7px;font-size:12px;width:140px;outline:none">
     `;
     toolbar.querySelectorAll('button').forEach(b => {
-      b.onmouseenter = () => b.style.background = 'rgba(133,113,77,.25)';
+      b.onmouseenter = () => b.style.background = 'rgba(61,90,128,.25)';
       b.onmouseleave = () => b.style.background = 'transparent';
     });
 
     // Legend (bottom-left)
     const legend = document.createElement('div');
-    legend.style.cssText = 'position:absolute;bottom:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5;display:flex;flex-direction:column;gap:5px;font-size:11px';
+    legend.style.cssText = 'position:absolute;bottom:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(61,90,128,.3);z-index:5;display:flex;flex-direction:column;gap:5px;font-size:11px';
     Object.entries(window.DEP_TYPES_UI).forEach(([_,info]) => {
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:8px;color:#d9c896';
@@ -4996,12 +5214,12 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     // Hint (top-left)
     const hint = document.createElement('div');
-    hint.style.cssText = 'position:absolute;top:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(133,113,77,.3);z-index:5;font-size:11px;color:#d9c896;max-width:280px;line-height:1.6';
+    hint.style.cssText = 'position:absolute;top:12px;inset-inline-start:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:8px 12px;border-radius:10px;border:1px solid rgba(61,90,128,.3);z-index:5;font-size:11px;color:#d9c896;max-width:280px;line-height:1.6';
     hint.innerHTML = '🖱️ <b>اسحب</b> للتحريك · <b>عجلة الفأرة</b> للتكبير · <b>انقر</b> على إدارة لفتحها · <b>انقر</b> على إجراء لعرضه';
 
     // Tooltip
     const tooltip = document.createElement('div');
-    tooltip.style.cssText = 'position:absolute;pointer-events:none;background:rgba(20,17,12,.95);color:#f3e9c9;padding:8px 12px;border-radius:8px;font-size:12px;border:1px solid rgba(133,113,77,.5);box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:10;display:none;max-width:280px;line-height:1.5;white-space:normal';
+    tooltip.style.cssText = 'position:absolute;pointer-events:none;background:rgba(20,17,12,.95);color:#E8EEF5;padding:8px 12px;border-radius:8px;font-size:12px;border:1px solid rgba(61,90,128,.5);box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:10;display:none;max-width:280px;line-height:1.5;white-space:normal';
 
     // SVG canvas (inside transformer)
     const stage = document.createElement('div');
@@ -5035,8 +5253,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
           <stop offset="100%" stop-color="#b85450" stop-opacity="0"/>
         </radialGradient>
         <radialGradient id="um2-dept-grad">
-          <stop offset="0%" stop-color="#85714D" stop-opacity="0.18"/>
-          <stop offset="100%" stop-color="#85714D" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#3D5A80" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#3D5A80" stop-opacity="0"/>
         </radialGradient>
       </defs>`);
 
@@ -5082,17 +5300,17 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         }
         // dept node
         svg.push(`<g class="um2-dept" data-dept="${id}" style="cursor:pointer">`);
-        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="55" fill="${isExec?'#b85450':'#1a1510'}" stroke="${isExec?'#ff7a76':'#85714D'}" stroke-width="${isExec?3:2.5}"/>`);
-        svg.push(`<text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-size="14" font-weight="700" fill="${isExec?'#fff':'#f3e9c9'}" pointer-events="none">${esc(deptName.split(' ')[0])}</text>`);
-        svg.push(`<text x="${p.x}" y="${p.y+18}" text-anchor="middle" font-size="11" fill="${isExec?'#ffd':'#A89066'}" pointer-events="none">${sopCount} إجراء</text>`);
+        svg.push(`<circle cx="${p.x}" cy="${p.y}" r="55" fill="${isExec?'#b85450':'#0F1B2D'}" stroke="${isExec?'#ff7a76':'#3D5A80'}" stroke-width="${isExec?3:2.5}"/>`);
+        svg.push(`<text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-size="14" font-weight="700" fill="${isExec?'#fff':'#E8EEF5'}" pointer-events="none">${esc(deptName.split(' ')[0])}</text>`);
+        svg.push(`<text x="${p.x}" y="${p.y+18}" text-anchor="middle" font-size="11" fill="${isExec?'#ffd':'#98B4D4'}" pointer-events="none">${sopCount} إجراء</text>`);
         svg.push(`</g>`);
 
         // SOP nodes
         (cfg.sops||[]).forEach(([code, title]) => {
           const sp = sopPos[`${id}/${code}`];
-          svg.push(`<line x1="${sp.x}" y1="${sp.y}" x2="${p.x}" y2="${p.y}" stroke="rgba(133,113,77,.25)" stroke-width="1" pointer-events="none"/>`);
+          svg.push(`<line x1="${sp.x}" y1="${sp.y}" x2="${p.x}" y2="${p.y}" stroke="rgba(61,90,128,.25)" stroke-width="1" pointer-events="none"/>`);
           svg.push(`<g class="um2-sop" data-sop="${id}/${code}" data-title="${esc(title||'')}" style="cursor:pointer">`);
-          svg.push(`<circle cx="${sp.x}" cy="${sp.y}" r="14" fill="#0f0c08" stroke="#85714D" stroke-width="1.5">
+          svg.push(`<circle cx="${sp.x}" cy="${sp.y}" r="14" fill="#0A1422" stroke="#3D5A80" stroke-width="1.5">
             <animate attributeName="r" values="14;15.5;14" dur="${2 + Math.random()*2}s" repeatCount="indefinite"/>
           </circle>`);
           svg.push(`<text x="${sp.x}" y="${sp.y+3.5}" text-anchor="middle" font-size="9" font-weight="600" fill="#d9c896" pointer-events="none">${esc(code.split('-')[1]||code.slice(-2))}</text>`);
@@ -5217,7 +5435,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         const cfg = DEPT_CFG[id];
         g.addEventListener('mouseenter', (e) => {
           dimAll(id);
-          showTip(e, `<b>${esc(cfg.name)}</b><br><span style="color:#A89066">${(cfg.sops||[]).length} إجراء</span><br><small style="opacity:.7">انقر للدخول</small>`);
+          showTip(e, `<b>${esc(cfg.name)}</b><br><span style="color:#98B4D4">${(cfg.sops||[]).length} إجراء</span><br><small style="opacity:.7">انقر للدخول</small>`);
         });
         g.addEventListener('mousemove', (e) => showTip(e, tooltip.innerHTML));
         g.addEventListener('mouseleave', () => { dimAll(); hideTip(); });
@@ -5236,7 +5454,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         const title = g.dataset.title;
         g.addEventListener('mouseenter', (e) => {
           dimAll(deptId);
-          showTip(e, `<b>${esc(code)}</b><br>${esc(title||'بدون عنوان')}<br><small style="opacity:.7;color:#A89066">${esc(DEPT_CFG[deptId]?.name||'')}</small>`);
+          showTip(e, `<b>${esc(code)}</b><br>${esc(title||'بدون عنوان')}<br><small style="opacity:.7;color:#98B4D4">${esc(DEPT_CFG[deptId]?.name||'')}</small>`);
         });
         g.addEventListener('mousemove', (e) => showTip(e, tooltip.innerHTML));
         g.addEventListener('mouseleave', () => { dimAll(); hideTip(); });
@@ -5318,20 +5536,20 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     // ===== أدوات الأدمن — مخفية خلف زر نجمة قابل للطيّ =====
     if (me.role === 'admin') {
-      const adminWrap = h('div', { class:'arsan-admin-tools', style:'display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(133,113,77,.2);margin-top:8px;padding-top:10px;width:100%' });
+      const adminWrap = h('div', { class:'arsan-admin-tools', style:'display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(61,90,128,.2);margin-top:8px;padding-top:10px;width:100%' });
 
       // زر النجمة (toggler)
       const starBtn = h('button', {
         class:'arsan-topbar-btn arsan-admin-star',
         title:'أدوات الأدمن',
-        style:'background:linear-gradient(135deg,#85714D,#5E4F36)!important;color:#fff!important;font-weight:700!important;border:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important'
+        style:'background:linear-gradient(135deg,#3D5A80,#293F5C)!important;color:#fff!important;font-weight:700!important;border:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important'
       },
         h('span', {}, '⭐ أدوات الأدمن'),
         h('span', { class:'arsan-admin-caret', style:'font-size:11px;transition:transform .25s' }, '▼')
       );
 
       // الحاوي المنسدل
-      const dropdown = h('div', { class:'arsan-admin-dropdown', style:'display:none;flex-direction:column;gap:6px;padding:8px 6px 4px;background:rgba(133,113,77,.06);border-radius:8px' });
+      const dropdown = h('div', { class:'arsan-admin-dropdown', style:'display:none;flex-direction:column;gap:6px;padding:8px 6px 4px;background:rgba(61,90,128,.06);border-radius:8px' });
 
       dropdown.appendChild(h('button', {
         class:'arsan-topbar-btn',

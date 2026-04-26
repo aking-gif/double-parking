@@ -7,7 +7,7 @@
 (function(){
   'use strict';
 
-  // Arsan brand palette: gold #85714D, deep brown #5E4F36, ivory #f3e9c9, dark #1a1510
+  // Arsan brand palette: gold #3D5A80, deep brown #293F5C, ivory #E8EEF5, dark #0F1B2D
   // All themes harmonize around the brand gold or use it as a subtle accent.
   const THEMES = [
     {
@@ -15,16 +15,16 @@
       label: { ar: 'الذهب الملكي', en: 'Royal Gold' },
       desc: { ar: 'الهوية الأساسية — دافئة وكلاسيكية', en: 'Core brand — warm & classic' },
       mode: 'dark',
-      swatches: ['#0f0c08', '#1a1510', '#85714D', '#f3e9c9'],
+      swatches: ['#0A1422', '#0F1B2D', '#3D5A80', '#E8EEF5'],
       vars: {
-        '--arsan-bg-0':   '#0f0c08',
-        '--arsan-bg-1':   '#1a1510',
+        '--arsan-bg-0':   '#0A1422',
+        '--arsan-bg-1':   '#0F1B2D',
         '--arsan-bg-2':   '#2a2014',
-        '--arsan-ink-0':  '#f3e9c9',
+        '--arsan-ink-0':  '#E8EEF5',
         '--arsan-ink-1':  '#d9c896',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#85714D',
-        '--arsan-accent-2':'#5E4F36',
+        '--arsan-accent': '#3D5A80',
+        '--arsan-accent-2':'#293F5C',
         '--arsan-danger': '#e63946',
       }
     },
@@ -33,16 +33,16 @@
       label: { ar: 'العاج الصحراوي', en: 'Desert Ivory' },
       desc: { ar: 'وضع نهاري — بيج فاخر مع ذهبي أرسان', en: 'Light mode — luxe beige + Arsan gold' },
       mode: 'light',
-      swatches: ['#fdfaf0', '#f3ead0', '#85714D', '#3a2f15'],
+      swatches: ['#fdfaf0', '#f3ead0', '#3D5A80', '#1A2942'],
       vars: {
         '--arsan-bg-0':   '#fdfaf0',
         '--arsan-bg-1':   '#f8f1dc',
         '--arsan-bg-2':   '#f0e4c2',
-        '--arsan-ink-0':  '#3a2f15',
+        '--arsan-ink-0':  '#1A2942',
         '--arsan-ink-1':  '#5a4e30',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#85714D',
-        '--arsan-accent-2':'#5E4F36',
+        '--arsan-accent': '#3D5A80',
+        '--arsan-accent-2':'#293F5C',
         '--arsan-danger': '#c5303c',
       }
     },
@@ -105,16 +105,16 @@
       label: { ar: 'فجر اللؤلؤ', en: 'Pearl Dawn' },
       desc: { ar: 'أبيض ناصع مع ذهبي خفيف — مينيمال', en: 'Crisp white + soft gold — minimal' },
       mode: 'light',
-      swatches: ['#ffffff', '#f5f1e8', '#85714D', '#1a1510'],
+      swatches: ['#ffffff', '#f5f1e8', '#3D5A80', '#0F1B2D'],
       vars: {
         '--arsan-bg-0':   '#ffffff',
         '--arsan-bg-1':   '#fbf8f1',
         '--arsan-bg-2':   '#f0ead9',
-        '--arsan-ink-0':  '#1a1510',
+        '--arsan-ink-0':  '#0F1B2D',
         '--arsan-ink-1':  '#4a4032',
         '--arsan-ink-2':  '#8a7d5d',
-        '--arsan-accent': '#85714D',
-        '--arsan-accent-2':'#5E4F36',
+        '--arsan-accent': '#3D5A80',
+        '--arsan-accent-2':'#293F5C',
         '--arsan-danger': '#c5303c',
       }
     },
@@ -217,19 +217,19 @@
         width:100%;max-width:640px;
         background:linear-gradient(180deg, rgba(26,21,16,.96), rgba(35,26,16,.94));
         backdrop-filter:blur(24px);
-        border:1px solid rgba(133,113,77,.3);
+        border:1px solid rgba(61,90,128,.3);
         border-radius:16px;
         box-shadow:0 30px 80px rgba(0,0,0,.5);
-        color:#f3e9c9;
+        color:#E8EEF5;
         overflow:hidden;
       }
       html[data-theme="light"] .arsan-theme-card{
         background:linear-gradient(180deg, rgba(250,246,234,.98), rgba(243,234,208,.96));
-        color:#3a2f15;
+        color:#1A2942;
       }
       .arsan-theme-head{
         padding:18px 22px;
-        border-bottom:1px solid rgba(133,113,77,.2);
+        border-bottom:1px solid rgba(61,90,128,.2);
         display:flex;align-items:center;justify-content:space-between;
       }
       .arsan-theme-head h2{
@@ -243,7 +243,7 @@
         font-size:22px;cursor:pointer;opacity:.6;
         width:30px;height:30px;border-radius:6px;
       }
-      .arsan-theme-head .x:hover{ opacity:1;background:rgba(133,113,77,.15); }
+      .arsan-theme-head .x:hover{ opacity:1;background:rgba(61,90,128,.15); }
       .arsan-theme-grid{
         padding:18px;
         display:grid;
@@ -255,7 +255,7 @@
       .arsan-theme-swatch{
         border-radius:14px;
         padding:0;
-        border:2px solid rgba(133,113,77,.15);
+        border:2px solid rgba(61,90,128,.15);
         cursor:pointer;
         transition:transform .15s, border-color .15s, box-shadow .15s;
         position:relative;
@@ -264,16 +264,16 @@
       }
       html[data-theme="light"] .arsan-theme-swatch{
         background:rgba(0,0,0,.02);
-        border-color:rgba(133,113,77,.2);
+        border-color:rgba(61,90,128,.2);
       }
       .arsan-theme-swatch:hover{
         transform:translateY(-2px);
-        border-color:rgba(133,113,77,.5);
+        border-color:rgba(61,90,128,.5);
         box-shadow:0 8px 20px rgba(0,0,0,.3);
       }
       .arsan-theme-swatch.active{
-        border-color:#85714D;
-        box-shadow:0 0 0 3px rgba(133,113,77,.35);
+        border-color:#3D5A80;
+        box-shadow:0 0 0 3px rgba(61,90,128,.35);
       }
       .arsan-theme-swatch .preview{
         height:90px;
@@ -302,7 +302,7 @@
         top:8px; inset-inline-end:8px;
         width:22px;height:22px;
         border-radius:50%;
-        background:#85714D;
+        background:#3D5A80;
         color:#fff;
         display:none;
         align-items:center;justify-content:center;
@@ -311,7 +311,7 @@
       .arsan-theme-swatch.active .check{ display:flex; }
       .arsan-theme-foot{
         padding:14px 22px;
-        border-top:1px solid rgba(133,113,77,.15);
+        border-top:1px solid rgba(61,90,128,.15);
         font-size:11px;opacity:.6;
         display:flex;align-items:center;gap:8px;
       }

@@ -138,7 +138,7 @@
     const n = document.createElement('div');
     n.style.cssText = `
       position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-      background:${type==='error'?'#7c2d12':type==='success'?'#14532d':'#1a1510'};
+      background:${type==='error'?'#7c2d12':type==='success'?'#14532d':'#0F1B2D'};
       color:#fff;padding:12px 20px;border-radius:10px;
       font-family:"IBM Plex Sans Arabic",sans-serif;font-size:13.5px;
       box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:99999;
@@ -162,25 +162,25 @@
         font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;
       }
       .abk-modal{
-        background:linear-gradient(160deg,#1f1810 0%,#15110a 100%);
-        color:#f3e9c9;border:1px solid rgba(133,113,77,.35);
+        background:linear-gradient(160deg,#152233 0%,#0C1828 100%);
+        color:#E8EEF5;border:1px solid rgba(61,90,128,.35);
         border-radius:16px;width:100%;max-width:640px;max-height:88vh;
         overflow:hidden;display:flex;flex-direction:column;
         box-shadow:0 30px 90px rgba(0,0,0,.65);animation:abkpop .25s cubic-bezier(.34,1.56,.64,1);
       }
       html[data-theme="light"] .abk-modal{
         background:linear-gradient(160deg,#fffaf0 0%,#fdf3df 100%);
-        color:#3a2f15;border-color:rgba(133,113,77,.35);
+        color:#1A2942;border-color:rgba(61,90,128,.35);
       }
       .abk-head{
-        padding:18px 22px;border-bottom:1px solid rgba(133,113,77,.18);
+        padding:18px 22px;border-bottom:1px solid rgba(61,90,128,.18);
         display:flex;align-items:center;gap:12px;
       }
       .abk-head .ic{
         width:38px;height:38px;border-radius:10px;
-        background:rgba(133,113,77,.18);
+        background:rgba(61,90,128,.18);
         display:flex;align-items:center;justify-content:center;
-        color:#c9b27a;flex-shrink:0;
+        color:#A8C0DC;flex-shrink:0;
       }
       .abk-head h3{margin:0;font-size:16px;font-weight:700}
       .abk-head small{display:block;font-size:11.5px;opacity:.65;margin-top:2px;font-weight:500}
@@ -189,20 +189,20 @@
         color:inherit;font-size:22px;cursor:pointer;opacity:.55;
         width:32px;height:32px;border-radius:8px;
       }
-      .abk-head .x:hover{opacity:1;background:rgba(133,113,77,.15)}
+      .abk-head .x:hover{opacity:1;background:rgba(61,90,128,.15)}
 
       .abk-body{padding:18px 22px;overflow-y:auto;flex:1}
       .abk-section{margin-bottom:22px}
       .abk-section:last-child{margin-bottom:0}
       .abk-section h4{
         margin:0 0 10px;font-size:13px;font-weight:700;
-        color:#c9b27a;text-transform:uppercase;letter-spacing:.04em;
+        color:#A8C0DC;text-transform:uppercase;letter-spacing:.04em;
       }
-      html[data-theme="light"] .abk-section h4{color:#85714D}
+      html[data-theme="light"] .abk-section h4{color:#3D5A80}
 
       .abk-card{
-        background:rgba(133,113,77,.08);
-        border:1px solid rgba(133,113,77,.18);
+        background:rgba(61,90,128,.08);
+        border:1px solid rgba(61,90,128,.18);
         border-radius:11px;padding:14px 16px;
         display:flex;align-items:center;gap:12px;
       }
@@ -216,17 +216,17 @@
         cursor:pointer;border:1px solid transparent;
         font-family:inherit;transition:all .15s;white-space:nowrap;
       }
-      .abk-btn.primary{background:#85714D;color:#fff;border-color:#85714D}
-      .abk-btn.primary:hover{background:#9a8559;transform:translateY(-1px);box-shadow:0 4px 12px rgba(133,113,77,.4)}
-      .abk-btn.ghost{background:transparent;color:#c9b27a;border-color:rgba(201,178,122,.3)}
-      .abk-btn.ghost:hover{background:rgba(201,178,122,.1);border-color:rgba(201,178,122,.55)}
+      .abk-btn.primary{background:#3D5A80;color:#fff;border-color:#3D5A80}
+      .abk-btn.primary:hover{background:#4D6E94;transform:translateY(-1px);box-shadow:0 4px 12px rgba(61,90,128,.4)}
+      .abk-btn.ghost{background:transparent;color:#A8C0DC;border-color:rgba(168,192,220,.3)}
+      .abk-btn.ghost:hover{background:rgba(168,192,220,.1);border-color:rgba(168,192,220,.55)}
       .abk-btn.danger{background:transparent;color:#fca5a5;border-color:rgba(252,165,165,.3)}
       .abk-btn.danger:hover{background:rgba(220,38,38,.15);color:#fee2e2;border-color:#dc2626}
 
       .abk-list{margin-top:10px;max-height:300px;overflow-y:auto}
       .abk-row{
-        background:rgba(133,113,77,.05);
-        border:1px solid rgba(133,113,77,.12);
+        background:rgba(61,90,128,.05);
+        border:1px solid rgba(61,90,128,.12);
         border-radius:9px;padding:10px 14px;
         display:flex;align-items:center;gap:12px;
         margin-bottom:6px;
@@ -237,18 +237,18 @@
       .abk-row .actions{margin-inline-start:auto;display:flex;gap:6px}
       .abk-row button{
         padding:5px 10px;font-size:11.5px;border-radius:7px;
-        background:transparent;color:#c9b27a;border:1px solid rgba(201,178,122,.25);
+        background:transparent;color:#A8C0DC;border:1px solid rgba(168,192,220,.25);
         cursor:pointer;font-family:inherit;transition:all .12s;
       }
-      .abk-row button:hover{background:rgba(201,178,122,.12);border-color:rgba(201,178,122,.5)}
+      .abk-row button:hover{background:rgba(168,192,220,.12);border-color:rgba(168,192,220,.5)}
 
       .abk-empty{
         text-align:center;padding:24px;font-size:13px;opacity:.55;
-        border:1px dashed rgba(133,113,77,.25);border-radius:10px;
+        border:1px dashed rgba(61,90,128,.25);border-radius:10px;
       }
 
       .abk-foot{
-        padding:14px 22px;border-top:1px solid rgba(133,113,77,.18);
+        padding:14px 22px;border-top:1px solid rgba(61,90,128,.18);
         display:flex;justify-content:flex-end;gap:8px;
         background:rgba(0,0,0,.2);
       }
@@ -256,12 +256,12 @@
 
       .abk-stat{
         display:flex;gap:12px;flex-wrap:wrap;
-        background:rgba(133,113,77,.06);
-        border:1px solid rgba(133,113,77,.15);
+        background:rgba(61,90,128,.06);
+        border:1px solid rgba(61,90,128,.15);
         border-radius:10px;padding:12px 14px;
         font-size:12px;
       }
-      .abk-stat b{color:#c9b27a;font-weight:700;font-size:14px}
+      .abk-stat b{color:#A8C0DC;font-weight:700;font-size:14px}
       .abk-stat .item{flex:1;min-width:80px}
       .abk-stat .lbl{display:block;opacity:.65;margin-bottom:2px}
 
@@ -472,9 +472,9 @@
     const div = document.createElement('div');
     div.style.cssText = `
       position:fixed;bottom:24px;inset-inline-start:24px;z-index:9300;
-      background:linear-gradient(160deg,#1f1810,#15110a);
-      color:#f3e9c9;padding:14px 18px;border-radius:12px;
-      border:1px solid rgba(133,113,77,.45);
+      background:linear-gradient(160deg,#152233,#0C1828);
+      color:#E8EEF5;padding:14px 18px;border-radius:12px;
+      border:1px solid rgba(61,90,128,.45);
       box-shadow:0 12px 40px rgba(0,0,0,.4);
       max-width:340px;font-family:"IBM Plex Sans Arabic",sans-serif;
       animation:abkpop .35s cubic-bezier(.34,1.56,.64,1);
@@ -485,7 +485,7 @@
       <div style="display:flex;align-items:start;gap:10px">
         <div style="font-size:22px;line-height:1">💾</div>
         <div style="flex:1;font-size:13px;line-height:1.6">
-          <div style="font-weight:700;margin-bottom:4px;color:#c9b27a">
+          <div style="font-weight:700;margin-bottom:4px;color:#A8C0DC">
             ${t('تذكير: نسخة احتياطية','Reminder: backup needed')}
           </div>
           <div style="opacity:.8;font-size:12px">
@@ -493,7 +493,7 @@
           </div>
           <div style="margin-top:10px;display:flex;gap:6px">
             <button id="abkr-now" style="
-              background:#85714D;color:#fff;border:none;padding:6px 12px;
+              background:#3D5A80;color:#fff;border:none;padding:6px 12px;
               border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
               font-family:inherit">
               ${t('احفظ الآن','Backup now')}

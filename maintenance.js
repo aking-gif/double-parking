@@ -423,7 +423,7 @@
         }
         [data-theme="light"] .arsan-maint-card{
           background:linear-gradient(180deg, rgba(250,246,234,.99), rgba(243,234,208,.97));
-          color:#3a2f15;border-color:rgba(90,70,30,.14);
+          color:#1A2942;border-color:rgba(90,70,30,.14);
         }
         .arsan-maint-head{
           display:flex;align-items:center;justify-content:space-between;

@@ -66,11 +66,11 @@
         z-index:9500;
         width:44px;height:44px;
         border-radius:12px;
-        border:1px solid rgba(133,113,77,.35);
+        border:1px solid rgba(61,90,128,.35);
         background:rgba(26,21,16,.55);
         backdrop-filter:blur(14px) saturate(180%);
         -webkit-backdrop-filter:blur(14px) saturate(180%);
-        color:#f3e9c9;
+        color:#E8EEF5;
         font-size:24px;
         cursor:pointer;
         box-shadow:0 4px 14px rgba(0,0,0,.22);
@@ -80,34 +80,34 @@
       }
       html[data-theme="light"] .arsan-ai-fab{
         background:rgba(255,255,255,.6);
-        border-color:rgba(133,113,77,.35);
-        color:#3a2f15;
+        border-color:rgba(61,90,128,.35);
+        color:#1A2942;
       }
       .arsan-ai-fab:hover{
         opacity:1;
-        background:rgba(133,113,77,.25);
-        border-color:rgba(133,113,77,.6);
+        background:rgba(61,90,128,.25);
+        border-color:rgba(61,90,128,.6);
         transform:translateY(-1px);
         box-shadow:0 8px 22px rgba(0,0,0,.28);
       }
       .arsan-ai-fab:active{ transform:translateY(0) scale(.98); }
       .arsan-ai-fab .pulse{
         position:absolute;inset:0;border-radius:50%;
-        box-shadow:0 0 0 0 rgba(133,113,77,.6);
+        box-shadow:0 0 0 0 rgba(61,90,128,.6);
         animation:arsan-ai-pulse 2.4s infinite;
       }
       @keyframes arsan-ai-pulse{
-        0%{ box-shadow:0 0 0 0 rgba(133,113,77,.45); }
-        70%{ box-shadow:0 0 0 16px rgba(133,113,77,0); }
-        100%{ box-shadow:0 0 0 0 rgba(133,113,77,0); }
+        0%{ box-shadow:0 0 0 0 rgba(61,90,128,.45); }
+        70%{ box-shadow:0 0 0 16px rgba(61,90,128,0); }
+        100%{ box-shadow:0 0 0 0 rgba(61,90,128,0); }
       }
       .arsan-ai-fab .arsan-ai-fab-mark{
         position:relative;
         width:22px;height:22px;
         display:flex;align-items:center;justify-content:center;
       }
-      .arsan-ai-fab .arsan-ai-fab-mark{ color:#1a1510; }
-      html[data-theme="dark"] .arsan-ai-fab .arsan-ai-fab-mark{ color:#f3e9c9; }
+      .arsan-ai-fab .arsan-ai-fab-mark{ color:#0F1B2D; }
+      html[data-theme="dark"] .arsan-ai-fab .arsan-ai-fab-mark{ color:#E8EEF5; }
       .arsan-ai-fab .arsan-ai-fab-mark img{
         width:100%; height:100%; object-fit:contain;
       }
@@ -128,10 +128,10 @@
         max-height:calc(100vh - 140px);
         background:linear-gradient(180deg, rgba(26,21,16,.98), rgba(35,26,16,.96));
         backdrop-filter:blur(24px);
-        border:1px solid rgba(133,113,77,.35);
+        border:1px solid rgba(61,90,128,.35);
         border-radius:16px;
         box-shadow:0 30px 80px rgba(0,0,0,.5);
-        color:#f3e9c9;
+        color:#E8EEF5;
         display:none;
         flex-direction:column;
         overflow:hidden;
@@ -146,25 +146,25 @@
       }
       html[data-theme="light"] .arsan-ai-panel{
         background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,246,234,.96));
-        color:#3a2f15;
-        border-color:rgba(133,113,77,.25);
+        color:#1A2942;
+        border-color:rgba(61,90,128,.25);
       }
       .arsan-ai-head{
         padding:14px 16px;
-        border-bottom:1px solid rgba(133,113,77,.2);
+        border-bottom:1px solid rgba(61,90,128,.2);
         display:flex;align-items:center;gap:10px;
       }
       .arsan-ai-head .avatar{
         width:40px;height:40px;border-radius:50%;
-        background:radial-gradient(circle at 30% 30%, #EFE7D5, #C9B58A 70%, #A89066 100%);
-        color:#1a1510;
+        background:radial-gradient(circle at 30% 30%, #DCE7F2, #A8C0DC 70%, #98B4D4 100%);
+        color:#0F1B2D;
         display:flex;align-items:center;justify-content:center;
         flex-shrink:0;
         padding:8px;
         box-sizing:border-box;
       }
-        border:1px solid rgba(133,113,77,.45);
-        box-shadow:0 0 0 2px rgba(133,113,77,.18), inset 0 1px 2px rgba(255,255,255,.4);
+        border:1px solid rgba(61,90,128,.45);
+        box-shadow:0 0 0 2px rgba(61,90,128,.18), inset 0 1px 2px rgba(255,255,255,.4);
         display:flex;align-items:center;justify-content:center;
         flex-shrink:0;
         overflow:hidden;
@@ -193,15 +193,15 @@
         width:30px;height:30px;border-radius:6px;
         display:flex;align-items:center;justify-content:center;
       }
-      .arsan-ai-head .x:hover{ opacity:1; background:rgba(133,113,77,.15); }
+      .arsan-ai-head .x:hover{ opacity:1; background:rgba(61,90,128,.15); }
       .arsan-ai-head .kb{
-        background:transparent;border:1px solid rgba(133,113,77,.3);color:inherit;
+        background:transparent;border:1px solid rgba(61,90,128,.3);color:inherit;
         font-size:14px;cursor:pointer;opacity:.7;
         width:32px;height:32px;border-radius:8px;
         display:flex;align-items:center;justify-content:center;
         transition:all .15s;
       }
-      .arsan-ai-head .kb:hover{ opacity:1; background:rgba(133,113,77,.18); border-color:rgba(133,113,77,.55); }
+      .arsan-ai-head .kb:hover{ opacity:1; background:rgba(61,90,128,.18); border-color:rgba(61,90,128,.55); }
 
       /* === Adham Memory inline modal === */
       .arsan-kb-bd{
@@ -211,8 +211,8 @@
         padding:24px; animation:arsan-ai-fade .18s ease;
       }
       .arsan-kb-modal{
-        background:#1a1510; color:#f3e9c9;
-        border:1px solid rgba(133,113,77,.35); border-radius:16px;
+        background:#0F1B2D; color:#E8EEF5;
+        border:1px solid rgba(61,90,128,.35); border-radius:16px;
         max-width:720px; width:100%; max-height:85vh;
         display:flex; flex-direction:column;
         box-shadow:0 30px 80px rgba(0,0,0,.6);
@@ -220,27 +220,27 @@
       }
       .arsan-kb-modal h2{
         margin:0; padding:18px 20px; font-size:16px; font-weight:700;
-        border-bottom:1px solid rgba(133,113,77,.2);
+        border-bottom:1px solid rgba(61,90,128,.2);
         display:flex; align-items:center; gap:10px;
       }
       .arsan-kb-modal h2 .x{
         margin-inline-start:auto; background:transparent; border:none; color:inherit;
         font-size:20px; cursor:pointer; opacity:.6; width:30px; height:30px; border-radius:8px;
       }
-      .arsan-kb-modal h2 .x:hover{ opacity:1; background:rgba(133,113,77,.15); }
+      .arsan-kb-modal h2 .x:hover{ opacity:1; background:rgba(61,90,128,.15); }
       .arsan-kb-body{ padding:20px; overflow-y:auto; flex:1; }
       .arsan-kb-body p.lead{ margin:0 0 12px; font-size:13px; opacity:.78; line-height:1.7; }
       .arsan-kb-body textarea{
         width:100%; min-height:280px; box-sizing:border-box;
-        background:#0e0a08; color:#f3e9c9;
-        border:1px solid rgba(133,113,77,.3); border-radius:10px;
+        background:#0A1422; color:#E8EEF5;
+        border:1px solid rgba(61,90,128,.3); border-radius:10px;
         padding:14px; font-family:"IBM Plex Sans Arabic", system-ui, monospace;
         font-size:13px; line-height:1.7; resize:vertical;
         direction:rtl;
       }
-      .arsan-kb-body textarea:focus{ outline:none; border-color:#85714D; box-shadow:0 0 0 3px rgba(133,113,77,.15); }
+      .arsan-kb-body textarea:focus{ outline:none; border-color:#3D5A80; box-shadow:0 0 0 3px rgba(61,90,128,.15); }
       .arsan-kb-foot{
-        padding:14px 20px; border-top:1px solid rgba(133,113,77,.2);
+        padding:14px 20px; border-top:1px solid rgba(61,90,128,.2);
         display:flex; gap:10px; align-items:center;
       }
       .arsan-kb-foot .status{ flex:1; font-size:12px; opacity:.7; }
@@ -248,16 +248,16 @@
         padding:9px 18px; border-radius:9px; font-size:13px; font-weight:600;
         cursor:pointer; border:1px solid transparent; font-family:inherit;
       }
-      .arsan-kb-foot .save{ background:#85714D; color:#fff; border-color:#85714D; }
-      .arsan-kb-foot .save:hover{ background:#9a8559; }
+      .arsan-kb-foot .save{ background:#3D5A80; color:#fff; border-color:#3D5A80; }
+      .arsan-kb-foot .save:hover{ background:#4D6E94; }
       .arsan-kb-foot .clear{ background:transparent; color:#d97757; border-color:rgba(217,119,87,.4); }
       .arsan-kb-foot .clear:hover{ background:rgba(217,119,87,.1); }
       .arsan-kb-info{
         margin-top:14px; padding:12px 14px;
-        background:rgba(133,113,77,.08); border:1px solid rgba(133,113,77,.18);
+        background:rgba(61,90,128,.08); border:1px solid rgba(61,90,128,.18);
         border-radius:9px; font-size:12px; line-height:1.8; opacity:.85;
       }
-      .arsan-kb-info strong{ color:#c9b27a; }
+      .arsan-kb-info strong{ color:#A8C0DC; }
 
       .arsan-ai-body{
         flex:1;
@@ -282,7 +282,7 @@
       }
       .arsan-ai-msg.user{
         align-self:flex-end;
-        background:#85714D;
+        background:#3D5A80;
         color:#fff;
         border-bottom-right-radius:4px;
       }
@@ -293,8 +293,8 @@
       }
       .arsan-ai-msg.bot{
         align-self:flex-start;
-        background:rgba(133,113,77,.12);
-        border:1px solid rgba(133,113,77,.18);
+        background:rgba(61,90,128,.12);
+        border:1px solid rgba(61,90,128,.18);
         border-bottom-left-radius:4px;
       }
       html[dir="rtl"] .arsan-ai-msg.bot,
@@ -303,7 +303,7 @@
         border-bottom-right-radius:4px;
       }
       html[data-theme="light"] .arsan-ai-msg.bot{
-        background:rgba(133,113,77,.08);
+        background:rgba(61,90,128,.08);
       }
       .arsan-ai-msg.error{
         align-self:flex-start;
@@ -314,8 +314,8 @@
       .arsan-ai-typing{
         align-self:flex-start;
         padding:10px 14px;
-        background:rgba(133,113,77,.12);
-        border:1px solid rgba(133,113,77,.18);
+        background:rgba(61,90,128,.12);
+        border:1px solid rgba(61,90,128,.18);
         border-radius:14px;
         border-bottom-left-radius:4px;
         display:flex;gap:4px;align-items:center;
@@ -339,26 +339,26 @@
         font-size:11.5px;
         padding:6px 11px;
         border-radius:14px;
-        background:rgba(133,113,77,.1);
-        border:1px solid rgba(133,113,77,.25);
+        background:rgba(61,90,128,.1);
+        border:1px solid rgba(61,90,128,.25);
         color:inherit;
         cursor:pointer;
         transition:background .15s;
         font-family:inherit;
       }
       .arsan-ai-suggest button:hover{
-        background:rgba(133,113,77,.2);
+        background:rgba(61,90,128,.2);
       }
 
       .arsan-ai-foot{
         padding:10px 12px;
-        border-top:1px solid rgba(133,113,77,.2);
+        border-top:1px solid rgba(61,90,128,.2);
         display:flex;gap:8px;align-items:flex-end;
       }
       .arsan-ai-foot textarea{
         flex:1;
-        background:rgba(133,113,77,.08);
-        border:1px solid rgba(133,113,77,.25);
+        background:rgba(61,90,128,.08);
+        border:1px solid rgba(61,90,128,.25);
         border-radius:10px;
         color:inherit;
         padding:9px 12px;
@@ -372,13 +372,13 @@
         transition:border-color .15s;
       }
       .arsan-ai-foot textarea:focus{
-        border-color:#85714D;
+        border-color:#3D5A80;
       }
       .arsan-ai-foot textarea::placeholder{
         color:inherit;opacity:.45;
       }
       .arsan-ai-send{
-        background:linear-gradient(135deg, #85714D, #5E4F36);
+        background:linear-gradient(135deg, #3D5A80, #293F5C);
         border:none;color:#fff;
         width:40px;height:38px;
         border-radius:10px;
@@ -696,7 +696,7 @@
           'You can suggest knowledge for Al-Adham (policies, terminology, …). Your suggestion is sent to the admin for review before it is added to Adham\'s memory.'
         )}</p>
         <textarea id="arsan-kb-text" placeholder="${t('اكتب اقتراحك هنا…','Write your suggestion here…')}"></textarea>
-        <div class="arsan-kb-info" style="border-color:rgba(133,113,77,.28); background:rgba(133,113,77,.06);">
+        <div class="arsan-kb-info" style="border-color:rgba(61,90,128,.28); background:rgba(61,90,128,.06);">
           <strong>📤 ${t('اقتراحك سيُراجع','Your suggestion will be reviewed')}</strong><br>
           ${t('سيظهر للأدمن في نافذة الذاكرة. عند الموافقة يُضاف لذاكرة الأدهم.','It appears in the admin\'s memory window. Once approved, it is added to Adham\'s memory.')}
         </div>
@@ -712,7 +712,7 @@
         <h2>
           <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center"><img src="./adham.png" style="width:100%;height:100%;object-fit:contain"/></span>
           ${t('ذاكرة الأدهم','Adham Memory')}
-          ${isAdmin ? `<span style="font-size:11px;font-weight:600;background:rgba(133,113,77,.18);color:#c9b27a;padding:3px 10px;border-radius:999px;margin-inline-start:8px">Admin</span>` : ''}
+          ${isAdmin ? `<span style="font-size:11px;font-weight:600;background:rgba(61,90,128,.18);color:#A8C0DC;padding:3px 10px;border-radius:999px;margin-inline-start:8px">Admin</span>` : ''}
           <button class="x" type="button" aria-label="Close">✕</button>
         </h2>
         ${isAdmin ? adminBody : userBody}
@@ -805,13 +805,13 @@
     if (!Array.isArray(list)) list = [];
     if (!list.length){
       host.innerHTML = `
-        <div style="padding:12px 14px;border:1px dashed rgba(133,113,77,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
+        <div style="padding:12px 14px;border:1px dashed rgba(61,90,128,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
           ${t('لا توجد اقتراحات بانتظار المراجعة','No pending suggestions')}
         </div>`;
       return;
     }
     host.innerHTML = `
-      <div style="font-weight:700;color:#c9b27a;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+      <div style="font-weight:700;color:#A8C0DC;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
         📥 ${t('اقتراحات بانتظار المراجعة','Pending suggestions')}
         <span style="background:rgba(230,57,70,.18);color:#e63946;font-size:11px;padding:2px 8px;border-radius:999px">${list.length}</span>
       </div>
@@ -820,7 +820,7 @@
     const listHost = host.querySelector('#arsan-kb-pending-list');
     list.slice().reverse().forEach(item => {
       const card = document.createElement('div');
-      card.style.cssText = 'border:1px solid rgba(133,113,77,.25);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)';
+      card.style.cssText = 'border:1px solid rgba(61,90,128,.25);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02)';
       const dt = new Date(item.at || Date.now());
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:#9b958a;margin-bottom:6px">
@@ -857,7 +857,7 @@
         const remaining = host.querySelectorAll('#arsan-kb-pending-list > div').length - 1;
         if (remaining <= 0) {
           host.innerHTML = `
-            <div style="padding:12px 14px;border:1px dashed rgba(133,113,77,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
+            <div style="padding:12px 14px;border:1px dashed rgba(61,90,128,.3);border-radius:10px;color:#9b958a;font-size:13px;text-align:center">
               ${t('لا توجد اقتراحات بانتظار المراجعة','No pending suggestions')}
             </div>`;
         }

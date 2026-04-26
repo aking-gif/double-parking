@@ -37,17 +37,17 @@
         height:42px;
         padding:0 16px 0 14px;
         border-radius:21px;
-        background:linear-gradient(135deg, rgba(133,113,77,.85), rgba(94,79,54,.9));
+        background:linear-gradient(135deg, rgba(61,90,128,.85), rgba(94,79,54,.9));
         backdrop-filter:blur(12px) saturate(160%);
         -webkit-backdrop-filter:blur(12px) saturate(160%);
         border:1px solid rgba(255,255,255,.12);
-        color:#f3e9c9;
+        color:#E8EEF5;
         font-family:inherit;
         font-weight:600;
         font-size:13px;
         line-height:1;
         cursor:pointer;
-        box-shadow:0 6px 20px rgba(133,113,77,.35);
+        box-shadow:0 6px 20px rgba(61,90,128,.35);
         transition:all .2s ease;
         user-select:none;
       }
@@ -56,18 +56,18 @@
         inset-inline-end:20px;
       }
       html[data-theme="light"] #${BTN_ID}{
-        background:linear-gradient(135deg, #85714D, #6B5938);
+        background:linear-gradient(135deg, #3D5A80, #34506F);
         color:#fff;
         border-color:rgba(255,255,255,.18);
-        box-shadow:0 6px 20px rgba(133,113,77,.4);
+        box-shadow:0 6px 20px rgba(61,90,128,.4);
       }
       #${BTN_ID}:hover{
         transform:translateY(-2px);
-        box-shadow:0 10px 28px rgba(133,113,77,.5);
-        background:linear-gradient(135deg, #927d57, #6B5938);
+        box-shadow:0 10px 28px rgba(61,90,128,.5);
+        background:linear-gradient(135deg, #927d57, #34506F);
       }
       html[data-theme="light"] #${BTN_ID}:hover{
-        background:linear-gradient(135deg, #927d57, #6B5938);
+        background:linear-gradient(135deg, #927d57, #34506F);
       }
       #${BTN_ID}.visible{ display:inline-flex; }
 
@@ -115,19 +115,19 @@
         width:100%;max-width:560px;
         background:linear-gradient(180deg, rgba(26,21,16,.96) 0%, rgba(35,26,16,.94) 100%);
         backdrop-filter:blur(24px) saturate(180%);
-        border:1px solid rgba(133,113,77,.3);
+        border:1px solid rgba(61,90,128,.3);
         border-radius:16px;
         box-shadow:0 30px 80px rgba(0,0,0,.5);
-        color:#f3e9c9;
+        color:#E8EEF5;
         overflow:hidden;
       }
       html[data-theme="light"] .arsan-ann-card{
         background:linear-gradient(180deg, rgba(250,246,234,.98) 0%, rgba(243,234,208,.96) 100%);
-        color:#3a2f15;
+        color:#1A2942;
       }
       .arsan-ann-head{
         padding:18px 22px 14px;
-        border-bottom:1px solid rgba(133,113,77,.2);
+        border-bottom:1px solid rgba(61,90,128,.2);
         display:flex;align-items:center;justify-content:space-between;
       }
       .arsan-ann-head h2{
@@ -137,15 +137,15 @@
       .arsan-ann-head h2::before{
         content:'';
         width:8px;height:8px;border-radius:50%;
-        background:radial-gradient(circle at 30% 30%, #A89066, #85714D);
-        box-shadow:0 0 10px rgba(133,113,77,.5);
+        background:radial-gradient(circle at 30% 30%, #98B4D4, #3D5A80);
+        box-shadow:0 0 10px rgba(61,90,128,.5);
       }
       .arsan-ann-head .x{
         background:transparent;border:none;color:inherit;
         font-size:22px;cursor:pointer;opacity:.6;
         width:30px;height:30px;border-radius:6px;
       }
-      .arsan-ann-head .x:hover{ opacity:1;background:rgba(133,113,77,.15); }
+      .arsan-ann-head .x:hover{ opacity:1;background:rgba(61,90,128,.15); }
       .arsan-ann-body{ padding:20px 22px; }
       .arsan-ann-body label{
         display:block;
@@ -158,7 +158,7 @@
         padding:11px 14px;
         border-radius:9px;
         background:rgba(255,255,255,.04);
-        border:1px solid rgba(133,113,77,.2);
+        border:1px solid rgba(61,90,128,.2);
         color:inherit;
         font:inherit;
         font-size:13px;
@@ -169,12 +169,12 @@
       html[data-theme="light"] .arsan-ann-body input,
       html[data-theme="light"] .arsan-ann-body textarea{
         background:rgba(255,255,255,.6);
-        border-color:rgba(133,113,77,.3);
+        border-color:rgba(61,90,128,.3);
       }
       .arsan-ann-body input:focus,
       .arsan-ann-body textarea:focus{
-        border-color:rgba(133,113,77,.6);
-        background:rgba(133,113,77,.06);
+        border-color:rgba(61,90,128,.6);
+        background:rgba(61,90,128,.06);
       }
       .arsan-ann-body textarea{ min-height:100px; }
       .arsan-ann-row{ display:flex;gap:12px;margin-bottom:14px; }
@@ -187,14 +187,14 @@
         padding:9px 10px;
         border-radius:7px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(133,113,77,.2);
+        border:1px solid rgba(61,90,128,.2);
         color:inherit;
         font:inherit;font-size:12px;
         cursor:pointer;
         transition:all .15s;
       }
       .arsan-ann-priority button.active{
-        background:linear-gradient(135deg,#85714D,#5E4F36);
+        background:linear-gradient(135deg,#3D5A80,#293F5C);
         color:#fff;
         border-color:transparent;
       }
@@ -204,7 +204,7 @@
       .arsan-ann-foot{
         padding:14px 22px 20px;
         display:flex;gap:10px;justify-content:flex-end;
-        border-top:1px solid rgba(133,113,77,.15);
+        border-top:1px solid rgba(61,90,128,.15);
       }
       .arsan-ann-foot button{
         padding:10px 20px;
@@ -218,18 +218,18 @@
       }
       .arsan-ann-foot .cancel:hover{ opacity:1; }
       .arsan-ann-foot .send{
-        background:linear-gradient(135deg,#85714D,#5E4F36);
+        background:linear-gradient(135deg,#3D5A80,#293F5C);
         color:#fff;
-        box-shadow:0 4px 12px rgba(133,113,77,.35);
+        box-shadow:0 4px 12px rgba(61,90,128,.35);
       }
-      .arsan-ann-foot .send:hover{ box-shadow:0 6px 16px rgba(133,113,77,.5); }
+      .arsan-ann-foot .send:hover{ box-shadow:0 6px 16px rgba(61,90,128,.5); }
       .arsan-ann-foot .send:disabled{ opacity:.5;cursor:not-allowed;box-shadow:none; }
 
       .arsan-ann-existing{
         margin-top:10px;
         max-height:200px;
         overflow-y:auto;
-        border-top:1px dashed rgba(133,113,77,.2);
+        border-top:1px dashed rgba(61,90,128,.2);
         padding-top:14px;
       }
       .arsan-ann-existing h4{
@@ -240,7 +240,7 @@
         padding:9px 12px;
         border-radius:7px;
         background:rgba(255,255,255,.03);
-        border:1px solid rgba(133,113,77,.12);
+        border:1px solid rgba(61,90,128,.12);
         margin-bottom:6px;
         display:flex;align-items:flex-start;gap:10px;
         font-size:12px;
@@ -299,16 +299,16 @@
       overflow-y:auto;
       background:linear-gradient(180deg, rgba(26,21,16,.95) 0%, rgba(35,26,16,.92) 100%);
       backdrop-filter:blur(20px) saturate(180%);
-      border:1px solid rgba(133,113,77,.3);
+      border:1px solid rgba(61,90,128,.3);
       border-radius:12px;
       box-shadow:0 20px 50px rgba(0,0,0,.4);
       padding:6px;
-      color:#f3e9c9;
+      color:#E8EEF5;
       overflow:hidden;
     `;
     if (document.documentElement.getAttribute('data-theme') === 'light') {
       menuEl.style.background = 'linear-gradient(180deg, rgba(250,246,234,.96), rgba(243,234,208,.94))';
-      menuEl.style.color = '#3a2f15';
+      menuEl.style.color = '#1A2942';
     }
     if (document.dir === 'ltr' || document.documentElement.dir === 'ltr') {
       menuEl.style.insetInlineStart = 'auto';
@@ -318,7 +318,7 @@
     const header = document.createElement('div');
     header.style.cssText = `
       padding:14px 14px 10px;
-      border-bottom:1px solid rgba(133,113,77,.2);
+      border-bottom:1px solid rgba(61,90,128,.2);
       margin-bottom:6px;
       position:sticky;top:0;
       background:inherit;
@@ -365,7 +365,7 @@
         transition:background .12s;
       `;
       row.innerHTML = `<span style="font-size:16px;width:22px;text-align:center">${it.icon}</span><span>${it.label}</span>`;
-      row.addEventListener('mouseenter', () => row.style.background='rgba(133,113,77,.15)');
+      row.addEventListener('mouseenter', () => row.style.background='rgba(61,90,128,.15)');
       row.addEventListener('mouseleave', () => row.style.background='transparent');
       row.addEventListener('click', () => {
         menuEl?.remove(); menuEl = null;
@@ -419,11 +419,11 @@
               <button type="button" data-p="urgent" class="urgent">${t('عاجل','Urgent')}</button>
             </div>
           </div>
-          <div style="margin-top:14px;padding:12px 14px;background:rgba(133,113,77,.08);border:1px solid rgba(133,113,77,.25);border-radius:10px">
+          <div style="margin-top:14px;padding:12px 14px;background:rgba(61,90,128,.08);border:1px solid rgba(61,90,128,.25);border-radius:10px">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0">
-              <input type="checkbox" id="arsan-ann-slack" checked style="width:18px;height:18px;accent-color:#85714D;cursor:pointer">
+              <input type="checkbox" id="arsan-ann-slack" checked style="width:18px;height:18px;accent-color:#3D5A80;cursor:pointer">
               <div style="flex:1">
-                <div style="font-weight:600;font-size:14px;color:#3d2f0e">${t('إرسال إشعار Slack للجميع','Send Slack notification to everyone')}</div>
+                <div style="font-weight:600;font-size:14px;color:#1A2942">${t('إرسال إشعار Slack للجميع','Send Slack notification to everyone')}</div>
                 <div style="font-size:11.5px;color:#7a5f1a;margin-top:2px">${t('يُرسل للقناة العامة ورسائل خاصة للمستخدمين المتصلين','Posts to the channel and DMs all connected users')}</div>
               </div>
             </label>

@@ -4616,17 +4616,21 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   // ================= STYLE =================
   const css = `
     .arsan-topbar{
-      position:fixed;bottom:18px;right:18px;z-index:9000;
-      display:inline-flex;gap:6px;flex-wrap:wrap-reverse;
-      padding:8px;border-radius:14px;
-      background:rgba(20,18,12,.75);backdrop-filter:blur(10px);
+      position:fixed;top:12px;right:12px;left:12px;z-index:9500;
+      display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;
+      padding:8px 10px;border-radius:14px;
+      background:rgba(20,18,12,.85);backdrop-filter:blur(14px);
       border:1px solid rgba(255,255,255,.10);
       box-shadow:0 8px 24px rgba(0,0,0,.35);
-      max-width:calc(100vw - 36px);
+      scrollbar-width:thin;
+      justify-content:flex-end;
     }
+    .arsan-topbar::-webkit-scrollbar{height:6px}
+    .arsan-topbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px}
+    body{padding-top:60px !important}
     @media (max-width: 700px){
-      .arsan-topbar{bottom:12px;left:12px;right:12px;max-width:none;justify-content:center}
-    
+      .arsan-topbar{top:8px;right:8px;left:8px;justify-content:flex-start}
+      body{padding-top:56px !important}
     }
     [data-theme="light"] .arsan-topbar{background:rgba(250,248,240,.85);border-color:rgba(0,0,0,.08)}
     .arsan-topbar-btn{

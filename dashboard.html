@@ -5684,103 +5684,212 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     const bd = openModal(modal);
   }
 
-  // ================= TOPBAR BUTTONS =================
+  // ================= TOPBAR — Single Menu Button =================
   function injectTopBar() {
-    document.querySelectorAll('.arsan-topbar').forEach(n => n.remove());
+    document.querySelectorAll('.arsan-topbar, .arsan-menu-fab, .arsan-menu-panel, .arsan-menu-bd').forEach(n => n.remove());
     const host = document.body;
-
     const me = API.me();
-    const bar = h('div', { class:'arsan-topbar' });
 
-    // ===== المجموعة الأساسية (للجميع) =====
-    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showUnifiedMap }, '🌐 الخريطة الشاملة'));
-    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showDepsEditor }, '🔗 التبعيّات'));
-    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: toggleChat }, '💬 التواصل'));
-    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'people.html'; }}, '👥 الفريق'));
-    bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'profile.html'; }, title:'ملفي الشخصي' }, '👤 ملفي'));
-
-    if (me.role === 'viewer') {
-      bar.appendChild(h('button', { class:'arsan-topbar-btn primary', onclick: showLogin }, '🔑 دخول'));
-    } else {
-      bar.appendChild(h('span', { class:`arsan-role ${me.role}`, style:'align-self:center' }, me.role === 'admin' ? 'مسؤول' : 'محرر'));
-      bar.appendChild(h('span', { style:'align-self:center;font-size:12px;color:var(--ink-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }, me.email));
-    }
-
-    // ===== أزرار الإجراءات السريعة (للمسجّلين داخل صفحة إدارة) =====
-    if (API.isLoggedIn() && window.CURRENT_DEPT_ID) {
-      bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showNewSopModal }, '➕ إجراء جديد'));
-      bar.appendChild(h('button', { class:'arsan-topbar-btn', onclick: showImportModal }, '📥 استيراد'));
-    }
-
-    // ===== أدوات الأدمن — مخفية خلف زر نجمة قابل للطيّ =====
-    if (me.role === 'admin') {
-      const adminWrap = h('div', { class:'arsan-admin-tools', style:'display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(61,90,128,.2);margin-top:8px;padding-top:10px;width:100%' });
-
-      // زر النجمة (toggler)
-      const starBtn = h('button', {
-        class:'arsan-topbar-btn arsan-admin-star',
-        title:'أدوات الأدمن',
-        style:'background:linear-gradient(135deg,#3D5A80,#293F5C)!important;color:#fff!important;font-weight:700!important;border:none!important;display:flex!important;align-items:center!important;justify-content:space-between!important'
-      },
-        h('span', {}, '⭐ أدوات الأدمن'),
-        h('span', { class:'arsan-admin-caret', style:'font-size:11px;transition:transform .25s' }, '▼')
-      );
-
-      // الحاوي المنسدل
-      const dropdown = h('div', { class:'arsan-admin-dropdown', style:'display:none;flex-direction:column;gap:6px;padding:8px 6px 4px;background:rgba(61,90,128,.06);border-radius:8px' });
-
-      dropdown.appendChild(h('button', {
-        class:'arsan-topbar-btn',
-        onclick: () => {
-          if (typeof window.openArsanSettings === 'function') window.openArsanSettings();
-          else alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');
+    // Inject CSS once
+    if (!document.getElementById('arsan-menu-css')) {
+      const st = document.createElement('style');
+      st.id = 'arsan-menu-css';
+      st.textContent = `
+        .arsan-menu-fab{
+          position:fixed;top:14px;right:14px;z-index:10000;
+          display:inline-flex;align-items:center;gap:8px;
+          padding:10px 16px;border-radius:999px;
+          background:#1a1510;color:#f5ead0;border:1px solid rgba(200,154,74,.4);
+          font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+          box-shadow:0 6px 20px rgba(0,0,0,.25);transition:all .15s;
         }
-      }, '⚙️ إعدادات النظام'));
-      dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'users.html'; }}, '👥 المستخدمون'));
-      dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => { window.location.href = 'insights.html'; }}, '📊 رؤى ومراقبة'));
+        .arsan-menu-fab:hover{background:#2a2118;border-color:#c89a4a;transform:translateY(-1px)}
+        .arsan-menu-fab .pill-role{
+          display:inline-block;padding:2px 8px;border-radius:10px;
+          background:rgba(200,154,74,.2);color:#c89a4a;font-size:11px;font-weight:700;
+        }
+        html[data-theme="light"] .arsan-menu-fab{
+          background:#fff;color:#1a1510;border-color:rgba(0,0,0,.12);
+        }
+        html[data-theme="light"] .arsan-menu-fab:hover{background:#f3eed8}
 
-      // Hooks لإضافة المزيد لاحقاً (audit/webhooks/announcements...)
-      // أزرار اختيارية لو الموديولات محمّلة:
+        .arsan-menu-bd{
+          position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;
+          display:none;animation:arsan-fade .15s;
+        }
+        .arsan-menu-bd.open{display:block}
+        @keyframes arsan-fade{from{opacity:0}to{opacity:1}}
+
+        .arsan-menu-panel{
+          position:fixed;top:64px;right:14px;z-index:10001;
+          width:300px;max-height:calc(100vh - 80px);overflow-y:auto;
+          background:#1a1510;border:1px solid rgba(200,154,74,.25);border-radius:14px;
+          box-shadow:0 20px 50px rgba(0,0,0,.45);
+          padding:12px;display:none;animation:arsan-slide .18s ease-out;
+        }
+        .arsan-menu-panel.open{display:block}
+        @keyframes arsan-slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        html[data-theme="light"] .arsan-menu-panel{
+          background:#fffdf6;border-color:rgba(0,0,0,.1);box-shadow:0 20px 50px rgba(0,0,0,.18);
+        }
+
+        .arsan-menu-user{
+          padding:10px 12px;border-radius:10px;background:rgba(200,154,74,.1);
+          margin-bottom:10px;display:flex;align-items:center;gap:10px;
+        }
+        .arsan-menu-user .avatar{
+          width:36px;height:36px;border-radius:50%;
+          background:linear-gradient(135deg,#c89a4a,#8a6a30);
+          color:#1a1510;display:flex;align-items:center;justify-content:center;
+          font-weight:700;font-size:14px;flex-shrink:0;
+        }
+        .arsan-menu-user .info{flex:1;min-width:0}
+        .arsan-menu-user .name{font-size:13px;font-weight:600;color:#f5ead0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .arsan-menu-user .role{font-size:11px;color:#c89a4a}
+        html[data-theme="light"] .arsan-menu-user .name{color:#1a1510}
+
+        .arsan-menu-section{
+          font-size:11px;font-weight:700;color:#8a7a5e;
+          text-transform:uppercase;letter-spacing:.5px;
+          padding:8px 10px 4px;
+        }
+        .arsan-menu-item{
+          display:flex;align-items:center;gap:10px;width:100%;
+          padding:10px 12px;border-radius:8px;
+          background:transparent;border:none;color:#f5ead0;
+          font-family:inherit;font-size:14px;text-align:right;
+          cursor:pointer;transition:background .12s;
+        }
+        .arsan-menu-item:hover{background:rgba(200,154,74,.12)}
+        .arsan-menu-item .ico{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+        html[data-theme="light"] .arsan-menu-item{color:#1a1510}
+        html[data-theme="light"] .arsan-menu-item:hover{background:rgba(200,154,74,.18)}
+
+        .arsan-menu-item.danger{color:#ff7b7b}
+        .arsan-menu-item.primary{background:#c89a4a;color:#1a1510;font-weight:600}
+        .arsan-menu-item.primary:hover{filter:brightness(1.1);background:#c89a4a}
+        .arsan-menu-divider{height:1px;background:rgba(200,154,74,.15);margin:8px 0}
+
+        body{padding-top:0 !important}
+      `;
+      document.head.appendChild(st);
+    }
+
+    // ===== FAB Button =====
+    const initials = (me.name || me.email || '?').slice(0,1).toUpperCase();
+    const roleLabel = me.role === 'admin' ? 'مسؤول' : me.role === 'editor' ? 'محرر' : 'زائر';
+    const fab = h('button', {
+      class:'arsan-menu-fab', title:'القائمة',
+      onclick: () => {
+        document.querySelector('.arsan-menu-bd').classList.add('open');
+        document.querySelector('.arsan-menu-panel').classList.add('open');
+      }
+    },
+      h('span', {}, '☰'),
+      h('span', { style:'font-weight:700' }, 'القائمة'),
+      h('span', { class:'pill-role' }, roleLabel)
+    );
+
+    // ===== Backdrop =====
+    const bd = h('div', {
+      class:'arsan-menu-bd',
+      onclick: () => closeMenu()
+    });
+
+    // ===== Panel =====
+    const panel = h('div', { class:'arsan-menu-panel', onclick: (e) => e.stopPropagation() });
+
+    function closeMenu(){
+      bd.classList.remove('open');
+      panel.classList.remove('open');
+    }
+    function item(ico, label, onclick, opts={}) {
+      return h('button', {
+        class: 'arsan-menu-item' + (opts.cls ? ' ' + opts.cls : ''),
+        onclick: () => { closeMenu(); onclick(); }
+      },
+        h('span', { class:'ico' }, ico),
+        h('span', {}, label)
+      );
+    }
+    function section(label){
+      return h('div', { class:'arsan-menu-section' }, label);
+    }
+    function divider(){
+      return h('div', { class:'arsan-menu-divider' });
+    }
+
+    // User card
+    if (me.role !== 'viewer') {
+      panel.appendChild(h('div', { class:'arsan-menu-user' },
+        h('div', { class:'avatar' }, initials),
+        h('div', { class:'info' },
+          h('div', { class:'name' }, me.name || me.email),
+          h('div', { class:'role' }, roleLabel + (me.email ? ' · ' + me.email.split('@')[0] : ''))
+        )
+      ));
+    }
+
+    // ===== التنقّل =====
+    panel.appendChild(section('التنقّل'));
+    panel.appendChild(item('🏠', 'الصفحة الرئيسية', () => { window.location.href = 'index.html'; }));
+    panel.appendChild(item('🌐', 'الخريطة الشاملة', showUnifiedMap));
+    panel.appendChild(item('🔗', 'التبعيّات', showDepsEditor));
+    panel.appendChild(item('👥', 'دليل الفريق', () => { window.location.href = 'people.html'; }));
+    panel.appendChild(item('💬', 'التواصل والشات', toggleChat));
+
+    // ===== الإجراءات السريعة (داخل إدارة) =====
+    if (API.isLoggedIn() && window.CURRENT_DEPT_ID) {
+      panel.appendChild(divider());
+      panel.appendChild(section('إجراءات سريعة'));
+      panel.appendChild(item('➕', 'إجراء جديد', showNewSopModal, { cls:'primary' }));
+      panel.appendChild(item('📥', 'استيراد إجراء', showImportModal));
+    }
+
+    // ===== أدوات الأدمن =====
+    if (me.role === 'admin') {
+      panel.appendChild(divider());
+      panel.appendChild(section('⭐ أدوات الأدمن'));
+      panel.appendChild(item('⚙️', 'إعدادات النظام', () => {
+        if (typeof window.openArsanSettings === 'function') window.openArsanSettings();
+        else alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');
+      }));
+      panel.appendChild(item('👥', 'إدارة المستخدمين', () => { window.location.href = 'users.html'; }));
+      panel.appendChild(item('📊', 'رؤى ومراقبة', () => { window.location.href = 'insights.html'; }));
       if (window.ArsanAuditViewer && window.ArsanAuditViewer.open){
-        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanAuditViewer.open() }, '📋 سجل النشاط'));
+        panel.appendChild(item('📋', 'سجل النشاط (Audit)', () => window.ArsanAuditViewer.open()));
       }
       if (window.ArsanWebhooksAdmin && window.ArsanWebhooksAdmin.open){
-        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanWebhooksAdmin.open() }, '🔌 Webhooks'));
+        panel.appendChild(item('🔌', 'تكامل Webhooks', () => window.ArsanWebhooksAdmin.open()));
       }
       if (window.ArsanAnnouncements && window.ArsanAnnouncements.openComposer){
-        dropdown.appendChild(h('button', { class:'arsan-topbar-btn', onclick: () => window.ArsanAnnouncements.openComposer() }, '📢 إعلان جديد'));
+        panel.appendChild(item('📢', 'إعلان جديد', () => window.ArsanAnnouncements.openComposer()));
       }
-
-      // Toggle
-      starBtn.addEventListener('click', () => {
-        const open = dropdown.style.display !== 'none';
-        dropdown.style.display = open ? 'none' : 'flex';
-        const caret = starBtn.querySelector('.arsan-admin-caret');
-        if (caret) caret.style.transform = open ? '' : 'rotate(180deg)';
-        // احفظ الحالة
-        try { localStorage.setItem('arsan_admin_open', open ? '0' : '1'); } catch(e) {}
-      });
-      // استرجاع آخر حالة
-      try {
-        if (localStorage.getItem('arsan_admin_open') === '1') {
-          dropdown.style.display = 'flex';
-          const caret = starBtn.querySelector('.arsan-admin-caret');
-          if (caret) caret.style.transform = 'rotate(180deg)';
-        }
-      } catch(e) {}
-
-      adminWrap.appendChild(starBtn);
-      adminWrap.appendChild(dropdown);
-      bar.appendChild(adminWrap);
     }
 
-    if (me.role !== 'viewer') {
-      document.body.classList.add('editor-mode');
+    // ===== الحساب =====
+    panel.appendChild(divider());
+    panel.appendChild(section('الحساب'));
+    if (me.role === 'viewer') {
+      panel.appendChild(item('🔑', 'تسجيل الدخول', showLogin, { cls:'primary' }));
+    } else {
+      panel.appendChild(item('👤', 'ملفي الشخصي', () => { window.location.href = 'profile.html'; }));
+      panel.appendChild(item('🚪', 'تسجيل الخروج', () => {
+        if (typeof window.ArsanLogout === 'function') window.ArsanLogout();
+        else { try { localStorage.removeItem('arsan_token'); localStorage.removeItem('arsan_me'); } catch(e){} window.location.href = 'index.html'; }
+      }, { cls:'danger' }));
     }
 
-    // Logout moved to header pill (next to theme/lang) — see logout-button.js
+    if (me.role !== 'viewer') document.body.classList.add('editor-mode');
 
-    host.appendChild(bar);
+    // Esc to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) closeMenu();
+    });
+
+    host.appendChild(fab);
+    host.appendChild(bd);
+    host.appendChild(panel);
   }
 
   // ================= NEW SOP =================

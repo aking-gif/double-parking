@@ -1890,7 +1890,7 @@ ${clipped}
       if (path === "/api/sites" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ error:"unauthorized" }, 401, req);
-        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.sites, "json")) || [];
         return json({ sites: list }, 200, req);
       }
       if (path === "/api/sites" && method === "POST") {
@@ -1899,7 +1899,7 @@ ${clipped}
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const body = await req.json().catch(()=>({}));
         if (!body || !body.id || !body.name) return json({ error:"id+name required" }, 400, req);
-        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.sites, "json")) || [];
         if (list.find(x => x.id === body.id)) return json({ error:"id exists" }, 409, req);
         const site = {
           id: body.id, name: body.name,
@@ -1909,7 +1909,7 @@ ${clipped}
           createdAt: Date.now()
         };
         list.push(site);
-        await env.ARSAN.put(KV.sites, JSON.stringify(list));
+        await env.ARSAN.put(KEYS.sites, JSON.stringify(list));
         return json({ ok:true, site }, 200, req);
       }
       if (path.match(/^\/api\/sites\/[^\/]+$/) && method === "PATCH") {
@@ -1917,12 +1917,12 @@ ${clipped}
         if (!s) return json({ error:"unauthorized" }, 401, req);
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const id = path.split("/").pop();
-        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.sites, "json")) || [];
         const idx = list.findIndex(x => x.id === id);
         if (idx < 0) return json({ error:"not found" }, 404, req);
         const body = await req.json().catch(()=>({}));
         list[idx] = { ...list[idx], ...body, id };
-        await env.ARSAN.put(KV.sites, JSON.stringify(list));
+        await env.ARSAN.put(KEYS.sites, JSON.stringify(list));
         return json({ ok:true, site: list[idx] }, 200, req);
       }
       if (path.match(/^\/api\/sites\/[^\/]+$/) && method === "DELETE") {
@@ -1930,9 +1930,9 @@ ${clipped}
         if (!s) return json({ error:"unauthorized" }, 401, req);
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const id = path.split("/").pop();
-        const list = (await env.ARSAN.get(KV.sites, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.sites, "json")) || [];
         const next = list.filter(x => x.id !== id);
-        await env.ARSAN.put(KV.sites, JSON.stringify(next));
+        await env.ARSAN.put(KEYS.sites, JSON.stringify(next));
         return json({ ok:true }, 200, req);
       }
 
@@ -1942,7 +1942,7 @@ ${clipped}
       if (path === "/api/triggers" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ error:"unauthorized" }, 401, req);
-        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.triggers, "json")) || [];
         return json({ triggers: list }, 200, req);
       }
       if (path === "/api/triggers" && method === "POST") {
@@ -1951,7 +1951,7 @@ ${clipped}
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const body = await req.json().catch(()=>({}));
         if (!body || !body.sopRef) return json({ error:"sopRef required" }, 400, req);
-        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.triggers, "json")) || [];
         const trig = {
           id: "trg_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
           type: body.type || "daily",        // daily | weekly | once
@@ -1965,7 +1965,7 @@ ${clipped}
           createdAt: Date.now()
         };
         list.push(trig);
-        await env.ARSAN.put(KV.triggers, JSON.stringify(list));
+        await env.ARSAN.put(KEYS.triggers, JSON.stringify(list));
         return json({ ok:true, trigger: trig }, 200, req);
       }
       if (path.match(/^\/api\/triggers\/[^\/]+$/) && method === "PATCH") {
@@ -1973,12 +1973,12 @@ ${clipped}
         if (!s) return json({ error:"unauthorized" }, 401, req);
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const id = path.split("/").pop();
-        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
+        const list = (await env.ARSAN.get(KEYS.triggers, "json")) || [];
         const idx = list.findIndex(x => x.id === id);
         if (idx < 0) return json({ error:"not found" }, 404, req);
         const body = await req.json().catch(()=>({}));
         list[idx] = { ...list[idx], ...body, id };
-        await env.ARSAN.put(KV.triggers, JSON.stringify(list));
+        await env.ARSAN.put(KEYS.triggers, JSON.stringify(list));
         return json({ ok:true, trigger: list[idx] }, 200, req);
       }
       if (path.match(/^\/api\/triggers\/[^\/]+$/) && method === "DELETE") {
@@ -1986,17 +1986,17 @@ ${clipped}
         if (!s) return json({ error:"unauthorized" }, 401, req);
         if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
         const id = path.split("/").pop();
-        const list = (await env.ARSAN.get(KV.triggers, "json")) || [];
-        await env.ARSAN.put(KV.triggers, JSON.stringify(list.filter(x => x.id !== id)));
+        const list = (await env.ARSAN.get(KEYS.triggers, "json")) || [];
+        await env.ARSAN.put(KEYS.triggers, JSON.stringify(list.filter(x => x.id !== id)));
         return json({ ok:true }, 200, req);
       }
       // POST /api/triggers/run — manual run (or cron). Creates tasks for triggers due today.
       if (path === "/api/triggers/run" && method === "POST") {
         const s = await getSession(req, env);
         if (!s) return json({ error:"unauthorized" }, 401, req);
-        const triggers = (await env.ARSAN.get(KV.triggers, "json")) || [];
-        const lastRun = (await env.ARSAN.get(KV.triggersLastRun, "json")) || {};
-        const tasks = (await env.ARSAN.get(KV.tasks, "json")) || [];
+        const triggers = (await env.ARSAN.get(KEYS.triggers, "json")) || [];
+        const lastRun = (await env.ARSAN.get(KEYS.triggersLastRun, "json")) || {};
+        const tasks = (await env.ARSAN.get(KEYS.tasks, "json")) || [];
         const now = Date.now();
         const today = new Date().toISOString().slice(0,10);
         const created = [];
@@ -2025,8 +2025,8 @@ ${clipped}
           created.push(task);
           lastRun[t.id] = today;
         }
-        await env.ARSAN.put(KV.tasks, JSON.stringify(tasks));
-        await env.ARSAN.put(KV.triggersLastRun, JSON.stringify(lastRun));
+        await env.ARSAN.put(KEYS.tasks, JSON.stringify(tasks));
+        await env.ARSAN.put(KEYS.triggersLastRun, JSON.stringify(lastRun));
         return json({ ok:true, created: created.length, tasks: created }, 200, req);
       }
 
@@ -2036,10 +2036,10 @@ ${clipped}
       if (path === "/api/exec/summary" && method === "GET") {
         const s = await getSession(req, env);
         if (!s) return json({ error:"unauthorized" }, 401, req);
-        const sites = (await env.ARSAN.get(KV.sites, "json")) || [];
-        const sopsAll = (await env.ARSAN.get(KV.sops, "json")) || {};
-        const tasks = (await env.ARSAN.get(KV.tasks, "json")) || [];
-        const approvalsP = (await env.ARSAN.get(KV.approvals, "json")) || [];
+        const sites = (await env.ARSAN.get(KEYS.sites, "json")) || [];
+        const sopsAll = (await env.ARSAN.get(KEYS.sops, "json")) || {};
+        const tasks = (await env.ARSAN.get(KEYS.tasks, "json")) || [];
+        const approvalsP = (await env.ARSAN.get(KEYS.approvals, "json")) || [];
         const now = Date.now();
         // SOPs flat
         let total = 0, active = 0, draft = 0, review = 0, approved = 0, deprecated = 0;

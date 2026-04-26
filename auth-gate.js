@@ -160,15 +160,12 @@
         width:auto;height:110px;
         background:transparent;
         filter:
-          drop-shadow(0 0 20px rgba(200,154,74,.55))
+          drop-shadow(0 0 20px rgba(200,154,74,.45))
           drop-shadow(0 6px 18px rgba(0,0,0,.35));
       }
       .ag-logo-mark svg{
         width:auto; height:100%;
         display:block;
-      }
-      .ag-logo-mark svg path{
-        fill:#C89A4A !important;
       }
       .ag-logo-mark img{
         width:auto; height:100%;

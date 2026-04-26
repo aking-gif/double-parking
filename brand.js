@@ -8,18 +8,30 @@
   if (window.ArsannBrand) return;
 
   /* ===============================
-     COLORS (Pantone 871C / Black / White)
+     COLORS — ثلاثة ألوان رسمية فقط
+     ذهبي · أسود · أبيض
   =============================== */
   const COLORS = {
-    gold: '#3D5A80',
-    goldLight: '#98B4D4',
-    goldDark: '#293F5C',
-    goldSoft: '#DCE7F2',
-    goldGlow: 'rgba(61,90,128,.35)',
+    gold: '#C89A4A',
+    goldLight: '#E0BD7B',
+    goldDark: '#8B6F00',
+    goldSoft: '#F4E9CE',
+    goldGlow: 'rgba(200,154,74,.35)',
     white: '#FFFFFF',
     black: '#0A0A0A',
     blackSoft: '#1A1A1A',
   };
+
+  /* اختيار اللون المناسب حسب الثيم الحالي */
+  function logoColorForTheme(){
+    try {
+      const theme = document.documentElement.getAttribute('data-theme') || '';
+      // الثيم الفاتح: أسود — الثيم الداكن: ذهبي — في حالات خاصة: أبيض
+      if (theme === 'light' || theme === 'spring' || theme === 'summer') return COLORS.black;
+      if (theme === 'white' || theme === 'mono-white') return COLORS.white;
+      return COLORS.gold;
+    } catch(_){ return COLORS.gold; }
+  }
 
   /* ===============================
      OFFICIAL LOGO PATH (from SVG)
@@ -36,16 +48,21 @@ M961.82,557.92l-13.88,14.42v-23.66l13.86-14.3v9.53l.02-.02v14.03h0ZM961.82,583.5
   /* صورة الحصان الأسود (الأدهم) — للجولة التعريفية والمساعد الذكي فقط */
   const HORSE_IMG = './adham.png';
 
-  /* شعار الشركة الرسمي — SVG path الموحّد (للموقع كله) */
-  const LOGO_SVG = (size = 32, color = COLORS.gold) => `
+  /* شعار الشركة الرسمي — SVG path الموحّد (للموقع كله)
+     اللون الافتراضي يتبع الثيم: ذهبي / أسود / أبيض فقط */
+  const LOGO_SVG = (size = 32, color) => {
+    const c = color || logoColorForTheme();
+    return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"
          viewBox="940 395 30 290" preserveAspectRatio="xMidYMid meet"
+         class="arsann-logo-svg"
          style="display:block">
-      <path d="${ARSANN_OFFICIAL_PATH}" fill="${color}"/>
+      <path d="${ARSANN_OFFICIAL_PATH}" fill="${c}"/>
     </svg>
   `;
+  };
 
-  const LOGO_MARK_SVG = (size = 24, color = COLORS.gold) => LOGO_SVG(size, color);
+  const LOGO_MARK_SVG = (size = 24, color) => LOGO_SVG(size, color);
 
   /* alias للتوافق مع الكود القديم */
   const LOGO_PATH_SVG = LOGO_SVG;

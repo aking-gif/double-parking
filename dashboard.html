@@ -5959,7 +5959,17 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 <script src="arsan-polish-pack.js?v=1"></script>
 <script src="arsan-power-pack.js?v=1"></script>
 <script src="arsan-mega-features.js?v=1"></script>
-<script src="auth-gate.js?v=20"></script>
+<!-- auth-gate.js مُزال من dashboard.html — الحماية مضمونة عبر HARD AUTH GUARD أعلاه.
+     auth-gate.js كان يحقن backdrop ثابت يعطّل السكرول. -->
+<script>
+  // إزالة أي ag-bd متبقّي من زيارات سابقة (cache قديم)
+  (function(){
+    var bd = document.getElementById('ag-bd');
+    if (bd) bd.remove();
+    var st = document.getElementById('arsan-gate-styles');
+    if (st) st.remove();
+  })();
+</script>
  
 </body>
 </html>

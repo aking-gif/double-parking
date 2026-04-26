@@ -1229,7 +1229,7 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
   .arsan-topbar{ background:linear-gradient(180deg, #1a1510, #231a10) !important; }
 }
 </style>
-<link rel="stylesheet" href="design-polish.css?v=23">
+<link rel="stylesheet" href="design-polish.css?v=24">
 </head>
 <body>
 <!-- =================== HEADER =================== -->
@@ -2007,14 +2007,16 @@ function isFilled(sop){
 function sopCompleteness(sop){
   if (!sop) return 0;
   const W = {
-    title:   8,   // usually present — codes & titles come pre-seeded
-    desc:   10,
-    purpose:12,
-    scope:  10,
-    owner:   8,
-    sla:     6,
-    steps:  18,   // most important
-    kpis:   10,
+    title:   6,
+    desc:    8,
+    purpose: 10,
+    scope:   8,
+    owner:   6,
+    responsible: 6,
+    executors:   6,
+    sla:     5,
+    steps:  18,
+    kpis:    9,
     inputs:  6,
     outputs: 6,
     forms:   6,
@@ -2025,6 +2027,8 @@ function sopCompleteness(sop){
   if (!isPH(sop.purpose)) got += W.purpose;
   if (!isPH(sop.scope))   got += W.scope;
   if (!isPH(sop.owner))   got += W.owner;
+  if (!isPH(sop.responsible)) got += W.responsible;
+  if (Array.isArray(sop.executors) ? sop.executors.length>0 : !isPH(sop.executors)) got += W.executors;
   if (!isPH(sop.sla))     got += W.sla;
   if (!isPH(sop.kpis))    got += W.kpis;
   if (!isPH(sop.inputs))  got += W.inputs;
@@ -2204,6 +2208,8 @@ function openModal(idx){
 
   const metaItems = [
     { k: isEn?'Owner':'الجهة المالكة', v:s.owner, icon:"user"  },
+    { k: isEn?'Responsible':'المسؤول عن الإجراء', v:s.responsible, icon:"user" },
+    { k: isEn?'Executors':'المنفّذون', v: Array.isArray(s.executors) ? s.executors.join('، ') : s.executors, icon:"users" },
     { k: isEn?'SLA':'الإطار الزمني (SLA)', v:s.sla, icon:"clock" },
     { k: isEn?'Scope':'النطاق', v:s.scope, icon:"target" },
     { k: isEn?'Inputs':'المدخلات', v:s.inputs, icon:"in" },
@@ -2345,10 +2351,16 @@ async function saveEdits(){
     purpose: txt(document.getElementById('m-purpose')),
     kpis: txt(document.getElementById('m-kpis')),
   };
-  // meta fields in order: owner, sla, scope, inputs, outputs
-  const metaKeys = ['owner','sla','scope','inputs','outputs'];
+  // meta fields in order: owner, responsible, executors, sla, scope, inputs, outputs
+  const metaKeys = ['owner','responsible','executors','sla','scope','inputs','outputs'];
   document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
-    if (metaKeys[i]) patch[metaKeys[i]] = txt(el);
+    const k = metaKeys[i]; if (!k) return;
+    let v = txt(el);
+    if (k === 'executors') {
+      // split comma/Arabic-comma list back to array
+      v = v.split(/[،,]+/).map(s=>s.trim()).filter(Boolean);
+    }
+    patch[k] = v;
   });
   // steps
   const steps = [...document.querySelectorAll('#m-steps li')].map(li=>txt(li)).filter(Boolean);
@@ -2356,6 +2368,17 @@ async function saveEdits(){
 
   Object.assign(s, patch);
   s.updatedAt = Date.now();
+
+  // Use SaveEngine if available (handles toast, retry, shadow, slack)
+  if (window.SaveEngine) {
+    exitEditMode();
+    try { if (typeof renderGrid === 'function') renderGrid(); } catch(_){}
+    openModal(state.openIdx);
+    window.SaveEngine.saveNow(DEPT.id, s.code, patch);
+    return;
+  }
+
+  // Fallback (engine not loaded)
   setStatus('جاري الحفظ…', true);
   try {
     if (window.ArsanAPI && window.ArsanAPI.hasBackend && window.ArsanAPI.hasBackend()) {
@@ -2368,9 +2391,8 @@ async function saveEdits(){
     }
     setStatus('✓ تم الحفظ', true);
     exitEditMode();
-    // Refresh the grid so the filled dot / green title / timestamp update live
     try { if (typeof renderGrid === 'function') renderGrid(); } catch(_){}
-    openModal(state.openIdx); // reload view
+    openModal(state.openIdx);
   } catch(e){
     setStatus('تعذّر حفظ التعديلات: ' + (e.message||e), false);
   }
@@ -2522,7 +2544,7 @@ ${content}
 ---
 
 الصيغة المطلوبة (انسخها كما هي واملأ القيم):
-{"purpose":"","owner":"","sla":"","scope":"","inputs":"","outputs":"","steps":["","",""],"kpis":["",""]}
+{"purpose":"","owner":"","responsible":"","executors":[""],"sla":"","scope":"","inputs":"","outputs":"","steps":["","",""],"kpis":["",""]}
 
 ابدأ الرد بـ { مباشرة.`;
       const res = await callAI(prompt);
@@ -2552,7 +2574,7 @@ async function handleAIGen(){
 صُغ إجراءاً تشغيلياً بعنوان: "${s.title}" لإدارة: "${DEPT.name}".
 
 الصيغة المطلوبة (انسخها كما هي واملأ القيم بمحتوى واقعي مختصر):
-{"purpose":"الغرض في جملة","owner":"الجهة المالكة","sla":"الإطار الزمني","scope":"النطاق","inputs":"المدخلات","outputs":"المخرجات","steps":["خطوة 1","خطوة 2","خطوة 3","خطوة 4","خطوة 5"],"kpis":["مؤشر 1","مؤشر 2","مؤشر 3"]}
+{"purpose":"الغرض في جملة","owner":"الجهة المالكة","responsible":"المسؤول الرئيسي (شخص)","executors":["منفّذ 1","منفّذ 2"],"sla":"الإطار الزمني","scope":"النطاق","inputs":"المدخلات","outputs":"المخرجات","steps":["خطوة 1","خطوة 2","خطوة 3","خطوة 4","خطوة 5"],"kpis":["مؤشر 1","مؤشر 2","مؤشر 3"]}
 
 ابدأ الرد بـ { مباشرة.`;
     const res = await callAI(prompt);
@@ -2574,7 +2596,7 @@ function fillFieldsFromObject(obj){
   const setText = (id,v)=>{ const el=document.getElementById(id); if(el && v) el.innerText = v; };
   setText('m-purpose', obj.purpose);
   setText('m-kpis', Array.isArray(obj.kpis) ? obj.kpis.join('\n') : obj.kpis);
-  const metaKeys = ['owner','sla','scope','inputs','outputs'];
+  const metaKeys = ['owner','responsible','executors','sla','scope','inputs','outputs'];
   document.querySelectorAll('#m-meta .meta-cell .v').forEach((el,i)=>{
     const k = metaKeys[i];
     if (k && obj[k]) el.innerText = Array.isArray(obj[k]) ? obj[k].join('، ') : obj[k];
@@ -5971,8 +5993,9 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 })();
 </script>
 
-<script src="updates-banner.js?v=23"></script>
-<script src="brand.js?v=23"></script>
+<script src="save-engine.js?v=24"></script>
+<script src="updates-banner.js?v=24"></script>
+<script src="brand.js?v=24"></script>
 <script>
   /* حقن شعار أرسان في زاوية الصفحة (badge) و title bar */
   (function injectBrandLogo(){
@@ -5991,32 +6014,32 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     }
   })();
 </script>
-<script src="cache-bust.js?v=23"></script>
-<script src="sidebar.js?v=23"></script>
-<script src="i18n.js?v=23"></script>
-<script src="themes.js?v=23"></script>
-<script src="settings.js?v=23"></script>
-<script src="favorites.js?v=23"></script>
-<script src="logout-button.js?v=23"></script>
-<!-- <script src="quick-actions.js?v=23"></script> --> <!-- removed: زر + البرتقالي -->
-<script src="notifications.js?v=23"></script>
-<script src="maintenance.js?v=23"></script>
-<script src="changelog.js?v=23"></script>
-<script src="admin-fab.js?v=23"></script>
-<script src="backup-manager.js?v=23"></script>
-<script src="welcome-popup.js?v=23"></script>
-<script src="admin-toolbar.js?v=23"></script>
-<script src="ai-assistant.js?v=23"></script>
-<script src="tour.js?v=23"></script>
-<script src="welcome.js?v=23"></script>
-<script src="messaging.js?v=23"></script>
-<script src="mentions.js?v=23"></script>
-<script src="audit-viewer.js?v=23"></script>
-<script src="webhooks-admin.js?v=23"></script>
-<script src="tasks.js?v=23"></script>
-<script src="comments.js?v=23"></script>
-<script src="approval-flow.js?v=23"></script>
-<script src="cmdk.js?v=23"></script>
+<script src="cache-bust.js?v=24"></script>
+<script src="sidebar.js?v=24"></script>
+<script src="i18n.js?v=24"></script>
+<script src="themes.js?v=24"></script>
+<script src="settings.js?v=24"></script>
+<script src="favorites.js?v=24"></script>
+<script src="logout-button.js?v=24"></script>
+<!-- <script src="quick-actions.js?v=24"></script> --> <!-- removed: زر + البرتقالي -->
+<script src="notifications.js?v=24"></script>
+<script src="maintenance.js?v=24"></script>
+<script src="changelog.js?v=24"></script>
+<script src="admin-fab.js?v=24"></script>
+<script src="backup-manager.js?v=24"></script>
+<script src="welcome-popup.js?v=24"></script>
+<script src="admin-toolbar.js?v=24"></script>
+<script src="ai-assistant.js?v=24"></script>
+<script src="tour.js?v=24"></script>
+<script src="welcome.js?v=24"></script>
+<script src="messaging.js?v=24"></script>
+<script src="mentions.js?v=24"></script>
+<script src="audit-viewer.js?v=24"></script>
+<script src="webhooks-admin.js?v=24"></script>
+<script src="tasks.js?v=24"></script>
+<script src="comments.js?v=24"></script>
+<script src="approval-flow.js?v=24"></script>
+<script src="cmdk.js?v=24"></script>
 <!-- auth-gate.js مُزال من dashboard.html — الحماية مضمونة عبر HARD AUTH GUARD أعلاه.
      auth-gate.js كان يحقن backdrop ثابت يعطّل السكرول. -->
 <script>

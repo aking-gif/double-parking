@@ -631,16 +631,54 @@
     });
   }
 
+  // 🗺️ خريطة مرادفات بين معرّف البطاقة (data-id) وقيم departments[] في users
+  // تقبل: id إنجليزي صغير (executive)، اسم إنجليزي كامل (Executive Administration)،
+  // اسم عربي كامل (الإدارة التنفيذية)، أو UUID مخصّص.
+  const DEPT_ALIASES = {
+    'executive':   ['executive administration', 'executive', 'الإدارة التنفيذية'],
+    'projects':    ['projects management', 'projects', 'إدارة المشاريع'],
+    'finance':     ['finance', 'الإدارة المالية', 'إدارة المالية'],
+    'procurement': ['supply chain', 'procurement', 'إدارة المشتريات', 'سلسلة الإمداد'],
+    'operations':  ['operations', 'الإدارة التشغيلية', 'العمليات'],
+    'hr':          ['hr', 'human resources', 'إدارة الموارد البشرية', 'الموارد البشرية', 'people & culture'],
+    'bizdev':      ['business development', 'bizdev', 'إدارة تطوير الأعمال', 'تطوير الأعمال'],
+    'legal':       ['legal and governance', 'legal', 'القانونية', 'الحوكمة'],
+    'academy':     ['the academy', 'academy', 'الأكاديمية'],
+    'archive':     ['arsann archive', 'archive', 'الأرشيف'],
+  };
+  function deptMatches(cardId, allowedSet){
+    if (!cardId) return false;
+    const norm = s => String(s||'').toLowerCase().trim();
+    const id = norm(cardId);
+    if (allowedSet.has(id)) return true;
+    // جرّب أيّ مرادف من القائمة
+    const aliases = DEPT_ALIASES[id] || [];
+    for (const a of aliases) if (allowedSet.has(norm(a))) return true;
+    // العكس: لو قيمة في allowed تطابق أحد aliases للـ id
+    for (const v of allowedSet) {
+      if (v === id) return true;
+      // حاول ضد كل المعرّفات
+      for (const [k, list] of Object.entries(DEPT_ALIASES)) {
+        if (k === id && list.some(a => norm(a) === v)) return true;
+      }
+    }
+    return false;
+  }
+
   function filterDepartments(me){
     // ✅ فلترة فعّالة — يرى المستخدم إداراته فقط. الأدمن يرى الكل.
     const isAdminUser = me.role === 'admin' || (me.email||'').toLowerCase() === 'a.king@arsann.com';
-    const allowed = new Set((me.departments || []).map(d => String(d).toLowerCase()));
+    const rawAllowed = (me.departments || []).map(d => String(d).toLowerCase().trim());
+    // ⭐ "*" = كل الإدارات (مثل الأدمن)
+    const hasWildcard = rawAllowed.includes('*');
+    const allowed = new Set(rawAllowed);
     const apply = () => {
       const cards = $$('.dept-card');
       let visible = 0;
       cards.forEach(card => {
         const id = (card.getAttribute('data-id') || '').toLowerCase();
-        if (isAdminUser || allowed.has(id)) {
+        const ok = isAdminUser || hasWildcard || deptMatches(id, allowed);
+        if (ok) {
           card.style.display = '';
           card.classList.remove('ag-locked');
           card.removeAttribute('title');
@@ -652,18 +690,26 @@
       // إذا لم يعيَّن للمستخدم أي إدارة، اعرض رسالة وديّة
       const grid = document.getElementById('deptGrid');
       let empty = document.getElementById('ag-no-depts');
-      if (!isAdminUser && visible === 0) {
+      if (!isAdminUser && !hasWildcard && visible === 0) {
         if (!empty && grid) {
           empty = document.createElement('div');
           empty.id = 'ag-no-depts';
           empty.style.cssText = 'grid-column:1/-1;padding:40px 24px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:14px;color:var(--ink-2)';
+          const allowedList = [...allowed].filter(x=>x!=='*').join('، ') || '—';
           empty.innerHTML = `
             <div style="font-size:36px;margin-bottom:10px">🔒</div>
             <h3 style="margin:0 0 8px;font-size:18px;color:var(--ink-1)">لم يتم تعيينك لأي إدارة بعد</h3>
-            <p style="margin:0;line-height:1.7">تواصل مع مسؤول المنصّة (a.king@arsann.com) ليُضيفك للإدارات المناسبة.</p>
+            <p style="margin:0 0 8px;line-height:1.7">تواصل مع مسؤول المنصّة (a.king@arsann.com) ليُضيفك للإدارات المناسبة.</p>
+            <p style="margin:0;font-size:11px;opacity:.6">الإدارات المعيَّنة لك: ${allowedList}</p>
           `;
           grid.appendChild(empty);
         }
+        // 🧪 تشخيص: لماذا لم يتطابق شيء؟
+        try {
+          const cardIds = [...document.querySelectorAll('.dept-card')].map(c=>c.getAttribute('data-id'));
+          console.warn('[auth-gate] لا تطابق بين departments المستخدم وبطاقات الإدارات.',
+            { userDepartments: [...allowed], pageCardIds: cardIds });
+        } catch(_){}
       } else if (empty) {
         empty.remove();
       }

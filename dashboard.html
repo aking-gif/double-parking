@@ -5906,6 +5906,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
     if (me.role === 'admin') {
       panel.appendChild(divider());
       panel.appendChild(section('⭐ أدوات الأدمن'));
+      panel.appendChild(item('🅰', 'The A Intelligence (تجريبي)', () => { window.location.href = 'os.html'; }, { cls:'primary' }));
       panel.appendChild(item('⚙️', 'إعدادات النظام', () => {
         if (typeof window.openArsanSettings === 'function') window.openArsanSettings();
         else alert('لم يتم تحميل وحدة الإعدادات — حاول تحديث الصفحة (Ctrl+Shift+R).');

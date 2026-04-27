@@ -9,16 +9,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Arsan — الصلاحيات والمستخدمون</title>
 <script>
-(function(){
+// Soft auth check — لا يعيد التوجيه فجأة. إذا الـ token مفقود نعرض شاشة
+// تسجيل دخول واضحة من الـ gate، وندع المستخدم يقرر.
+window.__arsanAuthHint = (function(){
   try {
-    var t = localStorage.getItem('arsan_token') || localStorage.getItem('arsan_token_v1');
-    if (!t || t.length < 10) {
-      try { sessionStorage.setItem('arsan_return_to', location.href); } catch(_){}
-      var dest = location.pathname.replace(/users\.html.*$/i, 'index.html');
-      location.replace(dest);
-      throw new Error('not-logged-in');
-    }
-  } catch(e){ if (e.message === 'not-logged-in') throw e; }
+    var t = localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token');
+    if (!t || t.length < 10) return 'no-token';
+    return 'has-token';
+  } catch(_){ return 'storage-error'; }
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -263,9 +261,13 @@ table.users-tbl tbody tr:hover{background:var(--surface-2)}
 
   <div id="gate" class="login-gate" style="display:none">
     <div class="login-gate-inner">
-      <h2>🔒 صفحة الصلاحيات</h2>
-      <p>هذه الصفحة للمسؤول (Admin) فقط. سجّل الدخول بحساب مسؤول للمتابعة.</p>
-      <a href="dashboard.html" class="btn primary">الذهاب لتسجيل الدخول</a>
+      <h2 id="gate-title">🔒 صفحة الصلاحيات</h2>
+      <p id="gate-msg">هذه الصفحة للمسؤول (Admin) فقط. سجّل الدخول بحساب مسؤول للمتابعة.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+        <a href="index.html" class="btn primary" id="gate-cta">الذهاب لتسجيل الدخول</a>
+        <button class="btn ghost" id="gate-retry" style="display:none">إعادة المحاولة</button>
+      </div>
+      <pre id="gate-debug" style="display:none;margin-top:18px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:left;direction:ltr;white-space:pre-wrap;max-height:160px;overflow:auto"></pre>
     </div>
   </div>
 
@@ -640,15 +642,70 @@ function openModal(id) { $("#"+id).classList.add("open"); }
 function closeModal(id) { $("#"+id).classList.remove("open"); }
 
 // ============ ACCESS GATE ============
+function showGate(reason, details) {
+  const titles = {
+    'no-token':       '🔑 يجب تسجيل الدخول',
+    'no-api':         '⚠️ تعذّر تحميل واجهة البرمجة',
+    'not-admin':      '🔒 صلاحيات غير كافية',
+    'session-expired':'⏱️ انتهت الجلسة',
+    'unknown':        '⚠️ تعذّر التحقّق من الصلاحيات'
+  };
+  const msgs = {
+    'no-token':       'لم نعثر على جلسة دخول في هذا المتصفّح. سجّل دخول بحساب الأدمن ثم عد لهذه الصفحة.',
+    'no-api':         'ملف api.js لم يُحمّل. جرّب Ctrl+Shift+R لتجاوز الـ cache. إذا استمرّت المشكلة، أعد رفع الحزمة إلى GitHub Pages.',
+    'not-admin':      'هذه الصفحة للأدمن فقط. حسابك الحالي ليس أدمن.',
+    'session-expired':'انتهت صلاحية الجلسة. أعد تسجيل الدخول.',
+    'unknown':        'حدث خلل غير معروف أثناء التحقّق.'
+  };
+  $("#gate-title").textContent = titles[reason] || titles['unknown'];
+  $("#gate-msg").textContent   = msgs[reason]   || msgs['unknown'];
+  if (details) {
+    const d = $("#gate-debug");
+    d.style.display = '';
+    d.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2);
+  }
+  $("#main").style.display = "none";
+  $("#gate").style.display = "";
+}
+
 async function checkAccess() {
-  const me = window.ArsanAPI ? window.ArsanAPI.me() : { role: "viewer" };
+  if (!window.ArsanAPI) {
+    showGate('no-api', { hint: window.__arsanAuthHint, scripts: [...document.scripts].map(s=>s.src||'(inline)').filter(s=>s.includes('api.js')||s==='(inline)').slice(0,5) });
+    return false;
+  }
+  if (window.__arsanAuthHint === 'no-token') {
+    showGate('no-token');
+    return false;
+  }
+  const me = window.ArsanAPI.me() || { role: "viewer" };
   const isAdmin = me.role === "admin";
-  $("#main").style.display = isAdmin ? "" : "none";
-  $("#gate").style.display = isAdmin ? "none" : "";
-  return isAdmin;
+  if (!isAdmin) {
+    showGate(me.email ? 'not-admin' : 'session-expired', { role: me.role, email: me.email || null });
+    return false;
+  }
+  $("#main").style.display = "";
+  $("#gate").style.display = "none";
+  return true;
 }
 
 // ============ DATA ============
+function renderLoadError(e) {
+  const msg = (e && e.message) || 'خطأ غير معروف';
+  const status = e && e.status ? ' (HTTP ' + e.status + ')' : '';
+  const errorBox = `
+    <div style="grid-column:1/-1;padding:32px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:14px">
+      <div style="font-size:32px;margin-bottom:10px">⚠️</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px">تعذّر تحميل قائمة المستخدمين</div>
+      <div style="color:var(--ink-3);font-size:13px;margin-bottom:14px">${msg}${status}</div>
+      <button class="btn primary" onclick="loadUsers()">إعادة المحاولة</button>
+      <a class="btn ghost" href="index.html" style="margin-right:8px">تسجيل دخول جديد</a>
+    </div>`;
+  ['#grid-view', '#table-view', '#cards-view', '#dashboard-view'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.innerHTML = errorBox;
+  });
+}
+
 async function loadUsers() {
   try {
     USERS = await window.ArsanAPI.getUsers();
@@ -663,8 +720,14 @@ async function loadUsers() {
     }
     render();
   } catch (e) {
-    console.error(e);
+    console.error('[users] loadUsers failed', e);
     toast("تعذّر تحميل قائمة المستخدمين: " + (e.message||""), "error");
+    // لو الخطأ 401، أرجع لشاشة الدخول
+    if (e && (e.status === 401 || e.message === 'admin-only')) {
+      showGate(e.message === 'admin-only' ? 'not-admin' : 'session-expired', { status: e.status, error: e.message });
+      return;
+    }
+    renderLoadError(e);
   }
 }
 
@@ -1161,9 +1224,12 @@ $$("[data-close]").forEach(b => b.addEventListener("click", () => closeModal(b.d
 $$(".modal-back").forEach(m => m.addEventListener("click", (e) => { if (e.target === m) m.classList.remove("open"); }));
 
 // ============ BOOT ============
+$("#gate-retry") && $("#gate-retry").addEventListener("click", () => location.reload());
+
 (async () => {
+  // إذا api.js لم يُحمّل، اعرض شاشة gate واضحة بدل صفحة فارغة
   if (!window.ArsanAPI) {
-    toast("تعذّر تحميل واجهة البرمجة", "error");
+    showGate('no-api');
     return;
   }
   const ok = await checkAccess();

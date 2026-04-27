@@ -5780,6 +5780,9 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
         #exec-compliance-btn,
         #arsan-admin-fab{ display:none !important }
 
+        /* زر الـ sidebar الكحلي القديم (☰ في أعلى اليسار) — مخفي، صار في القائمة الموحّدة */
+        #arsan-fab{ display:none !important }
+
         /* أزرار الترويسة الأصلية (الصفحة الرئيسية / EN / المظهر) — مخفيّة، صارت في القائمة (☰) */
         .header #changeDeptBtn,
         .header #langToggle,
@@ -5876,9 +5879,13 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
       try { window.ArsanApprovals && window.ArsanApprovals.open && window.ArsanApprovals.open(); } catch(_){}
     }));
     panel.appendChild(item('🔗', 'سلاسل الاعتماد لكل إدارة', () => {
-      try { window.ArsanApprovalChains && window.ArsanApprovalChains.open && window.ArsanApprovalChains.open(); } catch(_){
-        try { window.ArsanApprovals && window.ArsanApprovals.open && window.ArsanApprovals.open(); } catch(__){}
-      }
+      try {
+        if (window.ArsanGovernance && window.ArsanGovernance.openApprovalChainsEditor) {
+          window.ArsanGovernance.openApprovalChainsEditor();
+        } else {
+          alert('وحدة الحوكمة غير محمّلة. تأكد من governance.js');
+        }
+      } catch(e){ console.error(e); alert('تعذّر فتح سلاسل الاعتماد'); }
     }));
     panel.appendChild(item('📍', 'المواقع التشغيلية', () => {
       try { window.ArsanSites && window.ArsanSites.openSitesUI && window.ArsanSites.openSitesUI(); } catch(_){}

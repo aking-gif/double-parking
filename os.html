@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>The A Intelligence · Arsann OS</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="favicon.png">
+<style>
+  /* ============== THEME — Dark Premium (Arsann Gold + Black) ============== */
+  :root {
+    --bg-0:    #0d0a07;
+    --bg-1:    #14100b;
+    --bg-2:    #1c1812;
+    --surface: #251f17;
+    --line:    rgba(255,255,255,.06);
+    --line-2:  rgba(255,255,255,.10);
+    --ink-1:   #f5ead0;
+    --ink-2:   #b9a888;
+    --ink-3:   #7a6c52;
+    --gold:    #c89a4a;
+    --gold-2:  #e0bc6d;
+    --gold-d:  #8a6a30;
+    --ok:      #3a8f66;
+    --warn:    #d6a544;
+    --err:     #b3503e;
+    --info:    #5c8caa;
+    --radius:  10px;
+    --radius-l:14px;
+  }
+  /* Light theme (toggle) */
+  [data-theme="light"]{
+    --bg-0:#f5f1e8; --bg-1:#ffffff; --bg-2:#faf6ec; --surface:#fffdf6;
+    --line:rgba(0,0,0,.06); --line-2:rgba(0,0,0,.12);
+    --ink-1:#1a1510; --ink-2:#5a4f3a; --ink-3:#8a7a5e;
+    --gold:#a07a30; --gold-2:#c89a4a; --gold-d:#6b5020;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg-0);color:var(--ink-1);font-family:'Tajawal','Segoe UI',-apple-system,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit}
+  a{color:inherit;text-decoration:none}
+
+  /* ============== Layout ============== */
+  .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+  @media (max-width:900px){ .app{grid-template-columns:1fr} .sidebar{display:none} }
+
+  /* ============== Sidebar ============== */
+  .sidebar{
+    background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);
+    border-inline-start:1px solid var(--line);
+    padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;padding:8px 10px 18px;
+    border-bottom:1px solid var(--line);margin-bottom:10px;
+  }
+  .brand-mark{
+    width:36px;height:36px;border-radius:9px;
+    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-d) 100%);
+    display:grid;place-items:center;color:#0d0a07;font-weight:800;font-size:18px;
+    font-family:'Times New Roman',serif;letter-spacing:-1px;
+    box-shadow:0 4px 14px rgba(200,154,74,.25);
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.2}
+  .brand-text .t1{font-size:15px;font-weight:700;color:var(--ink-1)}
+  .brand-text .t2{font-size:11px;color:var(--gold);letter-spacing:.5px}
+
+  .nav-section{
+    font-size:10px;font-weight:600;letter-spacing:1.2px;color:var(--ink-3);
+    text-transform:uppercase;padding:14px 12px 6px;
+  }
+  .nav-item{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;
+    border-radius:8px;cursor:pointer;color:var(--ink-2);
+    transition:all .15s;font-size:13.5px;
+    border:1px solid transparent;
+  }
+  .nav-item:hover{background:var(--bg-2);color:var(--ink-1)}
+  .nav-item.active{
+    background:linear-gradient(90deg,rgba(200,154,74,.16) 0%,rgba(200,154,74,.04) 100%);
+    color:var(--gold-2);border-color:rgba(200,154,74,.18);
+    box-shadow:inset 2px 0 0 var(--gold);
+  }
+  .nav-item .ico{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+  .nav-item .label{flex:1}
+  .nav-item .badge{
+    font-size:9px;padding:2px 6px;border-radius:6px;
+    background:var(--bg-2);color:var(--ink-3);font-weight:600;letter-spacing:.5px;
+  }
+  .nav-item.soon{opacity:.55;cursor:not-allowed}
+  .nav-item.soon:hover{background:transparent;color:var(--ink-2)}
+  .nav-item.soon .badge{background:rgba(214,165,68,.12);color:var(--warn)}
+
+  .sidebar-foot{
+    margin-top:auto;padding-top:14px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .org-pill{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;
+    background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+    cursor:pointer;transition:all .15s;
+  }
+  .org-pill:hover{border-color:var(--gold-d)}
+  .org-pill .org-dot{
+    width:28px;height:28px;border-radius:7px;
+    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-d) 100%);
+    display:grid;place-items:center;color:#0d0a07;font-weight:800;font-size:13px;
+    font-family:'Times New Roman',serif;
+  }
+  .org-pill .org-info{flex:1;min-width:0}
+  .org-pill .org-info .o1{font-size:12.5px;font-weight:600;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .org-pill .org-info .o2{font-size:10.5px;color:var(--ink-3)}
+  .org-pill .chev{color:var(--ink-3);font-size:12px}
+
+  /* ============== Topbar ============== */
+  .top{
+    background:rgba(13,10,7,.85);backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    border-bottom:1px solid var(--line);
+    padding:14px 28px;display:flex;align-items:center;gap:16px;
+    position:sticky;top:0;z-index:30;
+  }
+  [data-theme="light"] .top{background:rgba(255,253,246,.85)}
+  .top .crumb{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+  .top .crumb h1{margin:0;font-size:18px;font-weight:700;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top .crumb .sub{font-size:12px;color:var(--ink-3);margin-inline-start:8px}
+  .top .actions{display:flex;gap:8px;align-items:center}
+  .top-btn{
+    background:transparent;border:1px solid var(--line);color:var(--ink-2);
+    padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px;
+    display:inline-flex;align-items:center;gap:6px;transition:all .15s;
+  }
+  .top-btn:hover{border-color:var(--gold-d);color:var(--ink-1)}
+  .top-btn.gold{background:var(--gold);color:#0d0a07;border-color:var(--gold);font-weight:600}
+  .top-btn.gold:hover{filter:brightness(1.1)}
+
+  /* ============== Page content ============== */
+  .page{padding:28px 32px;max-width:1500px;margin:0 auto}
+  .page-h{margin:0 0 6px;font-size:24px;font-weight:700;color:var(--ink-1);letter-spacing:-.3px}
+  .page-sub{font-size:13.5px;color:var(--ink-2);margin:0 0 24px}
+
+  /* KPI cards */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
+  .kpi{
+    background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    border:1px solid var(--line);border-radius:var(--radius-l);
+    padding:18px 18px 16px;position:relative;overflow:hidden;
+  }
+  .kpi::before{
+    content:"";position:absolute;top:0;inset-inline-start:0;width:3px;height:100%;
+    background:linear-gradient(180deg,var(--gold) 0%,transparent 100%);
+  }
+  .kpi .k-label{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+  .kpi .k-value{font-size:30px;font-weight:700;color:var(--ink-1);margin:8px 0 4px;letter-spacing:-.5px}
+  .kpi .k-value .unit{font-size:14px;color:var(--ink-3);font-weight:500;margin-inline-start:4px}
+  .kpi .k-trend{font-size:12px;display:flex;align-items:center;gap:5px}
+  .kpi .k-trend.up{color:var(--ok)}
+  .kpi .k-trend.down{color:var(--err)}
+  .kpi .k-trend.flat{color:var(--ink-3)}
+
+  /* Section card */
+  .section{
+    background:var(--bg-1);border:1px solid var(--line);
+    border-radius:var(--radius-l);padding:20px 22px;margin-bottom:18px;
+  }
+  .section-h{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line);
+  }
+  .section-h h3{margin:0;font-size:15px;font-weight:700;color:var(--ink-1)}
+  .section-h .h-act{font-size:12px;color:var(--gold);cursor:pointer}
+  .section-h .h-act:hover{color:var(--gold-2)}
+
+  /* Site cards */
+  .sites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .site-card{
+    background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    border:1px solid var(--line);border-radius:var(--radius-l);
+    padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+  }
+  .site-card:hover{border-color:var(--gold-d);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .site-card .city-tag{
+    position:absolute;top:14px;inset-inline-end:14px;
+    font-size:10px;letter-spacing:1px;color:var(--gold);
+    background:rgba(200,154,74,.10);padding:3px 8px;border-radius:5px;
+    border:1px solid rgba(200,154,74,.22);text-transform:uppercase;
+  }
+  .site-card .s-name{font-size:17px;font-weight:700;color:var(--ink-1);margin:4px 0 4px;padding-inline-end:80px}
+  .site-card .s-type{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+  .site-card .s-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .site-card .s-stat{padding:8px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px}
+  .site-card .s-stat .v{font-size:16px;font-weight:700;color:var(--ink-1)}
+  .site-card .s-stat .l{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
+  .site-card .s-bar{height:6px;background:var(--bg-2);border-radius:4px;overflow:hidden;margin-top:8px}
+  .site-card .s-bar > div{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 100%);border-radius:4px}
+  .site-card .s-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--ink-2)}
+  .site-card .s-foot .live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 2s infinite;display:inline-block;margin-inline-end:6px;vertical-align:middle}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* Empty state for "Coming soon" panes */
+  .empty{
+    text-align:center;padding:70px 24px;color:var(--ink-2);
+    background:var(--bg-1);border:1px dashed var(--line-2);border-radius:var(--radius-l);
+  }
+  .empty .ico{font-size:42px;margin-bottom:12px;opacity:.5}
+  .empty h3{margin:0 0 6px;color:var(--ink-1);font-size:18px}
+  .empty p{margin:0;font-size:13px;max-width:480px;margin:0 auto;line-height:1.7}
+  .empty .roadmap-tag{
+    display:inline-block;margin-top:14px;padding:5px 12px;border-radius:6px;
+    background:rgba(200,154,74,.12);color:var(--gold);font-size:11px;
+    letter-spacing:.5px;border:1px solid rgba(200,154,74,.20);
+  }
+
+  /* Site detail */
+  .back-link{
+    display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);
+    font-size:13px;margin-bottom:14px;cursor:pointer;
+  }
+  .back-link:hover{color:var(--gold)}
+
+  .twin-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:18px}
+  @media (max-width:1100px){ .twin-grid{grid-template-columns:1fr} }
+
+  .zone-map{
+    background:linear-gradient(135deg,var(--bg-1) 0%,var(--bg-0) 100%);
+    border:1px solid var(--line);border-radius:var(--radius-l);
+    padding:20px;height:340px;position:relative;overflow:hidden;
+  }
+  .zone-map-grid{
+    display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);
+    gap:4px;height:100%;
+  }
+  .zone-cell{
+    border-radius:5px;background:rgba(58,143,102,.18);
+    display:grid;place-items:center;font-size:10px;color:var(--ink-2);
+    transition:all .25s;cursor:pointer;border:1px solid rgba(255,255,255,.04);
+  }
+  .zone-cell.warn{background:rgba(214,165,68,.30);color:var(--warn)}
+  .zone-cell.crit{background:rgba(179,80,62,.40);color:#ffb8a8;animation:pulse 2s infinite}
+  .zone-cell:hover{transform:scale(1.08);z-index:2;border-color:var(--gold)}
+  .zone-legend{
+    display:flex;gap:14px;margin-top:14px;font-size:11px;color:var(--ink-3);
+  }
+  .zone-legend span{display:inline-flex;align-items:center;gap:5px}
+  .zone-legend .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  /* Live feed */
+  .feed{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
+  .feed-item{
+    display:flex;gap:10px;padding:10px 12px;background:var(--bg-2);
+    border:1px solid var(--line);border-radius:8px;
+  }
+  .feed-item .f-time{font-size:11px;color:var(--ink-3);min-width:48px;flex-shrink:0}
+  .feed-item .f-body{flex:1;font-size:12.5px;color:var(--ink-1)}
+  .feed-item .f-body .who{color:var(--gold);font-weight:600}
+  .feed-item.event-warn{border-inline-start:3px solid var(--warn)}
+  .feed-item.event-crit{border-inline-start:3px solid var(--err)}
+  .feed-item.event-ok{border-inline-start:3px solid var(--ok)}
+
+  /* Shifts table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--line)}
+  th{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.3px}
+  .pill.live{background:rgba(58,143,102,.20);color:var(--ok)}
+  .pill.upc{background:rgba(92,140,170,.20);color:var(--info)}
+  .pill.done{background:rgba(122,108,82,.20);color:var(--ink-3)}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:24px;inset-inline-end:24px;z-index:100;
+    background:var(--surface);border:1px solid var(--gold-d);color:var(--ink-1);
+    padding:12px 18px;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.4);
+    font-size:13px;display:none;align-items:center;gap:10px;
+  }
+  .toast.show{display:flex;animation:slide-in .25s ease-out}
+  @keyframes slide-in{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- =========== SIDEBAR =========== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div class="brand-text">
+        <span class="t1">The A Intelligence</span>
+        <span class="t2">ARSANN OS · v0.1</span>
+      </div>
+    </div>
+
+    <div class="nav-section">القيادة</div>
+    <div class="nav-item active" data-view="exec">
+      <span class="ico">⊞</span><span class="label">لوحة القيادة</span>
+    </div>
+    <div class="nav-item" data-view="sites">
+      <span class="ico">⊡</span><span class="label">المواقع</span><span class="badge">3</span>
+    </div>
+
+    <div class="nav-section">الذكاء التشغيلي</div>
+    <div class="nav-item soon">
+      <span class="ico">↗</span><span class="label">Throughput</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">⏱</span><span class="label">Shift Intelligence</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">★</span><span class="label">أداء الموظفين</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">≡</span><span class="label">Benchmarking</span><span class="badge">قريباً</span>
+    </div>
+
+    <div class="nav-section">المخاطر والامتثال</div>
+    <div class="nav-item soon">
+      <span class="ico">⚠</span><span class="label">الحوادث</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">⌕</span><span class="label">Root Cause Analysis</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">✓</span><span class="label">Compliance</span><span class="badge">قريباً</span>
+    </div>
+
+    <div class="nav-section">المعرفة والتنبؤ</div>
+    <div class="nav-item soon">
+      <span class="ico">⌖</span><span class="label">Zones (خرائط)</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">◎</span><span class="label">التدريب</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">∿</span><span class="label">Simulation</span><span class="badge">قريباً</span>
+    </div>
+    <div class="nav-item soon">
+      <span class="ico">⟨⟩</span><span class="label">API Product</span><span class="badge">قريباً</span>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="org-pill" id="orgPill" title="تبديل المؤسسة">
+        <div class="org-dot">A</div>
+        <div class="org-info">
+          <div class="o1">Arsann</div>
+          <div class="o2">3 مواقع · 24 موظف</div>
+        </div>
+        <span class="chev">⌄</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========== MAIN =========== -->
+  <main>
+
+    <header class="top">
+      <div class="crumb">
+        <h1 id="crumbTitle">لوحة القيادة</h1>
+        <span class="sub" id="crumbSub">نظرة شاملة · لحظية</span>
+      </div>
+      <div class="actions">
+        <button class="top-btn" id="themeBtn" title="تبديل المظهر">◐</button>
+        <button class="top-btn" onclick="location.href='dashboard.html'" title="العودة لإدارة الإجراءات">SOPs</button>
+        <button class="top-btn gold" id="askA">🅰 اسأل The A</button>
+      </div>
+    </header>
+
+    <!-- ============ EXEC DASHBOARD VIEW ============ -->
+    <section id="view-exec" class="page">
+      <h2 class="page-h">لوحة القيادة التنفيذية</h2>
+      <p class="page-sub">نظرة شاملة على عمليات Arsann عبر جميع المواقع — البيانات لحظية</p>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="k-label">إجمالي السيارات اليوم</div>
+          <div class="k-value">14,238<span class="unit">سيارة</span></div>
+          <div class="k-trend up">▲ 12.4% مقابل الأمس</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">متوسط Throughput</div>
+          <div class="k-value">87<span class="unit">سيارة/ساعة</span></div>
+          <div class="k-trend up">▲ 4.1%</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">الإيرادات اليومية</div>
+          <div class="k-value">142,580<span class="unit">SAR</span></div>
+          <div class="k-trend up">▲ 8.7%</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">الموظفون النشطون</div>
+          <div class="k-value">18<span class="unit">/24</span></div>
+          <div class="k-trend flat">— مستقر</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">الحوادث المفتوحة</div>
+          <div class="k-value">2<span class="unit">حادث</span></div>
+          <div class="k-trend down">▼ 1 اليوم</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">SLA Compliance</div>
+          <div class="k-value">96.4<span class="unit">%</span></div>
+          <div class="k-trend up">▲ 1.2%</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-h">
+          <h3>أداء المواقع — اليوم</h3>
+          <span class="h-act" data-view="sites">عرض الكل ←</span>
+        </div>
+        <div class="sites-grid" id="execSitesGrid"></div>
+      </div>
+
+      <div class="twin-grid">
+        <div class="section">
+          <div class="section-h">
+            <h3>التدفق المباشر — Live Feed</h3>
+            <span class="h-act">إيقاف</span>
+          </div>
+          <div class="feed" id="liveFeed"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-h">
+            <h3>تنبيهات تحتاج اهتمامك</h3>
+          </div>
+          <div class="feed">
+            <div class="feed-item event-crit">
+              <div class="f-time">↯</div>
+              <div class="f-body">
+                <strong>VIA Riyadh</strong> — Zone B5 ممتلئ (98%) منذ 18 دقيقة.
+                <div style="color:var(--ink-3);font-size:11px;margin-top:3px">السبب المحتمل: تعطّل بوابة الخروج 2.</div>
+              </div>
+            </div>
+            <div class="feed-item event-warn">
+              <div class="f-time">↯</div>
+              <div class="f-body">
+                <strong>Hera Mall Makkah</strong> — Throughput انخفض 22% في آخر ساعة.
+              </div>
+            </div>
+            <div class="feed-item event-warn">
+              <div class="f-time">⚠</div>
+              <div class="f-body">
+                <strong>Red Sea Mall Jeddah</strong> — وردية الظهر بدون مشرف منذ 12 دقيقة.
+              </div>
+            </div>
+            <div class="feed-item event-ok">
+              <div class="f-time">✓</div>
+              <div class="f-body">
+                تم احتواء حادث <span class="who">Z-2418</span> في VIA Riyadh.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ SITES LIST VIEW ============ -->
+    <section id="view-sites" class="page" style="display:none">
+      <h2 class="page-h">المواقع</h2>
+      <p class="page-sub">3 مواقع نشطة — Riyadh · Jeddah · Makkah</p>
+
+      <div class="sites-grid" id="sitesGrid"></div>
+    </section>
+
+    <!-- ============ SITE DETAIL VIEW ============ -->
+    <section id="view-site" class="page" style="display:none">
+      <span class="back-link" onclick="show('sites')">← المواقع</span>
+      <h2 class="page-h" id="siteName"></h2>
+      <p class="page-sub" id="siteMeta"></p>
+
+      <div class="kpi-row" id="siteKpis"></div>
+
+      <div class="twin-grid">
+        <div class="section">
+          <div class="section-h">
+            <h3>التوأم الرقمي — Zones</h3>
+            <span class="h-act">عرض ثلاثي الأبعاد</span>
+          </div>
+          <div class="zone-map">
+            <div class="zone-map-grid" id="zoneGrid"></div>
+          </div>
+          <div class="zone-legend">
+            <span><span class="dot" style="background:rgba(58,143,102,.5)"></span> طبيعي (&lt; 70%)</span>
+            <span><span class="dot" style="background:rgba(214,165,68,.5)"></span> ممتلئ (70–90%)</span>
+            <span><span class="dot" style="background:rgba(179,80,62,.5)"></span> حرج (&gt; 90%)</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-h"><h3>الوردية الحالية</h3></div>
+          <table>
+            <thead><tr><th>الموظف</th><th>الدور</th><th>المنطقة</th><th>الحالة</th></tr></thead>
+            <tbody id="shiftBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-h">
+          <h3>أحداث الموقع — آخر 30 دقيقة</h3>
+        </div>
+        <div class="feed" id="siteFeed"></div>
+      </div>
+    </section>
+
+    <!-- Coming soon stub -->
+    <section id="view-soon" class="page" style="display:none">
+      <div class="empty">
+        <div class="ico">⏳</div>
+        <h3>هذه الطبقة قيد التطوير</h3>
+        <p>The A Intelligence مبنيّ على 12 طبقة. Phase 0 يفتح <strong>القيادة + المواقع + التوأم الرقمي</strong>. الطبقات التالية تُفعّل تباعاً مع توفّر بيانات الإنتاج.</p>
+        <span class="roadmap-tag" id="roadmapTag">Phase 1 — Q3 2026</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========== Data =========== */
+const SITES = [
+  {
+    id:"via-riyadh", name:"VIA Riyadh", city:"الرياض", type:"Mall · Premium",
+    spots:1850, occupied:1432, throughput:118, revenue:64200,
+    staff:9, incidents:1, sla:97.2,
+    zones:[
+      ['B1',45],['B2',62],['B3',78],['B4',55],['B5',98],['B6',71],['B7',40],['B8',33],
+      ['C1',58],['C2',82],['C3',65],['C4',49],['C5',91],['C6',73],['C7',38],['C8',22],
+      ['D1',71],['D2',88],['D3',95],['D4',74],['D5',85],['D6',62],['D7',47],['D8',28],
+      ['E1',55],['E2',68],['E3',72],['E4',60],['E5',45],['E6',39],['E7',32],['E8',18],
+      ['F1',24],['F2',31],['F3',28],['F4',22],['F5',15],['F6',11],['F7',8 ],['F8',5 ],
+    ],
+    shift:[
+      {name:"عبدالله العتيبي",role:"مشرف وردية",zone:"المدخل الرئيسي",status:"live"},
+      {name:"سلطان القحطاني",role:"موزّع",zone:"Zone B",status:"live"},
+      {name:"فهد الشمري",role:"موزّع",zone:"Zone C",status:"live"},
+      {name:"بدر الدوسري",role:"خروج",zone:"Exit Gate 2",status:"upc"},
+      {name:"خالد العنزي",role:"valet",zone:"VIP Drop-off",status:"live"},
+    ]
+  },
+  {
+    id:"red-sea-jeddah", name:"Red Sea Mall", city:"جدة", type:"Mall",
+    spots:2400, occupied:1820, throughput:94, revenue:48900,
+    staff:7, incidents:1, sla:95.1,
+    zones:[
+      ['A1',55],['A2',78],['A3',62],['A4',85],['A5',71],['A6',48],['A7',32],['A8',24],
+      ['B1',67],['B2',82],['B3',91],['B4',76],['B5',84],['B6',58],['B7',41],['B8',29],
+      ['C1',72],['C2',88],['C3',79],['C4',65],['C5',54],['C6',47],['C7',35],['C8',22],
+      ['D1',45],['D2',58],['D3',63],['D4',49],['D5',38],['D6',31],['D7',24],['D8',15],
+      ['E1',18],['E2',22],['E3',19],['E4',14],['E5',12],['E6',8 ],['E7',5 ],['E8',3 ],
+    ],
+    shift:[
+      {name:"يوسف الزهراني",role:"مشرف وردية",zone:"المدخل",status:"live"},
+      {name:"ماجد الحربي",role:"موزّع",zone:"Zone A",status:"live"},
+      {name:"تركي الغامدي",role:"موزّع",zone:"Zone B",status:"upc"},
+      {name:"عمر باوزير",role:"خروج",zone:"Exit",status:"done"},
+    ]
+  },
+  {
+    id:"hera-makkah", name:"Hera Mall", city:"مكة المكرمة", type:"Mall · Religious tourism",
+    spots:1200, occupied:986, throughput:62, revenue:29480,
+    staff:8, incidents:0, sla:96.8,
+    zones:[
+      ['A1',82],['A2',91],['A3',78],['A4',85],['A5',74],['A6',62],['A7',54],['A8',41],
+      ['B1',88],['B2',94],['B3',82],['B4',77],['B5',68],['B6',55],['B7',43],['B8',32],
+      ['C1',71],['C2',79],['C3',65],['C4',58],['C5',47],['C6',38],['C7',29],['C8',21],
+      ['D1',54],['D2',62],['D3',49],['D4',41],['D5',33],['D6',26],['D7',18],['D8',11],
+      ['E1',28],['E2',32],['E3',25],['E4',19],['E5',14],['E6',9 ],['E7',6 ],['E8',4 ],
+    ],
+    shift:[
+      {name:"سعيد القرشي",role:"مشرف وردية",zone:"المدخل",status:"live"},
+      {name:"إبراهيم الأنصاري",role:"موزّع",zone:"Zone A",status:"live"},
+      {name:"عبدالعزيز الشريف",role:"موزّع",zone:"Zone B",status:"live"},
+      {name:"محمد الحسيني",role:"خروج",zone:"Exit",status:"live"},
+    ]
+  },
+];
+
+const FEED_EVENTS = [
+  {t:"الآن", w:"VIA Riyadh", body:"<span class='who'>سلطان القحطاني</span> دخل وردية المساء", c:"event-ok"},
+  {t:"02:14", w:"Red Sea Mall", body:"<span class='who'>Zone B3</span> امتلأ بنسبة 91%", c:"event-warn"},
+  {t:"05:32", w:"Hera Mall", body:"تم تنفيذ SOP إخلاء جزئي — Zone B2", c:"event-ok"},
+  {t:"08:47", w:"VIA Riyadh", body:"خصم تلقائي على بطاقة <span class='who'>VIP-2418</span>", c:"event-ok"},
+  {t:"11:02", w:"Red Sea Mall", body:"تنبيه: <span class='who'>Throughput</span> أقل من المتوسط بـ 22%", c:"event-warn"},
+  {t:"14:33", w:"VIA Riyadh", body:"<span class='who'>↯ Zone B5</span> ممتلئ بنسبة 98% — تحقق من بوابة الخروج", c:"event-crit"},
+  {t:"17:18", w:"Hera Mall", body:"وردية الفجر اكتملت بنجاح — 0 حوادث", c:"event-ok"},
+];
+
+/* =========== Rendering =========== */
+function siteCard(s){
+  const occPct = Math.round(s.occupied/s.spots*100);
+  return `
+    <div class="site-card" data-site="${s.id}">
+      <span class="city-tag">${s.city}</span>
+      <div class="s-name">${s.name}</div>
+      <div class="s-type">${s.type}</div>
+      <div class="s-stats">
+        <div class="s-stat"><div class="v">${s.occupied.toLocaleString('ar')}</div><div class="l">مشغول</div></div>
+        <div class="s-stat"><div class="v">${s.throughput}</div><div class="l">سيارة/س</div></div>
+        <div class="s-stat"><div class="v">${s.staff}</div><div class="l">موظف</div></div>
+      </div>
+      <div class="s-bar"><div style="width:${occPct}%"></div></div>
+      <div class="s-foot">
+        <span><span class="live-dot"></span>مباشر · ${occPct}% إشغال</span>
+        <span style="color:var(--gold)">SLA ${s.sla}%</span>
+      </div>
+    </div>`;
+}
+
+function renderSites(target){
+  const el = document.getElementById(target);
+  el.innerHTML = SITES.map(siteCard).join('');
+  el.querySelectorAll('.site-card').forEach(c => {
+    c.addEventListener('click', () => openSite(c.dataset.site));
+  });
+}
+
+function renderFeed(){
+  const el = document.getElementById('liveFeed');
+  el.innerHTML = FEED_EVENTS.map(e => `
+    <div class="feed-item ${e.c}">
+      <div class="f-time">${e.t}</div>
+      <div class="f-body"><strong>${e.w}</strong> — ${e.body}</div>
+    </div>
+  `).join('');
+}
+
+function openSite(id){
+  const s = SITES.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('siteName').textContent = s.name;
+  document.getElementById('siteMeta').textContent = `${s.city} · ${s.type} · ${s.spots.toLocaleString('ar')} موقف`;
+
+  document.getElementById('siteKpis').innerHTML = [
+    {l:"السيارات الآن",v:s.occupied.toLocaleString('ar'),u:"سيارة",t:`${Math.round(s.occupied/s.spots*100)}% إشغال`,tc:"flat"},
+    {l:"Throughput",v:s.throughput,u:"سيارة/س",t:"▲ 4.2%",tc:"up"},
+    {l:"الإيرادات اليوم",v:s.revenue.toLocaleString('ar'),u:"SAR",t:"▲ 9.1%",tc:"up"},
+    {l:"الموظفون",v:s.staff,u:"نشط",t:"— مستقر",tc:"flat"},
+    {l:"الحوادث المفتوحة",v:s.incidents,u:"حادث",t:s.incidents===0?"✓ نظيف":"تحتاج اهتمام",tc:s.incidents===0?"up":"down"},
+    {l:"SLA",v:s.sla,u:"%",t:"▲ 1.4%",tc:"up"},
+  ].map(k => `
+    <div class="kpi">
+      <div class="k-label">${k.l}</div>
+      <div class="k-value">${k.v}<span class="unit">${k.u}</span></div>
+      <div class="k-trend ${k.tc}">${k.t}</div>
+    </div>
+  `).join('');
+
+  // Zone grid
+  const zg = document.getElementById('zoneGrid');
+  zg.innerHTML = s.zones.map(([name,pct]) => {
+    const cls = pct >= 90 ? 'crit' : pct >= 70 ? 'warn' : '';
+    return `<div class="zone-cell ${cls}" title="${name} · ${pct}%">${name}</div>`;
+  }).join('');
+
+  // Shifts
+  const sb = document.getElementById('shiftBody');
+  sb.innerHTML = s.shift.map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td style="color:var(--ink-2)">${p.role}</td>
+      <td style="color:var(--ink-2)">${p.zone}</td>
+      <td><span class="pill ${p.status}">${p.status==='live'?'في الوردية':p.status==='upc'?'قادم':'انتهت'}</span></td>
+    </tr>
+  `).join('');
+
+  // Site feed
+  const fe = document.getElementById('siteFeed');
+  fe.innerHTML = FEED_EVENTS.filter(e => e.w === s.name || e.w.includes(s.city.slice(0,4))).map(e => `
+    <div class="feed-item ${e.c}">
+      <div class="f-time">${e.t}</div>
+      <div class="f-body">${e.body}</div>
+    </div>
+  `).join('') || `<div style="color:var(--ink-3);padding:14px;text-align:center">لا أحداث في آخر 30 دقيقة</div>`;
+
+  show('site');
+}
+
+/* =========== Navigation =========== */
+function show(view){
+  document.querySelectorAll('main > section').forEach(s => s.style.display='none');
+
+  if (view === 'exec'){
+    document.getElementById('view-exec').style.display='';
+    crumb('لوحة القيادة','نظرة شاملة · لحظية');
+  } else if (view === 'sites'){
+    document.getElementById('view-sites').style.display='';
+    crumb('المواقع','3 مواقع نشطة');
+  } else if (view === 'site'){
+    document.getElementById('view-site').style.display='';
+    crumb('تفاصيل الموقع','التوأم الرقمي');
+  } else if (view === 'soon'){
+    document.getElementById('view-soon').style.display='';
+    crumb('قريباً','هذه الطبقة قيد التطوير');
+  }
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const active = document.querySelector(`.nav-item[data-view="${view==='site'?'sites':view}"]`);
+  if (active) active.classList.add('active');
+}
+function crumb(t,s){
+  document.getElementById('crumbTitle').textContent = t;
+  document.getElementById('crumbSub').textContent = s;
+}
+
+/* =========== Init =========== */
+renderSites('execSitesGrid');
+renderSites('sitesGrid');
+renderFeed();
+
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => {
+    if (n.classList.contains('soon')){
+      toast('🚧 قريباً — هذه الطبقة قيد التطوير ضمن Phase 1');
+      return;
+    }
+    const v = n.dataset.view;
+    if (v) show(v);
+  });
+});
+document.querySelectorAll('.h-act[data-view]').forEach(a => {
+  a.addEventListener('click', () => show(a.dataset.view));
+});
+
+/* Theme */
+const themeBtn = document.getElementById('themeBtn');
+const savedTheme = localStorage.getItem('a-theme') || 'dark';
+if (savedTheme === 'light') document.documentElement.dataset.theme = 'light';
+themeBtn.addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme;
+  if (cur === 'light'){
+    delete document.documentElement.dataset.theme;
+    localStorage.setItem('a-theme','dark');
+  } else {
+    document.documentElement.dataset.theme = 'light';
+    localStorage.setItem('a-theme','light');
+  }
+});
+
+/* Org switcher */
+document.getElementById('orgPill').addEventListener('click', () => {
+  toast('Multi-tenant: Arsann فقط حالياً. Demo orgs تُفعّل في Phase 4.');
+});
+
+/* Ask The A */
+document.getElementById('askA').addEventListener('click', async () => {
+  const q = prompt('🅰  اسأل The A — مثلاً: "ليش انخفض throughput في Hera؟"');
+  if (!q) return;
+  toast('🤖 جارِ التحليل…');
+  try {
+    const ans = await window.claude.complete(`أنت محلّل عمليات لشركة Arsann (إدارة مواقف). جاوب باختصار وذكاء على هذا السؤال بناءً على بيانات تشغيلية افتراضية: ${q}`);
+    alert('🅰 The A:\n\n' + ans);
+  } catch(e){
+    alert('🅰 The A: تحتاج اتصال — جرّب لاحقاً.');
+  }
+});
+
+/* Toast */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

@@ -27,24 +27,20 @@
     --radius:  10px;
     --radius-l:14px;
   }
-  /* Light theme (toggle) */
   [data-theme="light"]{
     --bg-0:#f5f1e8; --bg-1:#ffffff; --bg-2:#faf6ec; --surface:#fffdf6;
     --line:rgba(0,0,0,.06); --line-2:rgba(0,0,0,.12);
     --ink-1:#1a1510; --ink-2:#5a4f3a; --ink-3:#8a7a5e;
     --gold:#a07a30; --gold-2:#c89a4a; --gold-d:#6b5020;
   }
-
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg-0);color:var(--ink-1);font-family:'Tajawal','Segoe UI',-apple-system,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
   button{font-family:inherit}
   a{color:inherit;text-decoration:none}
 
-  /* ============== Layout ============== */
   .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
   @media (max-width:900px){ .app{grid-template-columns:1fr} .sidebar{display:none} }
 
-  /* ============== Sidebar ============== */
   .sidebar{
     background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);
     border-inline-start:1px solid var(--line);
@@ -66,676 +62,764 @@
   .brand-text .t1{font-size:15px;font-weight:700;color:var(--ink-1)}
   .brand-text .t2{font-size:11px;color:var(--gold);letter-spacing:.5px}
 
-  .nav-section{
-    font-size:10px;font-weight:600;letter-spacing:1.2px;color:var(--ink-3);
-    text-transform:uppercase;padding:14px 12px 6px;
-  }
-  .nav-item{
-    display:flex;align-items:center;gap:10px;padding:9px 12px;
-    border-radius:8px;cursor:pointer;color:var(--ink-2);
-    transition:all .15s;font-size:13.5px;
-    border:1px solid transparent;
-  }
+  .nav-section{font-size:10px;font-weight:600;letter-spacing:1.2px;color:var(--ink-3);text-transform:uppercase;padding:14px 12px 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink-2);transition:all .15s;font-size:13.5px;border:1px solid transparent}
   .nav-item:hover{background:var(--bg-2);color:var(--ink-1)}
-  .nav-item.active{
-    background:linear-gradient(90deg,rgba(200,154,74,.16) 0%,rgba(200,154,74,.04) 100%);
-    color:var(--gold-2);border-color:rgba(200,154,74,.18);
-    box-shadow:inset 2px 0 0 var(--gold);
-  }
+  .nav-item.active{background:linear-gradient(90deg,rgba(200,154,74,.16) 0%,rgba(200,154,74,.04) 100%);color:var(--gold-2);border-color:rgba(200,154,74,.18);box-shadow:inset 2px 0 0 var(--gold)}
   .nav-item .ico{width:18px;text-align:center;font-size:14px;flex-shrink:0}
   .nav-item .label{flex:1}
-  .nav-item .badge{
-    font-size:9px;padding:2px 6px;border-radius:6px;
-    background:var(--bg-2);color:var(--ink-3);font-weight:600;letter-spacing:.5px;
-  }
-  .nav-item.soon{opacity:.55;cursor:not-allowed}
+  .nav-item .badge{font-size:9px;padding:2px 6px;border-radius:6px;background:var(--bg-2);color:var(--ink-3);font-weight:600;letter-spacing:.5px}
+  .nav-item.soon{opacity:.5;cursor:not-allowed}
   .nav-item.soon:hover{background:transparent;color:var(--ink-2)}
   .nav-item.soon .badge{background:rgba(214,165,68,.12);color:var(--warn)}
 
-  .sidebar-foot{
-    margin-top:auto;padding-top:14px;border-top:1px solid var(--line);
-    display:flex;flex-direction:column;gap:6px;
-  }
-  .org-pill{
-    display:flex;align-items:center;gap:10px;padding:10px 12px;
-    background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
-    cursor:pointer;transition:all .15s;
-  }
+  .sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+  .org-pill{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:all .15s}
   .org-pill:hover{border-color:var(--gold-d)}
-  .org-pill .org-dot{
-    width:28px;height:28px;border-radius:7px;
-    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-d) 100%);
-    display:grid;place-items:center;color:#0d0a07;font-weight:800;font-size:13px;
-    font-family:'Times New Roman',serif;
-  }
+  .org-pill .org-dot{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-d) 100%);display:grid;place-items:center;color:#0d0a07;font-weight:800;font-size:13px;font-family:'Times New Roman',serif}
   .org-pill .org-info{flex:1;min-width:0}
   .org-pill .org-info .o1{font-size:12.5px;font-weight:600;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .org-pill .org-info .o2{font-size:10.5px;color:var(--ink-3)}
   .org-pill .chev{color:var(--ink-3);font-size:12px}
 
-  /* ============== Topbar ============== */
   .top{
     background:rgba(13,10,7,.85);backdrop-filter:blur(16px) saturate(140%);
     -webkit-backdrop-filter:blur(16px) saturate(140%);
-    border-bottom:1px solid var(--line);
-    padding:14px 28px;display:flex;align-items:center;gap:16px;
-    position:sticky;top:0;z-index:30;
+    border-bottom:1px solid var(--line);padding:14px 28px;
+    display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:30;
   }
   [data-theme="light"] .top{background:rgba(255,253,246,.85)}
   .top .crumb{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
   .top .crumb h1{margin:0;font-size:18px;font-weight:700;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .top .crumb .sub{font-size:12px;color:var(--ink-3);margin-inline-start:8px}
   .top .actions{display:flex;gap:8px;align-items:center}
-  .top-btn{
-    background:transparent;border:1px solid var(--line);color:var(--ink-2);
-    padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px;
-    display:inline-flex;align-items:center;gap:6px;transition:all .15s;
-  }
+  .top-btn{background:transparent;border:1px solid var(--line);color:var(--ink-2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
   .top-btn:hover{border-color:var(--gold-d);color:var(--ink-1)}
   .top-btn.gold{background:var(--gold);color:#0d0a07;border-color:var(--gold);font-weight:600}
   .top-btn.gold:hover{filter:brightness(1.1)}
 
-  /* ============== Page content ============== */
+  .data-tag{
+    font-size:10.5px;color:var(--gold);letter-spacing:.5px;
+    background:rgba(200,154,74,.10);padding:3px 8px;border-radius:5px;
+    border:1px solid rgba(200,154,74,.22);
+  }
+
   .page{padding:28px 32px;max-width:1500px;margin:0 auto}
   .page-h{margin:0 0 6px;font-size:24px;font-weight:700;color:var(--ink-1);letter-spacing:-.3px}
-  .page-sub{font-size:13.5px;color:var(--ink-2);margin:0 0 24px}
+  .page-sub{font-size:13.5px;color:var(--ink-2);margin:0 0 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-  /* KPI cards */
   .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
   .kpi{
     background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-2) 100%);
     border:1px solid var(--line);border-radius:var(--radius-l);
     padding:18px 18px 16px;position:relative;overflow:hidden;
   }
-  .kpi::before{
-    content:"";position:absolute;top:0;inset-inline-start:0;width:3px;height:100%;
-    background:linear-gradient(180deg,var(--gold) 0%,transparent 100%);
-  }
+  .kpi::before{content:"";position:absolute;top:0;inset-inline-start:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold) 0%,transparent 100%)}
   .kpi .k-label{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
-  .kpi .k-value{font-size:30px;font-weight:700;color:var(--ink-1);margin:8px 0 4px;letter-spacing:-.5px}
-  .kpi .k-value .unit{font-size:14px;color:var(--ink-3);font-weight:500;margin-inline-start:4px}
+  .kpi .k-value{font-size:28px;font-weight:700;color:var(--ink-1);margin:8px 0 4px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .kpi .k-value .unit{font-size:13px;color:var(--ink-3);font-weight:500;margin-inline-start:4px}
   .kpi .k-trend{font-size:12px;display:flex;align-items:center;gap:5px}
   .kpi .k-trend.up{color:var(--ok)}
   .kpi .k-trend.down{color:var(--err)}
   .kpi .k-trend.flat{color:var(--ink-3)}
 
-  /* Section card */
   .section{
     background:var(--bg-1);border:1px solid var(--line);
     border-radius:var(--radius-l);padding:20px 22px;margin-bottom:18px;
   }
-  .section-h{
-    display:flex;align-items:center;justify-content:space-between;
-    margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line);
-  }
+  .section-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line);gap:10px}
   .section-h h3{margin:0;font-size:15px;font-weight:700;color:var(--ink-1)}
   .section-h .h-act{font-size:12px;color:var(--gold);cursor:pointer}
   .section-h .h-act:hover{color:var(--gold-2)}
 
-  /* Site cards */
-  .sites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  /* Sparkline / chart */
+  .chart{height:200px;width:100%}
+  .chart-mini{height:42px;width:100%}
+
+  /* Sites grid */
+  .sites-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}
   .site-card{
     background:linear-gradient(180deg,var(--bg-1) 0%,var(--bg-2) 100%);
     border:1px solid var(--line);border-radius:var(--radius-l);
     padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
   }
   .site-card:hover{border-color:var(--gold-d);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
-  .site-card .city-tag{
-    position:absolute;top:14px;inset-inline-end:14px;
-    font-size:10px;letter-spacing:1px;color:var(--gold);
-    background:rgba(200,154,74,.10);padding:3px 8px;border-radius:5px;
-    border:1px solid rgba(200,154,74,.22);text-transform:uppercase;
-  }
-  .site-card .s-name{font-size:17px;font-weight:700;color:var(--ink-1);margin:4px 0 4px;padding-inline-end:80px}
-  .site-card .s-type{font-size:12px;color:var(--ink-3);margin-bottom:14px}
-  .site-card .s-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .site-card .city-tag{position:absolute;top:14px;inset-inline-end:14px;font-size:10px;letter-spacing:1px;color:var(--gold);background:rgba(200,154,74,.10);padding:3px 8px;border-radius:5px;border:1px solid rgba(200,154,74,.22);text-transform:uppercase}
+  .site-card .s-name{font-size:16px;font-weight:700;color:var(--ink-1);margin:4px 0 4px;padding-inline-end:80px;line-height:1.3}
+  .site-card .s-client{font-size:11.5px;color:var(--gold);margin-bottom:4px}
+  .site-card .s-type{font-size:11.5px;color:var(--ink-3);margin-bottom:14px}
+  .site-card .s-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
   .site-card .s-stat{padding:8px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px}
-  .site-card .s-stat .v{font-size:16px;font-weight:700;color:var(--ink-1)}
-  .site-card .s-stat .l{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
-  .site-card .s-bar{height:6px;background:var(--bg-2);border-radius:4px;overflow:hidden;margin-top:8px}
-  .site-card .s-bar > div{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 100%);border-radius:4px}
-  .site-card .s-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:12px;color:var(--ink-2)}
-  .site-card .s-foot .live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 2s infinite;display:inline-block;margin-inline-end:6px;vertical-align:middle}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .site-card .s-stat .v{font-size:14px;font-weight:700;color:var(--ink-1);font-variant-numeric:tabular-nums}
+  .site-card .s-stat .l{font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px}
+  .site-card .s-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11.5px;color:var(--ink-2)}
 
-  /* Empty state for "Coming soon" panes */
-  .empty{
-    text-align:center;padding:70px 24px;color:var(--ink-2);
-    background:var(--bg-1);border:1px dashed var(--line-2);border-radius:var(--radius-l);
-  }
+  /* Tables */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+  th,td{padding:9px 12px;text-align:start;border-bottom:1px solid var(--line)}
+  th{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;font-weight:600;cursor:pointer}
+  th:hover{color:var(--ink-1)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  td.num{text-align:end;font-variant-numeric:tabular-nums;font-weight:600}
+  .pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.3px}
+  .pill.live{background:rgba(58,143,102,.20);color:var(--ok)}
+  .pill.warn{background:rgba(214,165,68,.20);color:var(--warn)}
+  .pill.gray{background:rgba(122,108,82,.20);color:var(--ink-3)}
+
+  /* Filter row */
+  .filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+  .filter-pill{padding:6px 12px;border-radius:8px;background:var(--bg-2);color:var(--ink-2);border:1px solid var(--line);cursor:pointer;font-size:12.5px;transition:all .15s}
+  .filter-pill:hover{color:var(--ink-1);border-color:var(--gold-d)}
+  .filter-pill.active{background:rgba(200,154,74,.16);color:var(--gold-2);border-color:var(--gold-d)}
+  .search{flex:1;min-width:200px;padding:7px 12px;border-radius:8px;background:var(--bg-2);color:var(--ink-1);border:1px solid var(--line);font:inherit}
+  .search:focus{outline:none;border-color:var(--gold-d)}
+
+  .empty{text-align:center;padding:70px 24px;color:var(--ink-2);background:var(--bg-1);border:1px dashed var(--line-2);border-radius:var(--radius-l)}
   .empty .ico{font-size:42px;margin-bottom:12px;opacity:.5}
   .empty h3{margin:0 0 6px;color:var(--ink-1);font-size:18px}
   .empty p{margin:0;font-size:13px;max-width:480px;margin:0 auto;line-height:1.7}
-  .empty .roadmap-tag{
-    display:inline-block;margin-top:14px;padding:5px 12px;border-radius:6px;
-    background:rgba(200,154,74,.12);color:var(--gold);font-size:11px;
-    letter-spacing:.5px;border:1px solid rgba(200,154,74,.20);
-  }
+  .empty .roadmap-tag{display:inline-block;margin-top:14px;padding:5px 12px;border-radius:6px;background:rgba(200,154,74,.12);color:var(--gold);font-size:11px;letter-spacing:.5px;border:1px solid rgba(200,154,74,.20)}
 
-  /* Site detail */
-  .back-link{
-    display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);
-    font-size:13px;margin-bottom:14px;cursor:pointer;
-  }
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:13px;margin-bottom:14px;cursor:pointer}
   .back-link:hover{color:var(--gold)}
 
   .twin-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:18px}
   @media (max-width:1100px){ .twin-grid{grid-template-columns:1fr} }
 
-  .zone-map{
-    background:linear-gradient(135deg,var(--bg-1) 0%,var(--bg-0) 100%);
-    border:1px solid var(--line);border-radius:var(--radius-l);
-    padding:20px;height:340px;position:relative;overflow:hidden;
-  }
-  .zone-map-grid{
-    display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(5,1fr);
-    gap:4px;height:100%;
-  }
-  .zone-cell{
-    border-radius:5px;background:rgba(58,143,102,.18);
-    display:grid;place-items:center;font-size:10px;color:var(--ink-2);
-    transition:all .25s;cursor:pointer;border:1px solid rgba(255,255,255,.04);
-  }
-  .zone-cell.warn{background:rgba(214,165,68,.30);color:var(--warn)}
-  .zone-cell.crit{background:rgba(179,80,62,.40);color:#ffb8a8;animation:pulse 2s infinite}
-  .zone-cell:hover{transform:scale(1.08);z-index:2;border-color:var(--gold)}
-  .zone-legend{
-    display:flex;gap:14px;margin-top:14px;font-size:11px;color:var(--ink-3);
-  }
-  .zone-legend span{display:inline-flex;align-items:center;gap:5px}
-  .zone-legend .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
-
-  /* Live feed */
-  .feed{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
-  .feed-item{
-    display:flex;gap:10px;padding:10px 12px;background:var(--bg-2);
-    border:1px solid var(--line);border-radius:8px;
-  }
-  .feed-item .f-time{font-size:11px;color:var(--ink-3);min-width:48px;flex-shrink:0}
-  .feed-item .f-body{flex:1;font-size:12.5px;color:var(--ink-1)}
-  .feed-item .f-body .who{color:var(--gold);font-weight:600}
-  .feed-item.event-warn{border-inline-start:3px solid var(--warn)}
-  .feed-item.event-crit{border-inline-start:3px solid var(--err)}
-  .feed-item.event-ok{border-inline-start:3px solid var(--ok)}
-
-  /* Shifts table */
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--line)}
-  th{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:rgba(255,255,255,.02)}
-  .pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:.3px}
-  .pill.live{background:rgba(58,143,102,.20);color:var(--ok)}
-  .pill.upc{background:rgba(92,140,170,.20);color:var(--info)}
-  .pill.done{background:rgba(122,108,82,.20);color:var(--ink-3)}
-
-  /* Toast */
-  .toast{
-    position:fixed;bottom:24px;inset-inline-end:24px;z-index:100;
-    background:var(--surface);border:1px solid var(--gold-d);color:var(--ink-1);
-    padding:12px 18px;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.4);
-    font-size:13px;display:none;align-items:center;gap:10px;
-  }
+  .toast{position:fixed;bottom:24px;inset-inline-end:24px;z-index:100;background:var(--surface);border:1px solid var(--gold-d);color:var(--ink-1);padding:12px 18px;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.4);font-size:13px;display:none;align-items:center;gap:10px}
   .toast.show{display:flex;animation:slide-in .25s ease-out}
   @keyframes slide-in{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  /* Loader */
+  .loader{display:grid;place-items:center;height:60vh;color:var(--ink-3)}
+  .spinner{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Mix breakdown bar */
+  .mix-bar{display:flex;height:36px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .mix-seg{display:grid;place-items:center;font-size:11.5px;font-weight:600;color:#0d0a07;transition:flex .25s}
+  .mix-seg.card{background:var(--gold)}
+  .mix-seg.cash{background:var(--gold-2)}
+  .mix-seg.online{background:#8a6a30;color:var(--ink-1)}
+  .mix-legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--ink-2)}
+  .mix-legend span{display:inline-flex;align-items:center;gap:6px}
+  .mix-legend .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
 </style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- =========== SIDEBAR =========== -->
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-mark">A</div>
       <div class="brand-text">
         <span class="t1">The A Intelligence</span>
-        <span class="t2">ARSANN OS · v0.1</span>
+        <span class="t2">ARSANN OS · v0.2</span>
       </div>
     </div>
 
     <div class="nav-section">القيادة</div>
-    <div class="nav-item active" data-view="exec">
-      <span class="ico">⊞</span><span class="label">لوحة القيادة</span>
-    </div>
-    <div class="nav-item" data-view="sites">
-      <span class="ico">⊡</span><span class="label">المواقع</span><span class="badge">3</span>
-    </div>
+    <div class="nav-item active" data-view="exec"><span class="ico">⊞</span><span class="label">لوحة القيادة</span></div>
+    <div class="nav-item" data-view="sites"><span class="ico">⊡</span><span class="label">المواقع</span><span class="badge" id="sitesBadge">—</span></div>
+    <div class="nav-item" data-view="clients"><span class="ico">⌬</span><span class="label">العملاء</span><span class="badge" id="clientsBadge">—</span></div>
+    <div class="nav-item" data-view="revenue"><span class="ico">$</span><span class="label">الإيرادات</span></div>
 
     <div class="nav-section">الذكاء التشغيلي</div>
-    <div class="nav-item soon">
-      <span class="ico">↗</span><span class="label">Throughput</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">⏱</span><span class="label">Shift Intelligence</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">★</span><span class="label">أداء الموظفين</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">≡</span><span class="label">Benchmarking</span><span class="badge">قريباً</span>
-    </div>
+    <div class="nav-item soon"><span class="ico">↗</span><span class="label">Throughput</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">⏱</span><span class="label">Shift Intelligence</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">★</span><span class="label">أداء الموظفين</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">≡</span><span class="label">Benchmarking</span><span class="badge">قريباً</span></div>
 
     <div class="nav-section">المخاطر والامتثال</div>
-    <div class="nav-item soon">
-      <span class="ico">⚠</span><span class="label">الحوادث</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">⌕</span><span class="label">Root Cause Analysis</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">✓</span><span class="label">Compliance</span><span class="badge">قريباً</span>
-    </div>
+    <div class="nav-item soon"><span class="ico">⚠</span><span class="label">الحوادث</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">⌕</span><span class="label">Root Cause Analysis</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">✓</span><span class="label">Compliance</span><span class="badge">قريباً</span></div>
 
     <div class="nav-section">المعرفة والتنبؤ</div>
-    <div class="nav-item soon">
-      <span class="ico">⌖</span><span class="label">Zones (خرائط)</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">◎</span><span class="label">التدريب</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">∿</span><span class="label">Simulation</span><span class="badge">قريباً</span>
-    </div>
-    <div class="nav-item soon">
-      <span class="ico">⟨⟩</span><span class="label">API Product</span><span class="badge">قريباً</span>
-    </div>
+    <div class="nav-item soon"><span class="ico">⌖</span><span class="label">Zones (خرائط)</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">◎</span><span class="label">التدريب</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">∿</span><span class="label">Simulation</span><span class="badge">قريباً</span></div>
+    <div class="nav-item soon"><span class="ico">⟨⟩</span><span class="label">API Product</span><span class="badge">قريباً</span></div>
 
     <div class="sidebar-foot">
       <div class="org-pill" id="orgPill" title="تبديل المؤسسة">
         <div class="org-dot">A</div>
         <div class="org-info">
           <div class="o1">Arsann</div>
-          <div class="o2">3 مواقع · 24 موظف</div>
+          <div class="o2" id="orgMeta">— مواقع · — عميل</div>
         </div>
         <span class="chev">⌄</span>
       </div>
     </div>
   </aside>
 
-  <!-- =========== MAIN =========== -->
   <main>
 
     <header class="top">
       <div class="crumb">
         <h1 id="crumbTitle">لوحة القيادة</h1>
-        <span class="sub" id="crumbSub">نظرة شاملة · لحظية</span>
+        <span class="sub" id="crumbSub">يحمّل البيانات…</span>
       </div>
       <div class="actions">
+        <span class="data-tag" id="dataTag" style="display:none">●</span>
         <button class="top-btn" id="themeBtn" title="تبديل المظهر">◐</button>
-        <button class="top-btn" onclick="location.href='dashboard.html'" title="العودة لإدارة الإجراءات">SOPs</button>
+        <button class="top-btn" onclick="location.href='dashboard.html'" title="منصة SOPs">SOPs</button>
         <button class="top-btn gold" id="askA">🅰 اسأل The A</button>
       </div>
     </header>
 
-    <!-- ============ EXEC DASHBOARD VIEW ============ -->
-    <section id="view-exec" class="page">
-      <h2 class="page-h">لوحة القيادة التنفيذية</h2>
-      <p class="page-sub">نظرة شاملة على عمليات Arsann عبر جميع المواقع — البيانات لحظية</p>
-
-      <div class="kpi-row">
-        <div class="kpi">
-          <div class="k-label">إجمالي السيارات اليوم</div>
-          <div class="k-value">14,238<span class="unit">سيارة</span></div>
-          <div class="k-trend up">▲ 12.4% مقابل الأمس</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label">متوسط Throughput</div>
-          <div class="k-value">87<span class="unit">سيارة/ساعة</span></div>
-          <div class="k-trend up">▲ 4.1%</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label">الإيرادات اليومية</div>
-          <div class="k-value">142,580<span class="unit">SAR</span></div>
-          <div class="k-trend up">▲ 8.7%</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label">الموظفون النشطون</div>
-          <div class="k-value">18<span class="unit">/24</span></div>
-          <div class="k-trend flat">— مستقر</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label">الحوادث المفتوحة</div>
-          <div class="k-value">2<span class="unit">حادث</span></div>
-          <div class="k-trend down">▼ 1 اليوم</div>
-        </div>
-        <div class="kpi">
-          <div class="k-label">SLA Compliance</div>
-          <div class="k-value">96.4<span class="unit">%</span></div>
-          <div class="k-trend up">▲ 1.2%</div>
+    <div id="root">
+      <div class="loader">
+        <div style="text-align:center">
+          <div class="spinner"></div>
+          <div>يقرأ بيانات Arsann الحقيقية…</div>
         </div>
       </div>
-
-      <div class="section">
-        <div class="section-h">
-          <h3>أداء المواقع — اليوم</h3>
-          <span class="h-act" data-view="sites">عرض الكل ←</span>
-        </div>
-        <div class="sites-grid" id="execSitesGrid"></div>
-      </div>
-
-      <div class="twin-grid">
-        <div class="section">
-          <div class="section-h">
-            <h3>التدفق المباشر — Live Feed</h3>
-            <span class="h-act">إيقاف</span>
-          </div>
-          <div class="feed" id="liveFeed"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-h">
-            <h3>تنبيهات تحتاج اهتمامك</h3>
-          </div>
-          <div class="feed">
-            <div class="feed-item event-crit">
-              <div class="f-time">↯</div>
-              <div class="f-body">
-                <strong>VIA Riyadh</strong> — Zone B5 ممتلئ (98%) منذ 18 دقيقة.
-                <div style="color:var(--ink-3);font-size:11px;margin-top:3px">السبب المحتمل: تعطّل بوابة الخروج 2.</div>
-              </div>
-            </div>
-            <div class="feed-item event-warn">
-              <div class="f-time">↯</div>
-              <div class="f-body">
-                <strong>Hera Mall Makkah</strong> — Throughput انخفض 22% في آخر ساعة.
-              </div>
-            </div>
-            <div class="feed-item event-warn">
-              <div class="f-time">⚠</div>
-              <div class="f-body">
-                <strong>Red Sea Mall Jeddah</strong> — وردية الظهر بدون مشرف منذ 12 دقيقة.
-              </div>
-            </div>
-            <div class="feed-item event-ok">
-              <div class="f-time">✓</div>
-              <div class="f-body">
-                تم احتواء حادث <span class="who">Z-2418</span> في VIA Riyadh.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ============ SITES LIST VIEW ============ -->
-    <section id="view-sites" class="page" style="display:none">
-      <h2 class="page-h">المواقع</h2>
-      <p class="page-sub">3 مواقع نشطة — Riyadh · Jeddah · Makkah</p>
-
-      <div class="sites-grid" id="sitesGrid"></div>
-    </section>
-
-    <!-- ============ SITE DETAIL VIEW ============ -->
-    <section id="view-site" class="page" style="display:none">
-      <span class="back-link" onclick="show('sites')">← المواقع</span>
-      <h2 class="page-h" id="siteName"></h2>
-      <p class="page-sub" id="siteMeta"></p>
-
-      <div class="kpi-row" id="siteKpis"></div>
-
-      <div class="twin-grid">
-        <div class="section">
-          <div class="section-h">
-            <h3>التوأم الرقمي — Zones</h3>
-            <span class="h-act">عرض ثلاثي الأبعاد</span>
-          </div>
-          <div class="zone-map">
-            <div class="zone-map-grid" id="zoneGrid"></div>
-          </div>
-          <div class="zone-legend">
-            <span><span class="dot" style="background:rgba(58,143,102,.5)"></span> طبيعي (&lt; 70%)</span>
-            <span><span class="dot" style="background:rgba(214,165,68,.5)"></span> ممتلئ (70–90%)</span>
-            <span><span class="dot" style="background:rgba(179,80,62,.5)"></span> حرج (&gt; 90%)</span>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-h"><h3>الوردية الحالية</h3></div>
-          <table>
-            <thead><tr><th>الموظف</th><th>الدور</th><th>المنطقة</th><th>الحالة</th></tr></thead>
-            <tbody id="shiftBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-h">
-          <h3>أحداث الموقع — آخر 30 دقيقة</h3>
-        </div>
-        <div class="feed" id="siteFeed"></div>
-      </div>
-    </section>
-
-    <!-- Coming soon stub -->
-    <section id="view-soon" class="page" style="display:none">
-      <div class="empty">
-        <div class="ico">⏳</div>
-        <h3>هذه الطبقة قيد التطوير</h3>
-        <p>The A Intelligence مبنيّ على 12 طبقة. Phase 0 يفتح <strong>القيادة + المواقع + التوأم الرقمي</strong>. الطبقات التالية تُفعّل تباعاً مع توفّر بيانات الإنتاج.</p>
-        <span class="roadmap-tag" id="roadmapTag">Phase 1 — Q3 2026</span>
-      </div>
-    </section>
-
+    </div>
   </main>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========== Data =========== */
-const SITES = [
-  {
-    id:"via-riyadh", name:"VIA Riyadh", city:"الرياض", type:"Mall · Premium",
-    spots:1850, occupied:1432, throughput:118, revenue:64200,
-    staff:9, incidents:1, sla:97.2,
-    zones:[
-      ['B1',45],['B2',62],['B3',78],['B4',55],['B5',98],['B6',71],['B7',40],['B8',33],
-      ['C1',58],['C2',82],['C3',65],['C4',49],['C5',91],['C6',73],['C7',38],['C8',22],
-      ['D1',71],['D2',88],['D3',95],['D4',74],['D5',85],['D6',62],['D7',47],['D8',28],
-      ['E1',55],['E2',68],['E3',72],['E4',60],['E5',45],['E6',39],['E7',32],['E8',18],
-      ['F1',24],['F2',31],['F3',28],['F4',22],['F5',15],['F6',11],['F7',8 ],['F8',5 ],
-    ],
-    shift:[
-      {name:"عبدالله العتيبي",role:"مشرف وردية",zone:"المدخل الرئيسي",status:"live"},
-      {name:"سلطان القحطاني",role:"موزّع",zone:"Zone B",status:"live"},
-      {name:"فهد الشمري",role:"موزّع",zone:"Zone C",status:"live"},
-      {name:"بدر الدوسري",role:"خروج",zone:"Exit Gate 2",status:"upc"},
-      {name:"خالد العنزي",role:"valet",zone:"VIP Drop-off",status:"live"},
-    ]
-  },
-  {
-    id:"red-sea-jeddah", name:"Red Sea Mall", city:"جدة", type:"Mall",
-    spots:2400, occupied:1820, throughput:94, revenue:48900,
-    staff:7, incidents:1, sla:95.1,
-    zones:[
-      ['A1',55],['A2',78],['A3',62],['A4',85],['A5',71],['A6',48],['A7',32],['A8',24],
-      ['B1',67],['B2',82],['B3',91],['B4',76],['B5',84],['B6',58],['B7',41],['B8',29],
-      ['C1',72],['C2',88],['C3',79],['C4',65],['C5',54],['C6',47],['C7',35],['C8',22],
-      ['D1',45],['D2',58],['D3',63],['D4',49],['D5',38],['D6',31],['D7',24],['D8',15],
-      ['E1',18],['E2',22],['E3',19],['E4',14],['E5',12],['E6',8 ],['E7',5 ],['E8',3 ],
-    ],
-    shift:[
-      {name:"يوسف الزهراني",role:"مشرف وردية",zone:"المدخل",status:"live"},
-      {name:"ماجد الحربي",role:"موزّع",zone:"Zone A",status:"live"},
-      {name:"تركي الغامدي",role:"موزّع",zone:"Zone B",status:"upc"},
-      {name:"عمر باوزير",role:"خروج",zone:"Exit",status:"done"},
-    ]
-  },
-  {
-    id:"hera-makkah", name:"Hera Mall", city:"مكة المكرمة", type:"Mall · Religious tourism",
-    spots:1200, occupied:986, throughput:62, revenue:29480,
-    staff:8, incidents:0, sla:96.8,
-    zones:[
-      ['A1',82],['A2',91],['A3',78],['A4',85],['A5',74],['A6',62],['A7',54],['A8',41],
-      ['B1',88],['B2',94],['B3',82],['B4',77],['B5',68],['B6',55],['B7',43],['B8',32],
-      ['C1',71],['C2',79],['C3',65],['C4',58],['C5',47],['C6',38],['C7',29],['C8',21],
-      ['D1',54],['D2',62],['D3',49],['D4',41],['D5',33],['D6',26],['D7',18],['D8',11],
-      ['E1',28],['E2',32],['E3',25],['E4',19],['E5',14],['E6',9 ],['E7',6 ],['E8',4 ],
-    ],
-    shift:[
-      {name:"سعيد القرشي",role:"مشرف وردية",zone:"المدخل",status:"live"},
-      {name:"إبراهيم الأنصاري",role:"موزّع",zone:"Zone A",status:"live"},
-      {name:"عبدالعزيز الشريف",role:"موزّع",zone:"Zone B",status:"live"},
-      {name:"محمد الحسيني",role:"خروج",zone:"Exit",status:"live"},
-    ]
-  },
-];
+/* ========== Real Arsann data loader ========== */
+let DATA = null;
 
-const FEED_EVENTS = [
-  {t:"الآن", w:"VIA Riyadh", body:"<span class='who'>سلطان القحطاني</span> دخل وردية المساء", c:"event-ok"},
-  {t:"02:14", w:"Red Sea Mall", body:"<span class='who'>Zone B3</span> امتلأ بنسبة 91%", c:"event-warn"},
-  {t:"05:32", w:"Hera Mall", body:"تم تنفيذ SOP إخلاء جزئي — Zone B2", c:"event-ok"},
-  {t:"08:47", w:"VIA Riyadh", body:"خصم تلقائي على بطاقة <span class='who'>VIP-2418</span>", c:"event-ok"},
-  {t:"11:02", w:"Red Sea Mall", body:"تنبيه: <span class='who'>Throughput</span> أقل من المتوسط بـ 22%", c:"event-warn"},
-  {t:"14:33", w:"VIA Riyadh", body:"<span class='who'>↯ Zone B5</span> ممتلئ بنسبة 98% — تحقق من بوابة الخروج", c:"event-crit"},
-  {t:"17:18", w:"Hera Mall", body:"وردية الفجر اكتملت بنجاح — 0 حوادث", c:"event-ok"},
-];
-
-/* =========== Rendering =========== */
-function siteCard(s){
-  const occPct = Math.round(s.occupied/s.spots*100);
-  return `
-    <div class="site-card" data-site="${s.id}">
-      <span class="city-tag">${s.city}</span>
-      <div class="s-name">${s.name}</div>
-      <div class="s-type">${s.type}</div>
-      <div class="s-stats">
-        <div class="s-stat"><div class="v">${s.occupied.toLocaleString('ar')}</div><div class="l">مشغول</div></div>
-        <div class="s-stat"><div class="v">${s.throughput}</div><div class="l">سيارة/س</div></div>
-        <div class="s-stat"><div class="v">${s.staff}</div><div class="l">موظف</div></div>
-      </div>
-      <div class="s-bar"><div style="width:${occPct}%"></div></div>
-      <div class="s-foot">
-        <span><span class="live-dot"></span>مباشر · ${occPct}% إشغال</span>
-        <span style="color:var(--gold)">SLA ${s.sla}%</span>
-      </div>
-    </div>`;
+async function loadData(){
+  const res = await fetch('arsann-data.json');
+  if (!res.ok) throw new Error('Failed to load arsann-data.json');
+  DATA = await res.json();
+  return DATA;
 }
 
-function renderSites(target){
-  const el = document.getElementById(target);
-  el.innerHTML = SITES.map(siteCard).join('');
-  el.querySelectorAll('.site-card').forEach(c => {
-    c.addEventListener('click', () => openSite(c.dataset.site));
+const fmt = {
+  money: n => Math.round(n).toLocaleString('en-US') + ' SAR',
+  num: n => Math.round(n).toLocaleString('en-US'),
+  k: n => n >= 1000000 ? (n/1000000).toFixed(2)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : Math.round(n),
+  pct: (a,b) => b > 0 ? Math.round(a/b*100) + '%' : '—',
+  date: s => { const [y,m,d] = s.split('-'); return `${d}/${m}`; },
+  dateLong: s => { const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; },
+};
+
+/* ========== SVG Sparkline / Chart ========== */
+function sparkline(values, w, h, opts={}){
+  if (!values.length) return '';
+  const max = Math.max(...values), min = Math.min(...values);
+  const range = max - min || 1;
+  const step = w / (values.length - 1 || 1);
+  // RTL: flip so dates progress right-to-left
+  const points = values.map((v,i) => {
+    const x = w - (i*step);
+    const y = h - ((v - min)/range) * (h - 8) - 4;
+    return [x,y];
+  });
+  const path = points.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = path + ` L ${points[points.length-1][0].toFixed(1)},${h} L ${points[0][0].toFixed(1)},${h} Z`;
+  const stroke = opts.color || 'var(--gold)';
+  const fill = opts.fill || 'rgba(200,154,74,.15)';
+  return `
+    <svg class="${opts.cls||'chart-mini'}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:${h}px">
+      <path d="${area}" fill="${fill}"/>
+      <path d="${path}" fill="none" stroke="${stroke}" stroke-width="${opts.sw||1.8}" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+}
+
+function barChart(values, labels, w, h){
+  if (!values.length) return '';
+  const max = Math.max(...values) || 1;
+  const bw = w / values.length;
+  const gap = bw * 0.18;
+  let svg = `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:${h}px">`;
+  // RTL: bar 0 on the right
+  values.forEach((v,i) => {
+    const x = w - (i+1)*bw + gap/2;
+    const bh = (v/max) * (h - 28);
+    const y = h - bh - 18;
+    const op = 0.3 + (v/max) * 0.7;
+    svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw-gap).toFixed(1)}" height="${bh.toFixed(1)}" fill="var(--gold)" opacity="${op.toFixed(2)}" rx="2"/>`;
+    if (i % Math.ceil(values.length/8) === 0){
+      svg += `<text x="${(x+(bw-gap)/2).toFixed(1)}" y="${h-4}" fill="var(--ink-3)" font-size="9" text-anchor="middle">${labels[i]||''}</text>`;
+    }
+  });
+  svg += '</svg>';
+  return svg;
+}
+
+/* ========== City classification icon/label ========== */
+const cityLabel = {Riyadh:'الرياض', Jeddah:'جدة', Makkah:'مكة', Madinah:'المدينة'};
+
+/* ========== Views ========== */
+const root = document.getElementById('root');
+let CURRENT_VIEW = 'exec';
+
+function renderExec(){
+  const t = DATA.totals;
+  const days = DATA.days;
+  const last7 = days.slice(-7);
+  const prev7 = days.slice(-14,-7);
+  const last7Rev = last7.reduce((s,d)=>s+d.revenue,0);
+  const prev7Rev = prev7.reduce((s,d)=>s+d.revenue,0);
+  const trend7 = prev7Rev>0 ? ((last7Rev-prev7Rev)/prev7Rev*100) : 0;
+  const last30 = days.slice(-30);
+  const last30Rev = last30.reduce((s,d)=>s+d.revenue,0);
+  const last30Cars = last30.reduce((s,d)=>s+d.entries,0);
+  const lastDay = days[days.length-1];
+  const lastDayPrev = days[days.length-2];
+  const dayTrend = lastDayPrev ? ((lastDay.revenue-lastDayPrev.revenue)/lastDayPrev.revenue*100) : 0;
+
+  const conversionAll = t.entries > 0 ? Math.round(t.paid/t.entries*100) : 0;
+  const avgTicket = t.paid > 0 ? Math.round(t.revenue/t.paid) : 0;
+
+  const mixCard = t.card, mixCash = t.cash, mixOnline = t.online;
+  const mixTotal = mixCard+mixCash+mixOnline;
+  const cardPct = mixTotal>0 ? mixCard/mixTotal*100 : 0;
+  const cashPct = mixTotal>0 ? mixCash/mixTotal*100 : 0;
+  const onlinePct = mixTotal>0 ? mixOnline/mixTotal*100 : 0;
+
+  const top10 = DATA.sites.slice(0,10);
+  const cities = DATA.cities;
+
+  const dailyValues = last30.map(d=>d.revenue);
+  const dailyLabels = last30.map(d=>fmt.date(d.date));
+
+  return `
+    <section class="page">
+      <h2 class="page-h">لوحة القيادة التنفيذية</h2>
+      <p class="page-sub">
+        <span>بيانات حقيقية من Arsann · ${fmt.dateLong(DATA.meta.dateFrom)} → ${fmt.dateLong(DATA.meta.dateTo)} (${DATA.meta.daysCount} يوم)</span>
+        <span class="data-tag">● Live data</span>
+      </p>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="k-label">إجمالي الإيرادات</div>
+          <div class="k-value">${fmt.k(t.revenue)}<span class="unit">SAR</span></div>
+          <div class="k-trend up">↗ ${fmt.num(t.revenue)} ر.س مدى ${days.length} يوم</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">إجمالي السيارات</div>
+          <div class="k-value">${fmt.k(t.entries)}<span class="unit">سيارة</span></div>
+          <div class="k-trend flat">${fmt.num(t.entries)} سيارة</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">آخر 7 أيام</div>
+          <div class="k-value">${fmt.k(last7Rev)}<span class="unit">SAR</span></div>
+          <div class="k-trend ${trend7>=0?'up':'down'}">${trend7>=0?'▲':'▼'} ${Math.abs(trend7).toFixed(1)}% مقابل الأسبوع السابق</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">متوسط قيمة التذكرة</div>
+          <div class="k-value">${fmt.num(avgTicket)}<span class="unit">SAR</span></div>
+          <div class="k-trend flat">من ${fmt.k(t.paid)} تذكرة مدفوعة</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">نسبة التحصيل</div>
+          <div class="k-value">${conversionAll}<span class="unit">%</span></div>
+          <div class="k-trend flat">${fmt.k(t.paid)} مدفوع · ${fmt.k(t.free)} مجاني</div>
+        </div>
+        <div class="kpi">
+          <div class="k-label">المواقع النشطة</div>
+          <div class="k-value">${DATA.sites.length}<span class="unit">موقع</span></div>
+          <div class="k-trend flat">في ${DATA.cities.length} مدن</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-h">
+          <h3>الإيرادات اليومية — آخر 30 يوم</h3>
+          <span class="h-act">${fmt.k(last30Rev)} SAR · ${fmt.k(last30Cars)} سيارة</span>
+        </div>
+        ${barChart(dailyValues, dailyLabels, 800, 180)}
+      </div>
+
+      <div class="twin-grid">
+
+        <div class="section">
+          <div class="section-h">
+            <h3>أعلى 10 مواقع — حسب الإيراد</h3>
+            <span class="h-act" data-nav="sites">عرض الكل ←</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الموقع</th><th>المدينة</th><th class="num">السيارات</th><th class="num">الإيراد</th></tr></thead>
+              <tbody>
+                ${top10.map(s => `
+                  <tr style="cursor:pointer" onclick="openSite('${escapeHtml(s.name)}')">
+                    <td><strong>${escapeHtml(s.name)}</strong>${s.client ? `<div style="font-size:11px;color:var(--gold)">${escapeHtml(s.client)}</div>`:''}</td>
+                    <td style="color:var(--ink-2)">${cityLabel[s.city]||s.city}</td>
+                    <td class="num">${fmt.k(s.entries)}</td>
+                    <td class="num" style="color:var(--gold-2)">${fmt.k(s.revenue)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-h"><h3>التوزيع حسب المدينة</h3></div>
+          ${cities.map(c => {
+            const pct = (c.revenue/t.revenue*100).toFixed(1);
+            return `
+              <div style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                  <span style="font-weight:600">${cityLabel[c.city]||c.city}</span>
+                  <span style="color:var(--gold-2);font-weight:600">${fmt.k(c.revenue)} SAR</span>
+                </div>
+                <div style="display:flex;gap:6px;font-size:11px;color:var(--ink-3);margin-bottom:5px">
+                  <span>${c.sites} موقع</span>
+                  <span>·</span>
+                  <span>${fmt.k(c.entries)} سيارة</span>
+                  <span>·</span>
+                  <span>${pct}%</span>
+                </div>
+                <div style="height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 100%);border-radius:4px"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+
+          <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--line)">
+            <h4 style="font-size:13px;color:var(--ink-2);margin:0 0 10px">طرق الدفع</h4>
+            <div class="mix-bar">
+              <div class="mix-seg card" style="flex:${cardPct}">${cardPct.toFixed(0)}%</div>
+              <div class="mix-seg cash" style="flex:${cashPct}">${cashPct>5?cashPct.toFixed(0)+'%':''}</div>
+              <div class="mix-seg online" style="flex:${onlinePct}">${onlinePct.toFixed(0)}%</div>
+            </div>
+            <div class="mix-legend">
+              <span><span class="dot" style="background:var(--gold)"></span>بطاقة ${fmt.k(mixCard)}</span>
+              <span><span class="dot" style="background:var(--gold-2)"></span>كاش ${fmt.k(mixCash)}</span>
+              <span><span class="dot" style="background:#8a6a30"></span>أونلاين ${fmt.k(mixOnline)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>`;
+}
+
+function renderSites(filterCity=null, search=''){
+  const all = DATA.sites;
+  let list = all;
+  if (filterCity) list = list.filter(s => s.city === filterCity);
+  if (search) list = list.filter(s => (s.name+' '+(s.client||'')).toLowerCase().includes(search.toLowerCase()));
+  const cities = [...new Set(all.map(s=>s.city))];
+
+  return `
+    <section class="page">
+      <h2 class="page-h">المواقع</h2>
+      <p class="page-sub">${all.length} موقع نشط · مرتبة حسب الإيراد</p>
+
+      <div class="filter-row">
+        <span class="filter-pill ${!filterCity?'active':''}" onclick="renderTo('sites',{city:null,search:'${search}'})">الكل (${all.length})</span>
+        ${cities.map(c => `
+          <span class="filter-pill ${filterCity===c?'active':''}" onclick="renderTo('sites',{city:'${c}',search:'${search}'})">
+            ${cityLabel[c]||c} (${all.filter(s=>s.city===c).length})
+          </span>
+        `).join('')}
+        <input class="search" placeholder="بحث عن موقع أو عميل…" value="${search}" oninput="searchSites(this.value)">
+      </div>
+
+      <div class="sites-grid">
+        ${list.map(s => `
+          <div class="site-card" onclick="openSite('${escapeHtml(s.name)}')">
+            <span class="city-tag">${cityLabel[s.city]||s.city}</span>
+            <div class="s-name">${escapeHtml(s.name)}</div>
+            ${s.client ? `<div class="s-client">${escapeHtml(s.client)}</div>` : ''}
+            <div class="s-type">${s.services.join(' · ')} · ${s.days} يوم نشاط</div>
+            <div class="s-stats">
+              <div class="s-stat"><div class="v">${fmt.k(s.revenue)}</div><div class="l">إيراد · SAR</div></div>
+              <div class="s-stat"><div class="v">${fmt.k(s.entries)}</div><div class="l">سيارة</div></div>
+              <div class="s-stat"><div class="v">${s.conversionRate}%</div><div class="l">تحصيل</div></div>
+            </div>
+            <div class="s-foot">
+              <span>متوسط ${fmt.k(s.avgPerDay)} ر.س / يوم</span>
+              <span style="color:var(--gold)">عرض ←</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      ${list.length===0 ? '<div class="empty"><div class="ico">⌕</div><h3>لا توجد نتائج</h3><p>جرّب مدينة أخرى أو امسح البحث.</p></div>' : ''}
+    </section>`;
+}
+
+function renderClients(){
+  const c = DATA.clients;
+  const total = DATA.totals.revenue;
+  return `
+    <section class="page">
+      <h2 class="page-h">العملاء</h2>
+      <p class="page-sub">${c.length} عميل · مرتب حسب الإيراد المُولّد</p>
+
+      <div class="section">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>العميل</th><th class="num">المواقع</th><th class="num">السيارات</th><th class="num">الإيراد</th><th class="num">% من الإجمالي</th><th class="num">أيام النشاط</th></tr></thead>
+            <tbody>
+              ${c.map(x => {
+                const pct = (x.revenue/total*100).toFixed(1);
+                const name = x.client === '__direct__' ? '— (تشغيل مباشر)' : x.client;
+                return `
+                  <tr>
+                    <td><strong>${escapeHtml(name)}</strong></td>
+                    <td class="num">${x.sites}</td>
+                    <td class="num">${fmt.num(x.entries)}</td>
+                    <td class="num" style="color:var(--gold-2)">${fmt.k(x.revenue)} SAR</td>
+                    <td class="num">${pct}%</td>
+                    <td class="num" style="color:var(--ink-3)">${x.days}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderRevenue(){
+  const days = DATA.days;
+  const t = DATA.totals;
+  const last90 = days.slice(-90);
+  const labels = last90.map(d=>fmt.date(d.date));
+  const values = last90.map(d=>d.revenue);
+  const cars   = last90.map(d=>d.entries);
+
+  // weekly bucket
+  const weekly = [];
+  for (let i=0; i<days.length; i+=7){
+    const slice = days.slice(i, i+7);
+    weekly.push({
+      label: fmt.date(slice[0].date) + ' →',
+      rev: slice.reduce((s,d)=>s+d.revenue,0),
+      cars: slice.reduce((s,d)=>s+d.entries,0),
+      days: slice.length
+    });
+  }
+
+  return `
+    <section class="page">
+      <h2 class="page-h">الإيرادات</h2>
+      <p class="page-sub">تحليل زمني · 90 يوم · ${fmt.dateLong(DATA.meta.dateFrom)} → ${fmt.dateLong(DATA.meta.dateTo)}</p>
+
+      <div class="section">
+        <div class="section-h"><h3>الإيراد اليومي — آخر 90 يوم</h3></div>
+        ${barChart(values, labels, 1200, 240)}
+      </div>
+
+      <div class="twin-grid">
+        <div class="section">
+          <div class="section-h"><h3>الإيراد الأسبوعي</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الأسبوع</th><th class="num">السيارات</th><th class="num">الإيراد</th><th class="num">متوسط/يوم</th></tr></thead>
+              <tbody>
+                ${weekly.reverse().map(w=>`
+                  <tr>
+                    <td>${w.label}</td>
+                    <td class="num">${fmt.num(w.cars)}</td>
+                    <td class="num" style="color:var(--gold-2)">${fmt.k(w.rev)} SAR</td>
+                    <td class="num">${fmt.k(w.rev/w.days)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-h"><h3>أنواع الخدمات</h3></div>
+          ${DATA.services.map(s => {
+            const pct = (s.revenue/t.revenue*100).toFixed(1);
+            return `
+              <div style="margin-bottom:18px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-weight:600">${s.type}</span>
+                  <span style="color:var(--gold-2)">${fmt.k(s.revenue)} SAR · ${pct}%</span>
+                </div>
+                <div style="display:flex;gap:6px;font-size:11px;color:var(--ink-3);margin-bottom:6px">
+                  <span>${fmt.num(s.entries)} سيارة</span>
+                </div>
+                <div style="height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-2) 100%);border-radius:4px"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderSiteDetail(siteName){
+  const s = DATA.sites.find(x => x.name === siteName);
+  if (!s) return renderSites();
+  const t = DATA.totals;
+  const cardPct = s.card+s.cash+s.online > 0 ? (s.card/(s.card+s.cash+s.online)*100) : 0;
+  const cashPct = s.card+s.cash+s.online > 0 ? (s.cash/(s.card+s.cash+s.online)*100) : 0;
+  const onlinePct = s.card+s.cash+s.online > 0 ? (s.online/(s.card+s.cash+s.online)*100) : 0;
+
+  return `
+    <section class="page">
+      <span class="back-link" onclick="renderTo('sites')">← المواقع</span>
+      <h2 class="page-h">${escapeHtml(s.name)}</h2>
+      <p class="page-sub">
+        <span>${cityLabel[s.city]||s.city}${s.client?` · ${escapeHtml(s.client)}`:''}</span>
+        <span class="data-tag">${s.services.join(' / ')}</span>
+      </p>
+
+      <div class="kpi-row">
+        <div class="kpi"><div class="k-label">إجمالي الإيراد</div><div class="k-value">${fmt.k(s.revenue)}<span class="unit">SAR</span></div><div class="k-trend up">${(s.revenue/t.revenue*100).toFixed(2)}% من إجمالي Arsann</div></div>
+        <div class="kpi"><div class="k-label">السيارات</div><div class="k-value">${fmt.k(s.entries)}<span class="unit">سيارة</span></div><div class="k-trend flat">على ${s.days} يوم نشاط</div></div>
+        <div class="kpi"><div class="k-label">متوسط يومي</div><div class="k-value">${fmt.k(s.avgPerDay)}<span class="unit">SAR</span></div><div class="k-trend flat">${Math.round(s.entries/s.days)} سيارة/يوم</div></div>
+        <div class="kpi"><div class="k-label">نسبة التحصيل</div><div class="k-value">${s.conversionRate}<span class="unit">%</span></div><div class="k-trend ${s.conversionRate>50?'up':s.conversionRate>20?'flat':'down'}">${fmt.k(s.paid)} مدفوع · ${fmt.k(s.free)} مجاني</div></div>
+      </div>
+
+      <div class="twin-grid">
+        <div class="section">
+          <div class="section-h"><h3>توزيع الإيراد حسب الدفع</h3></div>
+          <div class="mix-bar">
+            <div class="mix-seg card" style="flex:${cardPct}">${cardPct.toFixed(0)}%</div>
+            <div class="mix-seg cash" style="flex:${cashPct}">${cashPct>5?cashPct.toFixed(0)+'%':''}</div>
+            <div class="mix-seg online" style="flex:${onlinePct}">${onlinePct.toFixed(0)}%</div>
+          </div>
+          <div class="mix-legend">
+            <span><span class="dot" style="background:var(--gold)"></span>بطاقة ${fmt.k(s.card)}</span>
+            <span><span class="dot" style="background:var(--gold-2)"></span>كاش ${fmt.k(s.cash)}</span>
+            <span><span class="dot" style="background:#8a6a30"></span>أونلاين ${fmt.k(s.online)}</span>
+          </div>
+
+          <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--line)">
+            <h4 style="font-size:13px;color:var(--ink-2);margin:0 0 12px">إحصائيات المرور</h4>
+            <table style="font-size:13px">
+              <tr><td>إجمالي تذاكر الدخول</td><td class="num">${fmt.num(s.entries)}</td></tr>
+              <tr><td>تذاكر مدفوعة</td><td class="num">${fmt.num(s.paid)}</td></tr>
+              <tr><td>تذاكر مجانية</td><td class="num">${fmt.num(s.free)}</td></tr>
+              <tr><td>أيام نشاط</td><td class="num">${s.days}</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-h"><h3>اقتراحات The A</h3></div>
+          ${aiInsights(s).map(ins=>`
+            <div style="display:flex;gap:10px;padding:12px;margin-bottom:8px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;border-inline-start:3px solid ${ins.color}">
+              <div style="font-size:18px;line-height:1">${ins.icon}</div>
+              <div style="flex:1">
+                <div style="font-weight:600;color:var(--ink-1);margin-bottom:3px">${ins.title}</div>
+                <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6">${ins.body}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+    </section>
+  `;
+}
+
+function aiInsights(s){
+  const out = [];
+  const avg = DATA.sites.reduce((sum,x)=>sum+x.avgPerDay,0)/DATA.sites.length;
+  if (s.avgPerDay > avg * 2) out.push({icon:'★', color:'var(--ok)', title:'موقع متفوّق', body:`متوسط الإيراد اليومي هنا (${fmt.k(s.avgPerDay)} SAR) أعلى من متوسط محفظة Arsann بـ ${Math.round((s.avgPerDay/avg-1)*100)}%.`});
+  if (s.conversionRate < 20 && s.entries > 1000) out.push({icon:'⚠', color:'var(--warn)', title:'نسبة تحصيل منخفضة', body:`فقط ${s.conversionRate}% من ${fmt.num(s.entries)} سيارة دخلت دفعت. تحقق من إعدادات التسعير أو ترتيبات validations مع العميل.`});
+  if (s.cash > s.card * 2 && s.cash > 5000) out.push({icon:'💵', color:'var(--info)', title:'هيمنة الدفع النقدي', body:`الكاش يمثّل ${(s.cash/(s.cash+s.card+s.online)*100).toFixed(0)}% من الإيراد. فرصة لزيادة الدفع البطاقي/الأونلاين بإضافة QR pay.`});
+  if (s.online > s.card * 1.5) out.push({icon:'📲', color:'var(--ok)', title:'تبنّي رقمي عالٍ', body:`الدفع الأونلاين يقود الإيراد هنا — استمر في الترويج للقناة الرقمية.`});
+  if (s.days < 30) out.push({icon:'⏱', color:'var(--info)', title:'موقع جديد نسبياً', body:`${s.days} يوم نشاط فقط — البيانات قد لا تكفي لتحليل اتجاه. أعد المراجعة بعد 60 يوم.`});
+  if (s.free > s.paid && s.free > 100) out.push({icon:'⚡', color:'var(--warn)', title:'مجانية > مدفوعة', body:`${fmt.num(s.free)} تذكرة مجانية مقابل ${fmt.num(s.paid)} مدفوعة. تأكد أن هذا مقصود (validations عميل) وليس تسرّب إيراد.`});
+  if (out.length === 0) out.push({icon:'✓', color:'var(--ok)', title:'الموقع يعمل ضمن المعدل', body:`لا توجد إشارات عاجلة. تابع الأداء أسبوعياً.`});
+  return out.slice(0,4);
+}
+
+/* ========== Helpers ========== */
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+let SITES_FILTER = {city:null, search:''};
+window.renderTo = function(view, opts){
+  CURRENT_VIEW = view;
+  if (view === 'sites' && opts) SITES_FILTER = {...SITES_FILTER, ...opts};
+  routeView(view);
+};
+window.searchSites = function(v){
+  SITES_FILTER.search = v;
+  // re-render but keep focus
+  const cards = document.querySelector('.sites-grid');
+  if (cards){
+    let list = DATA.sites;
+    if (SITES_FILTER.city) list = list.filter(s => s.city === SITES_FILTER.city);
+    if (v) list = list.filter(s => (s.name+' '+(s.client||'')).toLowerCase().includes(v.toLowerCase()));
+    cards.innerHTML = list.map(s => `
+      <div class="site-card" onclick="openSite('${escapeHtml(s.name)}')">
+        <span class="city-tag">${cityLabel[s.city]||s.city}</span>
+        <div class="s-name">${escapeHtml(s.name)}</div>
+        ${s.client ? `<div class="s-client">${escapeHtml(s.client)}</div>` : ''}
+        <div class="s-type">${s.services.join(' · ')} · ${s.days} يوم نشاط</div>
+        <div class="s-stats">
+          <div class="s-stat"><div class="v">${fmt.k(s.revenue)}</div><div class="l">إيراد · SAR</div></div>
+          <div class="s-stat"><div class="v">${fmt.k(s.entries)}</div><div class="l">سيارة</div></div>
+          <div class="s-stat"><div class="v">${s.conversionRate}%</div><div class="l">تحصيل</div></div>
+        </div>
+        <div class="s-foot"><span>متوسط ${fmt.k(s.avgPerDay)} ر.س / يوم</span><span style="color:var(--gold)">عرض ←</span></div>
+      </div>
+    `).join('');
+  }
+};
+window.openSite = function(name){
+  CURRENT_VIEW = 'site';
+  root.innerHTML = renderSiteDetail(name);
+  crumb(name, 'تحليل تفصيلي للموقع');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('.nav-item[data-view="sites"]')?.classList.add('active');
+};
+
+function routeView(v){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const active = document.querySelector(`.nav-item[data-view="${v}"]`);
+  if (active) active.classList.add('active');
+  if (v === 'exec'){ root.innerHTML = renderExec(); crumb('لوحة القيادة','نظرة شاملة على Arsann'); }
+  else if (v === 'sites'){ root.innerHTML = renderSites(SITES_FILTER.city, SITES_FILTER.search); crumb('المواقع', `${DATA.sites.length} موقع`); }
+  else if (v === 'clients'){ root.innerHTML = renderClients(); crumb('العملاء',`${DATA.clients.length} عميل`); }
+  else if (v === 'revenue'){ root.innerHTML = renderRevenue(); crumb('الإيرادات','تحليل زمني'); }
+  // wire .h-act[data-nav]
+  document.querySelectorAll('.h-act[data-nav]').forEach(a=>{
+    a.addEventListener('click',()=>renderTo(a.dataset.nav));
   });
 }
 
-function renderFeed(){
-  const el = document.getElementById('liveFeed');
-  el.innerHTML = FEED_EVENTS.map(e => `
-    <div class="feed-item ${e.c}">
-      <div class="f-time">${e.t}</div>
-      <div class="f-body"><strong>${e.w}</strong> — ${e.body}</div>
-    </div>
-  `).join('');
-}
-
-function openSite(id){
-  const s = SITES.find(x => x.id === id);
-  if (!s) return;
-  document.getElementById('siteName').textContent = s.name;
-  document.getElementById('siteMeta').textContent = `${s.city} · ${s.type} · ${s.spots.toLocaleString('ar')} موقف`;
-
-  document.getElementById('siteKpis').innerHTML = [
-    {l:"السيارات الآن",v:s.occupied.toLocaleString('ar'),u:"سيارة",t:`${Math.round(s.occupied/s.spots*100)}% إشغال`,tc:"flat"},
-    {l:"Throughput",v:s.throughput,u:"سيارة/س",t:"▲ 4.2%",tc:"up"},
-    {l:"الإيرادات اليوم",v:s.revenue.toLocaleString('ar'),u:"SAR",t:"▲ 9.1%",tc:"up"},
-    {l:"الموظفون",v:s.staff,u:"نشط",t:"— مستقر",tc:"flat"},
-    {l:"الحوادث المفتوحة",v:s.incidents,u:"حادث",t:s.incidents===0?"✓ نظيف":"تحتاج اهتمام",tc:s.incidents===0?"up":"down"},
-    {l:"SLA",v:s.sla,u:"%",t:"▲ 1.4%",tc:"up"},
-  ].map(k => `
-    <div class="kpi">
-      <div class="k-label">${k.l}</div>
-      <div class="k-value">${k.v}<span class="unit">${k.u}</span></div>
-      <div class="k-trend ${k.tc}">${k.t}</div>
-    </div>
-  `).join('');
-
-  // Zone grid
-  const zg = document.getElementById('zoneGrid');
-  zg.innerHTML = s.zones.map(([name,pct]) => {
-    const cls = pct >= 90 ? 'crit' : pct >= 70 ? 'warn' : '';
-    return `<div class="zone-cell ${cls}" title="${name} · ${pct}%">${name}</div>`;
-  }).join('');
-
-  // Shifts
-  const sb = document.getElementById('shiftBody');
-  sb.innerHTML = s.shift.map(p => `
-    <tr>
-      <td>${p.name}</td>
-      <td style="color:var(--ink-2)">${p.role}</td>
-      <td style="color:var(--ink-2)">${p.zone}</td>
-      <td><span class="pill ${p.status}">${p.status==='live'?'في الوردية':p.status==='upc'?'قادم':'انتهت'}</span></td>
-    </tr>
-  `).join('');
-
-  // Site feed
-  const fe = document.getElementById('siteFeed');
-  fe.innerHTML = FEED_EVENTS.filter(e => e.w === s.name || e.w.includes(s.city.slice(0,4))).map(e => `
-    <div class="feed-item ${e.c}">
-      <div class="f-time">${e.t}</div>
-      <div class="f-body">${e.body}</div>
-    </div>
-  `).join('') || `<div style="color:var(--ink-3);padding:14px;text-align:center">لا أحداث في آخر 30 دقيقة</div>`;
-
-  show('site');
-}
-
-/* =========== Navigation =========== */
-function show(view){
-  document.querySelectorAll('main > section').forEach(s => s.style.display='none');
-
-  if (view === 'exec'){
-    document.getElementById('view-exec').style.display='';
-    crumb('لوحة القيادة','نظرة شاملة · لحظية');
-  } else if (view === 'sites'){
-    document.getElementById('view-sites').style.display='';
-    crumb('المواقع','3 مواقع نشطة');
-  } else if (view === 'site'){
-    document.getElementById('view-site').style.display='';
-    crumb('تفاصيل الموقع','التوأم الرقمي');
-  } else if (view === 'soon'){
-    document.getElementById('view-soon').style.display='';
-    crumb('قريباً','هذه الطبقة قيد التطوير');
-  }
-
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const active = document.querySelector(`.nav-item[data-view="${view==='site'?'sites':view}"]`);
-  if (active) active.classList.add('active');
-}
 function crumb(t,s){
   document.getElementById('crumbTitle').textContent = t;
   document.getElementById('crumbSub').textContent = s;
 }
 
-/* =========== Init =========== */
-renderSites('execSitesGrid');
-renderSites('sitesGrid');
-renderFeed();
+/* ========== Init ========== */
+loadData().then(d => {
+  document.getElementById('sitesBadge').textContent = d.sites.length;
+  document.getElementById('clientsBadge').textContent = d.clients.length;
+  document.getElementById('orgMeta').textContent = `${d.sites.length} موقع · ${d.clients.length} عميل`;
+  document.getElementById('dataTag').style.display = '';
+  document.getElementById('dataTag').textContent = `● ${d.meta.daysCount} يوم بيانات حقيقية`;
+  routeView('exec');
+}).catch(e => {
+  root.innerHTML = `<div class="empty"><div class="ico">⚠</div><h3>فشل تحميل البيانات</h3><p>تأكد من وجود <code>arsann-data.json</code> بجانب هذا الملف.<br>${escapeHtml(e.message)}</p></div>`;
+});
 
 document.querySelectorAll('.nav-item').forEach(n => {
   n.addEventListener('click', () => {
-    if (n.classList.contains('soon')){
-      toast('🚧 قريباً — هذه الطبقة قيد التطوير ضمن Phase 1');
-      return;
-    }
+    if (n.classList.contains('soon')){ toast('🚧 قريباً — هذه الطبقة قيد التطوير'); return; }
     const v = n.dataset.view;
-    if (v) show(v);
+    if (v) routeView(v);
   });
 });
-document.querySelectorAll('.h-act[data-view]').forEach(a => {
-  a.addEventListener('click', () => show(a.dataset.view));
-});
 
-/* Theme */
 const themeBtn = document.getElementById('themeBtn');
 const savedTheme = localStorage.getItem('a-theme') || 'dark';
 if (savedTheme === 'light') document.documentElement.dataset.theme = 'light';
 themeBtn.addEventListener('click', () => {
-  const cur = document.documentElement.dataset.theme;
-  if (cur === 'light'){
+  if (document.documentElement.dataset.theme === 'light'){
     delete document.documentElement.dataset.theme;
     localStorage.setItem('a-theme','dark');
   } else {
@@ -744,25 +828,33 @@ themeBtn.addEventListener('click', () => {
   }
 });
 
-/* Org switcher */
 document.getElementById('orgPill').addEventListener('click', () => {
   toast('Multi-tenant: Arsann فقط حالياً. Demo orgs تُفعّل في Phase 4.');
 });
 
-/* Ask The A */
 document.getElementById('askA').addEventListener('click', async () => {
-  const q = prompt('🅰  اسأل The A — مثلاً: "ليش انخفض throughput في Hera؟"');
+  const q = prompt('🅰  اسأل The A — مثلاً: "ليش انخفض إيراد VIA في آخر أسبوع؟"');
   if (!q) return;
   toast('🤖 جارِ التحليل…');
+  // Build context from data
+  const top5 = DATA.sites.slice(0,5).map(s=>`${s.name}: ${fmt.k(s.revenue)} SAR (${fmt.num(s.entries)} سيارة)`).join('\n');
+  const ctx = `بيانات Arsann الحقيقية (Jan 1 → Apr 26, 2026):
+- إجمالي الإيراد: ${fmt.num(DATA.totals.revenue)} SAR
+- إجمالي السيارات: ${fmt.num(DATA.totals.entries)}
+- ${DATA.sites.length} موقع في ${DATA.cities.length} مدن
+- أعلى 5 مواقع:\n${top5}
+
+سؤال المستخدم: ${q}
+
+أجب باختصار وذكاء بالعربية، استخدم الأرقام في إجابتك.`;
   try {
-    const ans = await window.claude.complete(`أنت محلّل عمليات لشركة Arsann (إدارة مواقف). جاوب باختصار وذكاء على هذا السؤال بناءً على بيانات تشغيلية افتراضية: ${q}`);
+    const ans = await window.claude.complete(ctx);
     alert('🅰 The A:\n\n' + ans);
   } catch(e){
     alert('🅰 The A: تحتاج اتصال — جرّب لاحقاً.');
   }
 });
 
-/* Toast */
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;

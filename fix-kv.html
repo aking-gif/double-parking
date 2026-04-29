@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>إصلاح KV — Arsan</title>
+<style>
+:root{
+  --bg:#0b0b0c; --surface:#141416; --line:#2a2a2e;
+  --ink:#f5f5f7; --ink-2:#c8c8cc; --ink-3:#8e8e93;
+  --accent:#7B9DC4; --ok:#4ade80; --warn:#f59e0b; --danger:#ef4444;
+  --font:'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;padding:32px 20px;line-height:1.6}
+.wrap{max-width:920px;margin:0 auto}
+h1{font-size:24px;margin:0 0 6px}
+.sub{color:var(--ink-3);margin-bottom:24px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card .desc{color:var(--ink-3);font-size:13px;margin-bottom:14px}
+.btn{padding:10px 18px;background:var(--accent);color:#1a1a1a;border:0;border-radius:10px;font-family:inherit;font-weight:600;cursor:pointer;font-size:13px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+input,textarea{background:#0b0b0c;border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink);font-family:var(--mono);font-size:12px;width:100%}
+textarea{min-height:160px;direction:ltr;text-align:left}
+.log{font-family:var(--mono);font-size:12px;background:#0b0b0c;border:1px solid var(--line);border-radius:8px;padding:14px;direction:ltr;text-align:left;white-space:pre-wrap;max-height:340px;overflow:auto;margin-top:10px}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-inline-start:6px}
+.tag.ok{background:rgba(74,222,128,.15);color:var(--ok)}
+.tag.bad{background:rgba(239,68,68,.15);color:var(--danger)}
+.tag.warn{background:rgba(245,158,11,.15);color:var(--warn)}
+code{background:#0b0b0c;padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:12px}
+.pos{color:var(--warn);font-weight:600}
+.snippet{font-family:var(--mono);font-size:11px;background:#0b0b0c;padding:10px;border-radius:6px;border:1px solid var(--line);direction:ltr;text-align:left;white-space:pre-wrap;overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛠️ أداة تشخيص وإصلاح بيانات KV</h1>
+  <div class="sub">تعمل بدون تسجيل دخول. تستدعي الـ Worker مباشرة لتحديد الملف التالف وإصلاحه.</div>
+
+  <!-- خطوة 1 -->
+  <div class="card">
+    <h2>① فحص الحالة <span id="t1" class="tag warn">لم يبدأ</span></h2>
+    <div class="desc">يفحص: هل الـ Worker شغّال؟ هل تسجيل الدخول يفشل بسبب JSON تالف؟ في أي موضع؟</div>
+    <button class="btn" id="b1">ابدأ الفحص</button>
+    <div id="l1" class="log" style="display:none"></div>
+  </div>
+
+  <!-- خطوة 2 -->
+  <div class="card">
+    <h2>② فحص جميع مفاتيح KV الحرجة <span id="t2" class="tag warn">لم يبدأ</span></h2>
+    <div class="desc">يحدد المفتاح التالف بالضبط (users_v1 / sops_v1 / deps_v1 / activity_v1 / custom_depts_v1).</div>
+    <button class="btn" id="b2">افحص المفاتيح</button>
+    <div id="l2" class="log" style="display:none"></div>
+  </div>
+
+  <!-- خطوة 3 -->
+  <div class="card">
+    <h2>③ استعراض المفتاح التالف <span id="t3" class="tag warn">لم يبدأ</span></h2>
+    <div class="desc">يجلب القيمة الخام ويعرض السياق حول الموضع التالف لتعرف ما الذي يجب إصلاحه.</div>
+    <div class="row">
+      <input id="key-name" placeholder="users_v1" value="users_v1" style="max-width:240px"/>
+      <button class="btn ghost" id="b3">اعرض القيمة الخام</button>
+    </div>
+    <div id="l3" class="log" style="display:none"></div>
+  </div>
+
+  <!-- خطوة 4 -->
+  <div class="card">
+    <h2>④ إصلاح تلقائي <span id="t4" class="tag warn">لم يبدأ</span></h2>
+    <div class="desc">يحاول تصليح الـ JSON تلقائياً (إغلاق أقواس، حذف فواصل ضائعة، قص الجزء التالف). <strong>يعمل نسخة احتياطية أولاً</strong> باسم <code>users_v1__backup_BEFORE_FIX</code>.</div>
+    <div class="row">
+      <input id="fix-key" placeholder="users_v1" value="users_v1" style="max-width:240px"/>
+      <button class="btn danger" id="b4">جرّب الإصلاح التلقائي</button>
+    </div>
+    <div id="l4" class="log" style="display:none"></div>
+  </div>
+
+  <!-- خطوة 5 -->
+  <div class="card">
+    <h2>⑤ إصلاح يدوي (الأكثر أماناً) <span id="t5" class="tag warn">لم يبدأ</span></h2>
+    <div class="desc">انسخ القيمة من خطوة ③، أصلحها في <a href="https://jsonlint.com" target="_blank" style="color:var(--accent)">jsonlint.com</a>، الصق هنا، احفظ.</div>
+    <div class="row">
+      <input id="manual-key" placeholder="users_v1" value="users_v1" style="max-width:240px"/>
+    </div>
+    <textarea id="manual-val" placeholder='[{"email":"...","role":"admin",...}]'></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="b5-validate">تحقق من صحة JSON</button>
+      <button class="btn danger" id="b5-save">احفظ في KV</button>
+    </div>
+    <div id="l5" class="log" style="display:none"></div>
+  </div>
+
+  <div class="card" style="background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.3)">
+    <h2>⚠️ ملاحظة هامة</h2>
+    <div class="desc" style="color:var(--ink-2)">
+      هذه الأداة تستخدم endpoints <code>/api/debug/*</code> في الـ Worker. إن لم تكن موجودة، أضف الكود التالي في <code>worker.js</code> قبل <code>return json({error:"not-found"...}, 404, req);</code> النهائي، ثم ادفع للـ Cloudflare. تجد الكود في أسفل الصفحة.
+    </div>
+    <details>
+      <summary style="cursor:pointer;color:var(--accent);margin-top:10px">عرض كود الـ Worker المطلوب إضافته</summary>
+      <pre class="snippet" id="worker-code"></pre>
+      <button class="btn ghost" id="copy-worker">نسخ الكود</button>
+    </details>
+  </div>
+</div>
+
+<script>
+const API = 'https://arsan-api.a-king-6e1.workers.dev';
+const DEBUG_TOKEN = 'arsan-fix-2026'; // ← حماية بسيطة. غيّرها وغيّرها في worker.js
+
+const $ = (s) => document.querySelector(s);
+const setTag = (id, kind, txt) => { const el=$(id); el.className='tag '+kind; el.textContent=txt; };
+const showLog = (id, content) => { const el=$(id); el.style.display=''; el.textContent = (typeof content==='string'?content:JSON.stringify(content,null,2)); };
+const appendLog = (id, line) => { const el=$(id); el.style.display=''; el.textContent += '\n' + line; };
+
+// ============ ① ============
+$('#b1').addEventListener('click', async () => {
+  setTag('#t1', 'warn', 'جارٍ...');
+  showLog('#l1', '▶ فحص /api/health...');
+  try {
+    const h = await fetch(API + '/api/health');
+    appendLog('#l1', `  health: HTTP ${h.status} → ${(await h.text()).slice(0,80)}`);
+    appendLog('#l1', '▶ محاولة تسجيل دخول وهمية لاستخراج الخطأ...');
+    const r = await fetch(API + '/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email:'a.king@arsann.com', password:'__probe__' })
+    });
+    const body = await r.text();
+    appendLog('#l1', `  login: HTTP ${r.status}`);
+    appendLog('#l1', `  body: ${body}`);
+    let m = body.match(/position (\d+)/);
+    if (r.status === 500 && m) {
+      setTag('#t1', 'bad', `JSON تالف عند الموضع ${m[1]}`);
+      appendLog('#l1', `\n✗ مؤكَّد: ملف JSON تالف في KV عند الموضع ${m[1]}.`);
+      appendLog('#l1', '  انتقل للخطوة ② لتحديد المفتاح.');
+    } else if (r.status === 401 || body.includes('invalid-credentials')) {
+      setTag('#t1', 'ok', 'الـ Worker سليم');
+      appendLog('#l1', '\n✓ الـ Worker يعمل بشكل طبيعي. الخطأ في كلمة سر فقط.');
+    } else {
+      setTag('#t1', 'warn', 'حالة غير متوقعة');
+    }
+  } catch(e){
+    setTag('#t1', 'bad', 'فشل الاتصال');
+    appendLog('#l1', '✗ ' + e.message);
+  }
+});
+
+// ============ ② ============
+$('#b2').addEventListener('click', async () => {
+  setTag('#t2', 'warn', 'جارٍ...');
+  showLog('#l2', '▶ فحص جميع المفاتيح الحرجة...\n');
+  const keys = ['users_v1','sops_v1','deps_v1','activity_v1','custom_depts_v1','announcements_v1'];
+  let bad = [];
+  for (const k of keys) {
+    try {
+      const r = await fetch(`${API}/api/debug/kv-check?key=${k}&t=${DEBUG_TOKEN}`);
+      const j = await r.json();
+      if (r.status !== 200) {
+        appendLog('#l2', `  ${k}: ⚠ endpoint غير متاح (HTTP ${r.status}). أضف الكود في الـ Worker.`);
+        continue;
+      }
+      if (j.empty) appendLog('#l2', `  ${k}: ○ فارغ`);
+      else if (j.valid) appendLog('#l2', `  ${k}: ✓ سليم (${j.size} حرف)`);
+      else { appendLog('#l2', `  ${k}: ✗ تالف عند الموضع ${j.errorPos} — ${j.errorMsg}`); bad.push(k); }
+    } catch(e){ appendLog('#l2', `  ${k}: ✗ ${e.message}`); }
+  }
+  if (bad.length) {
+    setTag('#t2', 'bad', `${bad.length} ملفات تالفة`);
+    appendLog('#l2', `\n✗ المفاتيح التالفة: ${bad.join(', ')}`);
+    $('#key-name').value = bad[0];
+    $('#fix-key').value = bad[0];
+    $('#manual-key').value = bad[0];
+  } else {
+    setTag('#t2', 'ok', 'كل المفاتيح سليمة');
+  }
+});
+
+// ============ ③ ============
+$('#b3').addEventListener('click', async () => {
+  const k = $('#key-name').value.trim();
+  if (!k) return;
+  setTag('#t3', 'warn', 'جارٍ...');
+  showLog('#l3', `▶ جلب ${k}...`);
+  try {
+    const r = await fetch(`${API}/api/debug/kv-raw?key=${encodeURIComponent(k)}&t=${DEBUG_TOKEN}`);
+    if (r.status !== 200) { appendLog('#l3', `✗ HTTP ${r.status}`); setTag('#t3','bad','فشل'); return; }
+    const j = await r.json();
+    appendLog('#l3', `\n[الحجم: ${j.size} حرف]\n`);
+    if (j.errorPos != null) {
+      const pos = j.errorPos;
+      const start = Math.max(0, pos - 80);
+      const end   = Math.min(j.raw.length, pos + 80);
+      appendLog('#l3', `[سياق حول الموضع ${pos}]\n`);
+      appendLog('#l3', '...' + j.raw.slice(start, pos) + '«HERE»' + j.raw.slice(pos, end) + '...');
+      appendLog('#l3', `\n[آخر 200 حرف من الملف]\n${j.raw.slice(-200)}`);
+      setTag('#t3', 'bad', `تالف عند ${pos}`);
+    } else {
+      setTag('#t3', 'ok', 'سليم');
+      appendLog('#l3', '✓ JSON صالح. أول 300 حرف:\n' + j.raw.slice(0, 300));
+    }
+  } catch(e){ appendLog('#l3', '✗ ' + e.message); setTag('#t3','bad','خطأ'); }
+});
+
+// ============ ④ ============
+$('#b4').addEventListener('click', async () => {
+  const k = $('#fix-key').value.trim();
+  if (!k) return;
+  if (!confirm(`سيتم محاولة إصلاح ${k} تلقائياً.\nسيتم حفظ نسخة احتياطية أولاً.\nمتابعة؟`)) return;
+  setTag('#t4', 'warn', 'جارٍ...');
+  showLog('#l4', `▶ بدء الإصلاح التلقائي لـ ${k}...`);
+  try {
+    const r = await fetch(`${API}/api/debug/kv-autofix?key=${encodeURIComponent(k)}&t=${DEBUG_TOKEN}`, { method:'POST' });
+    const j = await r.json();
+    appendLog('#l4', JSON.stringify(j, null, 2));
+    if (j.fixed) {
+      setTag('#t4', 'ok', `تم الإصلاح (${j.strategy})`);
+      appendLog('#l4', `\n✓ نجح! النسخة الاحتياطية محفوظة في: ${j.backupKey}`);
+      appendLog('#l4', '  جرّب تسجيل الدخول الآن.');
+    } else {
+      setTag('#t4', 'bad', 'فشل الإصلاح التلقائي');
+      appendLog('#l4', `\n✗ تعذّر الإصلاح آلياً. استخدم الخطوة ⑤ يدوياً.`);
+    }
+  } catch(e){ appendLog('#l4', '✗ ' + e.message); setTag('#t4','bad','خطأ'); }
+});
+
+// ============ ⑤ ============
+$('#b5-validate').addEventListener('click', () => {
+  const v = $('#manual-val').value.trim();
+  showLog('#l5', '▶ التحقق...');
+  try {
+    const parsed = JSON.parse(v);
+    appendLog('#l5', `✓ JSON صالح. النوع: ${Array.isArray(parsed)?'array':typeof parsed}. العناصر: ${Array.isArray(parsed)?parsed.length:Object.keys(parsed).length}`);
+    setTag('#t5', 'ok', 'JSON سليم');
+  } catch(e){
+    appendLog('#l5', '✗ ' + e.message);
+    setTag('#t5', 'bad', 'غير صالح');
+  }
+});
+$('#b5-save').addEventListener('click', async () => {
+  const k = $('#manual-key').value.trim();
+  const v = $('#manual-val').value.trim();
+  if (!k || !v) return;
+  try { JSON.parse(v); } catch(e){ alert('JSON غير صالح: '+e.message); return; }
+  if (!confirm(`سيتم حفظ ${v.length} حرف في ${k} في KV.\nنسخة احتياطية ستُحفظ تلقائياً.\nمتابعة؟`)) return;
+  setTag('#t5', 'warn', 'جارٍ...');
+  showLog('#l5', `▶ الحفظ في ${k}...`);
+  try {
+    const r = await fetch(`${API}/api/debug/kv-write?key=${encodeURIComponent(k)}&t=${DEBUG_TOKEN}`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: v
+    });
+    const j = await r.json();
+    appendLog('#l5', JSON.stringify(j, null, 2));
+    if (j.ok) { setTag('#t5','ok','تم الحفظ'); appendLog('#l5','\n✓ احفظ. جرّب تسجيل الدخول.'); }
+    else setTag('#t5','bad','فشل');
+  } catch(e){ appendLog('#l5','✗ '+e.message); setTag('#t5','bad','خطأ'); }
+});
+
+// ============ كود الـ Worker ============
+const WORKER_CODE = `// ============ DEBUG/REPAIR ENDPOINTS — أضِف قبل return json({error:"not-found"...}, 404, req) ============
+// حماية بسيطة بـ token. غيّر القيمة بقيمة عشوائية وضعها في fix-kv.html أيضاً.
+const DEBUG_TOKEN = "arsan-fix-2026";
+
+if (path.startsWith("/api/debug/") && url.searchParams.get("t") !== DEBUG_TOKEN) {
+  return json({ error: "debug-token-mismatch" }, 403, req);
+}
+
+// GET /api/debug/kv-check?key=users_v1&t=...
+if (path === "/api/debug/kv-check" && method === "GET") {
+  const k = url.searchParams.get("key");
+  if (!k) return json({ error: "key-required" }, 400, req);
+  const raw = await env.ARSAN.get(k);
+  if (raw == null) return json({ key: k, empty: true }, 200, req);
+  try { JSON.parse(raw); return json({ key: k, valid: true, size: raw.length }, 200, req); }
+  catch(e){
+    const m = String(e.message || "").match(/position (\\d+)/);
+    return json({ key: k, valid: false, size: raw.length, errorMsg: e.message, errorPos: m ? +m[1] : null }, 200, req);
+  }
+}
+
+// GET /api/debug/kv-raw?key=users_v1&t=...
+if (path === "/api/debug/kv-raw" && method === "GET") {
+  const k = url.searchParams.get("key");
+  if (!k) return json({ error: "key-required" }, 400, req);
+  const raw = await env.ARSAN.get(k);
+  if (raw == null) return json({ key: k, empty: true, raw: "" }, 200, req);
+  let errorPos = null, errorMsg = null;
+  try { JSON.parse(raw); }
+  catch(e){ errorMsg = e.message; const m = String(e.message||"").match(/position (\\d+)/); errorPos = m ? +m[1] : null; }
+  return json({ key: k, size: raw.length, raw, errorPos, errorMsg }, 200, req);
+}
+
+// POST /api/debug/kv-autofix?key=users_v1&t=...
+if (path === "/api/debug/kv-autofix" && method === "POST") {
+  const k = url.searchParams.get("key");
+  if (!k) return json({ error: "key-required" }, 400, req);
+  const raw = await env.ARSAN.get(k);
+  if (raw == null) return json({ error: "empty" }, 404, req);
+  // 1) backup
+  const backupKey = k + "__backup_" + Date.now();
+  await env.ARSAN.put(backupKey, raw);
+
+  // 2) try strategies
+  let fixed = null, strategy = null;
+  // a) close brackets
+  for (const tail of ["", "]", "}", "]}", "}]"]) {
+    try { JSON.parse(raw + tail); fixed = raw + tail; strategy = "append:" + tail; break; } catch(_){}
+  }
+  // b) trim trailing comma
+  if (!fixed) {
+    const trimmed = raw.replace(/,(\\s*[\\]}])/g, "$1");
+    try { JSON.parse(trimmed); fixed = trimmed; strategy = "remove-trailing-commas"; } catch(_){}
+  }
+  // c) progressive truncation: cut from error pos backwards to last valid bracket
+  if (!fixed) {
+    let m = null;
+    try { JSON.parse(raw); } catch(e){ m = String(e.message||"").match(/position (\\d+)/); }
+    if (m) {
+      const pos = +m[1];
+      for (let cut = pos; cut > 0; cut -= 1) {
+        const ch = raw[cut];
+        if (ch === "}" || ch === "]") {
+          for (const tail of ["", "]", "}", "]}", "}]"]) {
+            try { JSON.parse(raw.slice(0, cut+1) + tail); fixed = raw.slice(0, cut+1) + tail; strategy = "truncate-at:" + cut + ":" + tail; break; } catch(_){}
+          }
+          if (fixed) break;
+        }
+      }
+    }
+  }
+  if (!fixed) return json({ fixed: false, backupKey, message: "all strategies failed" }, 200, req);
+  await env.ARSAN.put(k, fixed);
+  return json({ fixed: true, strategy, backupKey, oldSize: raw.length, newSize: fixed.length }, 200, req);
+}
+
+// POST /api/debug/kv-write?key=users_v1&t=...   body = raw JSON to store
+if (path === "/api/debug/kv-write" && method === "POST") {
+  const k = url.searchParams.get("key");
+  if (!k) return json({ error: "key-required" }, 400, req);
+  const body = await req.text();
+  try { JSON.parse(body); } catch(e){ return json({ error: "invalid-json", message: e.message }, 400, req); }
+  const old = await env.ARSAN.get(k);
+  if (old != null) await env.ARSAN.put(k + "__backup_" + Date.now(), old);
+  await env.ARSAN.put(k, body);
+  return json({ ok: true, key: k, size: body.length }, 200, req);
+}
+// ============ END DEBUG ============`;
+$('#worker-code').textContent = WORKER_CODE;
+$('#copy-worker').addEventListener('click', () => {
+  navigator.clipboard.writeText(WORKER_CODE).then(() => alert('تم النسخ. الصقه في worker.js قبل الـ 404 الأخير ثم انشره في Cloudflare.'));
+});
+</script>
+</body>
+</html>

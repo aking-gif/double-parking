@@ -1,0 +1,306 @@
+/* =====================================================================
+   ARSANN OS — Spine Override Layer
+   Retrofits spine.html with the "Tactical Atlas" DNA without rewriting
+   Loaded AFTER spine.html's inline styles, AFTER arsann-theme.css
+   ===================================================================== */
+
+/* === REBIND SPINE'S OWN VARS TO THE NEW PALETTE === */
+:root {
+  --bg:        #07090a !important;
+  --bg-2:      #0b0e10 !important;
+  --surface:   #11161a !important;
+  --surface-2: #161c21 !important;
+  --surface-3: #1c242a !important;
+  --line:      rgba(255,255,255,.06) !important;
+  --line-2:    rgba(255,255,255,.10) !important;
+  --ink:       #f4efe4 !important;
+  --ink-2:     #d8d2c4 !important;
+  --ink-3:     #9a958a !important;
+  --ink-4:     #6b675f !important;
+
+  --accent:      #E8A547 !important;
+  --accent-2:    #C48732 !important;
+  --accent-soft: rgba(232,165,71,.12) !important;
+  --accent-line: rgba(232,165,71,.30) !important;
+
+  --green:  #9CB57A !important;
+  --orange: #E8A547 !important;
+  --red:    #D86B5C !important;
+  --blue:   #7AA8C9 !important;
+
+  --radius: 6px !important;
+  --radius-lg: 10px !important;
+}
+
+/* === STATUS BAR PUSHES SPINE DOWN === */
+body { padding-top: var(--status-h, 36px) !important; }
+
+/* === TOPBAR — flatten, more tactical === */
+.topbar {
+  height: 56px !important;
+  background: rgba(7,9,10,.7) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+/* === BRAND LOGO === */
+.brand-name, .brand-mark {
+  font-family: 'Space Grotesk', var(--font-en) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+/* === SECTION HEADS === */
+.section-head { gap: 16px !important; align-items: baseline !important; }
+.section-title {
+  font-family: 'JetBrains Mono', var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-3) !important;
+  font-weight: 500 !important;
+}
+.section-line {
+  height: 1px !important;
+  background: linear-gradient(90deg, var(--line-2), transparent) !important;
+}
+
+/* === APP TILES — corner brackets === */
+.app-tile {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005)) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 4px !important;
+  padding: 18px 20px !important;
+  position: relative !important;
+  transition: all .24s cubic-bezier(.2,.7,.2,1) !important;
+  overflow: visible !important;
+}
+
+/* Top corners */
+.app-tile::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 10px; height: 10px;
+  border-top: 1px solid var(--ink-3);
+  border-left: 1px solid var(--ink-3);
+  pointer-events: none;
+  transition: border-color .24s;
+}
+.app-tile::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-top: 1px solid var(--ink-3);
+  border-right: 1px solid var(--ink-3);
+  pointer-events: none;
+  transition: border-color .24s;
+}
+/* Bottom corners via injected spans (added by arsann-chrome.js) — fallback to box-shadow */
+.app-tile {
+  box-shadow:
+    inset 10px -1px 0 -9px var(--ink-3),  /* bottom-left horiz */
+    inset -10px -1px 0 -9px var(--ink-3), /* bottom-right horiz */
+    inset 1px -10px 0 -9px var(--ink-3),  /* bottom-left vert */
+    inset -1px -10px 0 -9px var(--ink-3); /* bottom-right vert */
+}
+
+.app-tile:hover {
+  background: linear-gradient(180deg, rgba(232,165,71,.06), rgba(232,165,71,.02)) !important;
+  border-color: var(--accent-line) !important;
+  transform: none !important;
+}
+.app-tile:hover::before, .app-tile:hover::after {
+  border-color: var(--accent) !important;
+}
+.app-tile:hover {
+  box-shadow:
+    inset 10px -1px 0 -9px var(--accent),
+    inset -10px -1px 0 -9px var(--accent),
+    inset 1px -10px 0 -9px var(--accent),
+    inset -1px -10px 0 -9px var(--accent),
+    0 8px 32px rgba(232,165,71,.12) !important;
+}
+
+/* Featured tile gets amber treatment */
+.app-tile.featured {
+  background: linear-gradient(180deg, rgba(232,165,71,.10), rgba(232,165,71,.02)) !important;
+  border-color: var(--accent-line) !important;
+}
+.app-tile.featured::before, .app-tile.featured::after {
+  border-color: var(--accent) !important;
+}
+
+/* App tile glyph — flatten */
+.app-tile .glyph {
+  background: transparent !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 2px !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+.app-tile .glyph svg {
+  stroke: var(--ink-2) !important;
+  stroke-width: 1.2 !important;
+  fill: none !important;
+}
+.app-tile.featured .glyph svg { stroke: var(--accent) !important; }
+
+/* Tile name */
+.app-tile .name {
+  font-family: var(--font-arabic), var(--font-ar) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+.app-tile .sub {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-3) !important;
+}
+.app-tile .desc {
+  color: var(--ink-3) !important;
+  font-size: 12px !important;
+}
+.app-tile .count {
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Pulse dots */
+.app-tile .pulse {
+  width: 6px !important; height: 6px !important;
+}
+
+/* === HERO / WELCOME PANEL === */
+.hero-panel, .welcome-panel {
+  background: linear-gradient(180deg, rgba(22,28,33,.5), rgba(11,14,16,.8)) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 6px !important;
+  position: relative !important;
+}
+.hero-panel::before, .welcome-panel::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+}
+.hero-panel::after, .welcome-panel::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+}
+
+/* === TIMELINE / PRIORITY ITEMS === */
+.priority-item, .timeline-row {
+  background: rgba(255,255,255,.02) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 3px !important;
+}
+.marker {
+  border-radius: 0 !important;
+  width: 3px !important;
+}
+
+/* === LOGIN MODAL === */
+.login-overlay {
+  background: rgba(7,9,10,.85) !important;
+  backdrop-filter: blur(20px) !important;
+}
+.login-card {
+  background: linear-gradient(180deg, rgba(22,28,33,.9), rgba(11,14,16,.95)) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 6px !important;
+  position: relative !important;
+}
+.login-card::before, .login-card::after {
+  content: "";
+  position: absolute;
+  width: 16px; height: 16px;
+  border-color: var(--accent);
+  border-style: solid;
+  border-width: 0;
+}
+.login-card::before { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+.login-card::after  { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+
+/* === FOOTER === */
+.footer-strip {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-3) !important;
+  border-top: 1px solid var(--line) !important;
+  padding: 16px 24px !important;
+  margin-top: 32px !important;
+  background: transparent !important;
+}
+
+/* === MODULE VIEW === */
+.mod-head {
+  border-bottom: 1px solid var(--line) !important;
+  background: rgba(7,9,10,.6) !important;
+  backdrop-filter: blur(20px) !important;
+}
+.mod-back {
+  border: 1px solid var(--line-2) !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+}
+.mod-back:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+.mod-title {
+  font-family: 'Space Grotesk', sans-serif !important;
+  letter-spacing: -0.01em !important;
+}
+.mod-sub {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-3) !important;
+}
+
+/* === CMD+K palette === */
+.cmd-palette {
+  background: linear-gradient(180deg, rgba(22,28,33,.95), rgba(11,14,16,.98)) !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 6px !important;
+}
+.cmd-input {
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+
+/* === SCROLLBARS === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* === SELECTION === */
+::selection { background: var(--accent); color: #07090a; }
+
+/* === SUBTLE SCAN-LINE EFFECT ON HOVER === */
+.app-tile.featured::before {
+  animation: tracePulse 4s ease-in-out infinite;
+}
+@keyframes tracePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

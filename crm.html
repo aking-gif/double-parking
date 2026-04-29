@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — Spine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spine-shared.css">
+<style>
+  .crm-tabs{ display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; padding: 0 4px }
+  .crm-tabs button{
+    padding: 10px 16px; font-size: 13px; color: var(--ink-3);
+    border-bottom: 2px solid transparent; border-radius: 0;
+    margin-bottom: -1px;
+  }
+  .crm-tabs button.active{ color: var(--ink); border-bottom-color: var(--accent); font-weight: 600 }
+  .crm-tabs button .cnt{ font-size: 10px; color: var(--ink-4); margin-inline-start: 6px; font-family: var(--font-en); padding: 2px 6px; background: var(--surface-2); border-radius: 999px }
+
+  .crm-toolbar{ display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center }
+  .crm-toolbar input{
+    flex: 1; min-width: 200px; max-width: 360px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; font: inherit; font-size: 13px; color: var(--ink);
+  }
+
+  /* Pipeline (Kanban) */
+  .pipe{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(220px, 1fr));
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .pipe-col{
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    min-height: 400px;
+    display: flex; flex-direction: column;
+  }
+  .pipe-col .ph{
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pipe-col .ph .nm{ font-size: 12px; font-weight: 600; flex: 1 }
+  .pipe-col .ph .cnt{
+    font-size: 10px; padding: 2px 8px;
+    background: var(--surface-2); color: var(--ink-3);
+    border-radius: 999px; font-family: var(--font-en);
+  }
+  .pipe-col .ph .sum{
+    font-size: 10px; color: var(--ink-3);
+    font-family: var(--font-en);
+  }
+  .pipe-col .pb{ padding: 10px; flex: 1; overflow-y: auto; min-height: 100px }
+  .deal-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: all .12s;
+    border-inline-start: 3px solid var(--accent);
+  }
+  .deal-card:hover{ border-color: var(--line-2); transform: translateY(-1px) }
+  .deal-card.dragging{ opacity: .4 }
+  .deal-card .dt{ font-size: 13px; font-weight: 500; margin-bottom: 6px; line-height: 1.4 }
+  .deal-card .dc{ font-size: 11px; color: var(--ink-3); margin-bottom: 8px }
+  .deal-card .dm{ display: flex; justify-content: space-between; align-items: center; font-size: 11px }
+  .deal-card .dv{ font-weight: 600; color: var(--accent); font-family: var(--font-en) }
+  .deal-card .dp{ display: flex; gap: 3px }
+  .deal-card .dp span{ width: 6px; height: 6px; border-radius: 50%; background: var(--surface-3) }
+  .deal-card .dp span.on{ background: var(--accent) }
+
+  .pipe-col.warm{ border-color: rgba(232,163,92,0.3) }
+  .pipe-col.hot{ border-color: rgba(224,100,100,0.3) }
+  .pipe-col.won{ border-color: rgba(79,180,119,0.3) }
+  .pipe-col.lost{ opacity: .8 }
+
+  /* Tables */
+  .crm-table{ width: 100%; border-collapse: collapse }
+  .crm-table th, .crm-table td{ padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: start; font-size: 12.5px }
+  .crm-table th{ font-size: 10px; color: var(--ink-3); letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-en); font-weight: 600; background: var(--bg-2) }
+  .crm-table tbody tr{ cursor: pointer; transition: background .1s }
+  .crm-table tbody tr:hover{ background: var(--surface-2) }
+  .crm-table .av{
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 11px;
+  }
+  .crm-table .nm{ display: flex; align-items: center; gap: 10px }
+  .stage-pill{
+    display: inline-block; padding: 2px 8px; font-size: 10px;
+    border-radius: 999px; background: var(--surface-3); color: var(--ink-2);
+    font-family: var(--font-en); letter-spacing: .5px; text-transform: uppercase;
+  }
+  .stage-pill.hot{ background: rgba(224,100,100,0.15); color: var(--red) }
+  .stage-pill.warm{ background: rgba(232,163,92,0.15); color: var(--orange) }
+  .stage-pill.won{ background: rgba(79,180,119,0.15); color: var(--green) }
+  .stage-pill.lost{ background: var(--surface-3); color: var(--ink-4) }
+
+  /* Tickets */
+  .ticket-row{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-inline-start: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .ticket-row:hover{ background: var(--surface-2) }
+  .ticket-row .top{ display: flex; align-items: center; gap: 10px; margin-bottom: 6px }
+  .ticket-row .id{ font-size: 11px; color: var(--ink-3); font-family: var(--font-en); font-weight: 600 }
+  .ticket-row .tt{ flex: 1; font-weight: 500; font-size: 13.5px }
+  .ticket-row .meta{ font-size: 11.5px; color: var(--ink-3); display: flex; gap: 10px; flex-wrap: wrap }
+  .ticket-row.urgent{ border-inline-start-color: var(--red) }
+  .ticket-row.high{ border-inline-start-color: var(--orange) }
+  .ticket-row.resolved{ opacity: .6; border-inline-start-color: var(--green) }
+
+  /* Stats strip */
+  .stats-strip{ display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px }
+  .stat-mini{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat-mini .v{ font-size: 22px; font-weight: 600; font-family: var(--font-en) }
+  .stat-mini .v.accent{ color: var(--accent) }
+  .stat-mini .l{ font-size: 11px; color: var(--ink-3); margin-top: 2px; letter-spacing: .5px }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-crm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="ic-bld" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></symbol>
+    <symbol id="ic-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="ic-deal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+    <symbol id="ic-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a3 3 0 1 0-3-3M9 21H3v-6a3 3 0 1 0 0-6V3h18v6a3 3 0 1 0 0 6v6h-6"/></symbol>
+  </defs>
+</svg>
+</head>
+<body>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand" onclick="location.href='spine.html'">
+      <div class="brand-mark">A</div>
+      <div class="brand-name">THE SPINE <span class="accent">/ ARSANN</span></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="font-size:12px;color:var(--ink-3)" id="meStrip">—</div>
+  </header>
+
+  <div class="mod-head">
+    <div class="mod-glyph"><svg><use href="#ic-crm"/></svg></div>
+    <div class="mod-title-block">
+      <div class="mod-title">العملاء (CRM)</div>
+      <div class="mod-sub">CRM · Companies, Contacts, Deals, Pipeline & Tickets</div>
+    </div>
+    <div class="mod-actions">
+      <button class="btn primary" id="btnNew">+ إضافة</button>
+    </div>
+  </div>
+
+  <div class="mod-body">
+    <div class="stats-strip" id="stats"></div>
+
+    <div class="crm-tabs">
+      <button class="active" data-tab="pipeline"><svg style="width:14px;height:14px;vertical-align:-2px"><use href="#ic-deal"/></svg> Pipeline <span class="cnt" id="cnt-pipe">0</span></button>
+      <button data-tab="companies"><svg style="width:14px;height:14px;vertical-align:-2px"><use href="#ic-bld"/></svg> الشركات <span class="cnt" id="cnt-co">0</span></button>
+      <button data-tab="contacts"><svg style="width:14px;height:14px;vertical-align:-2px"><use href="#ic-user"/></svg> جهات الاتصال <span class="cnt" id="cnt-ct">0</span></button>
+      <button data-tab="deals">الصفقات <span class="cnt" id="cnt-d">0</span></button>
+      <button data-tab="tickets"><svg style="width:14px;height:14px;vertical-align:-2px"><use href="#ic-ticket"/></svg> التذاكر <span class="cnt" id="cnt-tk">0</span></button>
+    </div>
+
+    <div class="crm-toolbar">
+      <input id="srch" placeholder="بحث..." />
+      <button class="btn ghost" id="btnExport">تصدير</button>
+      <button class="btn ghost" id="btnImport">استيراد</button>
+    </div>
+
+    <div id="host"></div>
+  </div>
+</div>
+
+<script src="spine-api.js"></script>
+<script>
+const A = window.SpineAPI;
+
+let TAB = 'pipeline';
+let SEARCH = '';
+let DATA = { companies: [], contacts: [], deals: [], tickets: [] };
+
+const STAGES = [
+  { id:'lead',     name:'محتمل (Lead)',     color:'' },
+  { id:'qualified',name:'مؤهَّل (Qualified)', color:'warm' },
+  { id:'proposal', name:'عرض (Proposal)',  color:'warm' },
+  { id:'negotiation', name:'تفاوض (Negotiation)', color:'hot' },
+  { id:'won',      name:'فوز (Won)',         color:'won' }
+];
+
+(async () => {
+  const me = await A.ensureAuth();
+  if (!me) return;
+  document.getElementById('meStrip').textContent = me.email || '';
+  await loadAll();
+  render();
+})();
+
+async function loadAll(){
+  try {
+    const [co, ct, d, tk] = await Promise.all([
+      A.api('/api/crm/companies').catch(()=>({companies:[]})),
+      A.api('/api/crm/contacts').catch(()=>({contacts:[]})),
+      A.api('/api/crm/deals').catch(()=>({deals:[]})),
+      A.api('/api/crm/tickets').catch(()=>({tickets:[]}))
+    ]);
+    DATA.companies = co.companies || [];
+    DATA.contacts = ct.contacts || [];
+    DATA.deals = d.deals || [];
+    DATA.tickets = tk.tickets || [];
+  } catch(e){}
+
+  if (!DATA.companies.length && !DATA.deals.length){
+    seedDemo();
+  }
+
+  document.getElementById('cnt-co').textContent = DATA.companies.length;
+  document.getElementById('cnt-ct').textContent = DATA.contacts.length;
+  document.getElementById('cnt-d').textContent = DATA.deals.length;
+  document.getElementById('cnt-pipe').textContent = DATA.deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').length;
+  document.getElementById('cnt-tk').textContent = DATA.tickets.filter(t => t.status !== 'resolved' && t.status !== 'closed').length;
+
+  renderStats();
+}
+
+function seedDemo(){
+  DATA.companies = [
+    { id:'co1', name:'مجموعة الفيصل القابضة', industry:'مقاولات', size:'500+', city:'الرياض', phone:'+966 11 234 5678', website:'faisal-group.sa', dealsValue:1850000, contactsCount:4, owner:'a.king' },
+    { id:'co2', name:'شركة الإعمار للتطوير', industry:'تطوير عقاري', size:'200-500', city:'جدة', phone:'+966 12 345 6789', website:'imar-dev.sa', dealsValue:920000, contactsCount:3, owner:'a.king' },
+    { id:'co3', name:'الراجحي للاستثمار', industry:'استثمار', size:'1000+', city:'الرياض', phone:'+966 11 456 7890', website:'rajhi-inv.com', dealsValue:0, contactsCount:2, owner:'a.king' },
+    { id:'co4', name:'النخبة للمقاولات', industry:'مقاولات', size:'50-200', city:'الدمام', phone:'+966 13 567 8901', website:'nukhba.sa', dealsValue:480000, contactsCount:2, owner:'a.king' },
+    { id:'co5', name:'مكتب البناء الهندسي', industry:'استشارات هندسية', size:'10-50', city:'الرياض', phone:'+966 11 678 9012', website:'binaa-eng.sa', dealsValue:150000, contactsCount:1, owner:'a.king' }
+  ];
+  DATA.contacts = [
+    { id:'ct1', name:'محمد الفيصل', title:'المدير التنفيذي', companyId:'co1', email:'mfaisal@faisal-group.sa', phone:'+966 50 123 4567', avatar:'م' },
+    { id:'ct2', name:'سارة العتيبي', title:'مدير المشتريات', companyId:'co1', email:'sara@faisal-group.sa', phone:'+966 50 234 5678', avatar:'س' },
+    { id:'ct3', name:'أحمد الإعمار', title:'مدير التطوير', companyId:'co2', email:'a.imar@imar-dev.sa', phone:'+966 50 345 6789', avatar:'أ' },
+    { id:'ct4', name:'فهد الراجحي', title:'رئيس الاستثمار', companyId:'co3', email:'fahd@rajhi-inv.com', phone:'+966 50 456 7890', avatar:'ف' },
+    { id:'ct5', name:'خالد النخبة', title:'مدير العمليات', companyId:'co4', email:'k.nukhba@nukhba.sa', phone:'+966 50 567 8901', avatar:'خ' },
+    { id:'ct6', name:'نورة الهندسي', title:'مهندسة معمارية', companyId:'co5', email:'noura@binaa-eng.sa', phone:'+966 50 678 9012', avatar:'ن' }
+  ];
+  DATA.deals = [
+    { id:'d1', title:'مشروع برج الفيصل التجاري', companyId:'co1', contactId:'ct1', value:1850000, stage:'negotiation', probability:80, expectedClose:'2026-06-30', owner:'a.king' },
+    { id:'d2', title:'مجمع سكني — الإعمار', companyId:'co2', contactId:'ct3', value:920000, stage:'proposal', probability:60, expectedClose:'2026-07-15', owner:'a.king' },
+    { id:'d3', title:'مشروع تطوير المرحلة 2', companyId:'co4', contactId:'ct5', value:480000, stage:'qualified', probability:40, expectedClose:'2026-08-20', owner:'a.king' },
+    { id:'d4', title:'استشارة هندسية ربع سنوية', companyId:'co5', contactId:'ct6', value:150000, stage:'lead', probability:20, expectedClose:'2026-09-01', owner:'a.king' },
+    { id:'d5', title:'مشروع مكتبي — الفيصل', companyId:'co1', contactId:'ct2', value:380000, stage:'won', probability:100, expectedClose:'2026-04-15', owner:'a.king' }
+  ];
+  DATA.tickets = [
+    { id:'tk1', code:'TK-2026-001', title:'تأخر في تسليم المرحلة الثالثة', companyId:'co1', priority:'urgent', status:'open', createdAt: Date.now()-1000*60*60*24*2, assignee:'a.king' },
+    { id:'tk2', code:'TK-2026-002', title:'استفسار عن شروط الدفع', companyId:'co2', priority:'medium', status:'in-progress', createdAt: Date.now()-1000*60*60*24, assignee:'a.king' },
+    { id:'tk3', code:'TK-2026-003', title:'طلب تعديل عقد', companyId:'co4', priority:'high', status:'open', createdAt: Date.now()-1000*60*60*8, assignee:'a.king' },
+    { id:'tk4', code:'TK-2026-004', title:'فاتورة الشهر السابق', companyId:'co1', priority:'low', status:'resolved', createdAt: Date.now()-1000*60*60*24*5, assignee:'a.king' }
+  ];
+}
+
+function renderStats(){
+  const totalValue = DATA.deals.filter(d => d.stage !== 'lost' && d.stage !== 'won').reduce((s,d) => s+(d.value||0), 0);
+  const wonValue = DATA.deals.filter(d => d.stage === 'won').reduce((s,d) => s+(d.value||0), 0);
+  const winRate = DATA.deals.length ? Math.round((DATA.deals.filter(d => d.stage === 'won').length / DATA.deals.length) * 100) : 0;
+  const openTk = DATA.tickets.filter(t => t.status !== 'resolved' && t.status !== 'closed').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-mini"><div class="v accent">${A.fmtNum(totalValue)}</div><div class="l">قيمة الـ Pipeline (ر.س)</div></div>
+    <div class="stat-mini"><div class="v">${A.fmtNum(wonValue)}</div><div class="l">صفقات مكتسبة (ر.س)</div></div>
+    <div class="stat-mini"><div class="v">${winRate}%</div><div class="l">نسبة الفوز</div></div>
+    <div class="stat-mini"><div class="v">${DATA.companies.length}</div><div class="l">شركات نشطة</div></div>
+    <div class="stat-mini"><div class="v">${openTk}</div><div class="l">تذاكر مفتوحة</div></div>
+  `;
+}
+
+document.querySelectorAll('.crm-tabs button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.crm-tabs button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    TAB = b.dataset.tab;
+    render();
+  };
+});
+document.getElementById('srch').oninput = (e) => { SEARCH = e.target.value.toLowerCase(); render(); };
+
+function render(){
+  const host = document.getElementById('host');
+  if (TAB === 'pipeline') host.innerHTML = renderPipeline();
+  else if (TAB === 'companies') host.innerHTML = renderCompanies();
+  else if (TAB === 'contacts') host.innerHTML = renderContacts();
+  else if (TAB === 'deals') host.innerHTML = renderDeals();
+  else if (TAB === 'tickets') host.innerHTML = renderTickets();
+  attachHandlers();
+}
+
+// ===== Pipeline =====
+function renderPipeline(){
+  const filtered = DATA.deals.filter(d => !SEARCH || d.title.toLowerCase().includes(SEARCH));
+  return `<div class="pipe">
+    ${STAGES.map(s => {
+      const inStage = filtered.filter(d => d.stage === s.id);
+      const total = inStage.reduce((sum,d) => sum + (d.value||0), 0);
+      return `<div class="pipe-col ${s.color||''}" data-stage="${s.id}">
+        <div class="ph"><div class="nm">${A.esc(s.name)}</div><span class="cnt">${inStage.length}</span><div class="sum">${A.fmtNum(total)} ر.س</div></div>
+        <div class="pb" data-drop="${s.id}">${inStage.map(d => dealCardHTML(d)).join('')}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function dealCardHTML(d){
+  const co = DATA.companies.find(c => c.id === d.companyId);
+  const dots = '<span class="dp">' + Array(5).fill(0).map((_,i) => `<span class="${i < Math.round((d.probability||0)/20) ? 'on' : ''}"></span>`).join('') + '</span>';
+  return `<div class="deal-card" draggable="true" data-id="${d.id}">
+    <div class="dt">${A.esc(d.title)}</div>
+    <div class="dc">${A.esc(co?.name || '—')}</div>
+    <div class="dm">
+      <div class="dv">${A.fmtNum(d.value||0)}</div>
+      ${dots}
+    </div>
+  </div>`;
+}
+
+// ===== Companies =====
+function renderCompanies(){
+  const list = DATA.companies.filter(c => !SEARCH || c.name.toLowerCase().includes(SEARCH) || (c.city||'').toLowerCase().includes(SEARCH));
+  return `<div class="card"><table class="crm-table">
+    <thead><tr><th>الشركة</th><th>المجال</th><th>الحجم</th><th>المدينة</th><th>صفقات نشطة</th><th>قيمة الصفقات</th></tr></thead>
+    <tbody>${list.map(c => `
+      <tr data-co="${c.id}">
+        <td><div class="nm"><div class="av">${A.esc(c.name[0])}</div><div><div style="font-weight:500">${A.esc(c.name)}</div><div style="font-size:11px;color:var(--ink-3)">${A.esc(c.website||'')}</div></div></div></td>
+        <td>${A.esc(c.industry||'—')}</td>
+        <td>${A.esc(c.size||'—')}</td>
+        <td>${A.esc(c.city||'—')}</td>
+        <td>${DATA.deals.filter(d => d.companyId === c.id && d.stage !== 'won' && d.stage !== 'lost').length}</td>
+        <td style="font-family:var(--font-en);color:var(--accent);font-weight:500">${A.fmtNum(c.dealsValue||0)}</td>
+      </tr>
+    `).join('')}</tbody>
+  </table></div>`;
+}
+
+// ===== Contacts =====
+function renderContacts(){
+  const list = DATA.contacts.filter(c => !SEARCH || c.name.toLowerCase().includes(SEARCH) || (c.email||'').toLowerCase().includes(SEARCH));
+  return `<div class="card"><table class="crm-table">
+    <thead><tr><th>الاسم</th><th>المنصب</th><th>الشركة</th><th>البريد</th><th>الجوال</th></tr></thead>
+    <tbody>${list.map(c => {
+      const co = DATA.companies.find(co => co.id === c.companyId);
+      return `<tr data-ct="${c.id}">
+        <td><div class="nm"><div class="av">${A.esc(c.avatar||c.name[0])}</div><div style="font-weight:500">${A.esc(c.name)}</div></div></td>
+        <td>${A.esc(c.title||'—')}</td>
+        <td>${A.esc(co?.name || '—')}</td>
+        <td style="font-family:var(--font-en);font-size:11.5px">${A.esc(c.email||'—')}</td>
+        <td style="font-family:var(--font-en);font-size:11.5px;direction:ltr">${A.esc(c.phone||'—')}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ===== Deals =====
+function renderDeals(){
+  const list = DATA.deals.filter(d => !SEARCH || d.title.toLowerCase().includes(SEARCH));
+  return `<div class="card"><table class="crm-table">
+    <thead><tr><th>الصفقة</th><th>الشركة</th><th>القيمة</th><th>المرحلة</th><th>احتمالية</th><th>التاريخ المتوقع</th></tr></thead>
+    <tbody>${list.map(d => {
+      const co = DATA.companies.find(c => c.id === d.companyId);
+      const stage = STAGES.find(s => s.id === d.stage) || { name:d.stage, color:'' };
+      return `<tr data-d="${d.id}">
+        <td style="font-weight:500">${A.esc(d.title)}</td>
+        <td>${A.esc(co?.name || '—')}</td>
+        <td style="font-family:var(--font-en);color:var(--accent);font-weight:500">${A.fmtNum(d.value||0)}</td>
+        <td><span class="stage-pill ${stage.color}">${A.esc(stage.name.split(' ')[0])}</span></td>
+        <td>${d.probability||0}%</td>
+        <td style="font-family:var(--font-en);font-size:11.5px">${d.expectedClose ? A.fmtDate(d.expectedClose) : '—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ===== Tickets =====
+function renderTickets(){
+  const list = DATA.tickets.filter(t => !SEARCH || t.title.toLowerCase().includes(SEARCH) || t.code.toLowerCase().includes(SEARCH));
+  return `<div class="card card-pad">${list.map(t => {
+    const co = DATA.companies.find(c => c.id === t.companyId);
+    return `<div class="ticket-row ${t.priority||''} ${t.status==='resolved'?'resolved':''}" data-tk="${t.id}">
+      <div class="top">
+        <span class="id">${A.esc(t.code)}</span>
+        <div class="tt">${A.esc(t.title)}</div>
+        <span class="stage-pill ${t.priority==='urgent'?'hot':t.priority==='high'?'warm':''}">${t.priority}</span>
+        <span class="stage-pill ${t.status==='resolved'?'won':''}">${t.status}</span>
+      </div>
+      <div class="meta">
+        <span>🏢 ${A.esc(co?.name || '—')}</span>
+        <span>👤 ${A.esc(t.assignee||'—')}</span>
+        <span>📅 ${A.fmtRelative(t.createdAt)}</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ===== Handlers =====
+function attachHandlers(){
+  // Pipeline drag/drop
+  document.querySelectorAll('.deal-card[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', (e) => { card.classList.add('dragging'); e.dataTransfer.setData('text', card.dataset.id); });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('click', () => openDealDetail(card.dataset.id));
+  });
+  document.querySelectorAll('[data-drop]').forEach(col => {
+    col.addEventListener('dragover', (e) => { e.preventDefault(); col.style.background = 'var(--surface-2)'; });
+    col.addEventListener('dragleave', () => col.style.background = '');
+    col.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      col.style.background = '';
+      const id = e.dataTransfer.getData('text');
+      const newStage = col.dataset.drop;
+      const deal = DATA.deals.find(d => d.id === id);
+      if (deal && deal.stage !== newStage){
+        deal.stage = newStage;
+        try { await A.api('/api/crm/deals/'+id, { method:'PATCH', body:{ stage: newStage }}); } catch(err){}
+        A.toast('تم تحديث المرحلة');
+        render();
+      }
+    });
+  });
+
+  // Row clicks
+  document.querySelectorAll('[data-co]').forEach(r => r.onclick = () => openCompanyDetail(r.dataset.co));
+  document.querySelectorAll('[data-ct]').forEach(r => r.onclick = () => openContactDetail(r.dataset.ct));
+  document.querySelectorAll('[data-d]').forEach(r => r.onclick = () => openDealDetail(r.dataset.d));
+  document.querySelectorAll('[data-tk]').forEach(r => r.onclick = () => openTicketDetail(r.dataset.tk));
+}
+
+function openCompanyDetail(id){
+  const c = DATA.companies.find(x => x.id === id);
+  if (!c) return;
+  const contacts = DATA.contacts.filter(ct => ct.companyId === id);
+  const deals = DATA.deals.filter(d => d.companyId === id);
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px">
+      <div style="width:48px;height:48px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:20px">${A.esc(c.name[0])}</div>
+      <div>
+        <div style="font-size:18px;font-weight:600">${A.esc(c.name)}</div>
+        <div style="font-size:12px;color:var(--ink-3)">${A.esc(c.industry||'')} · ${A.esc(c.city||'')}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">الموقع</label><div>${A.esc(c.website||'—')}</div></div>
+      <div class="field"><label class="label">الهاتف</label><div style="font-family:var(--font-en);direction:ltr;text-align:start">${A.esc(c.phone||'—')}</div></div>
+    </div>
+    <div class="field"><label class="label">جهات الاتصال (${contacts.length})</label>
+      ${contacts.length ? contacts.map(ct => `<div style="padding:8px 12px;background:var(--surface-2);border-radius:8px;margin-bottom:4px;display:flex;gap:8px;align-items:center"><div class="av" style="width:24px;height:24px;font-size:10px">${A.esc(ct.avatar||ct.name[0])}</div><div style="flex:1"><div>${A.esc(ct.name)}</div><div style="font-size:11px;color:var(--ink-3)">${A.esc(ct.title||'')}</div></div></div>`).join('') : '<div style="color:var(--ink-4);font-size:12px">لا توجد</div>'}
+    </div>
+    <div class="field"><label class="label">الصفقات (${deals.length})</label>
+      ${deals.length ? deals.map(d => `<div style="padding:8px 12px;background:var(--surface-2);border-radius:8px;margin-bottom:4px;display:flex;justify-content:space-between"><div>${A.esc(d.title)}</div><div style="font-family:var(--font-en);color:var(--accent)">${A.fmtNum(d.value||0)}</div></div>`).join('') : '<div style="color:var(--ink-4);font-size:12px">لا توجد</div>'}
+    </div>
+  `;
+  A.modal({ title: c.name, body, width: 600 });
+}
+
+function openContactDetail(id){
+  const c = DATA.contacts.find(x => x.id === id);
+  if (!c) return;
+  const co = DATA.companies.find(x => x.id === c.companyId);
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:22px">${A.esc(c.avatar||c.name[0])}</div>
+      <div>
+        <div style="font-size:18px;font-weight:600">${A.esc(c.name)}</div>
+        <div style="font-size:12px;color:var(--ink-3)">${A.esc(c.title||'')} · ${A.esc(co?.name || '')}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">البريد</label><div style="font-family:var(--font-en)">${A.esc(c.email||'—')}</div></div>
+      <div class="field"><label class="label">الجوال</label><div style="font-family:var(--font-en);direction:ltr;text-align:start">${A.esc(c.phone||'—')}</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn ghost" style="flex:1">📧 إرسال بريد</button>
+      <button class="btn ghost" style="flex:1">📅 جدولة اجتماع</button>
+      <button class="btn ghost" style="flex:1">📋 إنشاء مهمة</button>
+    </div>
+  `;
+  A.modal({ title:'جهة اتصال', body, width: 540 });
+}
+
+function openDealDetail(id){
+  const d = DATA.deals.find(x => x.id === id);
+  if (!d) return;
+  const co = DATA.companies.find(c => c.id === d.companyId);
+  const ct = DATA.contacts.find(c => c.id === d.contactId);
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="field"><label class="label">العنوان</label><div style="font-size:16px;font-weight:600">${A.esc(d.title)}</div></div>
+    <div class="row">
+      <div class="field"><label class="label">الشركة</label><div>${A.esc(co?.name || '—')}</div></div>
+      <div class="field"><label class="label">جهة الاتصال</label><div>${A.esc(ct?.name || '—')}</div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">القيمة</label><div style="font-size:18px;color:var(--accent);font-family:var(--font-en);font-weight:600">${A.fmtNum(d.value||0)} <span style="font-size:12px;color:var(--ink-3)">ر.س</span></div></div>
+      <div class="field"><label class="label">الاحتمالية</label><div>${d.probability||0}%</div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">المرحلة</label>
+        <select id="d-stage" class="input">${STAGES.concat([{id:'lost',name:'خسارة (Lost)'}]).map(s => `<option value="${s.id}" ${s.id===d.stage?'selected':''}>${s.name}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label class="label">تاريخ الإغلاق المتوقع</label><div style="font-family:var(--font-en)">${d.expectedClose ? A.fmtDate(d.expectedClose) : '—'}</div></div>
+    </div>
+  `;
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn primary" id="dsave">حفظ</button>';
+  const m = A.modal({ title:'صفقة', body, footer: foot, width: 600 });
+  foot.querySelector('#dsave').onclick = async () => {
+    d.stage = body.querySelector('#d-stage').value;
+    try { await A.api('/api/crm/deals/'+id, { method:'PATCH', body:{ stage: d.stage }}); } catch(e){}
+    m.close();
+    A.toast('تم الحفظ');
+    render();
+  };
+}
+
+function openTicketDetail(id){
+  const t = DATA.tickets.find(x => x.id === id);
+  if (!t) return;
+  const co = DATA.companies.find(c => c.id === t.companyId);
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="field"><label class="label">${A.esc(t.code)}</label><div style="font-size:16px;font-weight:600">${A.esc(t.title)}</div></div>
+    <div class="row">
+      <div class="field"><label class="label">الشركة</label><div>${A.esc(co?.name || '—')}</div></div>
+      <div class="field"><label class="label">المسؤول</label><div>${A.esc(t.assignee||'—')}</div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">الأولوية</label>
+        <select id="t-pri" class="input">
+          <option value="low" ${t.priority==='low'?'selected':''}>منخفضة</option>
+          <option value="medium" ${t.priority==='medium'?'selected':''}>متوسطة</option>
+          <option value="high" ${t.priority==='high'?'selected':''}>عالية</option>
+          <option value="urgent" ${t.priority==='urgent'?'selected':''}>عاجل</option>
+        </select>
+      </div>
+      <div class="field"><label class="label">الحالة</label>
+        <select id="t-st" class="input">
+          <option value="open" ${t.status==='open'?'selected':''}>مفتوحة</option>
+          <option value="in-progress" ${t.status==='in-progress'?'selected':''}>قيد المعالجة</option>
+          <option value="resolved" ${t.status==='resolved'?'selected':''}>تم الحل</option>
+          <option value="closed" ${t.status==='closed'?'selected':''}>مغلقة</option>
+        </select>
+      </div>
+    </div>
+  `;
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn primary" id="tsave">حفظ</button>';
+  const m = A.modal({ title:'تذكرة', body, footer: foot, width: 600 });
+  foot.querySelector('#tsave').onclick = async () => {
+    t.priority = body.querySelector('#t-pri').value;
+    t.status = body.querySelector('#t-st').value;
+    try { await A.api('/api/crm/tickets/'+id, { method:'PATCH', body:{priority:t.priority, status:t.status}}); } catch(e){}
+    m.close();
+    A.toast('تم الحفظ');
+    render();
+  };
+}
+
+// ===== New entity =====
+document.getElementById('btnNew').onclick = () => {
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <p style="font-size:13px;color:var(--ink-2);margin-bottom:14px">اختر النوع:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn ghost" data-new="company" style="height:60px;flex-direction:column">🏢<br><span style="font-size:11px">شركة جديدة</span></button>
+      <button class="btn ghost" data-new="contact" style="height:60px;flex-direction:column">👤<br><span style="font-size:11px">جهة اتصال</span></button>
+      <button class="btn ghost" data-new="deal" style="height:60px;flex-direction:column">💰<br><span style="font-size:11px">صفقة جديدة</span></button>
+      <button class="btn ghost" data-new="ticket" style="height:60px;flex-direction:column">🎫<br><span style="font-size:11px">تذكرة جديدة</span></button>
+    </div>
+  `;
+  const m = A.modal({ title:'إضافة جديد', body, width: 460 });
+  body.querySelectorAll('[data-new]').forEach(b => b.onclick = () => { m.close(); newEntity(b.dataset.new); });
+};
+
+function newEntity(type){
+  const body = document.createElement('div');
+  if (type === 'company'){
+    body.innerHTML = `
+      <div class="field"><label class="label">اسم الشركة *</label><input id="f-name" class="input"/></div>
+      <div class="row">
+        <div class="field"><label class="label">المجال</label><input id="f-ind" class="input"/></div>
+        <div class="field"><label class="label">المدينة</label><input id="f-city" class="input"/></div>
+      </div>
+      <div class="row">
+        <div class="field"><label class="label">الموقع</label><input id="f-web" class="input"/></div>
+        <div class="field"><label class="label">الهاتف</label><input id="f-ph" class="input" dir="ltr"/></div>
+      </div>
+    `;
+  } else if (type === 'contact'){
+    body.innerHTML = `
+      <div class="field"><label class="label">الاسم *</label><input id="f-name" class="input"/></div>
+      <div class="row">
+        <div class="field"><label class="label">المنصب</label><input id="f-title" class="input"/></div>
+        <div class="field"><label class="label">الشركة</label>
+          <select id="f-co" class="input"><option value="">—</option>${DATA.companies.map(c => `<option value="${c.id}">${A.esc(c.name)}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label class="label">البريد</label><input id="f-em" class="input" dir="ltr"/></div>
+        <div class="field"><label class="label">الجوال</label><input id="f-ph" class="input" dir="ltr"/></div>
+      </div>
+    `;
+  } else if (type === 'deal'){
+    body.innerHTML = `
+      <div class="field"><label class="label">عنوان الصفقة *</label><input id="f-name" class="input"/></div>
+      <div class="row">
+        <div class="field"><label class="label">الشركة</label>
+          <select id="f-co" class="input"><option value="">—</option>${DATA.companies.map(c => `<option value="${c.id}">${A.esc(c.name)}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label class="label">القيمة (ر.س)</label><input id="f-val" class="input" type="number"/></div>
+      </div>
+      <div class="row">
+        <div class="field"><label class="label">المرحلة</label>
+          <select id="f-st" class="input">${STAGES.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label class="label">تاريخ الإغلاق المتوقع</label><input id="f-cl" class="input" type="date"/></div>
+      </div>
+    `;
+  } else if (type === 'ticket'){
+    body.innerHTML = `
+      <div class="field"><label class="label">العنوان *</label><input id="f-name" class="input"/></div>
+      <div class="row">
+        <div class="field"><label class="label">الشركة</label>
+          <select id="f-co" class="input"><option value="">—</option>${DATA.companies.map(c => `<option value="${c.id}">${A.esc(c.name)}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label class="label">الأولوية</label>
+          <select id="f-pri" class="input"><option value="low">منخفضة</option><option value="medium" selected>متوسطة</option><option value="high">عالية</option><option value="urgent">عاجل</option></select>
+        </div>
+      </div>
+    `;
+  }
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn ghost" id="fc">إلغاء</button><button class="btn primary" id="fs">إنشاء</button>';
+  const m = A.modal({ title:'إضافة جديد', body, footer: foot, width: 600 });
+  foot.querySelector('#fc').onclick = m.close;
+  foot.querySelector('#fs').onclick = async () => {
+    const name = body.querySelector('#f-name').value.trim();
+    if (!name){ A.toast('الاسم مطلوب','err'); return; }
+    const id = type[0] + Date.now().toString(36);
+    let obj = { id, name };
+    if (type === 'company'){
+      obj = { id, name, industry: body.querySelector('#f-ind').value, city: body.querySelector('#f-city').value, website: body.querySelector('#f-web').value, phone: body.querySelector('#f-ph').value, dealsValue:0, contactsCount:0 };
+      DATA.companies.unshift(obj);
+      try { await A.api('/api/crm/companies', { method:'POST', body: obj }); } catch(e){}
+    } else if (type === 'contact'){
+      obj = { id, name, title: body.querySelector('#f-title').value, companyId: body.querySelector('#f-co').value, email: body.querySelector('#f-em').value, phone: body.querySelector('#f-ph').value, avatar: name[0] };
+      DATA.contacts.unshift(obj);
+      try { await A.api('/api/crm/contacts', { method:'POST', body: obj }); } catch(e){}
+    } else if (type === 'deal'){
+      obj = { id, title: name, companyId: body.querySelector('#f-co').value, value: parseInt(body.querySelector('#f-val').value)||0, stage: body.querySelector('#f-st').value, probability: 30, expectedClose: body.querySelector('#f-cl').value };
+      DATA.deals.unshift(obj);
+      try { await A.api('/api/crm/deals', { method:'POST', body: obj }); } catch(e){}
+    } else if (type === 'ticket'){
+      obj = { id, code:'TK-'+new Date().getFullYear()+'-'+String(DATA.tickets.length+1).padStart(3,'0'), title: name, companyId: body.querySelector('#f-co').value, priority: body.querySelector('#f-pri').value, status:'open', createdAt: Date.now(), assignee:'a.king' };
+      DATA.tickets.unshift(obj);
+      try { await A.api('/api/crm/tickets', { method:'POST', body: obj }); } catch(e){}
+    }
+    m.close();
+    A.toast('تمت الإضافة');
+    await loadAll();
+    render();
+  };
+}
+
+document.getElementById('btnExport').onclick = () => A.toast('سيتم تصدير CSV قريباً', 'info');
+document.getElementById('btnImport').onclick = () => A.toast('سيتم دعم استيراد CSV قريباً', 'info');
+</script>
+<script src="spine-back.js" defer></script>
+<script src="spine-search.js" defer></script>
+
+<script src="arsann-chrome.js"></script>
+<script>(function(){function init(){if(!window.ArsannChrome)return;var me=null;try{me=JSON.parse(localStorage.getItem('arsan_me_v1')||'null');}catch(e){}window.ArsannChrome.init({module:'CRM',breadcrumb:["ARSANN","BIZ","CRM"],user:me?(me.email||'GUEST').split('@')[0]:'GUEST',zone:'CRM.01'});}if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);})();</script>
+</body>
+</html>

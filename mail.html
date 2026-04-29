@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>البريد — Spine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spine-shared.css">
+<style>
+  .mail-layout{
+    display: grid;
+    grid-template-columns: 220px 360px 1fr;
+    gap: 14px;
+    height: calc(100vh - 220px);
+    min-height: 560px;
+  }
+  @media (max-width: 1100px){ .mail-layout{ grid-template-columns: 1fr; height: auto } }
+
+  .mail-side{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: auto; padding: 10px 8px }
+  .mail-side .grp{ font-size: 10px; color: var(--ink-4); letter-spacing: 1.5px; text-transform: uppercase; padding: 12px 10px 6px; font-family: var(--font-en); font-weight: 600 }
+  .mail-side .item{
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-bottom: 1px;
+  }
+  .mail-side .item:hover{ background: var(--surface-2) }
+  .mail-side .item.active{ background: var(--surface-3); color: var(--ink); font-weight: 500 }
+  .mail-side .item .ic{ width: 14px; height: 14px; opacity: .8 }
+  .mail-side .item .cnt{ margin-inline-start: auto; font-size: 11px; color: var(--ink-3); font-family: var(--font-en) }
+
+  .mail-list{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column }
+  .ml-search{ padding: 10px 12px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center }
+  .ml-search input{
+    flex: 1; background: var(--bg-2); border: 1px solid var(--line); border-radius: 7px;
+    padding: 7px 10px; font: inherit; font-size: 12.5px; color: var(--ink);
+  }
+  .ml-toggle{ display: flex; gap: 0; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--bg-2) }
+  .ml-toggle button{ flex: 1; padding: 6px; font-size: 11.5px; color: var(--ink-3); border-radius: 5px }
+  .ml-toggle button.active{ background: var(--surface-3); color: var(--ink); font-weight: 500 }
+  .ml-scroll{ flex: 1; overflow: auto }
+  .ml-row{
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .ml-row:hover{ background: var(--surface-2) }
+  .ml-row.active{ background: var(--surface-3); border-inline-start: 3px solid var(--accent); padding-inline-start: 11px }
+  .ml-row.unread .from{ font-weight: 700; color: var(--ink) }
+  .ml-row.unread .subj{ font-weight: 600; color: var(--ink) }
+  .ml-row .top{ display: flex; align-items: center; gap: 8px; margin-bottom: 4px }
+  .ml-row .from{ font-size: 13px; color: var(--ink-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .ml-row .tm{ font-size: 11px; color: var(--ink-4); font-family: var(--font-en) }
+  .ml-row .subj{ font-size: 12.5px; color: var(--ink-2); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .ml-row .preview{ font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .ml-row .tags{ display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap }
+  .ml-row .tag{
+    font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+    background: var(--surface-3); color: var(--ink-3);
+    font-family: var(--font-en); letter-spacing: .5px; text-transform: uppercase;
+  }
+  .ml-row .tag.ai{ background: var(--accent-soft); color: var(--accent); font-weight: 600 }
+  .ml-row .dot-unread{ width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; flex-shrink: 0 }
+
+  .mail-detail{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column }
+  .md-empty{ flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: var(--ink-4); font-size: 13px }
+  .md-head{ padding: 18px 22px 14px; border-bottom: 1px solid var(--line) }
+  .md-head .subj{ font-size: 18px; font-weight: 600; margin-bottom: 8px }
+  .md-head .meta{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3) }
+  .md-head .av{ width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600 }
+  .md-tools{ padding: 10px 22px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; flex-wrap: wrap; background: var(--bg-2) }
+  .md-tools .btn{ padding: 5px 10px; font-size: 11.5px }
+  .md-body{ padding: 18px 22px; overflow: auto; flex: 1; line-height: 1.85; font-size: 13.5px; color: var(--ink-2) }
+  .md-body p{ margin-bottom: 10px }
+
+  /* AI extract panel */
+  .ai-card{
+    margin: 14px 0;
+    background: var(--accent-soft);
+    border: 1px solid rgba(212,175,107,0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .ai-card .ai-head{ display: flex; align-items: center; gap: 8px; margin-bottom: 10px }
+  .ai-card .ai-head .glyph{
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #0a0b0d;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; font-family: var(--font-en);
+  }
+  .ai-card .ai-head .ttl{ font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: .5px; text-transform: uppercase; font-family: var(--font-en) }
+  .ai-extract{ display: grid; gap: 8px }
+  .ai-row{ display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px }
+  .ai-row .lbl{ min-width: 70px; color: var(--ink-3); font-size: 11px }
+  .ai-row .val{ flex: 1; color: var(--ink-2) }
+  .ai-actions{ display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap }
+  .ai-actions .btn{ font-size: 11px; padding: 5px 10px }
+
+  /* Timeline view */
+  .timeline-host{ padding: 24px; max-width: 760px; margin: 0 auto }
+  .tl-day{ margin-bottom: 28px }
+  .tl-day .day-lbl{ font-size: 11px; color: var(--ink-3); font-family: var(--font-en); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px }
+  .tl-msg{
+    display: flex; gap: 12px; margin-bottom: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tl-msg:hover{ border-color: var(--line-2); transform: translateX(-2px) }
+  .tl-msg .av{ width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; flex-shrink: 0 }
+  .tl-msg .body{ flex: 1; min-width: 0 }
+  .tl-msg .from{ font-size: 13px; font-weight: 500 }
+  .tl-msg .subj{ font-size: 12.5px; color: var(--ink-2); margin-top: 3px }
+  .tl-msg .preview{ font-size: 11.5px; color: var(--ink-3); margin-top: 5px; line-height: 1.6 }
+  .tl-msg .tm{ font-size: 11px; color: var(--ink-4); font-family: var(--font-en); flex-shrink: 0 }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></symbol>
+    <symbol id="ic-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+    <symbol id="ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+    <symbol id="ic-draft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+    <symbol id="ic-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="ic-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+    <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="ic-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+    <symbol id="ic-reply" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></symbol>
+    <symbol id="ic-forward" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="ic-task" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+    <symbol id="ic-approve" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 5c0-1.66 4-3 9-3s9 1.34 9 3-4 3-9 3-9-1.34-9-3z"/></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  </defs>
+</svg>
+</head>
+<body>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand" onclick="location.href='spine.html'">
+      <div class="brand-mark">A</div>
+      <div class="brand-name">THE SPINE <span class="accent">/ ARSANN</span></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="font-size:12px;color:var(--ink-3)" id="meStrip">—</div>
+  </header>
+
+  <div class="mod-head">
+    <div class="mod-glyph"><svg><use href="#ic-mail"/></svg></div>
+    <div class="mod-title-block">
+      <div class="mod-title">البريد</div>
+      <div class="mod-sub">Mail · Inbox, Timeline, AI Extract</div>
+    </div>
+    <div class="mod-actions">
+      <div class="cal-views" style="display:flex;gap:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px">
+        <button id="vwInbox" class="active" style="padding:6px 14px;font-size:12.5px;border-radius:6px">Inbox</button>
+        <button id="vwTimeline" style="padding:6px 14px;font-size:12.5px;color:var(--ink-3);border-radius:6px">Timeline</button>
+      </div>
+      <button id="btnConnect" class="btn">ربط حساب</button>
+      <button id="btnCompose" class="btn primary">+ رسالة جديدة</button>
+    </div>
+  </div>
+
+  <div class="mod-body">
+    <div id="hostInbox">
+      <div class="mail-layout">
+        <!-- Sidebar -->
+        <div class="mail-side">
+          <div class="grp">صناديق</div>
+          <div class="item active" data-folder="inbox"><svg class="ic"><use href="#ic-inbox"/></svg> الوارد <span class="cnt" id="cnt-inbox">0</span></div>
+          <div class="item" data-folder="starred"><svg class="ic"><use href="#ic-star"/></svg> مميّز <span class="cnt" id="cnt-starred">0</span></div>
+          <div class="item" data-folder="sent"><svg class="ic"><use href="#ic-send"/></svg> الصادر <span class="cnt" id="cnt-sent">0</span></div>
+          <div class="item" data-folder="drafts"><svg class="ic"><use href="#ic-draft"/></svg> المسوّدات <span class="cnt" id="cnt-drafts">0</span></div>
+          <div class="item" data-folder="archive"><svg class="ic"><use href="#ic-archive"/></svg> الأرشيف <span class="cnt" id="cnt-archive">0</span></div>
+          <div class="item" data-folder="trash"><svg class="ic"><use href="#ic-trash"/></svg> المهملات <span class="cnt" id="cnt-trash">0</span></div>
+
+          <div class="grp">تصنيفات</div>
+          <div class="item" data-label="urgent"><svg class="ic"><use href="#ic-tag"/></svg> عاجل</div>
+          <div class="item" data-label="finance"><svg class="ic"><use href="#ic-tag"/></svg> مالية</div>
+          <div class="item" data-label="ops"><svg class="ic"><use href="#ic-tag"/></svg> تشغيل</div>
+          <div class="item" data-label="legal"><svg class="ic"><use href="#ic-tag"/></svg> قانوني</div>
+
+          <div class="grp">حسابات</div>
+          <div id="accountList" style="font-size:11.5px;color:var(--ink-3);padding:0 10px">
+            <div style="padding:8px 0">لا حسابات مرتبطة</div>
+          </div>
+        </div>
+
+        <!-- List -->
+        <div class="mail-list">
+          <div class="ml-search">
+            <input id="mlSearch" placeholder="بحث في البريد..." />
+          </div>
+          <div class="ml-toggle">
+            <button id="filAll" class="active">الكل</button>
+            <button id="filUnread">غير مقروء</button>
+            <button id="filFlagged">مميّز</button>
+          </div>
+          <div class="ml-scroll" id="mlScroll"></div>
+        </div>
+
+        <!-- Detail -->
+        <div class="mail-detail" id="mailDetail">
+          <div class="md-empty">
+            <svg style="width:36px;height:36px;color:var(--ink-4)"><use href="#ic-mail"/></svg>
+            <div>اختر رسالة لعرضها</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="hostTimeline" style="display:none">
+      <div class="card"><div class="timeline-host" id="tlHost"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="spine-api.js"></script>
+<script>
+const A = window.SpineAPI;
+
+// ===== State =====
+let MAIL = [];           // all messages
+let CURRENT_FOLDER = 'inbox';
+let CURRENT_LABEL = null;
+let CURRENT_FILTER = 'all';
+let CURRENT_SEARCH = '';
+let SELECTED_ID = null;
+let VIEW = 'inbox';
+let ACCOUNTS = [];
+
+// ===== Boot =====
+(async () => {
+  const me = await A.ensureAuth();
+  if (!me) return;
+  document.getElementById('meStrip').textContent = me.email || '';
+  await loadAccounts();
+  await loadMail();
+  render();
+})();
+
+async function loadAccounts(){
+  try {
+    const r = await A.api('/api/integrations/status').catch(() => ({providers:{}}));
+    const accts = [];
+    for (const [k,v] of Object.entries(r.providers || {})){
+      if (v.connected && v.email) accts.push({ provider: k, email: v.email });
+    }
+    ACCOUNTS = accts;
+  } catch(e){ ACCOUNTS = []; }
+  const host = document.getElementById('accountList');
+  if (!ACCOUNTS.length){
+    host.innerHTML = '<div style="padding:8px 0">لا حسابات مرتبطة</div><button class="btn ghost text-sm" id="addAcct" style="font-size:11px;padding:6px 10px;width:100%;justify-content:center">+ ربط حساب</button>';
+    document.getElementById('addAcct').onclick = openConnectDialog;
+  } else {
+    host.innerHTML = ACCOUNTS.map(a => `<div style="padding:5px 0;display:flex;align-items:center;gap:6px"><span class="dot" style="background:var(--green)"></span> ${A.esc(a.email)}</div>`).join('');
+  }
+}
+
+async function loadMail(){
+  try {
+    const r = await A.api('/api/mail/messages').catch(() => ({messages:[]}));
+    MAIL = r.messages || [];
+  } catch(e){ MAIL = []; }
+  // Seed demo if empty
+  if (!MAIL.length) MAIL = seedDemo();
+  updateCounts();
+}
+
+function seedDemo(){
+  const now = Date.now();
+  return [
+    {
+      id:'m1', folder:'inbox', from:{name:'محمد العمري',email:'omari@supplier.com',avatar:'م'},
+      subject:'عرض سعر — توريد مواد المشروع الجديد',
+      preview:'بناءً على طلبكم، نرفق عرض السعر النهائي للمواد المطلوبة بقيمة 285,000 ريال...',
+      body:`<p>السلام عليكم،</p><p>بناءً على طلبكم، نرفق عرض السعر النهائي للمواد المطلوبة لمشروع <b>إعادة بناء سور الأنذلس - الرياض</b>.</p><p>القيمة الإجمالية: <b>285,000 ريال سعودي</b><br>مدة التوريد: 21 يوم عمل من تاريخ الطلب<br>شروط الدفع: 30% مقدم، 70% عند التسليم</p><p>نرجو التكرم بالاعتماد قبل تاريخ <b>15 مايو 2026</b> لضمان الأسعار الحالية.</p><p>مع التقدير،<br>محمد العمري<br>مدير المبيعات</p>`,
+      ts: now - 1000*60*45, unread: true, starred: false, labels:['finance','urgent'],
+      ai: { type:'approval', summary:'عرض سعر بقيمة 285,000 ر.س — توريد مواد', amount:'285,000 ر.س', due:'2026-05-15', actions:['approval','task'] }
+    },
+    {
+      id:'m2', folder:'inbox', from:{name:'سارة الخالد',email:'sara@arsann.com',avatar:'س'},
+      subject:'مراجعة SOP المشتريات — الإصدار 2.3',
+      preview:'تم تحديث إجراء المشتريات بناءً على ملاحظات المراجعة الأخيرة...',
+      body:`<p>مرحباً،</p><p>تم تحديث إجراء المشتريات بناءً على ملاحظات المراجعة الأخيرة. التعديلات الرئيسية:</p><ul><li>إضافة خطوة موافقة المدير المالي للمبالغ &gt;100,000</li><li>تقصير دورة الاعتماد من 5 إلى 3 أيام عمل</li><li>إلزام رفع 3 عروض مقارنة</li></ul><p>أرجو المراجعة والاعتماد.</p>`,
+      ts: now - 1000*60*60*3, unread: true, starred: true, labels:['ops'],
+      ai: { type:'sop', summary:'تحديث إجراء المشتريات — يحتاج اعتماد', actions:['approval'] }
+    },
+    {
+      id:'m3', folder:'inbox', from:{name:'أحمد القحطاني',email:'ahmad@legal.sa',avatar:'أ'},
+      subject:'مسودة عقد الاستشارة القانونية — للمراجعة',
+      preview:'مرفق المسودة الأولى لعقد الاستشارة القانونية لشركة أرسان للفترة...',
+      body:`<p>تحية طيبة،</p><p>مرفق المسودة الأولى لعقد الاستشارة القانونية لشركة أرسان للفترة من يناير 2026 إلى ديسمبر 2026.</p><p>الرسوم السنوية: <b>180,000 ر.س</b> تُدفع على دفعتين.</p><p>أرجو إبداء الملاحظات خلال أسبوع.</p>`,
+      ts: now - 1000*60*60*8, unread: false, starred: false, labels:['legal'],
+      ai: { type:'task', summary:'مراجعة عقد قانوني — موعد أقصاه أسبوع', due: new Date(now + 1000*60*60*24*7).toISOString(), actions:['task','event'] }
+    },
+    {
+      id:'m4', folder:'inbox', from:{name:'فيصل الدوسري',email:'faisal@bank.sa',avatar:'ف'},
+      subject:'تأكيد التحويل البنكي — راتب الموظفين',
+      preview:'نفيدكم بتنفيذ عملية تحويل الرواتب لشهر إبريل بنجاح بقيمة...',
+      body:`<p>عميلنا الكريم،</p><p>نفيدكم بتنفيذ عملية تحويل الرواتب لشهر إبريل بنجاح بقيمة <b>1,245,000 ر.س</b> على 47 موظف.</p><p>رقم العملية: TRX-2026-04-128947</p>`,
+      ts: now - 1000*60*60*24, unread: false, starred: false, labels:['finance']
+    },
+    {
+      id:'m5', folder:'inbox', from:{name:'نورة السعد',email:'noura@hr.arsann.com',avatar:'ن'},
+      subject:'طلب إجازة — يحتاج اعتماد',
+      preview:'يرجى مراجعة طلب الإجازة المقدّم من الموظف خالد المطيري...',
+      body:`<p>السلام عليكم،</p><p>يرجى مراجعة طلب الإجازة المقدّم من الموظف <b>خالد المطيري</b>:</p><ul><li>النوع: إجازة سنوية</li><li>المدة: 14 يوم</li><li>من: 2026-05-20 إلى 2026-06-02</li></ul>`,
+      ts: now - 1000*60*60*24*2, unread: false, starred: false, labels:['ops'],
+      ai: { type:'approval', summary:'طلب إجازة 14 يوم — خالد المطيري', actions:['approval'] }
+    },
+    { id:'s1', folder:'sent', from:{name:'أنا',email:'a.king@arsann.com',avatar:'ا'}, subject:'رد: عرض سعر التوريد', preview:'شكراً، تم استلام العرض وسيتم مراجعته...', body:'<p>شكراً، تم استلام العرض وسيتم مراجعته خلال يومين.</p>', ts: now - 1000*60*60*5, unread:false }
+  ];
+}
+
+function updateCounts(){
+  const counts = { inbox:0, sent:0, drafts:0, archive:0, trash:0, starred:0 };
+  MAIL.forEach(m => {
+    counts[m.folder] = (counts[m.folder]||0) + (m.unread ? 1 : 0);
+    if (m.starred) counts.starred++;
+  });
+  Object.keys(counts).forEach(k => {
+    const el = document.getElementById('cnt-' + k);
+    if (el) el.textContent = counts[k] || '';
+  });
+}
+
+// ===== Sidebar nav =====
+document.querySelectorAll('.mail-side .item').forEach(it => {
+  it.onclick = () => {
+    document.querySelectorAll('.mail-side .item').forEach(x => x.classList.remove('active'));
+    it.classList.add('active');
+    if (it.dataset.folder){
+      CURRENT_FOLDER = it.dataset.folder;
+      CURRENT_LABEL = null;
+    } else if (it.dataset.label){
+      CURRENT_LABEL = it.dataset.label;
+      CURRENT_FOLDER = null;
+    }
+    SELECTED_ID = null;
+    renderList();
+    renderDetail();
+  };
+});
+
+// ===== Filters =====
+document.getElementById('filAll').onclick = () => setFilter('all');
+document.getElementById('filUnread').onclick = () => setFilter('unread');
+document.getElementById('filFlagged').onclick = () => setFilter('flagged');
+function setFilter(f){
+  CURRENT_FILTER = f;
+  ['filAll','filUnread','filFlagged'].forEach(id => document.getElementById(id).classList.toggle('active', id === 'fil' + (f==='all'?'All': f==='unread'?'Unread':'Flagged')));
+  renderList();
+}
+
+document.getElementById('mlSearch').oninput = (e) => { CURRENT_SEARCH = e.target.value.toLowerCase(); renderList(); };
+
+// ===== View toggle =====
+document.getElementById('vwInbox').onclick = () => { VIEW='inbox'; setViewBtn(); document.getElementById('hostInbox').style.display=''; document.getElementById('hostTimeline').style.display='none' };
+document.getElementById('vwTimeline').onclick = () => { VIEW='timeline'; setViewBtn(); document.getElementById('hostInbox').style.display='none'; document.getElementById('hostTimeline').style.display=''; renderTimeline() };
+function setViewBtn(){
+  const a = document.getElementById('vwInbox'), b = document.getElementById('vwTimeline');
+  a.classList.toggle('active', VIEW==='inbox'); a.style.background = VIEW==='inbox'?'var(--accent)':''; a.style.color = VIEW==='inbox'?'#0a0b0d':'var(--ink-3)';
+  b.classList.toggle('active', VIEW==='timeline'); b.style.background = VIEW==='timeline'?'var(--accent)':''; b.style.color = VIEW==='timeline'?'#0a0b0d':'var(--ink-3)';
+}
+
+// ===== Render =====
+function render(){ renderList(); renderDetail(); }
+
+function getVisibleMail(){
+  let list = MAIL.slice();
+  if (CURRENT_FOLDER === 'starred'){ list = list.filter(m => m.starred); }
+  else if (CURRENT_FOLDER){ list = list.filter(m => m.folder === CURRENT_FOLDER); }
+  if (CURRENT_LABEL){ list = list.filter(m => (m.labels||[]).includes(CURRENT_LABEL)); }
+  if (CURRENT_FILTER === 'unread') list = list.filter(m => m.unread);
+  if (CURRENT_FILTER === 'flagged') list = list.filter(m => m.starred);
+  if (CURRENT_SEARCH){
+    list = list.filter(m =>
+      (m.subject||'').toLowerCase().includes(CURRENT_SEARCH) ||
+      (m.preview||'').toLowerCase().includes(CURRENT_SEARCH) ||
+      (m.from?.name||'').toLowerCase().includes(CURRENT_SEARCH) ||
+      (m.from?.email||'').toLowerCase().includes(CURRENT_SEARCH)
+    );
+  }
+  return list.sort((a,b) => b.ts - a.ts);
+}
+
+function renderList(){
+  const host = document.getElementById('mlScroll');
+  const list = getVisibleMail();
+  if (!list.length){
+    host.innerHTML = '<div class="empty"><div class="ttl">لا رسائل</div></div>';
+    return;
+  }
+  host.innerHTML = list.map(m => {
+    const tags = (m.labels||[]).map(l => `<span class="tag">${l}</span>`).join('') + (m.ai ? `<span class="tag ai">AI</span>` : '');
+    return `<div class="ml-row ${m.unread?'unread':''} ${m.id===SELECTED_ID?'active':''}" data-id="${m.id}">
+      <div class="top">
+        ${m.unread ? '<span class="dot-unread"></span>' : ''}
+        <div class="from">${A.esc(m.from?.name || m.from?.email || '—')}</div>
+        <div class="tm">${A.fmtRelative(m.ts)}</div>
+      </div>
+      <div class="subj">${m.starred ? '★ ' : ''}${A.esc(m.subject||'(بدون عنوان)')}</div>
+      <div class="preview">${A.esc(m.preview||'')}</div>
+      ${tags ? `<div class="tags">${tags}</div>` : ''}
+    </div>`;
+  }).join('');
+  host.querySelectorAll('[data-id]').forEach(r => r.onclick = () => selectMail(r.dataset.id));
+}
+
+function selectMail(id){
+  SELECTED_ID = id;
+  const m = MAIL.find(x => x.id === id);
+  if (m && m.unread){
+    m.unread = false;
+    A.api('/api/mail/messages/'+id+'/read', { method:'POST' }).catch(()=>{});
+    updateCounts();
+  }
+  renderList();
+  renderDetail();
+}
+
+function renderDetail(){
+  const host = document.getElementById('mailDetail');
+  const m = MAIL.find(x => x.id === SELECTED_ID);
+  if (!m){
+    host.innerHTML = `<div class="md-empty"><svg style="width:36px;height:36px;color:var(--ink-4)"><use href="#ic-mail"/></svg><div>اختر رسالة لعرضها</div></div>`;
+    return;
+  }
+  host.innerHTML = `
+    <div class="md-head">
+      <div class="subj">${A.esc(m.subject||'(بدون عنوان)')}</div>
+      <div class="meta">
+        <div class="av">${A.esc((m.from?.avatar)|| (m.from?.name||'?')[0])}</div>
+        <div>
+          <div style="color:var(--ink);font-weight:500;font-size:13px">${A.esc(m.from?.name||'—')}</div>
+          <div style="font-size:11px">${A.esc(m.from?.email||'')} · ${A.fmtDate(m.ts)} ${A.fmtTime(m.ts)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="md-tools">
+      <button class="btn ghost" id="btnReply"><svg style="width:13px;height:13px"><use href="#ic-reply"/></svg> رد</button>
+      <button class="btn ghost" id="btnForward"><svg style="width:13px;height:13px"><use href="#ic-forward"/></svg> إعادة توجيه</button>
+      <button class="btn ghost" id="btnStar">${m.starred?'★ مميّز':'☆ تمييز'}</button>
+      <button class="btn ghost" id="btnArchive"><svg style="width:13px;height:13px"><use href="#ic-archive"/></svg> أرشفة</button>
+      <button class="btn ghost" id="btnDelete"><svg style="width:13px;height:13px"><use href="#ic-trash"/></svg> حذف</button>
+      <div style="flex:1"></div>
+      <button class="btn primary" id="btnAiExtract">✨ استخراج AI</button>
+    </div>
+    <div class="md-body">
+      ${m.ai ? renderAiCard(m) : ''}
+      ${m.body || ''}
+    </div>
+  `;
+  host.querySelector('#btnReply').onclick = () => composeReply(m);
+  host.querySelector('#btnForward').onclick = () => composeForward(m);
+  host.querySelector('#btnStar').onclick = () => { m.starred = !m.starred; A.api('/api/mail/messages/'+m.id+'/star', {method:'POST', body:{starred:m.starred}}).catch(()=>{}); renderList(); renderDetail(); updateCounts(); };
+  host.querySelector('#btnArchive').onclick = () => { m.folder = 'archive'; A.api('/api/mail/messages/'+m.id+'/move', {method:'POST', body:{folder:'archive'}}).catch(()=>{}); A.toast('تمت الأرشفة'); SELECTED_ID = null; renderList(); renderDetail(); updateCounts(); };
+  host.querySelector('#btnDelete').onclick = () => { if(!confirm('حذف الرسالة؟')) return; m.folder='trash'; A.api('/api/mail/messages/'+m.id+'/move', {method:'POST', body:{folder:'trash'}}).catch(()=>{}); A.toast('تم الحذف'); SELECTED_ID=null; renderList(); renderDetail(); updateCounts(); };
+  host.querySelector('#btnAiExtract').onclick = () => runAiExtract(m);
+}
+
+function renderAiCard(m){
+  const ai = m.ai;
+  const typeLabel = { task:'مهمة محتملة', approval:'طلب اعتماد', sop:'تحديث إجراء', event:'حدث/موعد' }[ai.type] || 'تنبيه';
+  return `<div class="ai-card">
+    <div class="ai-head">
+      <div class="glyph">AI</div>
+      <div class="ttl">${typeLabel}</div>
+    </div>
+    <div class="ai-extract">
+      <div class="ai-row"><div class="lbl">ملخّص</div><div class="val">${A.esc(ai.summary||'—')}</div></div>
+      ${ai.amount ? `<div class="ai-row"><div class="lbl">المبلغ</div><div class="val">${A.esc(ai.amount)}</div></div>` : ''}
+      ${ai.due ? `<div class="ai-row"><div class="lbl">الموعد</div><div class="val">${A.fmtDate(ai.due)}</div></div>` : ''}
+    </div>
+    <div class="ai-actions">
+      ${(ai.actions||[]).includes('task') ? '<button class="btn primary" data-act="task"><svg style="width:12px;height:12px"><use href="#ic-task"/></svg> إنشاء مهمة</button>' : ''}
+      ${(ai.actions||[]).includes('approval') ? '<button class="btn primary" data-act="approval"><svg style="width:12px;height:12px"><use href="#ic-approve"/></svg> فتح اعتماد</button>' : ''}
+      ${(ai.actions||[]).includes('event') ? '<button class="btn primary" data-act="event"><svg style="width:12px;height:12px"><use href="#ic-clock"/></svg> إضافة للتقويم</button>' : ''}
+      <button class="btn ghost" data-act="dismiss">تجاهل</button>
+    </div>
+  </div>`;
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const m = MAIL.find(x => x.id === SELECTED_ID);
+  if (!m) return;
+  const act = b.dataset.act;
+  if (act === 'task') createTaskFromMail(m);
+  else if (act === 'approval') createApprovalFromMail(m);
+  else if (act === 'event') createEventFromMail(m);
+  else if (act === 'dismiss'){ delete m.ai; renderDetail(); A.toast('تم تجاهل الاقتراح'); }
+});
+
+async function createTaskFromMail(m){
+  const task = {
+    id: 'task_' + Date.now().toString(36),
+    title: m.ai.summary || m.subject,
+    description: m.subject + '\n\nالمصدر: ' + m.from?.email,
+    priority: 'medium',
+    status: 'open',
+    due: m.ai.due || null,
+    source: { type:'mail', id: m.id }
+  };
+  try { await A.api('/api/tasks', { method:'POST', body: task }); } catch(e){}
+  A.toast('تم إنشاء المهمة');
+}
+async function createApprovalFromMail(m){
+  const ap = {
+    id: 'ap_' + Date.now().toString(36),
+    title: m.ai.summary || m.subject,
+    requester: m.from?.email || '',
+    amount: m.ai.amount || null,
+    status: 'pending',
+    source: { type:'mail', id: m.id }
+  };
+  try { await A.api('/api/approvals', { method:'POST', body: ap }); } catch(e){}
+  A.toast('تم فتح الاعتماد');
+}
+async function createEventFromMail(m){
+  const ev = {
+    id: 'ev_' + Date.now().toString(36),
+    title: m.ai.summary || m.subject,
+    start: m.ai.due || new Date().toISOString(),
+    color: 'orange',
+    source: 'mail'
+  };
+  try { await A.api('/api/calendar/events', { method:'POST', body: ev }); } catch(e){}
+  A.toast('تم إضافة الحدث للتقويم');
+}
+
+async function runAiExtract(m){
+  A.toast('AI يعمل...', 'info');
+  // Simulate AI call (replace with real Claude prompt)
+  setTimeout(() => {
+    if (!m.ai){
+      m.ai = {
+        type: 'task',
+        summary: 'مراجعة: ' + (m.subject||''),
+        actions: ['task']
+      };
+      A.toast('تم استخراج الإجراءات');
+      renderDetail();
+    } else {
+      A.toast('تم التحليل مسبقاً');
+    }
+  }, 800);
+}
+
+// ===== Compose =====
+document.getElementById('btnCompose').onclick = () => openCompose({});
+
+function openCompose(prefill){
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="field"><label class="label">إلى</label><input id="cmp-to" class="input" placeholder="email@..." value="${A.esc(prefill.to||'')}"/></div>
+    <div class="field"><label class="label">العنوان</label><input id="cmp-s" class="input" value="${A.esc(prefill.subject||'')}"/></div>
+    <div class="field"><label class="label">المحتوى</label><textarea id="cmp-b" class="input" rows="10">${A.esc(prefill.body||'')}</textarea></div>
+  `;
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn ghost" id="cmp-x">إلغاء</button><button class="btn ghost" id="cmp-d">حفظ مسودة</button><button class="btn primary" id="cmp-send">إرسال</button>';
+  const m = A.modal({ title: 'رسالة جديدة', body, footer: foot, width: 640 });
+  foot.querySelector('#cmp-x').onclick = m.close;
+  foot.querySelector('#cmp-d').onclick = () => saveCompose(true);
+  foot.querySelector('#cmp-send').onclick = () => saveCompose(false);
+  async function saveCompose(asDraft){
+    const to = body.querySelector('#cmp-to').value.trim();
+    const subj = body.querySelector('#cmp-s').value.trim();
+    const txt = body.querySelector('#cmp-b').value.trim();
+    if (!asDraft && !to){ A.toast('المستلم مطلوب','err'); return; }
+    const msg = {
+      id: 'msg_' + Date.now().toString(36),
+      folder: asDraft ? 'drafts' : 'sent',
+      from: { name:'أنا', email:'a.king@arsann.com', avatar:'ا' },
+      to, subject: subj, preview: txt.slice(0, 80),
+      body: '<p>' + A.esc(txt).replace(/\n/g,'<br>') + '</p>',
+      ts: Date.now(), unread: false, starred: false
+    };
+    try { await A.api('/api/mail/messages', { method:'POST', body: msg }); } catch(e){}
+    MAIL.unshift(msg);
+    m.close();
+    A.toast(asDraft ? 'تم الحفظ' : 'تم الإرسال');
+    updateCounts();
+    if (CURRENT_FOLDER === msg.folder) renderList();
+  }
+}
+
+function composeReply(m){
+  openCompose({
+    to: m.from?.email || '',
+    subject: 'رد: ' + (m.subject||''),
+    body: '\n\n--- الرسالة الأصلية ---\nمن: ' + (m.from?.name||'') + '\n' + (m.preview||'')
+  });
+}
+function composeForward(m){
+  openCompose({
+    subject: 'إعادة: ' + (m.subject||''),
+    body: '\n\n--- إعادة توجيه ---\nمن: ' + (m.from?.name||'') + '\n' + (m.preview||'')
+  });
+}
+
+// ===== Timeline view =====
+function renderTimeline(){
+  const list = MAIL.filter(m => m.folder === 'inbox').sort((a,b) => b.ts - a.ts);
+  // Group by date
+  const groups = {};
+  list.forEach(m => {
+    const d = new Date(m.ts);
+    const k = d.toDateString();
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(m);
+  });
+  const host = document.getElementById('tlHost');
+  if (!list.length){
+    host.innerHTML = '<div class="empty"><div class="ttl">لا رسائل</div></div>';
+    return;
+  }
+  host.innerHTML = Object.keys(groups).map(k => {
+    const d = new Date(k);
+    return `<div class="tl-day">
+      <div class="day-lbl">${A.fmtDate(d)}</div>
+      ${groups[k].map(m => `
+        <div class="tl-msg" data-id="${m.id}">
+          <div class="av">${A.esc(m.from?.avatar || (m.from?.name||'?')[0])}</div>
+          <div class="body">
+            <div class="from">${A.esc(m.from?.name||'—')}</div>
+            <div class="subj">${A.esc(m.subject||'')}</div>
+            <div class="preview">${A.esc(m.preview||'')}</div>
+          </div>
+          <div class="tm">${A.fmtTime(m.ts)}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+  host.querySelectorAll('[data-id]').forEach(el => el.onclick = () => {
+    SELECTED_ID = el.dataset.id;
+    document.getElementById('vwInbox').click();
+    selectMail(SELECTED_ID);
+  });
+}
+
+// ===== Connect =====
+document.getElementById('btnConnect').onclick = openConnectDialog;
+function openConnectDialog(){
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <p style="font-size:13px;color:var(--ink-2);margin-bottom:14px">اربط حساب البريد لمزامنة الرسائل تلقائياً.</p>
+    ${['google','microsoft'].map(p => {
+      const label = {google:'Gmail', microsoft:'Outlook / Exchange'}[p];
+      const conn = ACCOUNTS.find(a => a.provider === p);
+      return `<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-weight:500">${label}</div>
+          <div style="font-size:11px;color:var(--ink-3)">${conn ? '✓ ' + conn.email : 'غير متصل'}</div>
+        </div>
+        ${conn
+          ? `<button class="btn danger text-sm" data-disc="${p}">فصل</button>`
+          : `<button class="btn primary text-sm" data-conn="${p}">ربط</button>`
+        }
+      </div>`;
+    }).join('')}
+    <div style="font-size:11px;color:var(--ink-3);margin-top:12px;line-height:1.7">
+      ⚠️ يتطلب OAuth credentials في الـ Worker. راجع <code>SETUP.md</code>.
+    </div>
+  `;
+  const m = A.modal({ title:'ربط حساب البريد', body });
+  body.querySelectorAll('[data-conn]').forEach(b => b.onclick = () => {
+    const url = `${A.API_BASE}/api/oauth/${b.dataset.conn}/start?token=${encodeURIComponent(A.getToken())}&scope=mail&return_to=${encodeURIComponent(location.href)}`;
+    window.open(url, 'oauth', 'width=520,height=620');
+  });
+  body.querySelectorAll('[data-disc]').forEach(b => b.onclick = async () => {
+    if (!confirm('فصل '+b.dataset.disc+'؟')) return;
+    try { await A.api('/api/oauth/'+b.dataset.disc+'/disconnect', { method:'POST' }); } catch(e){}
+    await loadAccounts();
+    m.close();
+  });
+}
+</script>
+<script src="spine-back.js" defer></script>
+<script src="spine-search.js" defer></script>
+
+<script src="arsann-chrome.js"></script>
+<script>(function(){function init(){if(!window.ArsannChrome)return;var me=null;try{me=JSON.parse(localStorage.getItem('arsan_me_v1')||'null');}catch(e){}window.ArsannChrome.init({module:'MAIL',breadcrumb:["ARSANN","CORE","MAIL"],user:me?(me.email||'GUEST').split('@')[0]:'GUEST',zone:'MAI.01'});}if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);})();</script>
+</body>
+</html>

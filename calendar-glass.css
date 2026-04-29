@@ -1,0 +1,358 @@
+/* =====================================================================
+   ARSANN — GLASS REFRESH (Calendar)
+   Inspired by: Nexus 3.0 SmartCity + Controlly dashboards
+   Translucent panels lifted on a warm ambient background
+   ===================================================================== */
+
+/* ===== AMBIENT BACKGROUND (the "scene" behind the glass) ===== */
+html, body {
+  background:
+    radial-gradient(ellipse 1200px 600px at 20% 10%, rgba(232,165,71,.18), transparent 60%),
+    radial-gradient(ellipse 900px 500px at 85% 90%, rgba(122,168,201,.12), transparent 60%),
+    radial-gradient(ellipse 700px 700px at 60% 50%, rgba(156,181,122,.08), transparent 70%),
+    linear-gradient(135deg, #1a1612 0%, #0f1418 50%, #0a0d10 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* Subtle blurred orbs floating in background — adds depth */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 240px at 15% 25%, rgba(232,165,71,.25), transparent),
+    radial-gradient(circle 320px at 80% 75%, rgba(245,190,107,.18), transparent),
+    radial-gradient(circle 200px at 50% 60%, rgba(156,181,122,.15), transparent);
+  filter: blur(60px);
+  opacity: .9;
+  animation: float 24s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-20px, 20px) scale(1.05); }
+  66% { transform: translate(30px, -10px) scale(.95); }
+}
+
+/* Push everything above the ambient layer */
+.shell, .topbar, .mod-head, .mod-body, .os-status, .mini-map {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== TOPBAR — fully glass ===== */
+.topbar {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 1px 0 rgba(0,0,0,.2) !important;
+}
+
+.brand-mark {
+  background: rgba(232,165,71,.15) !important;
+  border-color: rgba(232,165,71,.5) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* ===== MOD-HEAD — glass slab ===== */
+.mod-head {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)) !important;
+  backdrop-filter: blur(30px) saturate(140%);
+  -webkit-backdrop-filter: blur(30px) saturate(140%);
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.mod-glyph {
+  background: rgba(232,165,71,.12) !important;
+  border-color: rgba(232,165,71,.4) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 8px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 4px 12px rgba(0,0,0,.2);
+}
+
+/* ===== ALL CARDS — frosted glass ===== */
+.card {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 32px rgba(0,0,0,.25),
+    0 1px 2px rgba(0,0,0,.15) !important;
+  position: relative;
+}
+
+/* Remove the corner brackets — they don't fit the glass aesthetic */
+.card::before, .card::after { display: none !important; }
+
+.card-head {
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  background: rgba(255,255,255,.02);
+}
+
+/* ===== CALENDAR-SPECIFIC ===== */
+
+/* Toolbar buttons — ghost glass */
+.cal-nav button {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  color: var(--ink-2);
+  transition: all .2s cubic-bezier(.2,.7,.2,1);
+}
+.cal-nav button:hover {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.20) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
+.cal-views {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
+.cal-views button {
+  border-radius: 8px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+}
+.cal-views button.active {
+  background: rgba(232,165,71,.95) !important;
+  color: #0a0b0d !important;
+  box-shadow: 0 2px 8px rgba(232,165,71,.3);
+}
+
+.prov-chip {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  transition: all .2s;
+}
+.prov-chip:hover {
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(232,165,71,.4) !important;
+}
+
+/* ===== INPUTS / FIELDS — glass ===== */
+.input, input.input, select.input, textarea.input {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  color: var(--ink) !important;
+}
+.input:focus {
+  background: rgba(232,165,71,.06) !important;
+  border-color: rgba(232,165,71,.6) !important;
+  box-shadow: 0 0 0 3px rgba(232,165,71,.15);
+}
+
+/* ===== BUTTONS — glass ===== */
+.mod-actions button, .btn {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 9px 16px !important;
+  transition: all .2s cubic-bezier(.2,.7,.2,1);
+}
+.mod-actions button:hover, .btn:hover {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.20) !important;
+  color: var(--ink) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+.mod-actions button.primary, .btn.primary {
+  background: linear-gradient(180deg, rgba(245,190,107,1), rgba(232,165,71,1)) !important;
+  border-color: rgba(245,190,107,.6) !important;
+  color: #0a0b0d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.3),
+    0 4px 14px rgba(232,165,71,.35) !important;
+}
+.mod-actions button.primary:hover, .btn.primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.4),
+    0 6px 20px rgba(232,165,71,.5) !important;
+  transform: translateY(-1px);
+}
+
+/* ===== PILLS — glass ===== */
+.pill {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 999px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 11px !important;
+}
+.pill.green { background: rgba(156,181,122,.18) !important; color: #c8dba0 !important; border-color: rgba(156,181,122,.4) !important; }
+.pill.orange, .pill.gold { background: rgba(232,165,71,.18) !important; color: #f5be6b !important; border-color: rgba(232,165,71,.4) !important; }
+.pill.red { background: rgba(216,107,92,.18) !important; color: #f0a094 !important; border-color: rgba(216,107,92,.4) !important; }
+.pill.blue { background: rgba(122,168,201,.18) !important; color: #a8c8e0 !important; border-color: rgba(122,168,201,.4) !important; }
+
+/* ===== TABS — segmented glass ===== */
+.tabs {
+  display: inline-flex !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 12px !important;
+  padding: 4px !important;
+  gap: 0 !important;
+  margin-bottom: 20px !important;
+}
+.tab {
+  border-radius: 8px !important;
+  border-bottom: 0 !important;
+  padding: 8px 16px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  background: transparent !important;
+  color: var(--ink-2) !important;
+  font-weight: 500 !important;
+}
+.tab.active {
+  background: rgba(232,165,71,.95) !important;
+  color: #0a0b0d !important;
+  border-bottom: 0 !important;
+  box-shadow: 0 2px 8px rgba(232,165,71,.3);
+}
+
+/* ===== CALENDAR GRID — glass ===== */
+.cal-grid, .month-grid, .week-grid {
+  background: rgba(255,255,255,.02) !important;
+  backdrop-filter: blur(30px);
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  overflow: hidden;
+}
+.day-cell, .cal-cell, .week-cell {
+  background: rgba(255,255,255,.02) !important;
+  border-color: rgba(255,255,255,.05) !important;
+}
+.day-cell:hover, .cal-cell:hover, .week-cell:hover {
+  background: rgba(255,255,255,.06) !important;
+}
+
+/* Events — translucent chips */
+.event, .cal-event, .ev-pill {
+  background: linear-gradient(180deg, rgba(232,165,71,.95), rgba(196,135,50,.85)) !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  border-radius: 8px !important;
+  color: #0a0b0d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.3),
+    0 2px 6px rgba(0,0,0,.2);
+  font-weight: 500 !important;
+}
+
+/* ===== STATUS BAR — even more transparent ===== */
+.os-status {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* ===== MINI MAP — glass ===== */
+.mini-map {
+  background: rgba(255,255,255,.06) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 24px rgba(0,0,0,.25);
+}
+
+/* ===== MODAL — heavy glass ===== */
+.modal-bd {
+  background: rgba(0,0,0,.4) !important;
+  backdrop-filter: blur(20px);
+}
+.modal {
+  background: rgba(20,20,24,.7) !important;
+  backdrop-filter: blur(60px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 30px 80px rgba(0,0,0,.5) !important;
+}
+.modal-head {
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+}
+.modal-foot {
+  border-top: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty .icon {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+}
+
+/* ===== TYPOGRAPHY softening ===== */
+.mod-title {
+  font-family: var(--font-en) !important;
+  letter-spacing: -0.02em !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,.95) !important;
+}
+.mod-sub {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.16em !important;
+  color: rgba(255,255,255,.5) !important;
+}
+
+/* Remove tactical brackets from buttons/inputs to keep glass clean */
+.brand-mark::before, .brand-mark::after,
+.brand-mark > .br-bl, .brand-mark > .br-br { display: none; }
+
+/* ===== RING / GLOW on focus ===== */
+.cal-nav button:focus-visible,
+.btn:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 3px rgba(232,165,71,.3),
+    0 4px 12px rgba(0,0,0,.2);
+}
+
+/* ===== Scrollbar refinement ===== */
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.12) !important;
+  border-radius: 999px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232,165,71,.5) !important;
+}

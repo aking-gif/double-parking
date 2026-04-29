@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الموارد البشرية — Spine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spine-shared.css">
+<style>
+  .hr-tabs{ display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; padding: 0 4px; overflow-x: auto }
+  .hr-tabs button{
+    padding: 10px 16px; font-size: 13px; color: var(--ink-3);
+    border-bottom: 2px solid transparent; border-radius: 0;
+    margin-bottom: -1px; white-space: nowrap;
+  }
+  .hr-tabs button.active{ color: var(--ink); border-bottom-color: var(--accent); font-weight: 600 }
+
+  .hr-table{ width: 100%; border-collapse: collapse }
+  .hr-table th, .hr-table td{ padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: start; font-size: 12.5px }
+  .hr-table th{ font-size: 10px; color: var(--ink-3); letter-spacing: 1px; text-transform: uppercase; font-family: var(--font-en); font-weight: 600; background: var(--bg-2) }
+  .hr-table tbody tr{ cursor: pointer; transition: background .1s }
+  .hr-table tbody tr:hover{ background: var(--surface-2) }
+  .hr-table .av{ width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px }
+
+  .stats-strip{ display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px }
+  .stat-mini{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px }
+  .stat-mini .v{ font-size: 22px; font-weight: 600; font-family: var(--font-en) }
+  .stat-mini .v.accent{ color: var(--accent) }
+  .stat-mini .v.green{ color: var(--green) }
+  .stat-mini .v.red{ color: var(--red) }
+  .stat-mini .l{ font-size: 11px; color: var(--ink-3); margin-top: 2px }
+
+  .att-grid{ display: grid; grid-template-columns: 200px repeat(auto-fit, minmax(28px, 1fr)); gap: 2px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto }
+  .att-grid .lbl{ padding: 8px 10px; font-size: 11px; color: var(--ink-3); border-bottom: 1px solid var(--line); position: sticky; inset-inline-start: 0; background: var(--surface); z-index: 1 }
+  .att-grid .day{ padding: 6px; text-align: center; font-size: 9px; color: var(--ink-4); border-bottom: 1px solid var(--line); font-family: var(--font-en) }
+  .att-grid .nm{ padding: 8px 10px; font-size: 12px; position: sticky; inset-inline-start: 0; background: var(--surface); display: flex; align-items: center; gap: 8px }
+  .att-cell{ height: 24px; border-radius: 3px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; transition: transform .1s }
+  .att-cell:hover{ transform: scale(1.3); z-index: 2 }
+  .att-cell.p{ background: rgba(79,180,119,0.5) }
+  .att-cell.l{ background: rgba(232,163,92,0.5) }
+  .att-cell.a{ background: rgba(224,100,100,0.5) }
+  .att-cell.v{ background: rgba(103,137,197,0.5) }
+  .att-cell.h{ background: var(--surface-3); opacity: .4 }
+
+  .tpl-card{ background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .15s }
+  .tpl-card:hover{ border-color: var(--line-2); transform: translateY(-2px) }
+  .tpl-card .ic{ width: 36px; height: 36px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 10px }
+  .tpl-card .nm{ font-weight: 600; font-size: 13.5px; margin-bottom: 4px }
+  .tpl-card .ds{ font-size: 11.5px; color: var(--ink-3); line-height: 1.6 }
+  .tpl-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px }
+
+  .arc-row{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background .12s }
+  .arc-row:hover{ background: var(--surface-2) }
+  .arc-row .ic{ font-size: 18px }
+  .arc-row .nm{ flex: 1; font-size: 13px }
+  .arc-row .meta{ font-size: 11px; color: var(--ink-3); font-family: var(--font-en) }
+
+  .pay-summary{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px }
+  @media (max-width: 700px){ .pay-summary{ grid-template-columns: 1fr } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-hr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  </defs>
+</svg>
+</head>
+<body>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand" onclick="location.href='spine.html'">
+      <div class="brand-mark">A</div>
+      <div class="brand-name">THE SPINE <span class="accent">/ ARSANN</span></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="font-size:12px;color:var(--ink-3)" id="meStrip">—</div>
+  </header>
+
+  <div class="mod-head">
+    <div class="mod-glyph"><svg><use href="#ic-hr"/></svg></div>
+    <div class="mod-title-block">
+      <div class="mod-title">الموارد البشرية</div>
+      <div class="mod-sub">HR · Employees, Attendance, Payroll, Templates & Archive</div>
+    </div>
+    <div class="mod-actions">
+      <button class="btn primary" id="btnNewEmp">+ موظف جديد</button>
+    </div>
+  </div>
+
+  <div class="mod-body">
+    <div class="stats-strip" id="stats"></div>
+
+    <div class="hr-tabs">
+      <button class="active" data-tab="employees">الموظفين</button>
+      <button data-tab="attendance">الحضور والانصراف</button>
+      <button data-tab="payroll">الرواتب</button>
+      <button data-tab="leaves">الإجازات</button>
+      <button data-tab="templates">النماذج (Templates)</button>
+      <button data-tab="archive">الأرشيف</button>
+    </div>
+
+    <div id="host"></div>
+  </div>
+</div>
+
+<script src="spine-api.js"></script>
+<script>
+const A = window.SpineAPI;
+
+let TAB = 'employees';
+let DATA = { employees: [], attendance: {}, payroll: [], leaves: [], templates: [], archive: [] };
+
+(async () => {
+  const me = await A.ensureAuth();
+  if (!me) return;
+  document.getElementById('meStrip').textContent = me.email || '';
+  await loadAll();
+  render();
+})();
+
+async function loadAll(){
+  try {
+    const [emp, lv] = await Promise.all([
+      A.api('/api/hr/employees').catch(()=>({employees:[]})),
+      A.api('/api/hr/leaves').catch(()=>({leaves:[]}))
+    ]);
+    DATA.employees = emp.employees || [];
+    DATA.leaves = lv.leaves || [];
+  } catch(e){}
+  if (!DATA.employees.length) seedDemo();
+  renderStats();
+}
+
+function seedDemo(){
+  DATA.employees = [
+    { id:'e1', name:'خالد المطيري', title:'مدير المشاريع', dept:'العمليات', email:'k.mutairi@arsann.com', phone:'+966 50 111 2222', salary:18500, joinDate:'2022-03-15', status:'active', avatar:'خ' },
+    { id:'e2', name:'سارة العتيبي', title:'محاسب أول', dept:'المالية', email:'s.otaibi@arsann.com', phone:'+966 50 222 3333', salary:14200, joinDate:'2023-01-20', status:'active', avatar:'س' },
+    { id:'e3', name:'محمد الشهري', title:'مهندس مدني', dept:'الهندسة', email:'m.shahri@arsann.com', phone:'+966 50 333 4444', salary:16800, joinDate:'2021-09-10', status:'active', avatar:'م' },
+    { id:'e4', name:'نورة الدوسري', title:'مسؤول الموارد البشرية', dept:'الموارد البشرية', email:'n.dosari@arsann.com', phone:'+966 50 444 5555', salary:12500, joinDate:'2024-05-01', status:'active', avatar:'ن' },
+    { id:'e5', name:'فهد الزهراني', title:'مشرف موقع', dept:'العمليات', email:'f.zahrani@arsann.com', phone:'+966 50 555 6666', salary:11000, joinDate:'2023-11-12', status:'active', avatar:'ف' },
+    { id:'e6', name:'هند القحطاني', title:'مساعد إداري', dept:'الإدارة العامة', email:'h.qahtani@arsann.com', phone:'+966 50 666 7777', salary:8500, joinDate:'2024-08-15', status:'active', avatar:'ه' },
+    { id:'e7', name:'عبدالله السعيد', title:'مدير المشتريات', dept:'المشتريات', email:'a.saeed@arsann.com', phone:'+966 50 777 8888', salary:17200, joinDate:'2022-07-20', status:'active', avatar:'ع' }
+  ];
+  DATA.leaves = [
+    { id:'l1', empId:'e1', type:'سنوية', from:'2026-05-20', to:'2026-06-02', days:14, status:'pending', reason:'سفر عائلي' },
+    { id:'l2', empId:'e3', type:'مرضية', from:'2026-04-25', to:'2026-04-26', days:2, status:'approved', reason:'مرض' },
+    { id:'l3', empId:'e5', type:'اضطرارية', from:'2026-04-29', to:'2026-04-29', days:1, status:'pending', reason:'ظرف عائلي' }
+  ];
+  DATA.templates = [
+    { id:'t1', name:'عقد عمل (سعودي)', desc:'نموذج عقد عمل وفق نظام العمل', icon:'📋' },
+    { id:'t2', name:'عقد عمل (مقيم)', desc:'نموذج عقد للموظف غير السعودي', icon:'📋' },
+    { id:'t3', name:'خطاب تعريف', desc:'خطاب تعريف للجهات الخارجية', icon:'📄' },
+    { id:'t4', name:'خطاب راتب', desc:'إفادة راتب للبنوك والسفارات', icon:'💵' },
+    { id:'t5', name:'إنذار أول', desc:'إنذار رسمي للمخالفات الإدارية', icon:'⚠️' },
+    { id:'t6', name:'قرار ترقية', desc:'قرار ترقية موظف', icon:'⬆️' },
+    { id:'t7', name:'إخلاء طرف', desc:'نموذج إخلاء طرف عند انتهاء الخدمة', icon:'🚪' },
+    { id:'t8', name:'مكافأة نهاية الخدمة', desc:'احتساب مكافأة نهاية الخدمة', icon:'🎁' }
+  ];
+  DATA.archive = [
+    { id:'a1', name:'عقد عمل — خالد المطيري', type:'pdf', size:'248 KB', date:'2022-03-15' },
+    { id:'a2', name:'الهوية الوطنية — سارة العتيبي', type:'pdf', size:'156 KB', date:'2023-01-20' },
+    { id:'a3', name:'شهادة بكالوريوس — محمد الشهري', type:'pdf', size:'1.2 MB', date:'2021-09-10' },
+    { id:'a4', name:'سجل الرواتب — يناير 2026', type:'xlsx', size:'82 KB', date:'2026-01-31' },
+    { id:'a5', name:'سجل الرواتب — فبراير 2026', type:'xlsx', size:'84 KB', date:'2026-02-28' },
+    { id:'a6', name:'تقرير حضور Q1 2026', type:'pdf', size:'412 KB', date:'2026-04-01' },
+    { id:'a7', name:'إخلاء طرف — موظف سابق', type:'pdf', size:'196 KB', date:'2025-12-15' }
+  ];
+}
+
+function renderStats(){
+  const totalSalary = DATA.employees.reduce((s,e) => s+(e.salary||0), 0);
+  const pendingLeaves = DATA.leaves.filter(l => l.status === 'pending').length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-mini"><div class="v accent">${DATA.employees.length}</div><div class="l">إجمالي الموظفين</div></div>
+    <div class="stat-mini"><div class="v green">${DATA.employees.filter(e => e.status==='active').length}</div><div class="l">نشط</div></div>
+    <div class="stat-mini"><div class="v">${A.fmtNum(totalSalary)}</div><div class="l">إجمالي الرواتب (ر.س)</div></div>
+    <div class="stat-mini"><div class="v ${pendingLeaves>0?'red':''}">${pendingLeaves}</div><div class="l">إجازات معلّقة</div></div>
+    <div class="stat-mini"><div class="v">${new Set(DATA.employees.map(e => e.dept)).size}</div><div class="l">إدارات</div></div>
+  `;
+}
+
+document.querySelectorAll('.hr-tabs button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.hr-tabs button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    TAB = b.dataset.tab;
+    render();
+  };
+});
+
+function render(){
+  const host = document.getElementById('host');
+  if (TAB === 'employees') host.innerHTML = renderEmployees();
+  else if (TAB === 'attendance') host.innerHTML = renderAttendance();
+  else if (TAB === 'payroll') host.innerHTML = renderPayroll();
+  else if (TAB === 'leaves') host.innerHTML = renderLeaves();
+  else if (TAB === 'templates') host.innerHTML = renderTemplates();
+  else if (TAB === 'archive') host.innerHTML = renderArchive();
+  attachHandlers();
+}
+
+function renderEmployees(){
+  return `<div class="card"><table class="hr-table">
+    <thead><tr><th>الاسم</th><th>المنصب</th><th>الإدارة</th><th>تاريخ الالتحاق</th><th>الراتب (ر.س)</th><th>الحالة</th></tr></thead>
+    <tbody>${DATA.employees.map(e => `
+      <tr data-emp="${e.id}">
+        <td><div style="display:flex;align-items:center;gap:10px"><div class="av">${A.esc(e.avatar||e.name[0])}</div><div><div style="font-weight:500">${A.esc(e.name)}</div><div style="font-size:11px;color:var(--ink-3);font-family:var(--font-en)">${A.esc(e.email||'')}</div></div></div></td>
+        <td>${A.esc(e.title||'—')}</td>
+        <td>${A.esc(e.dept||'—')}</td>
+        <td style="font-family:var(--font-en);font-size:11.5px">${e.joinDate || '—'}</td>
+        <td style="font-family:var(--font-en);color:var(--accent);font-weight:500">${A.fmtNum(e.salary||0)}</td>
+        <td><span class="pill ${e.status==='active'?'green':''} mono">${e.status==='active'?'نشط':e.status}</span></td>
+      </tr>
+    `).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderAttendance(){
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  const days = Array.from({length:daysInMonth}, (_,i) => i+1);
+  // Generate deterministic mock attendance
+  const codes = ['p','p','p','p','p','p','l','p','p','p','a','p','p','v','p','h','h','p','p','p','p','p','l','p','p','p','p','p','p','p','p'];
+  return `<div>
+    <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3)">
+      <span><span class="att-cell p" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> حاضر</span>
+      <span><span class="att-cell l" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> متأخر</span>
+      <span><span class="att-cell a" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> غائب</span>
+      <span><span class="att-cell v" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> إجازة</span>
+      <span><span class="att-cell h" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> عطلة</span>
+    </div>
+    <div class="att-grid" style="grid-template-columns:200px repeat(${daysInMonth}, 1fr)">
+      <div class="lbl">الموظف</div>
+      ${days.map(d => `<div class="day">${d}</div>`).join('')}
+      ${DATA.employees.map((e, ei) => `
+        <div class="nm"><div class="av">${A.esc(e.avatar||e.name[0])}</div><span style="font-size:11.5px">${A.esc(e.name)}</span></div>
+        ${days.map((d, di) => {
+          const c = codes[(di + ei) % codes.length];
+          return `<div class="att-cell ${c}" title="${e.name} - يوم ${d}">${c}</div>`;
+        }).join('')}
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function renderPayroll(){
+  const total = DATA.employees.reduce((s,e) => s+(e.salary||0), 0);
+  const taxes = total * 0.10;
+  const net = total - taxes;
+  return `<div>
+    <div class="pay-summary">
+      <div class="card card-pad" style="text-align:center"><div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">الإجمالي</div><div style="font-size:24px;font-weight:600;font-family:var(--font-en)">${A.fmtNum(total)}</div></div>
+      <div class="card card-pad" style="text-align:center"><div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">الاستقطاعات (10%)</div><div style="font-size:24px;font-weight:600;font-family:var(--font-en);color:var(--red)">${A.fmtNum(taxes)}</div></div>
+      <div class="card card-pad" style="text-align:center"><div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">الصافي للتحويل</div><div style="font-size:24px;font-weight:600;font-family:var(--font-en);color:var(--accent)">${A.fmtNum(net)}</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <select class="input" style="max-width:200px"><option>إبريل 2026</option><option>مارس 2026</option><option>فبراير 2026</option></select>
+      <button class="btn ghost">إنشاء كشف رواتب</button>
+      <button class="btn primary">تحويل للبنك</button>
+    </div>
+    <div class="card"><table class="hr-table">
+      <thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>بدلات</th><th>استقطاعات</th><th>الصافي</th><th>الحالة</th></tr></thead>
+      <tbody>${DATA.employees.map(e => {
+        const allow = Math.round(e.salary * 0.15);
+        const ded = Math.round(e.salary * 0.10);
+        const n = e.salary + allow - ded;
+        return `<tr>
+          <td><div style="display:flex;align-items:center;gap:10px"><div class="av">${A.esc(e.avatar||e.name[0])}</div><span>${A.esc(e.name)}</span></div></td>
+          <td style="font-family:var(--font-en)">${A.fmtNum(e.salary)}</td>
+          <td style="font-family:var(--font-en);color:var(--green)">+${A.fmtNum(allow)}</td>
+          <td style="font-family:var(--font-en);color:var(--red)">-${A.fmtNum(ded)}</td>
+          <td style="font-family:var(--font-en);color:var(--accent);font-weight:600">${A.fmtNum(n)}</td>
+          <td><span class="pill green mono">جاهز</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderLeaves(){
+  return `<div>
+    <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;color:var(--ink-3)">${DATA.leaves.filter(l=>l.status==='pending').length} طلب يحتاج اعتماد</div>
+      <button class="btn primary" id="newLeave">+ طلب إجازة</button>
+    </div>
+    <div class="card"><table class="hr-table">
+      <thead><tr><th>الموظف</th><th>النوع</th><th>من</th><th>إلى</th><th>الأيام</th><th>السبب</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${DATA.leaves.map(l => {
+        const e = DATA.employees.find(emp => emp.id === l.empId);
+        const stCol = l.status==='approved'?'green':l.status==='rejected'?'red':'gold';
+        const stLabel = l.status==='approved'?'معتمد':l.status==='rejected'?'مرفوض':'معلّق';
+        return `<tr>
+          <td>${A.esc(e?.name || '—')}</td>
+          <td>${A.esc(l.type)}</td>
+          <td style="font-family:var(--font-en);font-size:11.5px">${l.from}</td>
+          <td style="font-family:var(--font-en);font-size:11.5px">${l.to}</td>
+          <td style="font-family:var(--font-en)">${l.days}</td>
+          <td style="font-size:11.5px;color:var(--ink-3)">${A.esc(l.reason||'—')}</td>
+          <td><span class="pill ${stCol} mono">${stLabel}</span></td>
+          <td>${l.status==='pending'?`<button class="btn primary text-sm" data-app="${l.id}">اعتمد</button>`:''}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function renderTemplates(){
+  return `<div>
+    <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;color:var(--ink-3)">${DATA.templates.length} نموذج جاهز</div>
+      <button class="btn ghost">+ نموذج جديد</button>
+    </div>
+    <div class="tpl-grid">${DATA.templates.map(t => `
+      <div class="tpl-card" data-tpl="${t.id}">
+        <div class="ic" style="font-size:18px">${t.icon}</div>
+        <div class="nm">${A.esc(t.name)}</div>
+        <div class="ds">${A.esc(t.desc)}</div>
+      </div>
+    `).join('')}</div>
+  </div>`;
+}
+
+function renderArchive(){
+  return `<div>
+    <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center">
+      <input class="input" placeholder="بحث في الأرشيف..." style="max-width:300px"/>
+      <button class="btn ghost">📤 رفع ملف</button>
+    </div>
+    ${DATA.archive.map(a => `
+      <div class="arc-row" data-arc="${a.id}">
+        <div class="ic">${a.type==='pdf'?'📕':a.type==='xlsx'?'📊':'📄'}</div>
+        <div class="nm">${A.esc(a.name)}</div>
+        <div class="meta">${a.size}</div>
+        <div class="meta">${a.date}</div>
+        <button class="btn ghost text-sm" onclick="event.stopPropagation();window.SpineAPI.toast('تنزيل')">⬇</button>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function attachHandlers(){
+  document.querySelectorAll('[data-emp]').forEach(r => r.onclick = () => openEmpDetail(r.dataset.emp));
+  document.querySelectorAll('[data-app]').forEach(b => b.onclick = async (e) => {
+    e.stopPropagation();
+    const l = DATA.leaves.find(x => x.id === b.dataset.app);
+    if (!l) return;
+    l.status = 'approved';
+    try { await A.api('/api/hr/leaves/'+l.id, { method:'PATCH', body:{status:'approved'} }); } catch(err){}
+    A.toast('تم الاعتماد');
+    render();
+  });
+  document.querySelectorAll('[data-tpl]').forEach(r => r.onclick = () => {
+    const t = DATA.templates.find(x => x.id === r.dataset.tpl);
+    A.toast('فتح: ' + t.name);
+  });
+  const nl = document.getElementById('newLeave');
+  if (nl) nl.onclick = openNewLeave;
+}
+
+function openEmpDetail(id){
+  const e = DATA.employees.find(x => x.id === id);
+  if (!e) return;
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:22px">${A.esc(e.avatar||e.name[0])}</div>
+      <div>
+        <div style="font-size:18px;font-weight:600">${A.esc(e.name)}</div>
+        <div style="font-size:12px;color:var(--ink-3)">${A.esc(e.title||'')} · ${A.esc(e.dept||'')}</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">البريد</label><div style="font-family:var(--font-en)">${A.esc(e.email||'—')}</div></div>
+      <div class="field"><label class="label">الجوال</label><div style="font-family:var(--font-en);direction:ltr;text-align:start">${A.esc(e.phone||'—')}</div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">تاريخ الالتحاق</label><div style="font-family:var(--font-en)">${e.joinDate||'—'}</div></div>
+      <div class="field"><label class="label">الراتب</label><div style="font-family:var(--font-en);color:var(--accent);font-weight:600">${A.fmtNum(e.salary||0)} ر.س</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn ghost">📄 خطاب راتب</button>
+      <button class="btn ghost">📋 طباعة العقد</button>
+      <button class="btn ghost">📅 سجل الحضور</button>
+      <button class="btn ghost">💰 سجل الرواتب</button>
+    </div>
+  `;
+  A.modal({ title:'بيانات الموظف', body, width: 600 });
+}
+
+function openNewLeave(){
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="field"><label class="label">الموظف</label>
+      <select id="lv-e" class="input">${DATA.employees.map(e => `<option value="${e.id}">${A.esc(e.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label class="label">نوع الإجازة</label>
+      <select id="lv-t" class="input"><option>سنوية</option><option>مرضية</option><option>اضطرارية</option><option>أمومة</option><option>بدون راتب</option></select>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">من</label><input id="lv-f" class="input" type="date"/></div>
+      <div class="field"><label class="label">إلى</label><input id="lv-to" class="input" type="date"/></div>
+    </div>
+    <div class="field"><label class="label">السبب</label><textarea id="lv-r" class="input"></textarea></div>
+  `;
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn ghost" id="lvc">إلغاء</button><button class="btn primary" id="lvs">إرسال</button>';
+  const m = A.modal({ title:'طلب إجازة', body, footer: foot, width: 540 });
+  foot.querySelector('#lvc').onclick = m.close;
+  foot.querySelector('#lvs').onclick = async () => {
+    const f = body.querySelector('#lv-f').value;
+    const t = body.querySelector('#lv-to').value;
+    if (!f || !t){ A.toast('التواريخ مطلوبة','err'); return; }
+    const days = Math.ceil((new Date(t) - new Date(f)) / (1000*60*60*24)) + 1;
+    const obj = {
+      id:'l_'+Date.now().toString(36),
+      empId: body.querySelector('#lv-e').value,
+      type: body.querySelector('#lv-t').value,
+      from: f, to: t, days,
+      reason: body.querySelector('#lv-r').value,
+      status:'pending'
+    };
+    DATA.leaves.unshift(obj);
+    try { await A.api('/api/hr/leaves', { method:'POST', body: obj }); } catch(e){}
+    m.close();
+    A.toast('تم الإرسال');
+    render();
+  };
+}
+
+document.getElementById('btnNewEmp').onclick = () => {
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="row">
+      <div class="field"><label class="label">الاسم *</label><input id="e-n" class="input"/></div>
+      <div class="field"><label class="label">المنصب</label><input id="e-t" class="input"/></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">الإدارة</label><input id="e-d" class="input"/></div>
+      <div class="field"><label class="label">تاريخ الالتحاق</label><input id="e-jd" class="input" type="date"/></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="label">البريد</label><input id="e-em" class="input" dir="ltr"/></div>
+      <div class="field"><label class="label">الجوال</label><input id="e-ph" class="input" dir="ltr"/></div>
+    </div>
+    <div class="field"><label class="label">الراتب الأساسي (ر.س)</label><input id="e-s" class="input" type="number"/></div>
+  `;
+  const foot = document.createElement('div');
+  foot.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+  foot.innerHTML = '<button class="btn ghost" id="ec">إلغاء</button><button class="btn primary" id="es">إضافة</button>';
+  const m = A.modal({ title:'موظف جديد', body, footer: foot, width: 600 });
+  foot.querySelector('#ec').onclick = m.close;
+  foot.querySelector('#es').onclick = async () => {
+    const n = body.querySelector('#e-n').value.trim();
+    if (!n){ A.toast('الاسم مطلوب','err'); return; }
+    const obj = {
+      id:'e_'+Date.now().toString(36),
+      name: n,
+      title: body.querySelector('#e-t').value,
+      dept: body.querySelector('#e-d').value,
+      email: body.querySelector('#e-em').value,
+      phone: body.querySelector('#e-ph').value,
+      salary: parseInt(body.querySelector('#e-s').value)||0,
+      joinDate: body.querySelector('#e-jd').value || new Date().toISOString().slice(0,10),
+      status:'active',
+      avatar: n[0]
+    };
+    DATA.employees.unshift(obj);
+    try { await A.api('/api/hr/employees', { method:'POST', body: obj }); } catch(e){}
+    m.close();
+    A.toast('تمت الإضافة');
+    renderStats();
+    render();
+  };
+};
+</script>
+<script src="spine-back.js" defer></script>
+<script src="spine-search.js" defer></script>
+
+<script src="arsann-chrome.js"></script>
+<script>(function(){function init(){if(!window.ArsannChrome)return;var me=null;try{me=JSON.parse(localStorage.getItem('arsan_me_v1')||'null');}catch(e){}window.ArsannChrome.init({module:'HR',breadcrumb:["ARSANN","RES","HR"],user:me?(me.email||'GUEST').split('@')[0]:'GUEST',zone:'HR.01'});}if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);})();</script>
+</body>
+</html>

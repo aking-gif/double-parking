@@ -1,0 +1,443 @@
+/* =====================================================================
+   SPINE — APPLE GLASS UNIFIED THEME
+   One file. Drop after spine-shared.css on any module page.
+   Inspired by: visionOS, macOS Sonoma/Sequoia, Nexus 3.0, Controlly
+   ===================================================================== */
+
+/* ============ AMBIENT BACKGROUND (the "scene") ============ */
+html, body {
+  background:
+    radial-gradient(ellipse 1400px 700px at 15% 0%, rgba(232,165,71,.20), transparent 55%),
+    radial-gradient(ellipse 1100px 600px at 90% 100%, rgba(122,168,201,.14), transparent 55%),
+    radial-gradient(ellipse 800px 800px at 55% 45%, rgba(156,181,122,.08), transparent 65%),
+    linear-gradient(140deg, #1a1612 0%, #0f1418 45%, #08090c 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+}
+
+/* Animated orbs floating in deep background */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle 280px at 12% 22%, rgba(232,165,71,.28), transparent),
+    radial-gradient(circle 360px at 82% 72%, rgba(245,190,107,.20), transparent),
+    radial-gradient(circle 220px at 50% 55%, rgba(156,181,122,.16), transparent),
+    radial-gradient(circle 200px at 70% 15%, rgba(122,168,201,.18), transparent);
+  filter: blur(70px);
+  opacity: .85;
+  animation: ambient-float 28s ease-in-out infinite;
+}
+@keyframes ambient-float {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  33% { transform: translate3d(-30px, 25px, 0) scale(1.06); }
+  66% { transform: translate3d(40px, -15px, 0) scale(.94); }
+}
+
+/* Lift everything above the ambient layer */
+.shell, .topbar, .mod-head, .mod-body, .os-status, .mini-map,
+.modal-bd, .login-screen, .login-shell, main, header, section {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============ STATUS BAR + TOPBAR — heavy glass ============ */
+.os-status,
+.topbar {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 1px 0 rgba(0,0,0,.20) !important;
+}
+
+/* Brand mark — glass with gold tint */
+.brand-mark {
+  background: rgba(232,165,71,.14) !important;
+  border: 1px solid rgba(232,165,71,.50) !important;
+  backdrop-filter: blur(12px);
+  border-radius: 8px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    0 4px 12px rgba(232,165,71,.18);
+}
+/* Remove tactical brackets — they don't fit glass aesthetic */
+.brand-mark::before, .brand-mark::after { display: none !important; }
+
+/* Topbar nav links / chips */
+.topbar a, .topbar .chip, .topbar .nav-item, .topbar .btn-ghost {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  transition: all .2s cubic-bezier(.2,.7,.2,1);
+}
+.topbar a:hover, .topbar .chip:hover, .topbar .btn-ghost:hover {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.20) !important;
+  transform: translateY(-1px);
+}
+
+/* ============ MOD HEAD ============ */
+.mod-head {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)) !important;
+  backdrop-filter: blur(30px) saturate(140%);
+  -webkit-backdrop-filter: blur(30px) saturate(140%);
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.mod-glyph {
+  background: rgba(232,165,71,.12) !important;
+  border-color: rgba(232,165,71,.40) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 10px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 4px 12px rgba(0,0,0,.20);
+}
+.mod-title {
+  font-family: var(--font-en) !important;
+  letter-spacing: -0.02em !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,.95) !important;
+}
+.mod-sub {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.16em !important;
+  color: rgba(255,255,255,.5) !important;
+}
+
+/* ============ CARDS — frosted glass ============ */
+.card,
+.panel,
+.box,
+.surface,
+.section-card {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 32px rgba(0,0,0,.25),
+    0 1px 2px rgba(0,0,0,.15) !important;
+}
+/* Remove tactical brackets/corners — clash with glass */
+.card::before, .card::after,
+.panel::before, .panel::after { display: none !important; }
+
+.card-head, .panel-head {
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  background: rgba(255,255,255,.02) !important;
+}
+
+/* Hover lift */
+.card.interactive:hover,
+.card.clickable:hover,
+.panel.interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    0 12px 40px rgba(0,0,0,.30);
+}
+
+/* ============ INPUTS / FIELDS ============ */
+.input, input.input, select.input, textarea.input,
+input[type="text"], input[type="email"], input[type="search"],
+input[type="password"], input[type="number"], input[type="tel"],
+textarea, select {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  color: var(--ink) !important;
+  transition: all .2s;
+}
+.input:focus, input:focus, textarea:focus, select:focus {
+  outline: 0 !important;
+  background: rgba(232,165,71,.06) !important;
+  border-color: rgba(232,165,71,.6) !important;
+  box-shadow: 0 0 0 3px rgba(232,165,71,.15);
+}
+::placeholder { color: rgba(255,255,255,.35) !important; }
+
+/* ============ BUTTONS — glass ============ */
+.btn,
+.mod-actions button,
+button.action,
+button.cta {
+  background: rgba(255,255,255,.05) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 10px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 9px 16px !important;
+  transition: all .2s cubic-bezier(.2,.7,.2,1);
+  color: var(--ink) !important;
+}
+.btn:hover,
+.mod-actions button:hover,
+button.action:hover {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.20) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* Primary — gold gradient */
+.btn.primary,
+.btn-primary,
+.mod-actions button.primary,
+button.primary {
+  background: linear-gradient(180deg, #f5be6b, #e8a547) !important;
+  border-color: rgba(245,190,107,.6) !important;
+  color: #0a0b0d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.30),
+    0 4px 14px rgba(232,165,71,.35) !important;
+  font-weight: 600 !important;
+}
+.btn.primary:hover, .btn-primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.40),
+    0 6px 20px rgba(232,165,71,.50) !important;
+  transform: translateY(-1px);
+}
+
+/* Danger */
+.btn.danger, .btn-danger {
+  background: linear-gradient(180deg, #e88577, #d86b5c) !important;
+  border-color: rgba(232,133,119,.6) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 4px 14px rgba(216,107,92,.35) !important;
+}
+
+/* ============ PILLS / CHIPS ============ */
+.pill, .chip, .tag, .badge {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 999px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+}
+.pill.green, .chip.green, .tag.green, .badge.green,
+.pill.success, .chip.success {
+  background: rgba(156,181,122,.18) !important;
+  color: #c8dba0 !important;
+  border-color: rgba(156,181,122,.40) !important;
+}
+.pill.orange, .pill.gold, .chip.gold, .tag.gold, .badge.gold,
+.pill.warning {
+  background: rgba(232,165,71,.18) !important;
+  color: #f5be6b !important;
+  border-color: rgba(232,165,71,.40) !important;
+}
+.pill.red, .chip.red, .tag.red, .badge.red,
+.pill.danger {
+  background: rgba(216,107,92,.18) !important;
+  color: #f0a094 !important;
+  border-color: rgba(216,107,92,.40) !important;
+}
+.pill.blue, .chip.blue, .tag.blue, .badge.blue,
+.pill.info {
+  background: rgba(122,168,201,.18) !important;
+  color: #a8c8e0 !important;
+  border-color: rgba(122,168,201,.40) !important;
+}
+
+/* ============ TABS — segmented glass ============ */
+.tabs {
+  display: inline-flex !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  backdrop-filter: blur(20px);
+  border-radius: 12px !important;
+  padding: 4px !important;
+  gap: 0 !important;
+}
+.tab {
+  border-radius: 8px !important;
+  border-bottom: 0 !important;
+  padding: 8px 16px !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  background: transparent !important;
+  color: var(--ink-2) !important;
+  font-weight: 500 !important;
+  transition: all .2s;
+}
+.tab:hover { background: rgba(255,255,255,.06) !important; color: var(--ink) !important; }
+.tab.active {
+  background: rgba(232,165,71,.95) !important;
+  color: #0a0b0d !important;
+  border-bottom: 0 !important;
+  box-shadow: 0 2px 8px rgba(232,165,71,.30);
+}
+
+/* ============ TABLES ============ */
+table {
+  background: rgba(255,255,255,.02) !important;
+  backdrop-filter: blur(30px);
+  border-radius: 14px !important;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+thead, th {
+  background: rgba(255,255,255,.04) !important;
+  border-bottom: 1px solid rgba(255,255,255,.10) !important;
+  color: var(--ink-2) !important;
+  font-family: var(--font-en) !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+}
+td, tr {
+  border-color: rgba(255,255,255,.05) !important;
+}
+tbody tr:hover {
+  background: rgba(255,255,255,.04) !important;
+}
+
+/* ============ MODAL ============ */
+.modal-bd, .modal-backdrop, .overlay {
+  background: rgba(0,0,0,.40) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.modal, .dialog {
+  background: rgba(20,20,24,.70) !important;
+  backdrop-filter: blur(60px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 30px 80px rgba(0,0,0,.50) !important;
+}
+.modal-head, .dialog-head { border-bottom: 1px solid rgba(255,255,255,.08) !important; }
+.modal-foot, .dialog-foot { border-top: 1px solid rgba(255,255,255,.08) !important; }
+
+/* ============ MINI MAP / SIDEBAR ============ */
+.mini-map, .sidebar {
+  background: rgba(255,255,255,.06) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 24px rgba(0,0,0,.25);
+}
+
+/* ============ EMPTY STATE ============ */
+.empty .icon, .empty-state .icon {
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  border-radius: 16px !important;
+}
+
+/* ============ FOCUS RINGS ============ */
+button:focus-visible, a:focus-visible, .btn:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 3px rgba(232,165,71,.30),
+    0 4px 12px rgba(0,0,0,.20);
+}
+
+/* ============ SCROLLBARS ============ */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.10) !important;
+  border-radius: 999px !important;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232,165,71,.50) !important;
+  background-clip: content-box;
+}
+
+/* ============ APP LAUNCHER GRID (index.html) ============ */
+.app-tile, .dept-card, .launcher-item {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(40px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 8px 24px rgba(0,0,0,.20) !important;
+  transition: all .25s cubic-bezier(.2,.7,.2,1) !important;
+}
+.app-tile:hover, .dept-card:hover, .launcher-item:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  border-color: rgba(232,165,71,.40) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 16px 40px rgba(0,0,0,.30),
+    0 0 0 1px rgba(232,165,71,.20) !important;
+}
+
+/* ============ LOGIN / AUTH GATE ============ */
+.login-card, .auth-card {
+  background: rgba(20,20,24,.60) !important;
+  backdrop-filter: blur(60px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 30px 80px rgba(0,0,0,.40) !important;
+}
+
+/* ============ TOOLTIPS / DROPDOWNS / MENUS ============ */
+.tooltip, .dropdown, .menu, .popover, .context-menu {
+  background: rgba(20,20,24,.85) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 16px 48px rgba(0,0,0,.40) !important;
+}
+
+/* ============ NOTIFICATION BELL / TOAST ============ */
+.toast, .notification, .alert {
+  background: rgba(20,20,24,.80) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 16px 48px rgba(0,0,0,.40) !important;
+}
+
+/* ============ TYPOGRAPHY ============ */
+h1, h2, h3, .heading {
+  font-family: var(--font-en) !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Disable any heavy old shadows that clash */
+.card, .panel, .box {
+  text-shadow: none !important;
+}

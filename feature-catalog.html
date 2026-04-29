@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Catalog — 150 Ideas for Arsann</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1014;
+    --surface: rgba(255,255,255,.04);
+    --surface-2: rgba(255,255,255,.06);
+    --line: rgba(255,255,255,.10);
+    --line-2: rgba(255,255,255,.18);
+    --ink: #f5f5f7;
+    --ink-2: #b8b9bd;
+    --ink-3: #6e7077;
+    --gold: #e8a547;
+    --gold-soft: #f5be6b;
+    --green: #9cb57a;
+    --red: #d86b5c;
+    --blue: #7aa8c9;
+    --purple: #a584c4;
+    --font-ar: 'IBM Plex Sans Arabic', sans-serif;
+    --font-en: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background:
+      radial-gradient(ellipse 1200px 600px at 20% 10%, rgba(232,165,71,.15), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 85% 90%, rgba(122,168,201,.10), transparent 60%),
+      linear-gradient(135deg, #1a1612 0%, #0f1418 50%, #0a0d10 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--font-ar);
+    min-height: 100vh;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(circle 240px at 15% 25%, rgba(232,165,71,.20), transparent),
+      radial-gradient(circle 320px at 80% 75%, rgba(245,190,107,.15), transparent);
+    filter: blur(60px);
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,16,20,.7);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 32px;
+  }
+  .header-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .header h1 {
+    font-family: var(--font-en);
+    font-size: 22px; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header h1 span { color: var(--gold); }
+  .header-stats {
+    display: flex; gap: 16px; margin-inline-start: auto;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ink-2);
+  }
+  .header-stats b { color: var(--gold); font-weight: 600; }
+
+  /* TOOLBAR */
+  .toolbar {
+    max-width: 1400px; margin: 24px auto 0; padding: 0 32px;
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    position: relative; z-index: 1;
+  }
+  .filter-chip {
+    padding: 8px 16px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(20px);
+    border-radius: 999px;
+    font-family: var(--font-en); font-size: 13px; font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filter-chip:hover { background: rgba(255,255,255,.08); color: var(--ink); }
+  .filter-chip.active {
+    background: rgba(232,165,71,.95); color: #0a0b0d; border-color: rgba(232,165,71,.5);
+    box-shadow: 0 4px 12px rgba(232,165,71,.25);
+  }
+  .search-input {
+    flex: 1; min-width: 280px; max-width: 440px;
+    padding: 10px 16px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: var(--font-ar);
+    font-size: 14px;
+    margin-inline-start: auto;
+  }
+  .search-input::placeholder { color: var(--ink-3); }
+  .search-input:focus { outline: 0; border-color: rgba(232,165,71,.5); background: rgba(232,165,71,.06); }
+
+  /* MAIN */
+  main {
+    max-width: 1400px; margin: 0 auto; padding: 24px 32px 120px;
+    position: relative; z-index: 1;
+  }
+
+  /* SECTION */
+  .section { margin-top: 48px; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-num {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--gold); letter-spacing: 0.1em;
+  }
+  .section-title {
+    font-family: var(--font-en); font-size: 22px; font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .section-count {
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ink-3); margin-inline-start: auto;
+  }
+
+  /* CARDS GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  /* CARD */
+  .feat {
+    background: rgba(255,255,255,.04);
+    backdrop-filter: blur(40px) saturate(160%);
+    -webkit-backdrop-filter: blur(40px) saturate(160%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all .2s cubic-bezier(.2,.7,.2,1);
+    position: relative;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 4px 16px rgba(0,0,0,.15);
+  }
+  .feat:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-2);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 8px 24px rgba(0,0,0,.25);
+  }
+  .feat.selected {
+    border-color: rgba(232,165,71,.6);
+    background: rgba(232,165,71,.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 0 0 1px rgba(232,165,71,.3),
+      0 8px 24px rgba(232,165,71,.15);
+  }
+  .feat-head {
+    display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;
+  }
+  .feat-id {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--ink-3); letter-spacing: 0.1em;
+    background: rgba(255,255,255,.04);
+    padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .feat-check {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--line-2);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    margin-inline-start: auto;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .feat.selected .feat-check {
+    background: var(--gold); border-color: var(--gold);
+  }
+  .feat.selected .feat-check::after {
+    content: "✓"; color: #0a0b0d; font-weight: 700; font-size: 13px;
+  }
+  .feat-title {
+    font-size: 15px; font-weight: 600;
+    color: var(--ink); margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .feat-desc {
+    font-size: 13px; color: var(--ink-2);
+    line-height: 1.55; margin-bottom: 12px;
+  }
+  .feat-meta {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .meta-tag {
+    font-family: var(--font-mono); font-size: 10px;
+    padding: 3px 7px; border-radius: 4px;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+  }
+  .meta-tag.priority-high { background: rgba(216,107,92,.12); color: #f0a094; border-color: rgba(216,107,92,.3); }
+  .meta-tag.priority-med { background: rgba(232,165,71,.12); color: var(--gold-soft); border-color: rgba(232,165,71,.3); }
+  .meta-tag.priority-low { background: rgba(122,168,201,.12); color: #a8c8e0; border-color: rgba(122,168,201,.3); }
+  .meta-tag.effort {
+    background: rgba(255,255,255,.04); color: var(--ink-2); border-color: var(--line);
+  }
+  .meta-tag.cat {
+    background: rgba(165,132,196,.12); color: #c8b0d8; border-color: rgba(165,132,196,.3);
+  }
+
+  /* FLOATING SUMMARY BAR */
+  .summary {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,20,24,.85);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    padding: 14px 20px;
+    display: flex; gap: 16px; align-items: center;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 16px 48px rgba(0,0,0,.5);
+    z-index: 200;
+    min-width: 480px;
+    transition: all .3s;
+  }
+  .summary.hidden { transform: translateX(-50%) translateY(120%); opacity: 0; }
+  .summary-stat {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .summary-stat-num {
+    font-family: var(--font-en); font-size: 22px; font-weight: 700;
+    color: var(--gold);
+  }
+  .summary-stat-lbl {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--ink-3); letter-spacing: 0.1em;
+  }
+  .summary-divider {
+    width: 1px; height: 32px; background: var(--line);
+  }
+  .summary-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+  .btn {
+    padding: 9px 16px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: var(--font-en); font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn:hover { background: rgba(255,255,255,.10); transform: translateY(-1px); }
+  .btn.primary {
+    background: linear-gradient(180deg, var(--gold-soft), var(--gold));
+    color: #0a0b0d;
+    border-color: rgba(245,190,107,.6);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(232,165,71,.3);
+  }
+  .btn.primary:hover { box-shadow: 0 6px 18px rgba(232,165,71,.5); }
+
+  .hidden-feat { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <h1>Feature <span>Catalog</span></h1>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.1em;">
+      150 IDEAS · 12 CATEGORIES · CHOOSE WHAT TO BUILD
+    </div>
+    <div class="header-stats">
+      <span><b id="totalShown">150</b>&nbsp;showing</span>
+      <span>·</span>
+      <span><b id="totalSelected">0</b>&nbsp;selected</span>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="filter-chip active" data-filter="all">الكل</button>
+  <button class="filter-chip" data-filter="integrations">Integrations</button>
+  <button class="filter-chip" data-filter="ai">AI</button>
+  <button class="filter-chip" data-filter="automations">Automations</button>
+  <button class="filter-chip" data-filter="analytics">Analytics</button>
+  <button class="filter-chip" data-filter="search">Search</button>
+  <button class="filter-chip" data-filter="workflows">Workflows</button>
+  <button class="filter-chip" data-filter="data">Data I/O</button>
+  <button class="filter-chip" data-filter="security">Security</button>
+  <button class="filter-chip" data-filter="notifications">Notifications</button>
+  <button class="filter-chip" data-filter="collab">Collab</button>
+  <button class="filter-chip" data-filter="mobile">Mobile</button>
+  <button class="filter-chip" data-filter="polish">Polish</button>
+  <input type="text" class="search-input" placeholder="ابحث عن ميزة..." id="searchBox">
+</div>
+
+<main id="catalog"></main>
+
+<div class="summary hidden" id="summary">
+  <div class="summary-stat">
+    <div class="summary-stat-num" id="selCount">0</div>
+    <div class="summary-stat-lbl">SELECTED</div>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <div class="summary-stat-num" id="effortDays">0</div>
+    <div class="summary-stat-lbl">DAYS · EST.</div>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <div class="summary-stat-num" id="highPriority">0</div>
+    <div class="summary-stat-lbl">HIGH PRIORITY</div>
+  </div>
+  <div class="summary-actions">
+    <button class="btn" id="clearBtn">مسح</button>
+    <button class="btn" id="exportBtn">تصدير القائمة</button>
+    <button class="btn primary" id="buildBtn">ابدأ البناء →</button>
+  </div>
+</div>
+
+<script>
+const FEATURES = [
+  // ========== INTEGRATIONS (1-20) ==========
+  { id: 1, cat: 'integrations', title: 'Slack — إشعارات ثنائية الاتجاه', desc: 'استقبل وأرسل التحديثات لـ Slack، عرض threads داخل المنصّة', priority: 'high', effort: 2 },
+  { id: 2, cat: 'integrations', title: 'Gmail — مزامنة الـ Inbox', desc: 'اقرأ الإيميلات، صنّف، رد، أرشف من داخل وحدة Mail', priority: 'high', effort: 3 },
+  { id: 3, cat: 'integrations', title: 'Google Drive — متصفّح ملفات', desc: 'تصفّح، ابحث، ارفع، شارك ملفات Drive داخل أي إجراء', priority: 'high', effort: 2 },
+  { id: 4, cat: 'integrations', title: 'Google Calendar — مزامنة كاملة', desc: 'اقرأ واكتب أحداث، اقتراحات أوقات، تذكيرات', priority: 'high', effort: 2 },
+  { id: 5, cat: 'integrations', title: 'Outlook / Microsoft 365', desc: 'بديل/إضافة لـ Google — Mail + Calendar + OneDrive', priority: 'med', effort: 3 },
+  { id: 6, cat: 'integrations', title: 'Zoom — اجتماعات بنقرة', desc: 'أنشئ اجتماع، أرسل دعوات، سجّل، ربط بـ meeting notes', priority: 'high', effort: 1 },
+  { id: 7, cat: 'integrations', title: 'Microsoft Teams', desc: 'اجتماعات + chat + ملفات مشتركة', priority: 'med', effort: 2 },
+  { id: 8, cat: 'integrations', title: 'WhatsApp Business API', desc: 'أرسل تنبيهات وتذكيرات للموظفين والعملاء', priority: 'high', effort: 2 },
+  { id: 9, cat: 'integrations', title: 'Telegram Bot', desc: 'بوت يستقبل أوامر ويرسل ملخّصات يومية', priority: 'low', effort: 1 },
+  { id: 10, cat: 'integrations', title: 'Dropbox', desc: 'بديل لـ Drive — مزامنة ملفات', priority: 'low', effort: 2 },
+  { id: 11, cat: 'integrations', title: 'OneDrive', desc: 'مزامنة ملفات Microsoft', priority: 'low', effort: 2 },
+  { id: 12, cat: 'integrations', title: 'GitHub — للفِرق التقنية', desc: 'اربط issues و PRs بمهام أرسان', priority: 'low', effort: 2 },
+  { id: 13, cat: 'integrations', title: 'Linear', desc: 'مزامنة issues مع وحدة Tasks', priority: 'low', effort: 2 },
+  { id: 14, cat: 'integrations', title: 'Notion', desc: 'استورد databases و pages', priority: 'low', effort: 3 },
+  { id: 15, cat: 'integrations', title: 'Asana / Monday', desc: 'استورد projects و tasks', priority: 'low', effort: 3 },
+  { id: 16, cat: 'integrations', title: 'Salesforce CRM', desc: 'sync companies/contacts/deals', priority: 'med', effort: 4 },
+  { id: 17, cat: 'integrations', title: 'HubSpot', desc: 'CRM متكامل', priority: 'med', effort: 4 },
+  { id: 18, cat: 'integrations', title: 'Stripe — فواتير ومدفوعات', desc: 'أنشئ invoices، تتبّع المدفوعات', priority: 'med', effort: 3 },
+  { id: 19, cat: 'integrations', title: 'QuickBooks / Zoho Books', desc: 'محاسبة', priority: 'low', effort: 4 },
+  { id: 20, cat: 'integrations', title: 'Webhook إلى أي خدمة', desc: 'Zapier-like — اربط أرسان بأي خدمة عبر webhooks', priority: 'high', effort: 2 },
+
+  // ========== AI FEATURES (21-40) ==========
+  { id: 21, cat: 'ai', title: 'Cmd+K — مساعد ذكي عالمي', desc: 'اكتب أمر بلغة طبيعية، ينفّذه على أي وحدة', priority: 'high', effort: 2 },
+  { id: 22, cat: 'ai', title: 'لخّص هذا الإجراء', desc: 'ملخّص في 3 جمل + bullets', priority: 'high', effort: 1 },
+  { id: 23, cat: 'ai', title: 'اقترح تحسينات', desc: 'AI يقرأ الإجراء ويقترح تبسيطات وتحسينات', priority: 'high', effort: 1 },
+  { id: 24, cat: 'ai', title: 'ترجم بزر واحد', desc: 'عربي ↔ إنجليزي لأي محتوى', priority: 'high', effort: 1 },
+  { id: 25, cat: 'ai', title: 'AI Search — RAG على كل الإجراءات', desc: 'اسأل سؤال، يبحث في كل الإدارات ويعطي إجابة موثّقة', priority: 'high', effort: 3 },
+  { id: 26, cat: 'ai', title: 'أنشئ إجراء من وصف', desc: 'اكتب "إجراء لاستقبال موظف جديد" → ينشئ الإجراء كامل', priority: 'high', effort: 2 },
+  { id: 27, cat: 'ai', title: 'كاتب تلقائي للإيميلات', desc: 'اقترح ردود، صياغة احترافية', priority: 'high', effort: 1 },
+  { id: 28, cat: 'ai', title: 'استخراج بيانات من PDF/صور', desc: 'OCR + extraction — invoices, contracts, IDs', priority: 'med', effort: 3 },
+  { id: 29, cat: 'ai', title: 'محلّل اجتماعات', desc: 'transcript + action items تلقائي', priority: 'high', effort: 3 },
+  { id: 30, cat: 'ai', title: 'مساعد KPIs', desc: 'يقترح KPIs مناسبة لكل إجراء', priority: 'med', effort: 1 },
+  { id: 31, cat: 'ai', title: 'كشف التضارب بين الإجراءات', desc: 'AI يجد الإجراءات المتشابهة/المتضاربة', priority: 'med', effort: 2 },
+  { id: 32, cat: 'ai', title: 'تنبؤ بالمخاطر', desc: 'يحلّل التبعيّات ويحذّر من نقاط الفشل', priority: 'low', effort: 3 },
+  { id: 33, cat: 'ai', title: 'ملخّص تنفيذي للمدير', desc: 'تقرير يومي/أسبوعي ذكي', priority: 'high', effort: 2 },
+  { id: 34, cat: 'ai', title: 'تصنيف تلقائي للملفات', desc: 'يحدّد نوع الملف والإجراء المناسب', priority: 'low', effort: 2 },
+  { id: 35, cat: 'ai', title: 'محادثة مع إجراء معيّن', desc: 'chatbot سياقي لكل إجراء', priority: 'med', effort: 2 },
+  { id: 36, cat: 'ai', title: 'تحويل صوت إلى نص', desc: 'سجّل ملاحظات صوتية، تتحوّل لنص', priority: 'med', effort: 1 },
+  { id: 37, cat: 'ai', title: 'مراجع تلقائي للإجراءات', desc: 'يفحص النحو والاتساق والاكتمال', priority: 'med', effort: 2 },
+  { id: 38, cat: 'ai', title: 'مولّد نماذج من نص', desc: 'وصف لنموذج → form كامل', priority: 'med', effort: 2 },
+  { id: 39, cat: 'ai', title: 'مولّد قوالب SOP', desc: 'قوالب ذكية حسب القطاع', priority: 'low', effort: 1 },
+  { id: 40, cat: 'ai', title: 'AI Onboarding Coach', desc: 'يدرّب الموظف الجديد تفاعلياً', priority: 'med', effort: 3 },
+
+  // ========== AUTOMATIONS (41-55) ==========
+  { id: 41, cat: 'automations', title: 'Workflow Builder بصري', desc: 'drag & drop — IF this THEN that', priority: 'high', effort: 4 },
+  { id: 42, cat: 'automations', title: 'تذكير قبل deadline', desc: 'إيميل/SMS/push تلقائي', priority: 'high', effort: 1 },
+  { id: 43, cat: 'automations', title: 'تصعيد تلقائي', desc: 'لو ما رد المسؤول خلال X ساعة → صعّد للمدير', priority: 'high', effort: 2 },
+  { id: 44, cat: 'automations', title: 'تكرار أحداث/مهام', desc: 'recurring — يومي/أسبوعي/شهري', priority: 'high', effort: 1 },
+  { id: 45, cat: 'automations', title: 'إنشاء tasks تلقائي من إيميل', desc: 'forward email → task', priority: 'med', effort: 2 },
+  { id: 46, cat: 'automations', title: 'مزامنة تلقائية بين CRM وMail', desc: 'كل ايميل من عميل ينحفظ في سجلّه', priority: 'med', effort: 2 },
+  { id: 47, cat: 'automations', title: 'Auto-archive', desc: 'إجراءات قديمة تنتقل للأرشيف تلقائياً', priority: 'low', effort: 1 },
+  { id: 48, cat: 'automations', title: 'Birthday/Anniversary reminders', desc: 'تذكير تلقائي للموظفين/العملاء', priority: 'low', effort: 1 },
+  { id: 49, cat: 'automations', title: 'Daily digest email', desc: 'ملخّص يومي تلقائي للمدير', priority: 'high', effort: 1 },
+  { id: 50, cat: 'automations', title: 'Auto-assign tasks', desc: 'حسب القواعد (round-robin, skill-based)', priority: 'med', effort: 2 },
+  { id: 51, cat: 'automations', title: 'Status changes trigger actions', desc: 'لمّا حالة تتغيّر → نفّذ X', priority: 'high', effort: 2 },
+  { id: 52, cat: 'automations', title: 'Email parsing rules', desc: 'قواعد لاستخراج معلومات من الايميلات تلقائياً', priority: 'med', effort: 3 },
+  { id: 53, cat: 'automations', title: 'Slack channel per project', desc: 'إنشاء channel تلقائي لكل مشروع', priority: 'low', effort: 2 },
+  { id: 54, cat: 'automations', title: 'Auto-tag content', desc: 'AI tags + rules', priority: 'low', effort: 2 },
+  { id: 55, cat: 'automations', title: 'Scheduled reports', desc: 'تقارير دورية تُرسَل تلقائياً', priority: 'high', effort: 2 },
+
+  // ========== ANALYTICS (56-70) ==========
+  { id: 56, cat: 'analytics', title: 'Dashboard مخصّص لكل دور', desc: 'admin/editor/viewer كل واحد له view', priority: 'high', effort: 3 },
+  { id: 57, cat: 'analytics', title: 'KPI tracker بصري', desc: 'gauges + sparklines + trends', priority: 'high', effort: 2 },
+  { id: 58, cat: 'analytics', title: 'تقرير الأداء الشهري', desc: 'PDF تلقائي شامل', priority: 'high', effort: 2 },
+  { id: 59, cat: 'analytics', title: 'Heatmap للنشاط', desc: 'متى أكثر الأوقات نشاطاً', priority: 'low', effort: 2 },
+  { id: 60, cat: 'analytics', title: 'مقارنة بين الإدارات', desc: 'side-by-side metrics', priority: 'med', effort: 2 },
+  { id: 61, cat: 'analytics', title: 'Funnel analysis', desc: 'لـ Sales pipeline', priority: 'med', effort: 2 },
+  { id: 62, cat: 'analytics', title: 'Time tracking للمهام', desc: 'كم استغرقت كل مهمة', priority: 'med', effort: 2 },
+  { id: 63, cat: 'analytics', title: 'Cohort analysis', desc: 'تحليل مجموعات الموظفين/العملاء', priority: 'low', effort: 3 },
+  { id: 64, cat: 'analytics', title: 'Export to Excel/CSV', desc: 'كل dashboard قابل للتصدير', priority: 'high', effort: 1 },
+  { id: 65, cat: 'analytics', title: 'Custom charts builder', desc: 'اختر metric + chart type', priority: 'med', effort: 3 },
+  { id: 66, cat: 'analytics', title: 'Goals tracking', desc: 'OKRs + progress', priority: 'high', effort: 2 },
+  { id: 67, cat: 'analytics', title: 'Activity timeline graph', desc: 'visual history للمشروع', priority: 'low', effort: 2 },
+  { id: 68, cat: 'analytics', title: 'Predictive analytics', desc: 'forecasts based on history', priority: 'low', effort: 4 },
+  { id: 69, cat: 'analytics', title: 'Real-time metrics', desc: 'live dashboard يتحدّث كل ثانية', priority: 'med', effort: 3 },
+  { id: 70, cat: 'analytics', title: 'Employee performance scoring', desc: 'تقييم تلقائي', priority: 'med', effort: 3 },
+
+  // ========== SEARCH (71-80) ==========
+  { id: 71, cat: 'search', title: 'Cmd+K بحث عالمي', desc: 'يبحث في كل شي بسرعة البرق', priority: 'high', effort: 2 },
+  { id: 72, cat: 'search', title: 'Fuzzy search ذكي', desc: 'يتسامح مع الأخطاء الإملائية', priority: 'high', effort: 1 },
+  { id: 73, cat: 'search', title: 'بحث بالعربية والإنجليزية معاً', desc: 'transliteration aware', priority: 'high', effort: 2 },
+  { id: 74, cat: 'search', title: 'Filters متقدّمة', desc: 'حسب التاريخ/الإدارة/المسؤول/الحالة', priority: 'high', effort: 1 },
+  { id: 75, cat: 'search', title: 'بحث في محتوى الملفات', desc: 'PDFs و DOCX و صور (OCR)', priority: 'med', effort: 3 },
+  { id: 76, cat: 'search', title: 'Saved searches', desc: 'احفظ بحث متكرّر', priority: 'low', effort: 1 },
+  { id: 77, cat: 'search', title: 'Search history', desc: 'بحوثك السابقة', priority: 'low', effort: 1 },
+  { id: 78, cat: 'search', title: 'Semantic search', desc: 'بحث بالمعنى لا بالكلمات', priority: 'med', effort: 3 },
+  { id: 79, cat: 'search', title: 'Quick navigation (recent + pinned)', desc: 'كأنه Spotlight', priority: 'high', effort: 1 },
+  { id: 80, cat: 'search', title: 'Search suggestions', desc: 'autocomplete ذكي', priority: 'med', effort: 1 },
+
+  // ========== WORKFLOWS (81-95) ==========
+  { id: 81, cat: 'workflows', title: 'سير اعتماد متعدّد المستويات', desc: 'محرّر → مدير → معتمد', priority: 'high', effort: 3 },
+  { id: 82, cat: 'workflows', title: 'Tasks مع مسؤول + deadline', desc: 'لكل إجراء', priority: 'high', effort: 2 },
+  { id: 83, cat: 'workflows', title: 'Subtasks + checklists', desc: 'مهام فرعية', priority: 'high', effort: 1 },
+  { id: 84, cat: 'workflows', title: 'Kanban board', desc: 'drag & drop بين الحالات', priority: 'high', effort: 2 },
+  { id: 85, cat: 'workflows', title: 'Gantt chart', desc: 'timeline للمشاريع', priority: 'med', effort: 3 },
+  { id: 86, cat: 'workflows', title: 'Dependencies بين المهام', desc: 'A blocks B', priority: 'high', effort: 2 },
+  { id: 87, cat: 'workflows', title: 'Templates للمشاريع', desc: 'قوالب جاهزة', priority: 'high', effort: 2 },
+  { id: 88, cat: 'workflows', title: 'Workload view', desc: 'كل موظف وحجم عمله', priority: 'med', effort: 2 },
+  { id: 89, cat: 'workflows', title: 'Sprints / Iterations', desc: 'agile-style', priority: 'low', effort: 2 },
+  { id: 90, cat: 'workflows', title: 'Custom statuses', desc: 'مو فقط todo/done', priority: 'med', effort: 1 },
+  { id: 91, cat: 'workflows', title: 'Form builder للطلبات', desc: 'إجازة، صرف، إلخ', priority: 'high', effort: 3 },
+  { id: 92, cat: 'workflows', title: 'Document signing (e-sign)', desc: 'توقيع إلكتروني', priority: 'med', effort: 3 },
+  { id: 93, cat: 'workflows', title: 'Approval delegation', desc: 'فوّض موافقاتك مؤقتاً', priority: 'low', effort: 1 },
+  { id: 94, cat: 'workflows', title: 'Recurring workflows', desc: 'سير عمل دوري', priority: 'med', effort: 2 },
+  { id: 95, cat: 'workflows', title: 'Branching workflows', desc: 'مسارات متعدّدة بناءً على الشروط', priority: 'med', effort: 3 },
+
+  // ========== DATA I/O (96-105) ==========
+  { id: 96, cat: 'data', title: 'استيراد Excel ذكي', desc: 'AI يفهم الأعمدة ويربطها', priority: 'high', effort: 2 },
+  { id: 97, cat: 'data', title: 'تصدير PDF احترافي', desc: 'مع هوية الشركة', priority: 'high', effort: 2 },
+  { id: 98, cat: 'data', title: 'تصدير DOCX', desc: 'إجراءات قابلة للتعديل في Word', priority: 'med', effort: 2 },
+  { id: 99, cat: 'data', title: 'API عام (REST)', desc: 'لمطوّرين خارجيين', priority: 'med', effort: 3 },
+  { id: 100, cat: 'data', title: 'GraphQL API', desc: 'استعلام مرن', priority: 'low', effort: 3 },
+  { id: 101, cat: 'data', title: 'Backup يومي تلقائي', desc: 'نسخ احتياطية في R2', priority: 'high', effort: 2 },
+  { id: 102, cat: 'data', title: 'استرجاع نسخة سابقة', desc: 'restore من أي نقطة', priority: 'high', effort: 2 },
+  { id: 103, cat: 'data', title: 'Bulk operations', desc: 'تعديل/حذف بالجملة', priority: 'med', effort: 1 },
+  { id: 104, cat: 'data', title: 'Migration assistant', desc: 'ترحيل من Notion/Asana', priority: 'low', effort: 3 },
+  { id: 105, cat: 'data', title: 'Data validation rules', desc: 'قواعد للتحقّق من الإدخالات', priority: 'med', effort: 2 },
+
+  // ========== SECURITY (106-120) ==========
+  { id: 106, cat: 'security', title: '2FA — مصادقة ثنائية', desc: 'TOTP + SMS', priority: 'high', effort: 2 },
+  { id: 107, cat: 'security', title: 'SSO — Google/Microsoft', desc: 'تسجيل دخول موحّد', priority: 'high', effort: 2 },
+  { id: 108, cat: 'security', title: 'Audit log كامل', desc: 'كل عملية مع who/what/when', priority: 'high', effort: 2 },
+  { id: 109, cat: 'security', title: 'Permissions granular', desc: 'صلاحيات على مستوى الحقل', priority: 'high', effort: 3 },
+  { id: 110, cat: 'security', title: 'IP whitelist', desc: 'دخول من IPs محدّدة فقط', priority: 'med', effort: 1 },
+  { id: 111, cat: 'security', title: 'Session management', desc: 'اعرض/أغلق sessions', priority: 'med', effort: 1 },
+  { id: 112, cat: 'security', title: 'Encryption at rest', desc: 'بيانات حساسة مشفّرة في DB', priority: 'high', effort: 2 },
+  { id: 113, cat: 'security', title: 'Sensitive data masking', desc: 'إخفاء أرقام الحسابات/الهوية', priority: 'high', effort: 1 },
+  { id: 114, cat: 'security', title: 'Password policy', desc: 'تعقيد + انتهاء صلاحية', priority: 'med', effort: 1 },
+  { id: 115, cat: 'security', title: 'Brute-force protection', desc: 'rate limiting', priority: 'high', effort: 1 },
+  { id: 116, cat: 'security', title: 'Penetration test report', desc: 'تقرير أمني دوري', priority: 'low', effort: 2 },
+  { id: 117, cat: 'security', title: 'GDPR compliance tools', desc: 'حذف بيانات المستخدم', priority: 'med', effort: 2 },
+  { id: 118, cat: 'security', title: 'Approve devices', desc: 'موافقة الأدمن لكل جهاز', priority: 'low', effort: 2 },
+  { id: 119, cat: 'security', title: 'Anomaly detection', desc: 'تنبيه عند سلوك مشبوه', priority: 'low', effort: 3 },
+  { id: 120, cat: 'security', title: 'Data residency control', desc: 'بيانات تبقى في السعودية', priority: 'med', effort: 2 },
+
+  // ========== NOTIFICATIONS (121-130) ==========
+  { id: 121, cat: 'notifications', title: 'Push notifications (PWA)', desc: 'browser push', priority: 'high', effort: 2 },
+  { id: 122, cat: 'notifications', title: 'SMS عبر Twilio', desc: 'تنبيهات حرجة', priority: 'high', effort: 2 },
+  { id: 123, cat: 'notifications', title: 'Email digests', desc: 'مرّة يومياً بدلاً من 50 ايميل', priority: 'high', effort: 1 },
+  { id: 124, cat: 'notifications', title: 'In-app inbox', desc: 'كل التنبيهات في مكان واحد', priority: 'high', effort: 2 },
+  { id: 125, cat: 'notifications', title: 'Notification preferences', desc: 'تحكّم بأي شي تنبّه عنه', priority: 'high', effort: 1 },
+  { id: 126, cat: 'notifications', title: 'Snooze notifications', desc: 'أجّل لـ X ساعة', priority: 'med', effort: 1 },
+  { id: 127, cat: 'notifications', title: 'DND (Do Not Disturb)', desc: 'ساعات هدوء', priority: 'med', effort: 1 },
+  { id: 128, cat: 'notifications', title: 'Mention me فقط', desc: 'فلتر للتنبيهات', priority: 'high', effort: 1 },
+  { id: 129, cat: 'notifications', title: 'Smart batching', desc: 'AI يجمّع ويلخّص', priority: 'low', effort: 2 },
+  { id: 130, cat: 'notifications', title: 'WhatsApp notifications', desc: 'بديل لـ SMS', priority: 'med', effort: 2 },
+
+  // ========== COLLAB (131-140) ==========
+  { id: 131, cat: 'collab', title: 'تعليقات داخل أي إجراء', desc: 'مثل Figma/Google Docs', priority: 'high', effort: 2 },
+  { id: 132, cat: 'collab', title: '@Mentions + إشعارات', desc: 'اذكر شخص يصله تنبيه', priority: 'high', effort: 1 },
+  { id: 133, cat: 'collab', title: 'Live cursors', desc: 'شوف من معك في الوثيقة', priority: 'low', effort: 4 },
+  { id: 134, cat: 'collab', title: 'Co-editing realtime', desc: 'تعديل جماعي مثل Google Docs', priority: 'low', effort: 5 },
+  { id: 135, cat: 'collab', title: 'Reactions على المحتوى', desc: '👍 ❤️ 🎉', priority: 'low', effort: 1 },
+  { id: 136, cat: 'collab', title: 'Polls / استبيانات سريعة', desc: 'لاتخاذ قرارات', priority: 'med', effort: 2 },
+  { id: 137, cat: 'collab', title: 'Whiteboard مدمج', desc: 'رسم وعصف ذهني', priority: 'low', effort: 4 },
+  { id: 138, cat: 'collab', title: 'Voice messages', desc: 'سجّل وأرسل', priority: 'low', effort: 2 },
+  { id: 139, cat: 'collab', title: 'Video huddles سريعة', desc: 'انضم بنقرة', priority: 'low', effort: 4 },
+  { id: 140, cat: 'collab', title: 'Threaded discussions', desc: 'محادثات منظّمة', priority: 'med', effort: 2 },
+
+  // ========== MOBILE (141-145) ==========
+  { id: 141, cat: 'mobile', title: 'PWA كامل', desc: 'تثبيت على الموبايل + offline', priority: 'high', effort: 2 },
+  { id: 142, cat: 'mobile', title: 'تصميم متجاوب كامل', desc: 'كل الواجهات تشتغل على الموبايل', priority: 'high', effort: 4 },
+  { id: 143, cat: 'mobile', title: 'تطبيق iOS أصلي', desc: 'React Native', priority: 'low', effort: 8 },
+  { id: 144, cat: 'mobile', title: 'تطبيق Android أصلي', desc: 'React Native', priority: 'low', effort: 8 },
+  { id: 145, cat: 'mobile', title: 'Camera scan للمستندات', desc: 'تصوير + OCR', priority: 'med', effort: 3 },
+
+  // ========== POLISH (146-150) ==========
+  { id: 146, cat: 'polish', title: 'Dark/Light mode toggle', desc: 'تبديل سلس', priority: 'high', effort: 1 },
+  { id: 147, cat: 'polish', title: 'Onboarding tour تفاعلي', desc: 'للمستخدم الجديد', priority: 'high', effort: 2 },
+  { id: 148, cat: 'polish', title: 'Keyboard shortcuts شاملة', desc: 'مع cheatsheet', priority: 'med', effort: 1 },
+  { id: 149, cat: 'polish', title: 'Empty states جميلة', desc: 'illustrations + CTA', priority: 'med', effort: 1 },
+  { id: 150, cat: 'polish', title: 'Micro-animations طوال الواجهة', desc: 'transitions ناعمة', priority: 'low', effort: 2 },
+];
+
+const SECTIONS = [
+  { cat: 'integrations', num: '01', title: 'Integrations', range: '1-20' },
+  { cat: 'ai', num: '02', title: 'AI Features', range: '21-40' },
+  { cat: 'automations', num: '03', title: 'Automations', range: '41-55' },
+  { cat: 'analytics', num: '04', title: 'Analytics & Reports', range: '56-70' },
+  { cat: 'search', num: '05', title: 'Search & Discovery', range: '71-80' },
+  { cat: 'workflows', num: '06', title: 'Workflows & Approvals', range: '81-95' },
+  { cat: 'data', num: '07', title: 'Data Import / Export', range: '96-105' },
+  { cat: 'security', num: '08', title: 'Security & Audit', range: '106-120' },
+  { cat: 'notifications', num: '09', title: 'Notifications & Reminders', range: '121-130' },
+  { cat: 'collab', num: '10', title: 'Collaboration', range: '131-140' },
+  { cat: 'mobile', num: '11', title: 'Mobile Experience', range: '141-145' },
+  { cat: 'polish', num: '12', title: 'Visual Polish', range: '146-150' },
+];
+
+const STORAGE_KEY = 'arsann_feature_selection_v1';
+let selected = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+let activeFilter = 'all';
+let searchQuery = '';
+
+function render() {
+  const main = document.getElementById('catalog');
+  main.innerHTML = '';
+  let totalShown = 0;
+
+  SECTIONS.forEach(sec => {
+    if (activeFilter !== 'all' && activeFilter !== sec.cat) return;
+    const items = FEATURES.filter(f => f.cat === sec.cat).filter(matchSearch);
+    if (items.length === 0) return;
+    totalShown += items.length;
+
+    const sect = document.createElement('section');
+    sect.className = 'section';
+    sect.innerHTML = `
+      <div class="section-head">
+        <span class="section-num">${sec.num}</span>
+        <h2 class="section-title">${sec.title}</h2>
+        <span class="section-count">${items.length} ITEMS · ${sec.range}</span>
+      </div>
+      <div class="grid"></div>
+    `;
+    const grid = sect.querySelector('.grid');
+    items.forEach(f => grid.appendChild(card(f)));
+    main.appendChild(sect);
+  });
+
+  document.getElementById('totalShown').textContent = totalShown;
+  document.getElementById('totalSelected').textContent = selected.size;
+  updateSummary();
+}
+
+function matchSearch(f) {
+  if (!searchQuery) return true;
+  const q = searchQuery.toLowerCase();
+  return f.title.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q);
+}
+
+function card(f) {
+  const el = document.createElement('div');
+  el.className = 'feat' + (selected.has(f.id) ? ' selected' : '');
+  el.innerHTML = `
+    <div class="feat-head">
+      <span class="feat-id">#${String(f.id).padStart(3,'0')}</span>
+      <div class="feat-check"></div>
+    </div>
+    <div class="feat-title">${f.title}</div>
+    <div class="feat-desc">${f.desc}</div>
+    <div class="feat-meta">
+      <span class="meta-tag priority-${f.priority}">${f.priority === 'high' ? 'أولوية عالية' : f.priority === 'med' ? 'متوسّطة' : 'منخفضة'}</span>
+      <span class="meta-tag effort">${f.effort}d · جهد</span>
+      <span class="meta-tag cat">${f.cat}</span>
+    </div>
+  `;
+  el.onclick = () => {
+    if (selected.has(f.id)) selected.delete(f.id);
+    else selected.add(f.id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...selected]));
+    el.classList.toggle('selected');
+    document.getElementById('totalSelected').textContent = selected.size;
+    updateSummary();
+  };
+  return el;
+}
+
+function updateSummary() {
+  const sel = FEATURES.filter(f => selected.has(f.id));
+  const summary = document.getElementById('summary');
+  if (sel.length === 0) { summary.classList.add('hidden'); return; }
+  summary.classList.remove('hidden');
+  document.getElementById('selCount').textContent = sel.length;
+  document.getElementById('effortDays').textContent = sel.reduce((a,f) => a + f.effort, 0);
+  document.getElementById('highPriority').textContent = sel.filter(f => f.priority === 'high').length;
+}
+
+// FILTERS
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.onclick = () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeFilter = chip.dataset.filter;
+    render();
+  };
+});
+
+// SEARCH
+document.getElementById('searchBox').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+// ACTIONS
+document.getElementById('clearBtn').onclick = () => {
+  if (!confirm('مسح كل الاختيارات؟')) return;
+  selected.clear();
+  localStorage.setItem(STORAGE_KEY, '[]');
+  render();
+};
+
+document.getElementById('exportBtn').onclick = () => {
+  const sel = FEATURES.filter(f => selected.has(f.id));
+  const txt = sel.map(f => `#${f.id} · ${f.title} · ${f.priority} · ${f.effort}d\n   ${f.desc}`).join('\n\n');
+  const summary = `Arsann Feature Selection\n${'='.repeat(40)}\n\nSelected: ${sel.length} / 150\nTotal effort: ${sel.reduce((a,f)=>a+f.effort,0)} days\nHigh priority: ${sel.filter(f=>f.priority==='high').length}\n\n${'='.repeat(40)}\n\n${txt}`;
+  const blob = new Blob([summary], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'arsann-feature-selection.txt'; a.click();
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById('buildBtn').onclick = () => {
+  const sel = FEATURES.filter(f => selected.has(f.id));
+  if (sel.length === 0) return alert('اختر بعض الميزات أولاً');
+  const ids = sel.map(f => `#${f.id}`).join(', ');
+  alert(`اخترت ${sel.length} ميزة (${sel.reduce((a,f)=>a+f.effort,0)} يوم تقريباً).\n\nالـ IDs:\n${ids}\n\nالآن انسخ هذه الـ IDs وارجع للمحادثة لأبدأ البناء.`);
+};
+
+render();
+</script>
+</body>
+</html>

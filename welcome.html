@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Spine — منصّة أرسان التنفيذية</title>
+<meta name="description" content="العمود الفقري التنفيذي لأرسان. إجراءات، مهام، اجتماعات، تقويم، بريد، CRM، أتمتة.">
+<link rel="icon" href="arsann-logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0E0F;
+    --bg-2: #0E1314;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.06);
+    --surface-3: rgba(255,255,255,0.08);
+    --ink: #F4F1EA;
+    --ink-2: #B8B2A4;
+    --ink-3: #7A7568;
+    --ink-4: #4A4640;
+    --line: rgba(255,255,255,0.06);
+    --line-2: rgba(255,255,255,0.10);
+    --line-3: rgba(255,255,255,0.16);
+    --accent: #E8A547;
+    --accent-2: #C8893E;
+    --accent-soft: rgba(232,165,71,0.12);
+    --accent-line: rgba(232,165,71,0.30);
+    --green: #6BAF6B;
+    --red: #D67560;
+    --blue: #6A8FAE;
+    --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{ box-sizing: border-box; margin: 0; padding: 0 }
+  html, body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  a{ color: inherit; text-decoration: none }
+  img{ max-width: 100% }
+  ::selection{ background: var(--accent-soft); color: var(--accent) }
+
+  /* ===== AURORA BACKGROUND ===== */
+  body::before{
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 800px 600px at 80% 0%, rgba(232,165,71,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 700px 500px at 0% 100%, rgba(106,143,174,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 500px 400px at 50% 50%, rgba(107,175,107,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: aurora 30s ease-in-out infinite alternate;
+  }
+  body::after{
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes aurora{
+    0%   { transform: translate(0, 0) scale(1) }
+    50%  { transform: translate(20px, -10px) scale(1.05) }
+    100% { transform: translate(-15px, 15px) scale(0.98) }
+  }
+  > *, body > *{ position: relative; z-index: 1 }
+
+  /* ===== STATUS BAR ===== */
+  .statusbar{
+    position: relative; z-index: 5;
+    background: rgba(10,14,15,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 28px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    color: var(--ink-3);
+    display: flex; align-items: center; gap: 24px;
+    text-transform: uppercase;
+  }
+  .statusbar .seg{
+    display: flex; align-items: center; gap: 6px;
+  }
+  .statusbar .seg b{
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .statusbar .seg .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  .statusbar .spacer{ flex: 1 }
+  .statusbar .crumbs{
+    display: flex; align-items: center; gap: 8px;
+  }
+  .statusbar .crumbs .sep{ color: var(--ink-4); margin: 0 2px }
+  .statusbar .accent{ color: var(--accent) }
+  @keyframes pulse{
+    0%, 100%{ opacity: 1 }
+    50%{ opacity: 0.4 }
+  }
+  @media (max-width: 760px){
+    .statusbar{ padding: 8px 16px; font-size: 9.5px; gap: 12px }
+    .statusbar .seg.hide-sm{ display: none }
+  }
+
+  /* ===== TOP NAV ===== */
+  .nav{
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(10,14,15,0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner{
+    max-width: 1240px; margin: 0 auto;
+    padding: 18px 28px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .brand{
+    display: flex; align-items: center; gap: 14px;
+    font-weight: 600; font-size: 14px;
+  }
+  .brand .mark{
+    height: 32px;
+    display: flex; align-items: center;
+  }
+  .brand .mark img{
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+  }
+  .brand .divider{
+    width: 1px; height: 22px;
+    background: var(--line-2);
+  }
+  .brand .name{
+    font-family: var(--mono);
+    letter-spacing: 2px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .brand .name .dim{ color: var(--ink-3); font-weight: 400 }
+  .nav-spacer{ flex: 1 }
+  .nav-links{ display: flex; gap: 24px; align-items: center }
+  .nav-links a{
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: color .2s;
+  }
+  .nav-links a:hover{ color: var(--accent) }
+
+  .btn{
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .btn:hover{
+    background: var(--surface-2);
+    border-color: var(--line-3);
+    transform: translateY(-1px);
+  }
+  .btn-primary{
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #1a1410;
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(232,165,71,0.25);
+  }
+  .btn-primary:hover{
+    box-shadow: 0 6px 28px rgba(232,165,71,0.35);
+  }
+  .btn svg{ width: 14px; height: 14px }
+  @media (max-width: 760px){
+    .nav-links a:not(.btn){ display: none }
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 80px 28px 40px;
+  }
+  .eyebrow{
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 28px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .eyebrow .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .hero h1{
+    font-size: clamp(40px, 7vw, 80px);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+    max-width: 920px;
+  }
+  .hero h1 .accent{
+    background: linear-gradient(135deg, var(--accent) 0%, #F5C97D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero .lede{
+    font-size: clamp(17px, 2vw, 21px);
+    color: var(--ink-2);
+    max-width: 700px;
+    line-height: 1.55;
+    margin-bottom: 40px;
+  }
+  .hero .cta-row{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .hero .cta-big{
+    padding: 16px 32px;
+    font-size: 14.5px;
+    border-radius: 12px;
+  }
+  .hero .meta{
+    margin-top: 40px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .hero .meta-item{
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .hero .meta-item b{ color: var(--ink); font-weight: 600 }
+
+  /* ===== HERO PREVIEW MOCKUP (Glass) ===== */
+  .preview{
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 28px 80px;
+  }
+  .preview-frame{
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: 22px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.4),
+      0 0 0 1px rgba(255,255,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+  }
+  .preview-frame::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(232,165,71,0.04), transparent 50%);
+    pointer-events: none;
+  }
+  .frame-bar{
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,0.2);
+  }
+  .frame-dots{ display: flex; gap: 6px }
+  .frame-dots span{
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+  }
+  .frame-bar .url{
+    flex: 1;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  .frame-bar .url .path{ color: var(--ink-2) }
+  .frame-body{
+    padding: 28px;
+    min-height: 360px;
+    position: relative;
+  }
+  .frame-grid{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .frame-tile{
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform .3s, border-color .3s, background .3s;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    position: relative;
+  }
+  .frame-tile:hover{
+    transform: translateY(-3px);
+    background: var(--surface-2);
+    border-color: var(--line-3);
+  }
+  .frame-tile .glyph{
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: grid; place-items: center;
+    border: 1px solid var(--accent-line);
+  }
+  .frame-tile .glyph svg{ width: 13px; height: 13px; stroke-width: 1.6 }
+  .frame-tile .lbl{
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .frame-tile .sub{
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-3);
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+  @media (max-width: 760px){
+    .frame-grid{ grid-template-columns: repeat(3, 1fr) }
+    .frame-body{ padding: 16px }
+  }
+
+  /* ===== SECTION ===== */
+  section{
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 80px 28px;
+  }
+  .sec-head{
+    margin-bottom: 48px;
+    max-width: 720px;
+  }
+  .sec-eyebrow{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sec-eyebrow::before{
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+  .sec-head h2{
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  .sec-head p{
+    font-size: 17px;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+
+  /* ===== MODULES GRID — bracket cards ===== */
+  .mods{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 880px){ .mods{ grid-template-columns: repeat(2, 1fr) } }
+  @media (max-width: 520px){ .mods{ grid-template-columns: 1fr } }
+
+  .mod{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 26px;
+    transition: all .3s;
+    position: relative;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* corner brackets */
+  .mod::before, .mod::after{
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    border: 1px solid var(--accent);
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .mod::before{
+    top: 8px; right: 8px;
+    border-bottom: none; border-left: none;
+  }
+  .mod::after{
+    bottom: 8px; left: 8px;
+    border-top: none; border-right: none;
+  }
+  .mod:hover{
+    border-color: var(--line-3);
+    transform: translateY(-3px);
+    background: var(--surface-2);
+  }
+  .mod:hover::before, .mod:hover::after{ opacity: 1 }
+
+  .mod .mod-head{
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .mod .mod-glyph{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-line);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .mod .mod-glyph svg{ width: 18px; height: 18px; stroke-width: 1.5 }
+  .mod h3{
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .mod h3 .en{
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: 1.5px;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .mod p{
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .mod .badge{
+    position: absolute;
+    top: 18px; left: 18px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: rgba(107,175,107,0.12);
+    color: var(--green);
+    border: 1px solid rgba(107,175,107,0.3);
+  }
+  .mod .badge.soon{
+    background: rgba(255,255,255,0.04);
+    color: var(--ink-3);
+    border-color: var(--line-2);
+  }
+
+  /* ===== STEPS ===== */
+  .steps{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+  }
+  @media (max-width: 760px){ .steps{ grid-template-columns: 1fr } }
+  .step{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 32px 28px;
+    position: relative;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* corner brackets always visible on steps */
+  .step::before, .step::after{
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1px solid var(--accent-line);
+  }
+  .step::before{
+    top: 10px; right: 10px;
+    border-bottom: none; border-left: none;
+  }
+  .step::after{
+    bottom: 10px; left: 10px;
+    border-top: none; border-right: none;
+  }
+  .step .num{
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .step .num::after{
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent-line);
+  }
+  .step h4{
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+  .step p{
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+  .step code{
+    display: inline-block;
+    margin-top: 14px;
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    direction: ltr;
+  }
+
+  /* ===== FAQ ===== */
+  .faq{
+    display: grid;
+    gap: 10px;
+    max-width: 820px;
+  }
+  details{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 22px;
+    transition: border-color .2s, background .2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  details[open]{
+    border-color: var(--line-3);
+    background: var(--surface-2);
+  }
+  summary{
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    color: var(--ink);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+  summary::-webkit-details-marker{ display: none }
+  summary::after{
+    content: '+';
+    font-size: 22px;
+    color: var(--accent);
+    line-height: 1;
+    font-weight: 300;
+    transition: transform .3s;
+  }
+  details[open] summary::after{ transform: rotate(45deg) }
+  details p{
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.75;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  details code{
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    color: var(--accent);
+    direction: ltr;
+    display: inline-block;
+  }
+
+  /* ===== CTA ===== */
+  .cta-band{
+    margin: 60px auto 80px;
+    max-width: 1240px;
+    padding: 0 28px;
+  }
+  .cta-card{
+    background: linear-gradient(135deg, rgba(232,165,71,0.12), rgba(232,165,71,0.02));
+    border: 1px solid var(--accent-line);
+    border-radius: 22px;
+    padding: 64px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .cta-card::before, .cta-card::after{
+    content: '';
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 1px solid var(--accent);
+  }
+  .cta-card::before{
+    top: 16px; right: 16px;
+    border-bottom: none; border-left: none;
+  }
+  .cta-card::after{
+    bottom: 16px; left: 16px;
+    border-top: none; border-right: none;
+  }
+  .cta-card .glow{
+    position: absolute;
+    inset: -50% -20% auto auto;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 60%);
+    opacity: 0.20;
+    pointer-events: none;
+  }
+  .cta-card h2{
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 600;
+    margin-bottom: 18px;
+    position: relative;
+    letter-spacing: -0.01em;
+  }
+  .cta-card p{
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 560px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .cta-card .btn-primary{
+    padding: 16px 36px;
+    font-size: 14.5px;
+    position: relative;
+  }
+
+  /* ===== FOOTER ===== */
+  footer{
+    border-top: 1px solid var(--line);
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .foot-inner{
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 20px; flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .foot-inner .links{ display: flex; gap: 24px }
+  .foot-inner a:hover{ color: var(--accent) }
+
+  /* ===== utility ===== */
+  .mono{ font-family: var(--mono) }
+  .accent{ color: var(--accent) }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sops" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+    <symbol id="i-meet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M15 21v-1.5a3 3 0 0 1 3-3h1.5"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 7-7M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.5 0 2.91.37 4.15 1.02"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></symbol>
+    <symbol id="i-crm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-hr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3 3-2-2"/></symbol>
+    <symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 19l-7-7 7-7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ STATUS BAR ============ -->
+<div class="statusbar">
+  <div class="seg"><span class="dot"></span><b>SYSTEM ONLINE</b></div>
+  <div class="seg hide-sm"><b>ZONE</b> <span class="accent">A.00</span></div>
+  <div class="seg hide-sm"><b>BUILD</b> <span>v1.0.0</span></div>
+  <div class="spacer"></div>
+  <div class="crumbs">
+    <span>ARSANN</span>
+    <span class="sep">/</span>
+    <span>OS</span>
+    <span class="sep">/</span>
+    <span class="accent">WELCOME</span>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="welcome.html" class="brand">
+      <span class="mark"><img src="arsann-logo.svg" alt="Arsann"></span>
+      <span class="divider"></span>
+      <span class="name">THE SPINE</span>
+    </a>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#modules">المنظومة</a>
+      <a href="#how">البدء</a>
+      <a href="#faq">الأسئلة</a>
+      <a href="spine.html" class="btn btn-primary">
+        دخول المنصّة
+        <svg><use href="#i-arrow-r"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="eyebrow">
+    <span class="dot"></span>
+    <span>الإصدار v1.0 · جاهز للاستخدام</span>
+  </div>
+  <h1>
+    <span class="accent">العمود الفقري</span>
+    <br>التنفيذي لشركة أرسان.
+  </h1>
+  <p class="lede">
+    إجراءات، مهام، اجتماعات، تقويم، بريد، CRM، أتمتة — كلها في مكان واحد. مساحة عمل موحّدة لفريق التنفيذ بدلاً من ١٠ أدوات متفرّقة.
+  </p>
+  <div class="cta-row">
+    <a href="spine.html" class="btn btn-primary cta-big">
+      دخول The Spine
+      <svg><use href="#i-arrow-r"/></svg>
+    </a>
+    <a href="today.html" class="btn cta-big">
+      <svg><use href="#i-today"/></svg>
+      ابدأ بصفحة "اليوم"
+    </a>
+  </div>
+  <div class="meta">
+    <div class="meta-item"><b>10+</b> MODULES</div>
+    <div class="meta-item"><b>9</b> LIVE NOW</div>
+    <div class="meta-item">RTL · AR/EN</div>
+    <div class="meta-item"><span class="accent">●</span> CLOUD-NATIVE</div>
+  </div>
+</section>
+
+<!-- ============ PREVIEW ============ -->
+<section class="preview">
+  <div class="preview-frame">
+    <div class="frame-bar">
+      <div class="frame-dots"><span></span><span></span><span></span></div>
+      <div class="url">aking-gif.github.io<span class="path">/double-parking/spine.html</span></div>
+      <div style="width:50px"></div>
+    </div>
+    <div class="frame-body">
+      <div class="frame-grid">
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-sops"/></svg></div><div><div class="lbl">الإجراءات</div><div class="sub">SOPs</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-meet"/></svg></div><div><div class="lbl">الاجتماعات</div><div class="sub">MEET</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-tasks"/></svg></div><div><div class="lbl">المهام</div><div class="sub">TASKS</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-cal"/></svg></div><div><div class="lbl">التقويم</div><div class="sub">CAL</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-mail"/></svg></div><div><div class="lbl">البريد</div><div class="sub">MAIL</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-crm"/></svg></div><div><div class="lbl">العملاء</div><div class="sub">CRM</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-bolt"/></svg></div><div><div class="lbl">الأتمتة</div><div class="sub">AUTO</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-hr"/></svg></div><div><div class="lbl">الموارد</div><div class="sub">HR</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-today"/></svg></div><div><div class="lbl">اليوم</div><div class="sub">TODAY</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-search"/></svg></div><div><div class="lbl">البحث</div><div class="sub">⌘K</div></div></div>
+        <div class="frame-tile"><div class="glyph"><svg><use href="#i-plus"/></svg></div><div><div class="lbl">التقاط</div><div class="sub">⌘N</div></div></div>
+        <div class="frame-tile" style="opacity:0.5"><div class="glyph" style="background:rgba(255,255,255,0.04);color:var(--ink-3);border-color:var(--line-2)"><svg><use href="#i-arrow-r"/></svg></div><div><div class="lbl" style="color:var(--ink-3)">المزيد</div><div class="sub">SOON</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULES ============ -->
+<section id="modules">
+  <div class="sec-head">
+    <div class="sec-eyebrow">المنظومة</div>
+    <h2>كل ما يحتاجه فريق التنفيذ.</h2>
+    <p>وحدات متكاملة، تشتغل سوا، بدون قفز بين تطبيقات.</p>
+  </div>
+  <div class="mods">
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-sops"/></svg></div><h3>الإجراءات التشغيلية<span class="en">SOPs</span></h3></div><p>كل إدارة وإجراءاتها القياسية في مكان واحد، مع تبعيّات وخريطة ذهنية وتعديل تشاركي.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-meet"/></svg></div><h3>الاجتماعات<span class="en">Meetings</span></h3></div><p>محاضر، قرارات، نقاط جدول الأعمال — تتحوّل تلقائياً إلى مهام مع المسؤول والتاريخ.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-tasks"/></svg></div><h3>المهام<span class="en">Tasks</span></h3></div><p>كل المهام التنفيذية، مرتبطة بإجراء أو اجتماع، مع stats وفلاتر وحالة لحظية.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-cal"/></svg></div><h3>التقويم<span class="en">Calendar</span></h3></div><p>عرض شهري وأسبوعي ويومي، إنشاء أحداث، وربط Google/Microsoft Calendar.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-mail"/></svg></div><h3>البريد<span class="en">Mail</span></h3></div><p>صندوق موحّد، تحويل أي إيميل إلى مهمة أو اعتماد بضغطة، استخراج المحتوى بالذكاء الاصطناعي.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-crm"/></svg></div><h3>العملاء<span class="en">CRM</span></h3></div><p>شركات، جهات اتصال، فرص، Pipeline بنمط Kanban، وتذاكر دعم.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-bolt"/></svg></div><h3>الأتمتة<span class="en">Automations</span></h3></div><p>Workflows بصرية، تذكيرات قبل المواعيد، تكرار المهام، Webhooks، وSlack/Email integrations.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-hr"/></svg></div><h3>الموارد البشرية<span class="en">HR</span></h3></div><p>ملفات الموظفين، الرواتب، الحضور، النماذج والأرشيف — مع أدوات الأدمن الكاملة.</p></div>
+    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-today"/></svg></div><h3>اليوم<span class="en">Today</span></h3></div><p>صفحة موحّدة لكل ما يحتاج اهتمامك اليوم: مهام، اجتماعات، إيميلات، إعلانات.</p></div>
+  </div>
+</section>
+
+<!-- ============ HOW IT STARTS ============ -->
+<section id="how">
+  <div class="sec-head">
+    <div class="sec-eyebrow">البدء</div>
+    <h2>٣ خطوات وانتهيت.</h2>
+    <p>من المتصفح بدون تثبيت، ومن أي جهاز.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="num">STEP 01</div>
+      <h4>افتح الرابط</h4>
+      <p>اضغط الزر بالأسفل أو احفظ هذا الرابط في المتصفح.</p>
+      <code>spine.html</code>
+    </div>
+    <div class="step">
+      <div class="num">STEP 02</div>
+      <h4>سجّل الدخول</h4>
+      <p>بإيميل أرسان (<span class="mono accent">@arsann.com</span>) ونفس كلمة السرّ التي يستخدمها الفريق على المنصّة.</p>
+    </div>
+    <div class="step">
+      <div class="num">STEP 03</div>
+      <h4>ابدأ من "اليوم"</h4>
+      <p>أو اختر الوحدة من Launcher. اختصار <span class="mono accent">⌘K</span> للبحث، <span class="mono accent">⌘N</span> لالتقاط فكرة سريعة.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="sec-head">
+    <div class="sec-eyebrow">الأسئلة الشائعة</div>
+    <h2>كل ما يحتاج الفريق معرفته.</h2>
+  </div>
+  <div class="faq">
+    <details>
+      <summary>هل يحلّ The Spine محلّ منصّة الإجراءات الحالية؟</summary>
+      <p>لا — يضمّها كوحدة من ضمن وحداته. كل صلاحياتك وبياناتك تنتقل تلقائياً، وتستطيع الوصول لمنصّة الإجراءات القديمة من نفس الحساب.</p>
+    </details>
+    <details>
+      <summary>من يستطيع الدخول؟</summary>
+      <p>أي إيميل بنطاق <code>@arsann.com</code>. الأدمن يدير الحسابات من <code>users.html</code>. الضيوف بدون حساب يستطيعون قراءة الإجراءات العامة فقط.</p>
+    </details>
+    <details>
+      <summary>أين تُحفظ البيانات؟</summary>
+      <p>في Cloudflare KV (تخزين سحابي مشفّر) عبر Worker خاص بأرسان. لا تُشارَك مع أي طرف ثالث. النسخ الاحتياطية تلقائية.</p>
+    </details>
+    <details>
+      <summary>هل يعمل على الموبايل؟</summary>
+      <p>نعم — التصميم RTL متجاوب بالكامل ويفتح من أي متصفح حديث (Safari، Chrome، Edge). للوصول السريع، أضف الموقع للشاشة الرئيسية.</p>
+    </details>
+    <details>
+      <summary>كيف أبلّغ عن مشكلة أو أقترح ميزة؟</summary>
+      <p>من داخل المنصّة، استخدم زر <code>+</code> في شريط البحث (Quick Capture) أو اختصار <code>⌘N</code> واختر "ملاحظة". يصل التنبيه مباشرة للأدمن.</p>
+    </details>
+    <details>
+      <summary>هل توجد جلسة تدريب؟</summary>
+      <p>صفحة "اليوم" + Launcher تكفي للبدء. لجولة تفصيلية، افتح <code>tour.html</code> داخل المنصّة.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<div class="cta-band">
+  <div class="cta-card">
+    <div class="glow"></div>
+    <h2>جاهز للبدء؟</h2>
+    <p>افتح المنصّة وسجّل دخولك بإيميل أرسان. الباقي سيعرّفك بنفسه.</p>
+    <a href="spine.html" class="btn btn-primary">
+      دخول The Spine
+      <svg><use href="#i-arrow-r"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="foot-inner">
+    <div>© 2026 ARSANN · THE SPINE / INTERNAL EXECUTIVE OS</div>
+    <div class="links">
+      <a href="spine.html">PLATFORM</a>
+      <a href="today.html">TODAY</a>
+      <a href="users.html">ACCOUNTS</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -68,6 +68,7 @@ const KEYS = {
   govMigrated: "gov_migrated_v1",                     // علم الترقية (تمت ترقية SOPs الموجودة لـ Draft)
   // ===== OS Layer (v1) =====
   sites:    "sites_v1",                                // المواقع التشغيلية (مولات، مطارات…)
+  shifts:   "shifts_v1",                               // مناوبات الفرق في المواقع
   triggers: "triggers_v1",                             // مشغّلات تلقائية (cron-like)
   triggersLastRun: "triggers_last_run_v1",             // آخر تشغيل لكل trigger
   // ===== Foundation Layer (v1) =====
@@ -1163,9 +1164,61 @@ export default {
       // Keys allowlist:
       //   adham_kb_v1            → admin write, all read   (Adham's knowledge)
       //   adham_kb_pending_v1    → any logged-in write+read (suggestions queue)
-      const KV_ALLOW_READ  = new Set(["adham_kb_v1", "adham_kb_pending_v1"]);
-      const KV_ALLOW_WRITE_ANY = new Set(["adham_kb_pending_v1"]); // any logged-in user
-      const KV_ALLOW_WRITE_ADMIN = new Set(["adham_kb_v1", "adham_kb_pending_v1"]);
+      //   spine_modules_v1       → admin write, all read   (App Launcher config)
+      //   meetings_v1            → any logged-in (shared meetings list)
+      //   calendar_events_v1     → any logged-in (shared calendar)
+      //   mail_drafts_v1         → any logged-in (shared mail composer drafts)
+      //   crm_clients_v1         → any logged-in (CRM data)
+      //   crm_pipeline_v1        → any logged-in (sales pipeline)
+      //   hr_employees_v1        → admin write, all read
+      //   hr_leaves_v1           → any logged-in
+      //   docs_v1                → any logged-in (documents library)
+      //   forms_library_v1       → admin write, all read
+      //   audits_v1              → any logged-in (compliance audits)
+      //   incidents_v1           → any logged-in (incidents log)
+      //   risks_v1               → admin write, all read (risk register)
+      const KV_ALLOW_READ  = new Set([
+        "adham_kb_v1", "adham_kb_pending_v1",
+        "spine_modules_v1",
+        "meetings_v1",
+        "calendar_events_v1",
+        "mail_drafts_v1", "mail_inbox_v1",
+        "crm_clients_v1", "crm_pipeline_v1", "crm_contacts_v1",
+        "hr_employees_v1", "hr_leaves_v1", "hr_attendance_v1",
+        "docs_v1", "forms_library_v1",
+        "audits_v1", "incidents_v1", "risks_v1",
+        "expenses_v1", "vendors_v1", "assets_v1",
+        "training_v1", "policies_v1",
+        "kpis_v1", "okrs_v1",
+      ]);
+      // Any logged-in user can write to these (collaborative data)
+      const KV_ALLOW_WRITE_ANY = new Set([
+        "adham_kb_pending_v1",
+        "meetings_v1",
+        "calendar_events_v1",
+        "mail_drafts_v1", "mail_inbox_v1",
+        "crm_clients_v1", "crm_pipeline_v1", "crm_contacts_v1",
+        "hr_leaves_v1", "hr_attendance_v1",
+        "docs_v1",
+        "audits_v1", "incidents_v1",
+        "expenses_v1", "vendors_v1",
+        "kpis_v1",
+      ]);
+      // Admin-only writes (configuration/sensitive)
+      const KV_ALLOW_WRITE_ADMIN = new Set([
+        "adham_kb_v1", "adham_kb_pending_v1",
+        "spine_modules_v1",
+        "meetings_v1",
+        "calendar_events_v1",
+        "mail_drafts_v1", "mail_inbox_v1",
+        "crm_clients_v1", "crm_pipeline_v1", "crm_contacts_v1",
+        "hr_employees_v1", "hr_leaves_v1", "hr_attendance_v1",
+        "docs_v1", "forms_library_v1",
+        "audits_v1", "incidents_v1", "risks_v1",
+        "expenses_v1", "vendors_v1", "assets_v1",
+        "training_v1", "policies_v1",
+        "kpis_v1", "okrs_v1",
+      ]);
 
       if (path.match(/^\/api\/kv\/[^\/]+$/) && method === "GET") {
         const s = await getSession(req, env);
@@ -1937,6 +1990,80 @@ ${clipped}
       }
 
       // ============================================================
+      //                       OS LAYER — Shifts
+      // ============================================================
+      // GET /api/shifts?site=XX&date=YYYY-MM-DD&status=open|closed
+      if (path === "/api/shifts" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const list = (await env.ARSAN.get(KEYS.shifts, "json")) || [];
+        const site = url.searchParams.get("site");
+        const date = url.searchParams.get("date");
+        const status = url.searchParams.get("status");
+        let out = list;
+        if (site) out = out.filter(x => x.site === site);
+        if (date) out = out.filter(x => x.date === date);
+        if (status) out = out.filter(x => x.status === status);
+        return json({ shifts: out }, 200, req);
+      }
+      // POST /api/shifts  { site, date, type:'morning'|'evening'|'night', supervisor, team:[], plannedStart, plannedEnd }
+      if (path === "/api/shifts" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const body = await req.json().catch(()=>({}));
+        if (!body || !body.site || !body.date) return json({ error:"site+date required" }, 400, req);
+        const list = (await env.ARSAN.get(KEYS.shifts, "json")) || [];
+        const shift = {
+          id: "shf_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+          site: body.site,
+          date: body.date,                          // YYYY-MM-DD
+          type: body.type || "morning",             // morning | evening | night
+          supervisor: body.supervisor || s.email,
+          team: Array.isArray(body.team) ? body.team : [],
+          plannedStart: body.plannedStart || null,  // HH:MM
+          plannedEnd:   body.plannedEnd   || null,
+          actualStart:  null,
+          actualEnd:    null,
+          status: "scheduled",                       // scheduled | open | closed | cancelled
+          tasksCompleted: 0,
+          tasksTotal: 0,
+          notes: body.notes || "",
+          createdBy: s.email,
+          createdAt: Date.now()
+        };
+        list.push(shift);
+        await env.ARSAN.put(KEYS.shifts, JSON.stringify(list));
+        return json({ ok:true, shift }, 200, req);
+      }
+      // PATCH /api/shifts/:id  (open/close/update)
+      if (path.match(/^\/api\/shifts\/[^\/]+$/) && method === "PATCH") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KEYS.shifts, "json")) || [];
+        const idx = list.findIndex(x => x.id === id);
+        if (idx < 0) return json({ error:"not found" }, 404, req);
+        const body = await req.json().catch(()=>({}));
+        // auto-stamp times when status flips
+        if (body.status === "open"   && list[idx].status !== "open")   body.actualStart = body.actualStart || new Date().toISOString();
+        if (body.status === "closed" && list[idx].status !== "closed") body.actualEnd   = body.actualEnd   || new Date().toISOString();
+        list[idx] = { ...list[idx], ...body, id };
+        await env.ARSAN.put(KEYS.shifts, JSON.stringify(list));
+        return json({ ok:true, shift: list[idx] }, 200, req);
+      }
+      // DELETE /api/shifts/:id
+      if (path.match(/^\/api\/shifts\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error:"unauthorized" }, 401, req);
+        if (s.role !== "admin") return json({ error:"forbidden" }, 403, req);
+        const id = path.split("/").pop();
+        const list = (await env.ARSAN.get(KEYS.shifts, "json")) || [];
+        const next = list.filter(x => x.id !== id);
+        await env.ARSAN.put(KEYS.shifts, JSON.stringify(next));
+        return json({ ok:true }, 200, req);
+      }
+
+      // ============================================================
       //                   OS LAYER — Auto-Triggers
       // ============================================================
       if (path === "/api/triggers" && method === "GET") {
@@ -2085,6 +2212,179 @@ ${clipped}
           approvals: { pending: pendingApprovals },
           perSite
         }, 200, req);
+      }
+
+      // -------- OAUTH (Google / Microsoft) --------
+      // Per-user tokens stored at: oauth_<provider>_<email>_v1
+      // Providers: google, microsoft
+      const oauthKey = (provider, email) => `oauth_${provider}_${(email||'').toLowerCase()}_v1`;
+
+      // GET /api/oauth/status → which providers the current user has connected
+      if (path === "/api/oauth/status" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const [g, m] = await Promise.all([
+          env.ARSAN.get(oauthKey("google", s.email)),
+          env.ARSAN.get(oauthKey("microsoft", s.email)),
+        ]);
+        const parse = (raw) => {
+          if (!raw) return { connected: false };
+          try {
+            const t = JSON.parse(raw);
+            return {
+              connected: true,
+              email: t.email || s.email,
+              expiresAt: t.expiresAt || null,
+              scopes: t.scopes || [],
+              connectedAt: t.connectedAt || null,
+            };
+          } catch (_) { return { connected: false }; }
+        };
+        return json({ google: parse(g), microsoft: parse(m) }, 200, req);
+      }
+
+      // GET /api/oauth/:provider/start → returns auth URL to redirect to
+      if (path.match(/^\/api\/oauth\/[^\/]+\/start$/) && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const provider = path.split("/")[3];
+        const stateNonce = rand(16);
+        // Save state -> { email, ts } for 10 min
+        await env.ARSAN.put(`oauth_state_${stateNonce}`, JSON.stringify({
+          email: s.email, provider, ts: Date.now()
+        }), { expirationTtl: 600 });
+
+        const redirectUri = env.OAUTH_REDIRECT_URI || `${url.origin}/api/oauth/${provider}/callback`;
+        let authUrl = "";
+        if (provider === "google") {
+          if (!env.GOOGLE_CLIENT_ID) {
+            return json({ error: "not-configured", message: "GOOGLE_CLIENT_ID env var غير معرّف في Cloudflare Worker" }, 501, req);
+          }
+          const scopes = [
+            "openid", "email", "profile",
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/gmail.readonly",
+          ].join(" ");
+          authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
+            client_id: env.GOOGLE_CLIENT_ID,
+            redirect_uri: redirectUri,
+            response_type: "code",
+            scope: scopes,
+            access_type: "offline",
+            prompt: "consent",
+            state: stateNonce,
+          }).toString();
+        } else if (provider === "microsoft") {
+          if (!env.MS_CLIENT_ID) {
+            return json({ error: "not-configured", message: "MS_CLIENT_ID env var غير معرّف في Cloudflare Worker" }, 501, req);
+          }
+          const scopes = [
+            "openid", "profile", "email", "offline_access",
+            "Calendars.ReadWrite", "Mail.Send", "Mail.Read", "User.Read"
+          ].join(" ");
+          const tenant = env.MS_TENANT || "common";
+          authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?` + new URLSearchParams({
+            client_id: env.MS_CLIENT_ID,
+            redirect_uri: redirectUri,
+            response_type: "code",
+            scope: scopes,
+            response_mode: "query",
+            state: stateNonce,
+          }).toString();
+        } else {
+          return json({ error: "unknown-provider" }, 400, req);
+        }
+        return json({ authUrl, state: stateNonce }, 200, req);
+      }
+
+      // GET /api/oauth/:provider/callback → exchange code for tokens
+      if (path.match(/^\/api\/oauth\/[^\/]+\/callback$/) && method === "GET") {
+        const provider = path.split("/")[3];
+        const code = url.searchParams.get("code");
+        const stateNonce = url.searchParams.get("state");
+        if (!code || !stateNonce) return new Response("missing code/state", { status: 400 });
+        const stRaw = await env.ARSAN.get(`oauth_state_${stateNonce}`);
+        if (!stRaw) return new Response("invalid or expired state", { status: 400 });
+        const st = JSON.parse(stRaw);
+        await env.ARSAN.delete(`oauth_state_${stateNonce}`);
+        const redirectUri = env.OAUTH_REDIRECT_URI || `${url.origin}/api/oauth/${provider}/callback`;
+
+        try {
+          let tokenRes, tokenJson;
+          if (provider === "google") {
+            tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                code,
+                client_id: env.GOOGLE_CLIENT_ID,
+                client_secret: env.GOOGLE_CLIENT_SECRET,
+                redirect_uri: redirectUri,
+                grant_type: "authorization_code",
+              }).toString(),
+            });
+            tokenJson = await tokenRes.json();
+            if (!tokenJson.access_token) throw new Error(JSON.stringify(tokenJson));
+            await env.ARSAN.put(oauthKey("google", st.email), JSON.stringify({
+              accessToken: tokenJson.access_token,
+              refreshToken: tokenJson.refresh_token,
+              expiresAt: Date.now() + (tokenJson.expires_in || 3600) * 1000,
+              scopes: (tokenJson.scope || "").split(" "),
+              email: st.email,
+              connectedAt: Date.now(),
+            }));
+          } else if (provider === "microsoft") {
+            const tenant = env.MS_TENANT || "common";
+            tokenRes = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                code,
+                client_id: env.MS_CLIENT_ID,
+                client_secret: env.MS_CLIENT_SECRET,
+                redirect_uri: redirectUri,
+                grant_type: "authorization_code",
+              }).toString(),
+            });
+            tokenJson = await tokenRes.json();
+            if (!tokenJson.access_token) throw new Error(JSON.stringify(tokenJson));
+            await env.ARSAN.put(oauthKey("microsoft", st.email), JSON.stringify({
+              accessToken: tokenJson.access_token,
+              refreshToken: tokenJson.refresh_token,
+              expiresAt: Date.now() + (tokenJson.expires_in || 3600) * 1000,
+              scopes: (tokenJson.scope || "").split(" "),
+              email: st.email,
+              connectedAt: Date.now(),
+            }));
+          }
+          await logActivity(env, { actor: st.email, action: `oauth-connect-${provider}` });
+          // Redirect back to frontend
+          const returnUrl = env.FRONTEND_URL || "https://arsann.com";
+          return new Response(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>تم الربط</title>
+            <style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;color:#fff;margin:0}
+            .card{background:#1e293b;padding:48px;border-radius:16px;text-align:center;max-width:400px}
+            h1{color:#10b981;margin:0 0 16px}p{color:#94a3b8;margin:8px 0}a{color:#3b82f6;display:inline-block;margin-top:24px;padding:12px 24px;background:#1e40af;border-radius:8px;text-decoration:none;color:#fff}</style>
+            </head><body><div class="card"><h1>✓ تم الربط بنجاح</h1>
+            <p>${provider === "google" ? "Google" : "Microsoft"} مُتّصل الآن</p>
+            <p>${st.email}</p><a href="${returnUrl}">العودة للمنصّة</a>
+            <script>setTimeout(()=>{ if(window.opener){ window.opener.postMessage({type:'oauth-success', provider:'${provider}'}, '*'); window.close(); } },1000)</script>
+            </div></body></html>`, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+        } catch (e) {
+          return new Response(`<!doctype html><html dir="rtl"><body style="font-family:system-ui;padding:40px;background:#0f172a;color:#fff"><h1 style="color:#ef4444">فشل الربط</h1><pre>${String(e.message || e).slice(0,500)}</pre></body></html>`, {
+            status: 500, headers: { "Content-Type": "text/html; charset=utf-8" }
+          });
+        }
+      }
+
+      // POST /api/oauth/:provider/disconnect
+      if (path.match(/^\/api\/oauth\/[^\/]+\/disconnect$/) && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const provider = path.split("/")[3];
+        await env.ARSAN.delete(oauthKey(provider, s.email));
+        await logActivity(env, { actor: s.email, action: `oauth-disconnect-${provider}` });
+        return json({ ok: true }, 200, req);
       }
 
       // -------- TASKS --------
@@ -3252,9 +3552,419 @@ ${clipped}
         }, 200, req);
       }
 
+      // ============ AUTOMATIONS ============
+      const autoResp = await handleAutomationsAPI(req, env, path, method);
+      if (autoResp) return autoResp;
+
       return json({ error: "not-found", path }, 404, req);
     } catch (e) {
       return json({ error: "server-error", message: String(e && e.message || e) }, 500, req);
     }
   },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(processAutomationsCron(env));
+  },
 };
+
+// ==================== AUTOMATIONS MODULE ====================
+const AUTO_KEYS = {
+  workflows:    "auto_workflows_v1",
+  reminders:    "auto_reminders_v1",
+  recurring:    "auto_recurring_v1",
+  emailRules:   "auto_email_rules_v1",
+  archiveRules: "auto_archive_rules_v1",
+  logs:         "auto_logs_v1",
+  stats:        "auto_stats_v1",
+};
+
+async function autoLoad(env, key, fallback = []) {
+  const v = await env.ARSAN.get(key);
+  if (!v) return fallback;
+  try { return JSON.parse(v); } catch { return fallback; }
+}
+async function autoSave(env, key, val) {
+  await env.ARSAN.put(key, JSON.stringify(val));
+}
+function autoId(prefix = "auto") {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+async function autoLog(env, entry) {
+  const logs = await autoLoad(env, AUTO_KEYS.logs, []);
+  logs.unshift({ ...entry, ts: Date.now() });
+  await autoSave(env, AUTO_KEYS.logs, logs.slice(0, 500));
+}
+function defaultArchiveRules() {
+  return {
+    sopsInactive:    { enabled: true,  days: 90 },
+    tasksCompleted:  { enabled: true,  days: 30 },
+    emailsRead:      { enabled: false, days: 60 },
+    permanentDelete: { enabled: false, days: 365 },
+  };
+}
+
+async function handleAutomationsAPI(req, env, path, method) {
+  if (!path.startsWith("/api/automations")) return null;
+
+  if (path === "/api/automations/stats" && method === "GET") {
+    const [wfs, rems, stats] = await Promise.all([
+      autoLoad(env, AUTO_KEYS.workflows),
+      autoLoad(env, AUTO_KEYS.reminders),
+      autoLoad(env, AUTO_KEYS.stats, { runs: 0, savedMinutes: 0 }),
+    ]);
+    const now = Date.now();
+    return json({
+      active: wfs.filter(w => w.enabled).length,
+      runs: stats.runs || 0,
+      savedHours: Math.round((stats.savedMinutes || 0) / 60),
+      pending: rems.filter(r => r.enabled && !r.sent && r.fireAt > now).length,
+    }, 200, req);
+  }
+
+  // Workflows CRUD
+  if (path === "/api/automations/workflows" && method === "GET") {
+    return json(await autoLoad(env, AUTO_KEYS.workflows), 200, req);
+  }
+  if (path === "/api/automations/workflows" && method === "POST") {
+    const body = await req.json().catch(() => ({}));
+    const wfs = await autoLoad(env, AUTO_KEYS.workflows);
+    const wf = {
+      id: autoId("wf"),
+      name: body.name || "Untitled",
+      template: body.template || "blank",
+      trigger: body.trigger || null,
+      conditions: body.conditions || [],
+      actions: body.actions || [],
+      enabled: body.enabled !== false,
+      createdAt: Date.now(),
+      lastRun: null,
+      runCount: 0,
+    };
+    wfs.push(wf);
+    await autoSave(env, AUTO_KEYS.workflows, wfs);
+    await autoLog(env, { type: "workflow-created", id: wf.id, name: wf.name });
+    return json(wf, 200, req);
+  }
+  const wfMatch = path.match(/^\/api\/automations\/workflows\/([^\/]+)(\/run)?$/);
+  if (wfMatch) {
+    const [, id, runSuffix] = wfMatch;
+    const wfs = await autoLoad(env, AUTO_KEYS.workflows);
+    const idx = wfs.findIndex(w => w.id === id);
+    if (idx < 0) return json({ error: "not-found" }, 404, req);
+    if (method === "PUT") {
+      const body = await req.json().catch(() => ({}));
+      wfs[idx] = { ...wfs[idx], ...body, id, updatedAt: Date.now() };
+      await autoSave(env, AUTO_KEYS.workflows, wfs);
+      return json(wfs[idx], 200, req);
+    }
+    if (method === "DELETE") {
+      const removed = wfs.splice(idx, 1)[0];
+      await autoSave(env, AUTO_KEYS.workflows, wfs);
+      await autoLog(env, { type: "workflow-deleted", id, name: removed.name });
+      return json({ ok: true }, 200, req);
+    }
+    if (runSuffix && method === "POST") {
+      await autoLog(env, { type: "workflow-run", id, name: wfs[idx].name, manual: true });
+      wfs[idx].lastRun = Date.now();
+      wfs[idx].runCount = (wfs[idx].runCount || 0) + 1;
+      await autoSave(env, AUTO_KEYS.workflows, wfs);
+      return json({ ok: true, ran: id }, 200, req);
+    }
+  }
+
+  // Reminders
+  if (path === "/api/automations/reminders" && method === "GET") {
+    return json(await autoLoad(env, AUTO_KEYS.reminders), 200, req);
+  }
+  if (path === "/api/automations/reminders" && method === "POST") {
+    const body = await req.json().catch(() => ({}));
+    const rems = await autoLoad(env, AUTO_KEYS.reminders);
+    const rem = {
+      id: autoId("rem"),
+      title: body.title || "تذكير",
+      targetType: body.targetType || "meeting",
+      targetId: body.targetId || null,
+      fireAt: body.fireAt || (Date.now() + 86400000),
+      offsetMinutes: body.offsetMinutes || 0,
+      channels: body.channels || ["email"],
+      recipients: body.recipients || [],
+      enabled: true, sent: false,
+      createdAt: Date.now(),
+    };
+    rems.push(rem);
+    await autoSave(env, AUTO_KEYS.reminders, rems);
+    return json(rem, 200, req);
+  }
+  const remMatch = path.match(/^\/api\/automations\/reminders\/([^\/]+)$/);
+  if (remMatch) {
+    const id = remMatch[1];
+    const rems = await autoLoad(env, AUTO_KEYS.reminders);
+    const idx = rems.findIndex(r => r.id === id);
+    if (idx < 0) return json({ error: "not-found" }, 404, req);
+    if (method === "PUT") {
+      rems[idx] = { ...rems[idx], ...(await req.json().catch(() => ({}))), id };
+      await autoSave(env, AUTO_KEYS.reminders, rems);
+      return json(rems[idx], 200, req);
+    }
+    if (method === "DELETE") {
+      rems.splice(idx, 1);
+      await autoSave(env, AUTO_KEYS.reminders, rems);
+      return json({ ok: true }, 200, req);
+    }
+  }
+
+  // Recurring
+  if (path === "/api/automations/recurring" && method === "GET") {
+    return json(await autoLoad(env, AUTO_KEYS.recurring), 200, req);
+  }
+  if (path === "/api/automations/recurring" && method === "POST") {
+    const body = await req.json().catch(() => ({}));
+    const list = await autoLoad(env, AUTO_KEYS.recurring);
+    const item = {
+      id: autoId("rec"),
+      title: body.title || "مهمّة متكرّرة",
+      rrule: body.rrule || "FREQ=WEEKLY",
+      assignee: body.assignee || null,
+      lastRun: null,
+      nextRun: body.nextRun || Date.now(),
+      enabled: true,
+      createdAt: Date.now(),
+    };
+    list.push(item);
+    await autoSave(env, AUTO_KEYS.recurring, list);
+    return json(item, 200, req);
+  }
+
+  // Email rules
+  if (path === "/api/automations/email-rules" && method === "GET") {
+    return json(await autoLoad(env, AUTO_KEYS.emailRules), 200, req);
+  }
+  if (path === "/api/automations/email-rules" && method === "POST") {
+    const body = await req.json().catch(() => ({}));
+    const list = await autoLoad(env, AUTO_KEYS.emailRules);
+    const rule = {
+      id: autoId("er"),
+      name: body.name || "قاعدة",
+      conditions: body.conditions || {},
+      action: body.action || { type: "create-task", module: "tasks", priority: "normal" },
+      enabled: true,
+      createdAt: Date.now(),
+    };
+    list.push(rule);
+    await autoSave(env, AUTO_KEYS.emailRules, list);
+    return json(rule, 200, req);
+  }
+
+  // Archive rules
+  if (path === "/api/automations/archive-rules" && method === "GET") {
+    return json(await autoLoad(env, AUTO_KEYS.archiveRules, defaultArchiveRules()), 200, req);
+  }
+  if (path === "/api/automations/archive-rules" && method === "PUT") {
+    const body = await req.json().catch(() => ({}));
+    await autoSave(env, AUTO_KEYS.archiveRules, body);
+    return json(body, 200, req);
+  }
+
+  // Birthdays
+  if (path === "/api/automations/birthdays" && method === "GET") {
+    const users = await loadUsers(env);
+    const now = new Date();
+    const upcoming = [];
+    const nextOcc = (dateStr) => {
+      const d = new Date(dateStr);
+      const next = new Date(now.getFullYear(), d.getMonth(), d.getDate());
+      if (next < now) next.setFullYear(now.getFullYear() + 1);
+      return next.getTime();
+    };
+    const daysAway = t => Math.round((t - now.getTime()) / 86400000);
+    for (const u of users) {
+      if (u.birthday) {
+        const t = nextOcc(u.birthday);
+        upcoming.push({ type: "birthday", name: u.name || u.email, date: t, daysAway: daysAway(t) });
+      }
+      if (u.joinedAt) {
+        const t = nextOcc(u.joinedAt);
+        const years = now.getFullYear() - new Date(u.joinedAt).getFullYear();
+        if (years > 0) upcoming.push({ type: "anniversary", name: u.name || u.email, years, date: t, daysAway: daysAway(t) });
+      }
+    }
+    upcoming.sort((a, b) => a.daysAway - b.daysAway);
+    return json(upcoming.filter(x => x.daysAway <= 60).slice(0, 20), 200, req);
+  }
+
+  // Logs
+  if (path === "/api/automations/logs" && method === "GET") {
+    return json((await autoLoad(env, AUTO_KEYS.logs)).slice(0, 50), 200, req);
+  }
+
+  return null;
+}
+
+// Cron — runs on Cloudflare schedule (configure in dashboard: */15 * * * *)
+async function processAutomationsCron(env) {
+  const now = Date.now();
+  let processed = 0;
+
+  // Fire due reminders
+  const rems = await autoLoad(env, AUTO_KEYS.reminders);
+  for (const r of rems) {
+    if (r.enabled && !r.sent && r.fireAt <= now) {
+      try {
+        if (r.channels?.includes("email") && env.RESEND_API_KEY) {
+          const recipients = r.recipients?.length ? r.recipients : [env.ADMIN_EMAIL];
+          for (const to of recipients) {
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                from: env.FROM_EMAIL || "Arsann <noreply@arsann.com>",
+                to,
+                subject: `🔔 تذكير: ${r.title}`,
+                html: `<div dir="rtl" style="font-family:Cairo,sans-serif;padding:20px"><h2>${r.title}</h2><p>تذكير تلقائي من منصّة أرسان.</p></div>`,
+              }),
+            });
+          }
+        }
+        if (r.channels?.includes("slack")) {
+          const url = await env.ARSAN.get("slack_webhook_v1");
+          if (url) {
+            await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: `🔔 *${r.title}*\n_تذكير تلقائي من أرسان_` }),
+            });
+          }
+        }
+        await autoLog(env, { type: "reminder-sent", id: r.id, title: r.title });
+      } catch (e) {
+        await autoLog(env, { type: "reminder-failed", id: r.id, error: e.message });
+      }
+      r.sent = true;
+      processed++;
+    }
+  }
+  if (processed > 0) await autoSave(env, AUTO_KEYS.reminders, rems);
+
+  // Recurring tasks
+  const recurring = await autoLoad(env, AUTO_KEYS.recurring);
+  let recChanged = false;
+  for (const item of recurring) {
+    if (item.enabled && item.nextRun <= now) {
+      // Spawn a task
+      const tasksRaw = await env.ARSAN.get(KEYS.tasks);
+      const tasks = tasksRaw ? JSON.parse(tasksRaw) : [];
+      tasks.push({
+        id: autoId("task"),
+        title: item.title,
+        assignee: item.assignee,
+        status: "todo",
+        source: "recurring",
+        sourceId: item.id,
+        createdAt: Date.now(),
+      });
+      await env.ARSAN.put(KEYS.tasks, JSON.stringify(tasks));
+      await autoLog(env, { type: "recurring-spawned", id: item.id, title: item.title });
+      item.lastRun = now;
+      // Compute next run
+      const parts = Object.fromEntries(item.rrule.split(";").map(p => p.split("=")));
+      const next = new Date(now);
+      const freq = parts.FREQ || "WEEKLY";
+      if (freq === "DAILY") next.setDate(next.getDate() + 1);
+      else if (freq === "WEEKLY") next.setDate(next.getDate() + 7);
+      else if (freq === "MONTHLY") {
+        next.setMonth(next.getMonth() + 1);
+        if (parts.BYMONTHDAY) next.setDate(parseInt(parts.BYMONTHDAY));
+      }
+      item.nextRun = next.getTime();
+      recChanged = true;
+      processed++;
+    }
+  }
+  if (recChanged) await autoSave(env, AUTO_KEYS.recurring, recurring);
+
+  // Auto-archive
+  const rules = await autoLoad(env, AUTO_KEYS.archiveRules, defaultArchiveRules());
+  const day = 86400000;
+  if (rules.sopsInactive?.enabled) {
+    const sopsRaw = await env.ARSAN.get(KEYS.sops);
+    const sops = sopsRaw ? JSON.parse(sopsRaw) : {};
+    let archived = 0;
+    const cutoff = now - (rules.sopsInactive.days || 90) * day;
+    for (const dept of Object.keys(sops)) {
+      for (const code of Object.keys(sops[dept] || {})) {
+        const sop = sops[dept][code];
+        if (!sop.archived && (sop.updatedAt || sop.createdAt || 0) < cutoff) {
+          sop.archived = true;
+          sop.archivedAt = now;
+          sop.archivedReason = "auto-inactive";
+          archived++;
+        }
+      }
+    }
+    if (archived > 0) {
+      await env.ARSAN.put(KEYS.sops, JSON.stringify(sops));
+      await autoLog(env, { type: "auto-archive", target: "sops", count: archived });
+    }
+  }
+  if (rules.tasksCompleted?.enabled) {
+    const tasksRaw = await env.ARSAN.get(KEYS.tasks);
+    const tasks = tasksRaw ? JSON.parse(tasksRaw) : [];
+    const cutoff = now - (rules.tasksCompleted.days || 30) * day;
+    let archived = 0;
+    for (const t of tasks) {
+      if (t.status === "done" && !t.archived && (t.completedAt || t.updatedAt || 0) < cutoff) {
+        t.archived = true;
+        t.archivedAt = now;
+        archived++;
+      }
+    }
+    if (archived > 0) {
+      await env.ARSAN.put(KEYS.tasks, JSON.stringify(tasks));
+      await autoLog(env, { type: "auto-archive", target: "tasks", count: archived });
+    }
+  }
+
+  // Birthdays — daily check
+  const lastBday = await env.ARSAN.get("auto_last_bday_check");
+  const today = new Date().toISOString().slice(0, 10);
+  if (lastBday !== today) {
+    const users = await loadUsers(env);
+    const slackUrl = await env.ARSAN.get("slack_webhook_v1");
+    const send = async (text) => {
+      if (!slackUrl) return;
+      await fetch(slackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      }).catch(() => {});
+    };
+    const nowD = new Date();
+    for (const u of users) {
+      if (u.birthday) {
+        const d = new Date(u.birthday);
+        const next = new Date(nowD.getFullYear(), d.getMonth(), d.getDate());
+        if (next < nowD) next.setFullYear(nowD.getFullYear() + 1);
+        const days = Math.round((next - nowD) / day);
+        if (days === 3) await send(`🎂 عيد ميلاد ${u.name || u.email} بعد 3 أيام`);
+        if (days === 0) await send(`🎉 عيد ميلاد سعيد ${u.name || u.email}!`);
+      }
+      if (u.joinedAt) {
+        const d = new Date(u.joinedAt);
+        const next = new Date(nowD.getFullYear(), d.getMonth(), d.getDate());
+        if (next < nowD) next.setFullYear(nowD.getFullYear() + 1);
+        const days = Math.round((next - nowD) / day);
+        if (days === 0) {
+          const years = nowD.getFullYear() - d.getFullYear();
+          if (years > 0) await send(`🏆 ${u.name || u.email} أكمل ${years} سنة في الشركة!`);
+        }
+      }
+    }
+    await env.ARSAN.put("auto_last_bday_check", today);
+  }
+
+  // Stats
+  const stats = await autoLoad(env, AUTO_KEYS.stats, { runs: 0, savedMinutes: 0 });
+  stats.runs += processed;
+  stats.savedMinutes += processed * 5;
+  await autoSave(env, AUTO_KEYS.stats, stats);
+}

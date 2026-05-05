@@ -490,33 +490,33 @@ a{color: inherit; text-decoration: none}
 .app-tile{
   aspect-ratio: 1;
   background: var(--surface);
-  border: 0;
-  border-radius: 22px;
-  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: transform .2s, background .2s, box-shadow .2s;
+  transition: transform .2s, border-color .2s, background .2s;
 }
 .app-tile:hover{
   background: var(--surface-2);
+  border-color: var(--line-2);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
 .app-tile:active{ transform: translateY(0) }
 .app-tile .glyph{
   width: 36px; height: 36px;
-  border-radius: 50%;
+  border-radius: 9px;
   background: var(--surface-3);
-  border: 0;
+  border: 1px solid var(--line);
   display: flex; align-items: center; justify-content: center;
   color: var(--ink-2);
   transition: color .2s, background .2s;
 }
-.app-tile:hover .glyph{ color: var(--accent); background: var(--accent-soft) }
+.app-tile:hover .glyph{ color: var(--accent); background: var(--accent-soft); border-color: var(--accent-line) }
 .app-tile .glyph svg{ width: 18px; height: 18px; stroke-width: 1.5 }
 .app-tile .name{
   font-size: 13px;
@@ -557,11 +557,12 @@ a{color: inherit; text-decoration: none}
 }
 .app-tile.featured{
   background: linear-gradient(135deg, var(--surface-2), var(--surface));
-  box-shadow: inset 0 0 0 1px var(--accent-line);
+  border-color: var(--accent-line);
 }
 .app-tile.featured .glyph{
   background: var(--accent-soft);
   color: var(--accent);
+  border-color: var(--accent-line);
 }
 .app-tile.coming::after{
   content: 'قريباً';

@@ -1,0 +1,353 @@
+/* =================================================================
+   Arsann OS · Aurora Theme · Unified Design System
+   Direction 2 — Glass + Bento + Animated numbers + Time-based aurora
+   ================================================================= */
+
+:root{
+  /* === Surface (Dark default) === */
+  --bg-0: #07080d;
+  --bg-1: #0a0c12;
+  --bg-2: #11141c;
+  --bg-3: #181c26;
+
+  --surface: rgba(255,255,255,.03);
+  --surface-2: rgba(255,255,255,.05);
+  --surface-3: rgba(255,255,255,.08);
+
+  --line: rgba(255,255,255,.06);
+  --line-2: rgba(255,255,255,.10);
+  --line-3: rgba(255,255,255,.16);
+
+  /* === Ink === */
+  --ink-0: #ffffff;
+  --ink-1: #f5f1ea;
+  --ink-2: rgba(245,241,234,.7);
+  --ink-3: rgba(245,241,234,.45);
+  --ink-4: rgba(245,241,234,.25);
+
+  /* === Brand (subtle accent) === */
+  --brand: #E8A860;
+  --brand-2: #C98F47;
+  --brand-glow: rgba(232,168,96,.18);
+
+  /* === Semantic === */
+  --blue: #87C0FF;
+  --blue-bg: rgba(96,160,232,.12);
+  --green: #87E0A8;
+  --green-bg: rgba(135,224,168,.12);
+  --red: #FF8888;
+  --red-bg: rgba(255,136,136,.12);
+  --yellow: #FFD060;
+  --yellow-bg: rgba(255,208,96,.12);
+  --purple: #C087FF;
+  --purple-bg: rgba(168,128,232,.12);
+
+  /* === Aurora gradients (time-based — overridden by JS) === */
+  --aurora-1: radial-gradient(800px 500px at 80% -10%, rgba(232,168,96,.12), transparent 60%);
+  --aurora-2: radial-gradient(700px 500px at 10% 110%, rgba(96,160,232,.10), transparent 60%);
+
+  /* === Typography === */
+  --font-display: "Amiri", "Zarid Slab", "IBM Plex Sans Arabic", Georgia, serif;
+  --font-body: "IBM Plex Sans Arabic", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+  /* === Radii === */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-2xl: 28px;
+
+  /* === Shadows === */
+  --shadow-1: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-2: 0 8px 24px rgba(0,0,0,.35);
+  --shadow-3: 0 24px 60px rgba(0,0,0,.5);
+  --shadow-glow: 0 0 24px var(--brand-glow);
+
+  /* === Motion === */
+  --ease-out: cubic-bezier(.2,.9,.3,1);
+  --ease-spring: cubic-bezier(.2,.9,.3,1.4);
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 400ms;
+}
+
+/* === Light mode === */
+[data-theme="light"]{
+  --bg-0: #FAFAF7;
+  --bg-1: #FFFCF5;
+  --bg-2: #F5F1E8;
+  --bg-3: #EFEAE0;
+
+  --surface: rgba(0,0,0,.02);
+  --surface-2: rgba(0,0,0,.04);
+  --surface-3: rgba(0,0,0,.06);
+
+  --line: rgba(0,0,0,.06);
+  --line-2: rgba(0,0,0,.10);
+  --line-3: rgba(0,0,0,.16);
+
+  --ink-0: #000;
+  --ink-1: #1A1A1A;
+  --ink-2: rgba(26,26,26,.7);
+  --ink-3: rgba(26,26,26,.5);
+  --ink-4: rgba(26,26,26,.3);
+
+  --brand-glow: rgba(232,168,96,.25);
+
+  --blue: #2563EB;
+  --blue-bg: rgba(37,99,235,.08);
+  --green: #16A34A;
+  --green-bg: rgba(22,163,74,.08);
+  --red: #DC2626;
+  --red-bg: rgba(220,38,38,.08);
+  --yellow: #CA8A04;
+  --yellow-bg: rgba(202,138,4,.08);
+  --purple: #7C3AED;
+  --purple-bg: rgba(124,58,237,.08);
+
+  --aurora-1: radial-gradient(800px 500px at 80% -10%, rgba(232,168,96,.18), transparent 60%);
+  --aurora-2: radial-gradient(700px 500px at 10% 110%, rgba(37,99,235,.10), transparent 60%);
+}
+
+/* === Reset === */
+*,*::before,*::after{ box-sizing: border-box }
+html, body{ margin:0; padding:0 }
+body{
+  background: var(--bg-1);
+  color: var(--ink-1);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Aurora background layer (applied to body or .ar-shell) */
+.ar-aurora{ position: relative; }
+.ar-aurora::before{
+  content: '';
+  position: fixed; inset: 0;
+  background-image: var(--aurora-1), var(--aurora-2);
+  pointer-events: none; z-index: 0;
+  transition: background-image 2s var(--ease-out);
+}
+.ar-aurora > *{ position: relative; z-index: 1 }
+
+/* === Topbar === */
+.ar-topbar{
+  position: sticky; top: 0; z-index: 50;
+  height: 60px; padding: 0 28px;
+  display: flex; align-items: center; gap: 14px;
+  background: color-mix(in srgb, var(--bg-1) 80%, transparent);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.ar-brand{
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--ink-1);
+  font-weight: 600; letter-spacing: .3px;
+}
+.ar-brand-mark{
+  width: 30px; height: 30px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: flex; align-items: center; justify-content: center;
+  color: #1a1410; font-weight: 700; font-size: 14px;
+  box-shadow: 0 4px 12px var(--brand-glow);
+}
+.ar-brand-name{ font-size: 15px }
+.ar-brand-name .dim{ color: var(--ink-3); font-weight: 400 }
+
+.ar-nav{
+  display: flex; gap: 2px; margin-inline-start: 24px;
+}
+.ar-nav a{
+  padding: 7px 12px; border-radius: 8px;
+  color: var(--ink-2); text-decoration: none;
+  font-size: 13.5px; transition: all var(--t-fast);
+}
+.ar-nav a:hover{ background: var(--surface-2); color: var(--ink-1) }
+.ar-nav a.active{
+  background: var(--brand-glow); color: var(--brand);
+}
+
+.ar-search{
+  flex: 1; max-width: 480px; margin: 0 auto;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink-3); font-size: 13px;
+  cursor: pointer; transition: all var(--t-fast);
+}
+.ar-search:hover{ border-color: var(--line-2); background: var(--surface-2) }
+.ar-search .kbd{
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--surface-2); padding: 2px 6px; border-radius: 4px;
+  color: var(--ink-2); margin-inline-start: auto;
+}
+
+.ar-icon-btn{
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-2); cursor: pointer; transition: all var(--t-fast);
+}
+.ar-icon-btn:hover{ background: var(--surface-2); color: var(--ink-1) }
+.ar-icon-btn svg{ width: 16px; height: 16px; stroke-width: 2 }
+
+.ar-avatar{
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #1a1410; font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 2px 8px var(--brand-glow);
+}
+
+/* === Bento grid === */
+.ar-bento{
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(12, 1fr);
+}
+.ar-tile{
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all var(--t-base) var(--ease-out);
+  position: relative; overflow: hidden;
+}
+.ar-tile:hover{
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+.ar-tile.span-2{ grid-column: span 2 }
+.ar-tile.span-3{ grid-column: span 3 }
+.ar-tile.span-4{ grid-column: span 4 }
+.ar-tile.span-6{ grid-column: span 6 }
+.ar-tile.span-8{ grid-column: span 8 }
+.ar-tile.span-12{ grid-column: span 12 }
+
+.ar-tile-label{
+  font-size: 11px; color: var(--ink-3);
+  text-transform: uppercase; letter-spacing: 1.4px;
+  font-family: var(--font-mono); font-weight: 500;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ar-tile-label .pill{
+  padding: 2px 8px; border-radius: 6px;
+  background: var(--green-bg); color: var(--green);
+  font-size: 10px; letter-spacing: .5px; text-transform: none;
+}
+.ar-tile-label .pill.red{ background: var(--red-bg); color: var(--red) }
+.ar-tile-label .pill.blue{ background: var(--blue-bg); color: var(--blue) }
+
+.ar-num-xl{
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6vw, 84px);
+  font-weight: 500; line-height: 1; letter-spacing: -2.5px;
+  color: var(--ink-1); margin-top: 16px;
+}
+.ar-num-lg{
+  font-family: var(--font-display);
+  font-size: 48px; font-weight: 500;
+  line-height: 1; letter-spacing: -1.5px;
+  margin-top: 12px;
+}
+.ar-num-md{
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 500;
+  line-height: 1; letter-spacing: -1px;
+  margin-top: 10px;
+}
+.ar-num-unit{ font-size: .45em; opacity: .5; margin-inline-start: 6px }
+
+.ar-tile-foot{
+  font-size: 12px; color: var(--ink-3);
+  font-family: var(--font-mono); margin-top: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.ar-trend-up{ color: var(--green) }
+.ar-trend-down{ color: var(--red) }
+
+/* === Display H1 === */
+.ar-display{
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5.5vw, 72px);
+  font-weight: 500; line-height: 1.1;
+  letter-spacing: -1.5px; color: var(--ink-1);
+}
+.ar-display .accent{ color: var(--brand) }
+
+.ar-eyebrow{
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--ink-3); letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 14px;
+}
+
+/* === Buttons === */
+.ar-btn{
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 10px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-1); cursor: pointer;
+  transition: all var(--t-fast);
+}
+.ar-btn:hover{ background: var(--surface-2); border-color: var(--line-2) }
+.ar-btn-primary{
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  border-color: transparent; color: #1a1410;
+  box-shadow: 0 4px 14px var(--brand-glow);
+}
+.ar-btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--brand-glow);
+}
+
+/* === Sparklines === */
+.ar-spark{ width: 100%; height: 36px; margin-top: 14px }
+
+/* === List items === */
+.ar-list-item{
+  padding: 12px 0; display: flex; gap: 12px; align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer; transition: background var(--t-fast);
+}
+.ar-list-item:hover{ background: var(--surface) }
+.ar-list-item:last-child{ border-bottom: none }
+.ar-list-title{ font-size: 13.5px; color: var(--ink-1); font-weight: 500 }
+.ar-list-meta{
+  font-size: 11px; color: var(--ink-3);
+  font-family: var(--font-mono); margin-top: 4px;
+}
+
+/* === Theme toggle === */
+.ar-theme-toggle{
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-2); cursor: pointer;
+}
+.ar-theme-toggle:hover{ background: var(--surface-2); color: var(--ink-1) }
+
+/* === Number animate === */
+@keyframes ar-fade-in{
+  from{ opacity: 0; transform: translateY(8px) }
+  to{ opacity: 1; transform: translateY(0) }
+}
+.ar-fade-in{ animation: ar-fade-in var(--t-slow) var(--ease-out) both }
+.ar-fade-in.d1{ animation-delay: 80ms }
+.ar-fade-in.d2{ animation-delay: 160ms }
+.ar-fade-in.d3{ animation-delay: 240ms }
+.ar-fade-in.d4{ animation-delay: 320ms }
+.ar-fade-in.d5{ animation-delay: 400ms }
+.ar-fade-in.d6{ animation-delay: 480ms }
+.ar-fade-in.d7{ animation-delay: 560ms }
+.ar-fade-in.d8{ animation-delay: 640ms }
+
+/* === RTL helpers === */
+[dir="rtl"] .ar-rtl-flip{ transform: scaleX(-1) }

@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="spine-shared.css">
+<link rel="stylesheet" href="spine-glass.css">
 <style>
   .panel-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 1100px){ .panel-grid{ grid-template-columns: 1fr } }
@@ -563,5 +564,7 @@ function hex2rgba(hex, a){
 
 <script src="arsann-chrome.js"></script>
 <script>(function(){function init(){if(!window.ArsannChrome)return;var me=null;try{me=JSON.parse(localStorage.getItem('arsan_me_v1')||'null');}catch(e){}window.ArsannChrome.init({module:'DEPARTMENTS',breadcrumb:["ARSANN","GOV","DEPTS"],user:me?(me.email||'GUEST').split('@')[0]:'GUEST',zone:'DEP.01'});}if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);})();</script>
+<script src="quick-capture.js?v=1"></script>
+<script src="notif-center.js?v=1"></script>
 </body>
 </html>

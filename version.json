@@ -1,5 +1,12 @@
 {
-  "version": "2.1.0",
-  "build": "2026-04-24-1",
-  "notes": "شريط تحديث تلقائي + Service Worker + زر تحديث يدوي"
+  "version": "2.2.0",
+  "build": "2026-05-05-1",
+  "notes": "The Spine — Executive OS الرئيسية جاهزة للمشاركة مع الفريق",
+  "released": "2026-05-05",
+  "highlights": [
+    "Spine: مدخل واحد لكل الإدارات والوحدات",
+    "Bubbles بدون حدود + أيقونات دائرية",
+    "Search Orb (Cmd+K) موصول في كل الصفحات",
+    "Glass UI موحّد عبر calendar / mail / crm / hr / depts"
+  ]
 }

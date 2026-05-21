@@ -2466,6 +2466,92 @@ ${clipped}
         return json({ ok: true }, 200, req);
       }
 
+      // -------- DASHBOARD WIDGETS (public, mock-fallback) --------
+      // These three endpoints power the home/dashboard widgets.
+      // They are public (no session required) and return realistic Arabic mock
+      // data when the underlying KV key is empty. CORS is already applied by json().
+
+      // GET /api/widgets/tasks  → [{id,title,priority,due,status,project}]
+      // (Distinct from /api/tasks which is the auth-gated SOP-tied task system.)
+      if (path === "/api/widgets/tasks" && method === "GET") {
+        try {
+          const raw = await env.ARSAN.get("tasks_v1");
+          let list = raw ? JSON.parse(raw) : [];
+          // If the rich /api/tasks data exists, project it down to the widget shape;
+          // otherwise return mock.
+          if (Array.isArray(list) && list.length > 0) {
+            list = list.map(t => ({
+              id:       t.id,
+              title:    t.title || "",
+              priority: t.priority || "normal",
+              due:      t.due || t.dueDate || null,
+              status:   t.status || "pending",
+              project:  t.project || t.dept || t.sopRef || "",
+            }));
+          } else {
+            const today = new Date();
+            const iso = (d) => d.toISOString().slice(0, 10);
+            const addDays = (n) => { const d = new Date(today); d.setDate(d.getDate()+n); return iso(d); };
+            list = [
+              { id:"t1", title:"مراجعة إجراء استلام الزوار",      priority:"urgent",  due: addDays(0), status:"in-progress", project:"العمليات" },
+              { id:"t2", title:"تحديث سياسة الأمان الإلكتروني",   priority:"high",    due: addDays(1), status:"pending",     project:"تقنية المعلومات" },
+              { id:"t3", title:"اعتماد جدول مناوبات الأسبوع",      priority:"high",    due: addDays(2), status:"pending",     project:"الموارد البشرية" },
+              { id:"t4", title:"إعداد تقرير الأداء الشهري",        priority:"normal",  due: addDays(5), status:"in-progress", project:"المالية" },
+              { id:"t5", title:"تدقيق نماذج العقود الجديدة",        priority:"normal",  due: addDays(7), status:"done",        project:"الشؤون القانونية" },
+            ];
+          }
+          return json(list, 200, req);
+        } catch (e) {
+          return json({ error: true, message: String(e.message || e) }, 500, req);
+        }
+      }
+
+      // GET /api/mail  → [{id,from,subject,preview,time,read}]
+      if (path === "/api/mail" && method === "GET") {
+        try {
+          const raw = await env.ARSAN.get("mail_inbox_v1");
+          let list = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(list) || list.length === 0) {
+            const now = Date.now();
+            const mins = (n) => new Date(now - n*60*1000).toISOString();
+            list = [
+              { id:"m1", from:"رئيس قسم العمليات",      subject:"اجتماع غداً الساعة 10",        preview:"تذكير باجتماع مراجعة مؤشرات الأداء…",   time: mins(12),   read:false },
+              { id:"m2", from:"إدارة الموارد البشرية",   subject:"تحديث سياسة الإجازات",          preview:"نُحيطكم علماً بتعديلات سياسة الإجازات…", time: mins(95),   read:false },
+              { id:"m3", from:"البريد التقني",            subject:"تقرير حالة النظام الأسبوعي",   preview:"تشغيل مستقر بنسبة 99.7% خلال الأسبوع…", time: mins(360),  read:true  },
+              { id:"m4", from:"a.king@arsann.com",       subject:"ملاحظات على مسوّدة الإجراء",    preview:"يُرجى مراجعة الملاحظات المرفقة قبل…",   time: mins(1440), read:true  },
+            ];
+          }
+          return json(list, 200, req);
+        } catch (e) {
+          return json({ error: true, message: String(e.message || e) }, 500, req);
+        }
+      }
+
+      // GET /api/calendar/events  → [{id,title,start,end,location}]
+      if (path === "/api/calendar/events" && method === "GET") {
+        try {
+          const raw = await env.ARSAN.get("calendar_events_v1");
+          let list = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(list) || list.length === 0) {
+            // build today + tomorrow ISO timestamps at fixed local-ish hours
+            const dayAt = (offsetDays, h, m=0) => {
+              const d = new Date();
+              d.setDate(d.getDate() + offsetDays);
+              d.setHours(h, m, 0, 0);
+              return d.toISOString();
+            };
+            list = [
+              { id:"e1", title:"اجتماع مؤشرات الأداء الأسبوعي",   start: dayAt(0, 10, 0), end: dayAt(0, 11, 0), location:"قاعة الاجتماعات الرئيسية" },
+              { id:"e2", title:"مراجعة الإجراءات مع إدارة العمليات", start: dayAt(0, 14, 30), end: dayAt(0, 15, 30), location:"عبر Zoom" },
+              { id:"e3", title:"ورشة عمل: تطوير سياسات الجودة",    start: dayAt(1, 9, 30),  end: dayAt(1, 12, 0), location:"قاعة التدريب — الدور الثاني" },
+            ];
+          }
+          return json(list, 200, req);
+        } catch (e) {
+          return json({ error: true, message: String(e.message || e) }, 500, req);
+        }
+      }
+
       // -------- COMMENTS (per SOP) --------
       // GET /api/comments?sopRef=dept/code
       if (path === "/api/comments" && method === "GET") {

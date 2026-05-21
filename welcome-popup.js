@@ -255,6 +255,11 @@
     // ESC to close
     const onKey = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
     document.addEventListener('keydown', onKey);
+
+    // Auto-dismiss after 4 seconds (per spec) — pause on hover so user can read
+    let autoTimer = setTimeout(close, 4000);
+    bd.addEventListener('mouseenter', () => clearTimeout(autoTimer));
+    bd.addEventListener('mouseleave', () => { autoTimer = setTimeout(close, 4000); });
   }
 
   function init(){

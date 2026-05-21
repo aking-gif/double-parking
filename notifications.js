@@ -9,6 +9,14 @@
 
   const STORE_KEY = 'arsan_announcements_v1';
   const READ_KEY  = 'arsan_notif_read_v1';
+  const SESSION_SEEN_KEY = 'arsan_notif_session_seen';  // sessionStorage — gate auto-show once per session
+
+  function sessionAlreadySeen(){
+    try { return sessionStorage.getItem(SESSION_SEEN_KEY) === '1'; } catch(_){ return false; }
+  }
+  function markSessionSeen(){
+    try { sessionStorage.setItem(SESSION_SEEN_KEY, '1'); } catch(_){}
+  }
 
   function getAPI(){ return window.ArsanAPI || null; }
   function hasBackend(){ return !!(getAPI() && getAPI().hasBackend && getAPI().hasBackend()); }
@@ -400,6 +408,7 @@
   }
 
   // ============ Panel ============
+  let _autoCloseTimer = null;
   async function togglePanel(){
     if (!panel) panel = createPanel();
     const open = panel.classList.toggle('open');
@@ -411,6 +420,13 @@
         markAllRead(list);
         await renderPanel();
       }, 600);
+      // Auto-dismiss after 4 seconds (per spec)
+      clearTimeout(_autoCloseTimer);
+      _autoCloseTimer = setTimeout(() => {
+        if (panel.classList.contains('open')) panel.classList.remove('open');
+      }, 4000);
+    } else {
+      clearTimeout(_autoCloseTimer);
     }
   }
 
@@ -428,6 +444,14 @@
       </div>
     `;
     panel.querySelector('.close').addEventListener('click', () => panel.classList.remove('open'));
+    // Pause auto-dismiss while hovering, restart after 4s once user leaves
+    panel.addEventListener('mouseenter', () => clearTimeout(_autoCloseTimer));
+    panel.addEventListener('mouseleave', () => {
+      clearTimeout(_autoCloseTimer);
+      _autoCloseTimer = setTimeout(() => {
+        if (panel.classList.contains('open')) panel.classList.remove('open');
+      }, 4000);
+    });
     document.body.appendChild(panel);
     // Close on outside click
     document.addEventListener('click', (e) => {
@@ -523,6 +547,30 @@
     tryMount();
     const obs = new MutationObserver(() => tryMount());
     obs.observe(document.body, { childList: true, subtree: true });
+
+    // ===== Session-gated auto-show =====
+    // First time the user lands on a page this session AND there are unread items:
+    // briefly auto-open the panel so they see what's new. Auto-dismiss (already
+    // wired in togglePanel) closes it after 4s. After that, never auto-open again
+    // this session — skip entirely. The bell is still clickable on demand.
+    if (!sessionAlreadySeen()) {
+      setTimeout(async () => {
+        try {
+          const list = await loadAnnouncements();
+          const read = getReadIds();
+          const unread = list.filter(a => !read.has(a.id)).length;
+          if (unread > 0 && bellBtn) {
+            markSessionSeen();
+            togglePanel();
+          } else {
+            // Nothing new — still consume the session flag so we don't keep checking.
+            markSessionSeen();
+          }
+        } catch(_){
+          markSessionSeen();
+        }
+      }, 1400);
+    }
 
     // Refresh badge periodically (every 20s) — and on tab focus
     setInterval(() => updateBadge(), 20000);

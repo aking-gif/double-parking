@@ -1,0 +1,18 @@
+name = "arsan-api"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+account_id = "6e1bbf9595326b995e6f64e101d88b76"
+
+[[kv_namespaces]]
+binding = "ARSAN"
+id = "8b9f150a311841d0a2409190a0ed8857"
+
+[vars]
+ADMIN_EMAIL = "a.king@arsann.com"
+EDITOR_DOMAIN = "arsann.com"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# ADMIN_BOOTSTRAP_PASSWORD
+# ANTHROPIC_API_KEY
+# SLACK_BOT_TOKEN
+# SLACK_WEBHOOK_URL

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=[];var x=false;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Spine — Arsann Executive OS</title>
@@ -102,16 +105,11 @@ a{color: inherit; text-decoration: none}
   cursor: pointer;
 }
 .brand-mark{
-  width: 28px; height: 28px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
+  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-en);
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--accent);
-  letter-spacing: -0.5px;
+  filter: drop-shadow(0 2px 6px rgba(201,169,97,0.25));
 }
+.brand-mark svg{ display:block; width:auto; height:100%; }
 .brand-name{
   font-family: var(--font-en);
   font-weight: 600;
@@ -453,6 +451,98 @@ a{color: inherit; text-decoration: none}
   color: var(--ink-3);
   font-family: var(--font-mono);
 }
+.atten{
+  flex-direction: column;
+  position: relative;
+  transition: background .15s, padding .2s;
+  border-radius: 6px;
+}
+.atten:hover{ opacity: 1; background: rgba(255,255,255,0.02); padding-inline: 8px; margin-inline: -8px }
+.atten-row{
+  display: flex; gap: 10px; align-items: start;
+  width: 100%;
+}
+.atten-chev{
+  margin-inline-start: auto;
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: transform .2s, color .15s;
+  flex-shrink: 0;
+}
+.atten.expanded .atten-chev{ transform: rotate(180deg); color: var(--accent) }
+.atten-prog{
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 999px;
+  margin-top: 8px;
+  margin-inline-start: 16px;
+  width: calc(100% - 16px);
+  overflow: hidden;
+  position: relative;
+}
+.atten-prog .bar{
+  height: 100%;
+  border-radius: inherit;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  background: linear-gradient(90deg, var(--accent), #E5C988);
+}
+.atten-prog .bar.red{ background: linear-gradient(90deg, var(--red), #FF8B8B) }
+.atten-prog .bar.orange{ background: linear-gradient(90deg, var(--orange), #FFC089) }
+.atten-prog .bar.blue{ background: linear-gradient(90deg, var(--blue), #93B0E0) }
+.atten-prog .lbl{
+  position: absolute; inset-inline-end: 0; top: -16px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--ink-3); letter-spacing: .5px;
+  font-variant-numeric: tabular-nums;
+}
+.atten-detail{
+  display: none;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  animation: slideDown .25s ease-out;
+}
+.atten.expanded .atten-detail{ display: block }
+@keyframes slideDown{ from{ opacity:0; transform: translateY(-4px) } to{ opacity:1; transform: translateY(0) } }
+.atten-detail-row{
+  display: flex; justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.atten-detail-row:last-child{ border-bottom: 0 }
+.atten-detail-row b{ color: var(--ink); font-weight: 500 }
+.atten-detail-row .k{
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-3); letter-spacing: 1px; text-transform: uppercase;
+}
+.atten-detail-actions{
+  display: flex; gap: 6px; margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.atten-action{
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 11px; font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+}
+.atten-action:hover{ background: var(--surface-3); color: var(--ink); border-color: var(--line-3) }
+.atten-action.primary{ background: var(--accent); color: #1a1300; border-color: var(--accent) }
+.atten-action.primary:hover{ filter: brightness(1.1) }
+
 
 /* ============================================================
    APP GRID
@@ -1100,6 +1190,53 @@ a{color: inherit; text-decoration: none}
   letter-spacing: 0.5px;
 }
 
+/* ============ MOBILE — ≤ 768px (responsive pass) ============ */
+@media (max-width: 768px){
+  .wrap{ padding: 16px 14px !important; }
+  body{ padding: 0 !important; }
+
+  /* Topbar — horizontal scroll for nav */
+  .topbar{
+    height: auto !important;
+    padding: 8px 12px !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  .topbar::-webkit-scrollbar{ display: none; }
+  .topbar nav{ flex-wrap: nowrap !important; gap: 2px !important; }
+  .topbar a{ font-size: 12px !important; padding: 5px 8px !important; flex-shrink: 0; }
+
+  /* Hero/title sizing */
+  h1, .page-title, .hero-title{ font-size: clamp(24px, 6vw, 32px) !important; }
+
+  /* Cockpit + stats */
+  .cockpit{ grid-template-columns: 1fr !important; gap: 12px; }
+  .cockpit-stats{ grid-template-columns: repeat(2, 1fr) !important; gap: 12px; padding-top: 12px; }
+  .stat-row{ grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* App grid: 2 columns on mobile */
+  .app-grid{ grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+  .app-tile{ padding: 14px !important; }
+
+  /* Two-col → single col */
+  .two-col, .two-col-3{ grid-template-columns: 1fr !important; }
+  .empty-mod .feature-list{ grid-template-columns: 1fr !important; }
+
+  /* SOP grid */
+  .sop-grid{ grid-template-columns: 1fr !important; }
+
+  /* Bar rows: tighter */
+  .bar-r{ grid-template-columns: 80px 1fr 50px !important; gap: 8px; }
+
+  /* Cards & sections padding halved */
+  .card, .section{ padding: 16px !important; }
+
+  /* Hide statusbar */
+  #spine-statusbar{ display: none !important; }
+}
+
 </style>
 </head>
 
@@ -1139,10 +1276,22 @@ a{color: inherit; text-decoration: none}
      ============================================================ -->
 <div class="shell">
 
+  <!-- STATUSBAR -->
+  <div style="background:#0A0B0D;border-bottom:1px solid rgba(201,169,97,0.15);padding:4px 24px;display:flex;align-items:center;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;direction:ltr;">
+    <span style="color:#4CAF50;font-size:8px;">●</span>
+    <span>SYSTEM ONLINE</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span>ZONE A.01</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span>BUILD v2.5.0</span>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span>ARSANN / OS / SPINE</span>
+  </div>
+
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand" onclick="navigate('home')">
-      <div class="brand-mark">A</div>
+      <div class="brand-mark" id="arsan-brand-logo"></div>
       <div class="brand-name">THE SPINE <span class="dim">/ ARSANN</span></div>
     </div>
     <a href="today.html" class="tb-today-btn" title="اليوم — كل ما يحتاج اهتمامك">
@@ -1217,43 +1366,7 @@ a{color: inherit; text-decoration: none}
           <div class="ttl">Needs Your Attention</div>
           <span class="badge mono">5</span>
         </div>
-        <div class="atten-list">
-          <div class="atten" onclick="navigate('approvals')">
-            <span class="marker red"></span>
-            <div class="body">
-              <div class="ttl">عقد توريد المواد — قسم المشاريع</div>
-              <div class="meta">SAR 420K · pending 3d</div>
-            </div>
-          </div>
-          <div class="atten" onclick="navigate('decisions')">
-            <span class="marker orange"></span>
-            <div class="body">
-              <div class="ttl">قرار توسعة موقع الخبر</div>
-              <div class="meta">decision-log · DEC-104</div>
-            </div>
-          </div>
-          <div class="atten" onclick="navigate('risks')">
-            <span class="marker red"></span>
-            <div class="body">
-              <div class="ttl">مخاطر تأخير تسليم Q2</div>
-              <div class="meta">risk-register · escalated</div>
-            </div>
-          </div>
-          <div class="atten" onclick="navigate('meetings')">
-            <span class="marker blue"></span>
-            <div class="body">
-              <div class="ttl">اجتماع المجلس · غداً 10:00</div>
-              <div class="meta">agenda not finalized</div>
-            </div>
-          </div>
-          <div class="atten" onclick="navigate('reports')">
-            <span class="marker orange"></span>
-            <div class="body">
-              <div class="ttl">تقرير الربع للمجلس</div>
-              <div class="meta">due in 5d · draft 60%</div>
-            </div>
-          </div>
-        </div>
+        <div class="atten-list" id="attenList"></div>
       </div>
     </section>
 
@@ -1454,6 +1567,8 @@ const MODULES = [
     desc:'٣ بانتظار توقيعك الآن', count:'3', pulse:'red', status:'shell' },
   { id:'automations',group:'core', icon:'m-auto',       name:'الأتمتة',              sub:'Automations & Workflows',
     desc:'تذكيرات · تكرار · إيميل→مهمّة', count:'live', pulse:'green', status:'live', url:'automations.html' },
+  { id:'integrations',group:'core', icon:'m-auto',      name:'التكاملات',             sub:'Integrations Hub',
+    desc:'Google · Microsoft · Slack · Zoom · AI', count:'9', pulse:'green', status:'live', url:'integrations.html' },
 
   // Business (3) — NEW
   { id:'crm',        group:'biz', icon:'m-people',     name:'إدارة العملاء (CRM)',   sub:'Clients & Pipeline',
@@ -1506,6 +1621,147 @@ function renderGrid(){
   });
 }
 renderGrid();
+
+/* -------------- Needs Your Attention -------------- */
+const ATTENTION = [
+  {
+    id:'A1', marker:'red', target:'approvals', progress:30, prog_color:'red',
+    title:'عقد توريد المواد — قسم المشاريع',
+    meta:'SAR 420K · pending 3d',
+    prog_lbl:'3 of 10 days · stalled',
+    detail:{
+      'الجهة':'مجموعة الخليج للمقاولات',
+      'المبلغ':'SAR 420,000',
+      'المدّة':'٩٠ يوماً',
+      'الحالة':'بانتظار توقيعك · ٣ أيام',
+      'الموافقات السابقة':'المدير التشغيلي ✓ · المالي ✓ · القانوني ✓',
+      'الخطوة التالية':'توقيعك → إصدار أمر شراء'
+    },
+    actions:[{label:'اعتمد', primary:true, act:'approve'},{label:'افتح الملف', act:'open'},{label:'أرسل للمراجعة', act:'review'}]
+  },
+  {
+    id:'A2', marker:'orange', target:'decisions', progress:65, prog_color:'orange',
+    title:'قرار توسعة موقع الخبر',
+    meta:'decision-log · DEC-104',
+    prog_lbl:'2 of 3 inputs received',
+    detail:{
+      'نوع القرار':'استراتيجي · توسعة جغرافية',
+      'المساحة المقترحة':'٤٠٠٠ م²',
+      'التكلفة التقديرية':'SAR 1.2M',
+      'الإدخالات المنتظرة':'دراسة السوق (مكتملة)، التحليل المالي (مكتمل)، التقييم القانوني',
+      'الموعد المستهدف':'٢٠ مايو ٢٠٢٦'
+    },
+    actions:[{label:'افتح سجل القرار', primary:true, act:'open'},{label:'اطلب الإدخال المتبقي', act:'request'}]
+  },
+  {
+    id:'A3', marker:'red', target:'risks', progress:15, prog_color:'red',
+    title:'مخاطر تأخير تسليم Q2',
+    meta:'risk-register · escalated',
+    prog_lbl:'mitigation: 15%',
+    detail:{
+      'المشروع':'الرياض-الشرق المرحلة الثانية',
+      'مستوى المخاطرة':'عالي · متصاعد',
+      'التأثير المالي':'SAR 280K (غرامة محتملة)',
+      'السبب الجذري':'تأخر توريد المواد من المورد الرئيسي',
+      'التخفيف الحالي':'تأمين مورد بديل (15% تقدم)',
+      'المسؤول':'م. عبدالله العتيبي'
+    },
+    actions:[{label:'فتح خطة التخفيف', primary:true, act:'open'},{label:'تصعيد للمجلس', act:'escalate'}]
+  },
+  {
+    id:'A4', marker:'blue', target:'meetings', progress:50, prog_color:'blue',
+    title:'اجتماع المجلس · غداً 10:00',
+    meta:'agenda not finalized',
+    prog_lbl:'agenda 50% · 4h to go',
+    detail:{
+      'الموعد':'الخميس ٢١ مايو · ١٠:٠٠ ص',
+      'المكان':'قاعة المجلس · المقر الرئيسي',
+      'الحضور':'٧ أعضاء · ٤ مؤكدون',
+      'بنود جاهزة':'تقرير Q1، تحديث المشاريع',
+      'بنود ناقصة':'الميزانية المعدّلة، توسعة الخبر',
+      'الوثائق':'٣ مرفقات · يحتاج مراجعتك'
+    },
+    actions:[{label:'أكمل الأجندة', primary:true, act:'agenda'},{label:'افتح الدعوة', act:'open'}]
+  },
+  {
+    id:'A5', marker:'orange', target:'reports', progress:60, prog_color:'orange',
+    title:'تقرير الربع للمجلس',
+    meta:'due in 5d · draft 60%',
+    prog_lbl:'draft 60% · 5 days',
+    detail:{
+      'النوع':'تقرير ربع سنوي · Q1 2026',
+      'الموعد النهائي':'٢٥ مايو ٢٠٢٦',
+      'المسوّدة الحالية':'٦٠٪ · ١٢ صفحة من ٢٠',
+      'الأقسام المكتملة':'الملخص التنفيذي، الأداء المالي، إنجازات المشاريع',
+      'الأقسام المتبقية':'المخاطر، التوقعات، التوصيات',
+      'المراجعة':'بانتظار إدخالات من المدير المالي'
+    },
+    actions:[{label:'افتح المسوّدة', primary:true, act:'open'},{label:'اطلب الإدخال المتبقي', act:'request'}]
+  }
+];
+
+function renderAttention(){
+  const host = document.getElementById('attenList');
+  if (!host) return;
+  host.innerHTML = ATTENTION.map(a => `
+    <div class="atten" data-id="${a.id}" data-target="${a.target}">
+      <div class="atten-row">
+        <span class="marker ${a.marker}"></span>
+        <div class="body">
+          <div class="ttl">${a.title}</div>
+          <div class="meta">${a.meta}</div>
+        </div>
+        <span class="atten-chev">▾</span>
+      </div>
+      <div class="atten-prog">
+        <span class="lbl mono">${a.prog_lbl}</span>
+        <span class="bar ${a.prog_color}" style="width:0%"></span>
+      </div>
+      <div class="atten-detail">
+        ${Object.entries(a.detail).map(([k,v]) => `<div class="atten-detail-row"><span class="k">${k}</span><b>${v}</b></div>`).join('')}
+        <div class="atten-detail-actions">
+          ${a.actions.map(act => `<button class="atten-action ${act.primary?'primary':''}" data-act="${act.act}" data-id="${a.id}">${act.label}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Animate progress bars in
+  setTimeout(() => {
+    host.querySelectorAll('.atten').forEach((el, i) => {
+      const a = ATTENTION[i];
+      const bar = el.querySelector('.bar');
+      if (bar) bar.style.width = a.progress + '%';
+    });
+  }, 200);
+
+  // Click to expand (but not on action buttons or chevron-only)
+  host.querySelectorAll('.atten').forEach(el => {
+    el.querySelector('.atten-row').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const expanded = el.classList.toggle('expanded');
+      // Close others
+      if (expanded) host.querySelectorAll('.atten').forEach(other => { if (other !== el) other.classList.remove('expanded'); });
+    });
+    // Action buttons
+    el.querySelectorAll('.atten-action').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = el.dataset.target;
+        const act = btn.dataset.act;
+        // For now, just navigate to the target module
+        if (act === 'approve' || act === 'open' || act === 'agenda') {
+          if (typeof navigate === 'function') navigate(target);
+        } else {
+          btn.textContent = '✓ ' + btn.textContent;
+          btn.style.opacity = '.6';
+          setTimeout(() => { btn.style.opacity=''; }, 1200);
+        }
+      });
+    });
+  });
+}
+renderAttention();
 
 /* -------------- Navigation -------------- */
 function navigate(id){
@@ -1674,6 +1930,23 @@ if (hash && hash !== 'home') navigate(hash);
 })();
 </script>
 
+<script src="brand.js?v=1"></script>
+<script>
+(function injectArsannLogo(){
+  function tryInject(){
+    const el = document.getElementById('arsan-brand-logo');
+    if (el && window.ArsanBrand && window.ArsanBrand.logo){
+      el.innerHTML = window.ArsanBrand.logo(32, '#C9A961');
+      return true;
+    }
+    return false;
+  }
+  if (!tryInject()){
+    let n = 0;
+    const t = setInterval(()=>{ if (tryInject() || ++n > 20) clearInterval(t); }, 120);
+  }
+})();
+</script>
 <script src="quick-capture.js?v=1"></script>
 <script src="notif-center.js?v=1"></script>
 </body>

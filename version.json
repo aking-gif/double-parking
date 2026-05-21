@@ -1,12 +1,14 @@
 {
-  "version": "2.2.0",
-  "build": "2026-05-05-1",
-  "notes": "The Spine — Executive OS الرئيسية جاهزة للمشاركة مع الفريق",
-  "released": "2026-05-05",
-  "highlights": [
-    "Spine: مدخل واحد لكل الإدارات والوحدات",
-    "Bubbles بدون حدود + أيقونات دائرية",
-    "Search Orb (Cmd+K) موصول في كل الصفحات",
-    "Glass UI موحّد عبر calendar / mail / crm / hr / depts"
+  "version": "2.7.0",
+  "build": "2026-05-20-2",
+  "notes": "dashboard.html Phase 1-4 complete: CSS color tokens aligned to Spine palette, statusbar added, Spine topbar installed, auth guard softened to demo mode, inline colors bulk-replaced. All 20+ pages now on Spine v2.7.0 DNA.",
+  "released": "2026-05-20",
+  "changelog": [
+    "dashboard.html Phase 1: CSS :root tokens aligned to Spine palette (#0A0B0D bg, #C9A961 gold, removed #8B6F00/#5C7A9C)",
+    "dashboard.html Phase 2: SYSTEM ONLINE statusbar added as first body element",
+    "dashboard.html Phase 3: Spine topbar installed above old toolbar (إجراءات active, THE SPINE brand, avatar pill)",
+    "dashboard.html Phase 4a: hard auth guard softened to demo-mode (SpineAPI.ensureAuth with .catch())",
+    "dashboard.html Phase 4b: inline hardcoded colors bulk-replaced (#8B6F00, #CDA84A, #E6A83A, #F7F6F2 → Spine tokens) — 10 instances",
+    "All 20+ Spine pages now share unified DNA: dark glass, statusbar, Spine topbar, brand.js, #C9A961 accent"
   ]
 }

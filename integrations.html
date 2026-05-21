@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=[];var x=false;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التكاملات — Arsann Executive OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arsann-theme.css">
+<link rel="stylesheet" href="spine-glass.css">
+
+<style>
+:root{
+  --bg: #0A0B0D;
+  --bg-2: #101216;
+  --surface: #15171C;
+  --surface-2: #1A1D24;
+  --surface-3: #20242C;
+  --line: rgba(255,255,255,0.06);
+  --line-2: rgba(255,255,255,0.10);
+  --ink: #EDEEF0;
+  --ink-2: #A8ADB8;
+  --ink-3: #6B7180;
+  --ink-4: #444A56;
+  --accent: #C9A961;
+  --accent-2: #B89548;
+  --accent-soft: rgba(201,169,97,0.10);
+  --accent-line: rgba(201,169,97,0.25);
+  --green: #4FB477;
+  --orange: #E8A35C;
+  --red: #E06464;
+  --blue: #6789C5;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --font-ar: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-en: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font-ar);min-height:100vh}
+body{
+  background:
+    radial-gradient(1200px 800px at 80% -10%, rgba(201,169,97,0.06), transparent 60%),
+    radial-gradient(900px 700px at -10% 110%, rgba(103,137,197,0.04), transparent 60%),
+    var(--bg);
+}
+
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* ============== TOPBAR ============== */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:18px;
+  padding:14px 28px;
+  background:rgba(10,11,13,0.7);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer}
+.brand-mark{
+  width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg, var(--accent), var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#0A0B0D;font-size:16px;
+  box-shadow:0 6px 20px rgba(201,169,97,0.25);
+}
+.brand-name{font-weight:600;font-size:13px;letter-spacing:0.5px}
+.brand-name .accent{color:var(--accent);font-weight:500}
+.crumbs{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px}
+.crumbs .sep{opacity:0.4}
+.spacer{flex:1}
+.tb-link{
+  font-size:13px;color:var(--ink-2);
+  padding:7px 14px;border-radius:8px;
+  transition:all 0.15s ease;
+}
+.tb-link:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ============== LAYOUT ============== */
+.shell{max-width:1240px;margin:0 auto;padding:32px 28px 80px}
+
+.page-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:24px;margin-bottom:36px;flex-wrap:wrap;
+}
+.page-head h1{
+  font-size:32px;font-weight:600;letter-spacing:-0.5px;
+  display:flex;align-items:center;gap:14px;
+}
+.page-head h1 .ic{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg, rgba(201,169,97,0.2), rgba(201,169,97,0.05));
+  border:1px solid var(--accent-line);
+  display:flex;align-items:center;justify-content:center;color:var(--accent);
+}
+.page-head .sub{color:var(--ink-3);font-size:14px;margin-top:6px;font-family:var(--font-mono);letter-spacing:0.5px}
+.page-head .stats{
+  display:flex;gap:18px;
+}
+.stat{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px 18px;min-width:120px;
+}
+.stat .v{font-size:22px;font-weight:600;color:var(--ink);font-family:var(--font-mono)}
+.stat .l{font-size:11px;color:var(--ink-3);margin-top:2px;letter-spacing:0.5px}
+.stat .v.green{color:var(--green)}
+
+/* Tabs */
+.tabs{
+  display:flex;gap:4px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  padding:4px;border-radius:14px;
+  margin-bottom:28px;
+  width:fit-content;
+}
+.tabs button{
+  padding:9px 18px;border-radius:10px;
+  font-size:13px;color:var(--ink-2);font-weight:500;
+  transition:all 0.18s ease;
+}
+.tabs button:hover{color:var(--ink)}
+.tabs button.active{
+  background:var(--surface-3);
+  color:var(--ink);
+  box-shadow:0 2px 12px rgba(0,0,0,0.3);
+}
+
+/* Section */
+.sec-head{
+  display:flex;align-items:baseline;gap:14px;
+  margin:30px 0 16px;
+}
+.sec-head h2{font-size:14px;font-weight:600;letter-spacing:1px;color:var(--ink-2);text-transform:uppercase;font-family:var(--font-mono)}
+.sec-head .count{font-size:11px;color:var(--ink-4);font-family:var(--font-mono)}
+.sec-head .line{flex:1;height:1px;background:linear-gradient(to left, transparent, var(--line))}
+
+/* Integration cards */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:16px;
+}
+.icard{
+  background:var(--surface);
+  border-radius:var(--radius-xl);
+  padding:22px;
+  display:flex;flex-direction:column;gap:14px;
+  position:relative;
+  transition:all 0.22s cubic-bezier(.2,.8,.2,1);
+  cursor:pointer;
+  overflow:hidden;
+}
+.icard::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.02), transparent 50%);
+  pointer-events:none;
+}
+.icard:hover{
+  transform:translateY(-3px);
+  background:var(--surface-2);
+  box-shadow:0 16px 40px rgba(0,0,0,0.4);
+}
+.icard.connected{
+  box-shadow:inset 0 0 0 1px rgba(79,180,119,0.18);
+}
+.icard.connected:hover{
+  box-shadow:inset 0 0 0 1px rgba(79,180,119,0.28), 0 16px 40px rgba(0,0,0,0.4);
+}
+
+.icard-head{
+  display:flex;align-items:center;gap:14px;
+}
+.ilogo{
+  width:48px;height:48px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-3);
+  flex-shrink:0;
+  font-size:22px;
+}
+.ilogo svg{width:26px;height:26px}
+.itxt{flex:1;min-width:0}
+.itxt .nm{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.itxt .sub{font-size:11px;color:var(--ink-3);font-family:var(--font-mono);letter-spacing:0.5px;text-transform:uppercase}
+
+.istatus{
+  font-size:10px;font-family:var(--font-mono);
+  padding:4px 9px;border-radius:6px;
+  letter-spacing:0.8px;text-transform:uppercase;
+  border:1px solid var(--line-2);
+  color:var(--ink-3);
+  white-space:nowrap;
+}
+.istatus.connected{
+  background:rgba(79,180,119,0.10);
+  border-color:rgba(79,180,119,0.25);
+  color:var(--green);
+}
+.istatus.beta{
+  background:rgba(232,163,92,0.10);
+  border-color:rgba(232,163,92,0.25);
+  color:var(--orange);
+}
+
+.idesc{font-size:13px;color:var(--ink-2);line-height:1.6;flex:1}
+
+.itags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.itag{
+  font-size:10px;color:var(--ink-3);
+  padding:3px 8px;border-radius:5px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--line);
+  font-family:var(--font-mono);letter-spacing:0.4px;
+}
+
+.icard-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  position:relative;z-index:1;
+}
+.icard-meta{font-size:11px;color:var(--ink-3);font-family:var(--font-mono)}
+.btn{
+  padding:8px 16px;border-radius:9px;
+  font-size:12px;font-weight:600;letter-spacing:0.3px;
+  background:var(--surface-3);
+  color:var(--ink);
+  border:1px solid var(--line-2);
+  transition:all 0.15s ease;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{background:#262A33;border-color:rgba(255,255,255,0.16)}
+.btn.primary{
+  background:linear-gradient(135deg, var(--accent), var(--accent-2));
+  color:#0A0B0D;border-color:transparent;
+  box-shadow:0 4px 14px rgba(201,169,97,0.25);
+}
+.btn.primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn.danger{color:var(--red)}
+.btn.ghost{background:transparent;border-color:var(--line)}
+
+/* ============== INTERNAL FLOWS ============== */
+.flows-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(380px, 1fr));
+  gap:14px;
+}
+.flow-card{
+  background:var(--surface);
+  border-radius:18px;
+  padding:18px 20px;
+  display:flex;align-items:center;gap:16px;
+  transition:all 0.18s ease;
+}
+.flow-card:hover{background:var(--surface-2)}
+.flow-from, .flow-to{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  min-width:64px;
+}
+.flow-ic{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--surface-3);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);
+}
+.flow-ic svg{width:20px;height:20px}
+.flow-lbl{font-size:10px;color:var(--ink-3);font-family:var(--font-mono);letter-spacing:0.5px;text-align:center}
+.flow-arrow{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;
+  padding:0 6px;
+}
+.flow-arrow .label{
+  font-size:11px;color:var(--ink-2);
+  background:var(--bg);padding:2px 8px;border-radius:6px;
+  position:relative;z-index:1;
+  font-family:var(--font-mono);letter-spacing:0.3px;
+}
+.flow-arrow .line{
+  position:absolute;left:0;right:0;top:50%;height:1px;
+  background:linear-gradient(to left, transparent, var(--accent-line), transparent);
+}
+.flow-toggle{
+  width:36px;height:20px;border-radius:11px;
+  background:var(--surface-3);
+  position:relative;cursor:pointer;
+  transition:all 0.2s ease;
+  flex-shrink:0;
+}
+.flow-toggle::after{
+  content:'';position:absolute;top:2px;right:2px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--ink-3);
+  transition:all 0.2s ease;
+}
+.flow-toggle.on{background:rgba(79,180,119,0.25)}
+.flow-toggle.on::after{background:var(--green);right:auto;left:2px}
+
+/* ============== WEBHOOKS LIST ============== */
+.wh-list{
+  background:var(--surface);
+  border-radius:18px;
+  overflow:hidden;
+}
+.wh-row{
+  padding:16px 22px;
+  display:grid;
+  grid-template-columns:auto 1fr auto auto;
+  gap:18px;align-items:center;
+  border-bottom:1px solid var(--line);
+}
+.wh-row:last-child{border-bottom:none}
+.wh-row .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-4)}
+.wh-row .dot.live{background:var(--green);box-shadow:0 0 8px var(--green)}
+.wh-row .nm{font-size:14px;font-weight:600}
+.wh-row .url{font-size:11px;color:var(--ink-3);font-family:var(--font-mono);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px;
+}
+.wh-events{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.wh-ev{
+  font-size:9px;font-family:var(--font-mono);
+  padding:3px 7px;border-radius:5px;
+  background:var(--accent-soft);
+  color:var(--accent);
+  letter-spacing:0.4px;
+}
+.wh-empty{
+  padding:48px 24px;text-align:center;
+  color:var(--ink-3);
+}
+.wh-empty .ic{
+  width:54px;height:54px;border-radius:50%;
+  background:var(--surface-2);
+  margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-4);
+}
+.wh-empty .t{font-size:14px;color:var(--ink-2);margin-bottom:6px}
+.wh-empty .d{font-size:12px;color:var(--ink-3);margin-bottom:18px}
+
+/* ============== MODAL ============== */
+.modal-bd{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(8,9,11,0.7);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;justify-content:center;
+  padding:24px;
+}
+.modal-bd.open{display:flex}
+.modal{
+  background:var(--surface);
+  border-radius:20px;
+  border:1px solid var(--line);
+  width:100%;max-width:560px;
+  max-height:90vh;overflow-y:auto;
+  animation:pop 0.2s ease;
+}
+@keyframes pop{from{transform:scale(0.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{
+  padding:22px 26px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;
+}
+.modal-head .ilogo{width:44px;height:44px}
+.modal-head .ilogo svg{width:22px;height:22px}
+.modal-head h3{font-size:18px;font-weight:600}
+.modal-head .sub{font-size:11px;color:var(--ink-3);font-family:var(--font-mono);letter-spacing:0.5px;text-transform:uppercase}
+.modal-close{
+  margin-right:auto;
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-3);
+  transition:all 0.15s;
+}
+.modal-close:hover{background:var(--surface-2);color:var(--ink)}
+.modal-body{padding:22px 26px}
+.modal-body p{color:var(--ink-2);font-size:13px;line-height:1.7;margin-bottom:16px}
+.modal-body .field{margin-bottom:16px}
+.modal-body label{display:block;font-size:11px;color:var(--ink-3);margin-bottom:6px;font-family:var(--font-mono);letter-spacing:0.5px;text-transform:uppercase}
+.modal-body input, .modal-body select, .modal-body textarea{
+  width:100%;padding:10px 14px;
+  background:var(--bg-2);
+  border:1px solid var(--line-2);
+  border-radius:9px;
+  color:var(--ink);font-size:13px;
+  font-family:var(--font-ar);
+  transition:all 0.15s;
+}
+.modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus{
+  outline:none;
+  border-color:var(--accent-line);
+  background:var(--bg);
+}
+.modal-body .events-pick{display:flex;flex-wrap:wrap;gap:6px}
+.modal-body .ev-chip{
+  font-size:11px;padding:6px 11px;border-radius:7px;
+  background:var(--bg-2);border:1px solid var(--line-2);
+  color:var(--ink-2);cursor:pointer;
+  font-family:var(--font-mono);
+  transition:all 0.15s;
+}
+.modal-body .ev-chip:hover{border-color:var(--accent-line)}
+.modal-body .ev-chip.on{
+  background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);
+}
+.modal-foot{
+  padding:18px 26px;
+  border-top:1px solid var(--line);
+  display:flex;justify-content:flex-end;gap:10px;
+}
+.note{
+  background:rgba(103,137,197,0.06);
+  border:1px solid rgba(103,137,197,0.18);
+  padding:11px 14px;border-radius:9px;
+  font-size:12px;color:var(--ink-2);line-height:1.6;
+}
+.note.warn{
+  background:rgba(232,163,92,0.06);
+  border-color:rgba(232,163,92,0.18);
+}
+.note .lbl{color:var(--orange);font-weight:600;display:block;margin-bottom:3px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-family:var(--font-mono)}
+
+@media (max-width: 680px){
+  .grid{grid-template-columns:1fr}
+  .flows-grid{grid-template-columns:1fr}
+  .wh-row{grid-template-columns:auto 1fr;row-gap:8px}
+  .wh-events{grid-column:1 / -1;justify-content:flex-start}
+  .page-head .stats{width:100%}
+}
+</style>
+<script src="brand.js"></script>
+</head>
+<body>
+<div style="background:rgba(10,11,13,0.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);padding:7px 28px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1px;color:#6B7180;display:flex;align-items:center;gap:24px;text-transform:uppercase"><span style="width:6px;height:6px;border-radius:50%;background:#4FB477;box-shadow:0 0 6px #4FB477;display:inline-block"></span><b style="color:#EDEEF0">SYSTEM ONLINE</b><span><b>ZONE</b> <span style="color:#C9A961">A.01</span></span><span><b>BUILD</b> v1.0.0</span><span style="flex:1"></span><span>ARSANN / OS / <span style="color:#C9A961">INTEGRATIONS</span></span></div>
+
+<!-- ========== ICONS ========== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-task" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 6h6a3 3 0 013 3v6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6z"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="brand" onclick="location.href='spine.html'">
+    <div class="brand-mark" id="intg-brand-logo"><img src="arsann-logo.svg" alt="A" style="width:20px;height:20px;object-fit:contain;filter:brightness(0) invert(1)" onerror="this.style.display='none'"></div>
+    <div class="brand-name">THE SPINE <span class="accent">/ ARSANN</span></div>
+  </div>
+  <div class="crumbs">
+    <span>HOME</span><span class="sep">/</span><span style="color:var(--accent)">INTEGRATIONS</span>
+  </div>
+  <div class="spacer"></div>
+  <a href="spine.html" class="tb-link">← العودة للعمود الفقري</a>
+</header>
+
+<div class="shell">
+
+  <!-- Page header -->
+  <div class="page-head">
+    <div>
+      <h1>
+        <span class="ic"><svg width="22" height="22"><use href="#i-link"/></svg></span>
+        مركز التكاملات
+      </h1>
+      <div class="sub">INTEGRATIONS HUB · CONNECT EVERYTHING</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v green" id="connectedCount">0</div><div class="l">CONNECTED</div></div>
+      <div class="stat"><div class="v" id="availableCount">11</div><div class="l">AVAILABLE</div></div>
+      <div class="stat"><div class="v" id="webhooksCount">0</div><div class="l">WEBHOOKS</div></div>
+      <div class="stat"><div class="v" id="flowsCount">0</div><div class="l">ACTIVE FLOWS</div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="active" data-tab="services">الخدمات</button>
+    <button data-tab="flows">التدفقات الداخلية</button>
+    <button data-tab="webhooks">Webhooks</button>
+    <button data-tab="ai">الذكاء الاصطناعي</button>
+  </div>
+
+  <!-- ========== TAB: SERVICES ========== -->
+  <div class="tab-panel" data-panel="services">
+
+    <div class="sec-head"><h2>الإنتاجية</h2><span class="count" id="prodCount"></span><div class="line"></div></div>
+    <div class="grid" id="grid-prod"></div>
+
+    <div class="sec-head"><h2>الاتصال</h2><span class="count" id="commCount"></span><div class="line"></div></div>
+    <div class="grid" id="grid-comm"></div>
+
+    <div class="sec-head"><h2>التخزين</h2><span class="count" id="storeCount"></span><div class="line"></div></div>
+    <div class="grid" id="grid-store"></div>
+
+  </div>
+
+  <!-- ========== TAB: FLOWS ========== -->
+  <div class="tab-panel" data-panel="flows" hidden>
+    <div class="note" style="margin-bottom:24px">
+      <strong style="color:var(--accent)">التدفقات الداخلية</strong> هي روابط تلقائية بين وحدات الـ Spine.
+      مثلاً: عندما يصل بريد يحوي كلمة "اعتماد"، يتم إنشاء طلب اعتماد تلقائياً.
+    </div>
+    <div class="flows-grid" id="flowsGrid"></div>
+  </div>
+
+  <!-- ========== TAB: WEBHOOKS ========== -->
+  <div class="tab-panel" data-panel="webhooks" hidden>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">Webhooks الصادرة</div>
+        <div style="font-size:12px;color:var(--ink-3)">الـ Spine يبعث events لأنظمة خارجية عند حدوث أحداث محددة</div>
+      </div>
+      <button class="btn primary" onclick="openWebhookModal()"><svg width="14" height="14"><use href="#i-plus"/></svg> Webhook جديد</button>
+    </div>
+
+    <div class="wh-list" id="whList"></div>
+
+    <div style="margin-top:32px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Webhooks الواردة</div>
+          <div style="font-size:12px;color:var(--ink-3)">URL خاص بمنصّتك لاستقبال events من أنظمة خارجية</div>
+        </div>
+      </div>
+      <div class="note">
+        <span class="lbl">URL الاستقبال</span>
+        <code style="font-family:var(--font-mono);font-size:12px;color:var(--accent);word-break:break-all">
+          https://arsan-api.a-king-6e1.workers.dev/api/inbound/<span id="inboundToken">…</span>
+        </code>
+        <button onclick="copyInbound()" style="margin-top:8px;padding:5px 10px;font-size:11px;background:var(--surface-3);border-radius:6px;color:var(--ink-2);cursor:pointer">📋 نسخ</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== TAB: AI ========== -->
+  <div class="tab-panel" data-panel="ai" hidden>
+    <div class="grid" id="grid-ai"></div>
+  </div>
+
+</div>
+
+<!-- ========== CONNECT MODAL ========== -->
+<div class="modal-bd" id="connectModal">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close" onclick="closeModal('connectModal')"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+      <div class="ilogo" id="connectLogo"></div>
+      <div>
+        <h3 id="connectName">—</h3>
+        <div class="sub" id="connectSub">—</div>
+      </div>
+    </div>
+    <div class="modal-body" id="connectBody"></div>
+    <div class="modal-foot" id="connectFoot"></div>
+  </div>
+</div>
+
+<!-- ========== WEBHOOK MODAL ========== -->
+<div class="modal-bd" id="webhookModal">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close" onclick="closeModal('webhookModal')"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+      <div class="ilogo"><svg><use href="#i-bolt"/></svg></div>
+      <div>
+        <h3>Webhook جديد</h3>
+        <div class="sub">OUTGOING WEBHOOK</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>الاسم</label>
+        <input id="whName" placeholder="مثل: Slack — قناة الموارد البشرية">
+      </div>
+      <div class="field">
+        <label>URL الوجهة</label>
+        <input id="whUrl" placeholder="https://hooks.slack.com/services/...">
+      </div>
+      <div class="field">
+        <label>الأحداث (Events)</label>
+        <div class="events-pick" id="whEvents">
+          <div class="ev-chip" data-ev="sop.created">SOP — تم الإنشاء</div>
+          <div class="ev-chip" data-ev="sop.updated">SOP — تم التحديث</div>
+          <div class="ev-chip" data-ev="sop.deleted">SOP — تم الحذف</div>
+          <div class="ev-chip" data-ev="sop.lifecycle">SOP — تغيير حالة</div>
+          <div class="ev-chip" data-ev="task.assigned">مهمة — تم الإسناد</div>
+          <div class="ev-chip" data-ev="comment.added">تعليق جديد</div>
+          <div class="ev-chip" data-ev="message.sent">رسالة بين الإدارات</div>
+          <div class="ev-chip" data-ev="approval.requested">طلب اعتماد</div>
+          <div class="ev-chip" data-ev="approval.decided">قرار اعتماد</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>الإدارة (اختياري)</label>
+        <select id="whDept">
+          <option value="">كل الإدارات</option>
+          <option value="exec">التنفيذية</option>
+          <option value="ops">العمليات</option>
+          <option value="finance">المالية</option>
+          <option value="hr">الموارد البشرية</option>
+          <option value="legal">القانونية</option>
+          <option value="it">تقنية المعلومات</option>
+          <option value="marketing">التسويق</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal('webhookModal')">إلغاء</button>
+      <button class="btn primary" onclick="saveWebhook()"><svg width="14" height="14"><use href="#i-plus"/></svg> إضافة</button>
+    </div>
+  </div>
+</div>
+
+<script src="arsann-chrome.js"></script>
+<script src="api.js"></script>
+<script src="integrations.js"></script>
+
+<script>
+(function(){
+  function init(){
+    if (!window.ArsannChrome) return;
+    var me = null;
+    try { me = JSON.parse(localStorage.getItem('arsan_me_v1') || 'null'); } catch(e){}
+    window.ArsannChrome.init({
+      module: 'INTEGRATIONS',
+      breadcrumb: ['ARSANN', 'OS', 'INTEGRATIONS'],
+      user: me ? (me.email || 'GUEST').split('@')[0] : 'GUEST',
+      zone: 'A.07'
+    });
+  }
+  if (document.readyState !== 'loading') init();
+  else document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+<script src="quick-capture.js?v=1"></script>
+<script src="notif-center.js?v=1"></script>
+<script src="spine-back.js" defer></script>
+<script src="spine-search.js" defer></script>
+<script>
+(function tryInjectLogo(){var el=document.getElementById('intg-brand-logo');if(el&&window.ArsanBrand&&window.ArsanBrand.logo){el.innerHTML=window.ArsanBrand.logo(28,'#C9A961');return;}if(el)setTimeout(tryInjectLogo,100);})();
+</script>
+
+</body>
+</html>

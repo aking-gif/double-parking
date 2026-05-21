@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=[];var x=false;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARSANN / OS — Boot</title>
+<link rel="icon" href="arsann-logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D;
+    --bg-black: #000000;
+    --surface: #14150f;
+    --accent: #C9A961;
+    --accent-2: #E5C988;
+    --accent-soft: rgba(201,169,97,0.15);
+    --accent-line: rgba(201,169,97,0.30);
+    --ink: #e8e4d9;
+    --ink-dim: rgba(232,228,217,0.55);
+    --ink-faint: rgba(232,228,217,0.30);
+    --font-ar: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0 }
+  html, body{
+    width: 100%; height: 100%;
+    background: var(--bg-black);
+    color: var(--ink);
+    font-family: var(--font-ar);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body{
+    transition: background-color 1.2s ease;
+    position: relative;
+  }
+  body.phase-2, body.phase-3, body.phase-4{
+    background: var(--bg);
+  }
+
+  /* ============ CRT SCANLINES + AMBIENT GLOW ============ */
+  .crt{
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.025) 2px,
+      rgba(255,255,255,0.025) 3px
+    );
+    pointer-events: none;
+    z-index: 80;
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+  }
+  .glow{
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(201,169,97,0.08) 0%, rgba(201,169,97,0.025) 30%, transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 1.6s ease;
+  }
+  body.phase-2 .glow, body.phase-3 .glow, body.phase-4 .glow{ opacity: 1 }
+
+  /* ============ VIGNETTE on edges (subtle) ============ */
+  .vignette{
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+    z-index: 70;
+  }
+
+  /* ============ PHASE 1 — BIOS ============ */
+  .bios{
+    position: absolute; inset: 0;
+    z-index: 10;
+    padding: 48px 56px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    direction: ltr;
+    text-align: left;
+    transition: opacity .6s ease;
+  }
+  body.phase-2 .bios, body.phase-3 .bios, body.phase-4 .bios{
+    opacity: 0; pointer-events: none;
+  }
+  .bios-line{
+    opacity: 0;
+    white-space: pre;
+  }
+  .bios-line.shown{
+    opacity: 1;
+    animation: lineAppear .12s ease-out both;
+  }
+  .bios-line.dim{ color: var(--accent); opacity: .55 }
+  .bios-line.shown.dim{ opacity: .55 }
+  .bios-line .ok{ color: #4FB477 }
+  .bios-line .blink{
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-inline-start: 2px;
+    animation: blink 1.1s steps(2) infinite;
+  }
+  @keyframes lineAppear{
+    from { opacity: 0; transform: translateY(2px) }
+    to   { opacity: 1; transform: translateY(0) }
+  }
+  @keyframes blink{ 50%{ opacity: 0 } }
+
+  @media (max-width: 640px){
+    .bios{ padding: 24px 20px; font-size: 11px }
+  }
+
+  /* ============ PHASE 2 — OS SPLASH ============ */
+  .splash{
+    position: absolute; inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 40px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .6s ease, transform 1s cubic-bezier(.22,1,.36,1);
+  }
+  body.phase-2 .splash, body.phase-3 .splash, body.phase-4 .splash{
+    opacity: 1;
+  }
+  /* In phase 4, lift the splash up so the enter prompt below has clear room */
+  body.phase-4 .splash{
+    justify-content: flex-start;
+    padding-top: 12vh;
+  }
+  .logo-img{
+    width: 420px;
+    max-width: 75vw;
+    height: auto;
+    display: block;
+    /* The SVG's paths default to black fill (no `fill` set on <path>).
+       Step 1 of the filter chain normalizes any source color to pure black
+       (brightness(0) + saturate(100%)), then the invert/sepia chain shifts
+       that to gold (~#C9A961). Final drop-shadow gives the ambient glow. */
+    filter:
+      brightness(0) saturate(100%)
+      invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
+      drop-shadow(0 0 28px rgba(201,169,97,0.42));
+    opacity: 0;
+  }
+  body.phase-2 .logo-img, body.phase-3 .logo-img, body.phase-4 .logo-img{
+    animation: logoMaterialise 1.2s ease-out forwards;
+  }
+  @keyframes logoMaterialise{
+    0%   { opacity: 0; transform: scale(0.88); filter:
+             brightness(0) saturate(100%)
+             invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
+             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(12px); }
+    60%  { opacity: 1; transform: scale(1.03); filter:
+             brightness(0) saturate(100%)
+             invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
+             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(0px); }
+    100% { opacity: 1; transform: scale(1); filter:
+             brightness(0) saturate(100%)
+             invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
+             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(0px); }
+  }
+  .splash-en{
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.5em;
+    font-weight: 500;
+    text-transform: uppercase;
+    direction: ltr;
+    text-shadow: 0 0 20px rgba(201,169,97,0.3);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .8s ease .35s, transform .8s ease .35s;
+  }
+  body.phase-2 .splash-en, body.phase-3 .splash-en{
+    opacity: 1; transform: translateY(0);
+  }
+  body.phase-4 .splash-en{
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity .5s ease;
+  }
+  .splash-line{
+    width: 60%;
+    max-width: 580px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #C9A961 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-position: -100% 0;
+    box-shadow: 0 0 10px var(--accent-soft);
+    opacity: 0;
+    margin-top: 6px;
+  }
+  body.phase-2 .splash-line, body.phase-3 .splash-line{
+    animation: lineShimmer 1s ease-out .6s forwards;
+  }
+  body.phase-4 .splash-line{
+    opacity: 0;
+    animation: none;
+    transition: opacity .5s ease;
+  }
+  @keyframes lineShimmer{
+    0%   { opacity: 0; background-position: -100% 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 1; background-position: 100% 0; }
+  }
+  .splash-status{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    direction: ltr;
+    opacity: 0;
+    transition: opacity .8s ease 1.4s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  body.phase-2 .splash-status, body.phase-3 .splash-status, body.phase-4 .splash-status{
+    opacity: 1;
+  }
+  /* In phase 4, the enter prompt sits low — hide the status row to avoid overlap on short viewports */
+  body.phase-4 .splash-status{
+    opacity: 0;
+    transition: opacity .4s ease;
+  }
+  .splash-status .dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4FB477;
+    box-shadow: 0 0 8px #4FB477;
+    animation: pulse 2s infinite;
+  }
+  .splash-status .sep{ color: var(--ink-faint); margin: 0 -4px }
+  @keyframes pulse{ 0%,100%{ opacity:1 } 50%{ opacity:.4 } }
+
+  /* corner brackets framing the logo + ambient halo */
+  .splash-frame{
+    position: relative;
+    padding: 36px 56px;
+    width: auto;
+    max-width: 760px;
+  }
+  .splash-frame .halo{
+    content: '';
+    position: absolute;
+    inset: -40% -20%;
+    background: radial-gradient(ellipse 60% 40% at 50% 48%, rgba(201,169,97,0.13) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.4s ease .2s;
+  }
+  body.phase-2 .splash-frame .halo,
+  body.phase-3 .splash-frame .halo,
+  body.phase-4 .splash-frame .halo{ opacity: 1; }
+  .splash-frame .logo-img{ position: relative; z-index: 1; margin: 0 auto; }
+  .corner-mark{
+    position: absolute;
+    width: 22px; height: 22px;
+    border: 1px solid var(--accent-line);
+    opacity: 0;
+    transition: opacity 1s ease .9s;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .corner-mark.tr{ top: 0; right: 0; border-bottom: none; border-left: none; }
+  .corner-mark.bl{ bottom: 0; left: 0; border-top: none; border-right: none; }
+  body.phase-2 .corner-mark, body.phase-3 .corner-mark, body.phase-4 .corner-mark{ opacity: 1; }
+
+  /* ============ PHASE 3 — PROGRESS BAR ============ */
+  .progress-wrap{
+    position: absolute;
+    bottom: 14%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(440px, 70vw);
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s ease;
+  }
+  body.phase-3 .progress-wrap{ opacity: 1 }
+  body.phase-4 .progress-wrap{ opacity: 0 }
+  .progress-label{
+    font-family: var(--font-ar);
+    font-size: 13px;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+  }
+  .progress-track{
+    height: 2px;
+    background: rgba(201,169,97,0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill{
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent));
+    border-radius: 999px;
+    box-shadow: 0 0 12px var(--accent-soft);
+    transition: width 1.5s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+  .progress-fill::after{
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 30px; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+    filter: blur(2px);
+  }
+  body.phase-3 .progress-fill{ width: 100% }
+  .progress-meta{
+    display: flex; justify-content: space-between;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    letter-spacing: 1.5px;
+    direction: ltr;
+  }
+  .progress-meta .pct{ color: var(--accent) }
+
+  /* ============ PHASE 4 — ENTER PROMPT ============ */
+  .enter{
+    position: absolute;
+    bottom: 14%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .8s ease .2s;
+  }
+  body.phase-4 .enter{
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .enter-prompt{
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    margin-top: 0;
+    animation: enterPulse 2.5s ease-in-out infinite;
+  }
+  .enter-prompt .ar{
+    display: block;
+    font-family: var(--font-ar);
+    font-size: 0.8rem;
+    color: rgba(201,169,97,0.7);
+    letter-spacing: 0.15em;
+    font-weight: 500;
+  }
+  .enter-prompt .en{
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: rgba(201,169,97,0.5);
+    letter-spacing: 0.6em;
+    margin-top: 6px;
+    direction: ltr;
+  }
+  @keyframes enterPulse{
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 1; }
+  }
+  .enter-sub{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 4px;
+    margin-top: 14px;
+    text-transform: uppercase;
+    direction: ltr;
+  }
+  .enter-sub b{ color: var(--ink-dim); font-weight: 500 }
+
+  /* ============ FOOTER ID ============ */
+  .corner-id{
+    position: fixed;
+    bottom: 18px;
+    inset-inline-start: 24px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 2px;
+    direction: ltr;
+    opacity: 0;
+    transition: opacity 1s ease 1.6s;
+  }
+  body.phase-2 .corner-id, body.phase-3 .corner-id, body.phase-4 .corner-id{ opacity: 1 }
+  .corner-version{
+    position: fixed;
+    bottom: 18px;
+    inset-inline-end: 24px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 2px;
+    direction: ltr;
+    opacity: 0;
+    transition: opacity 1s ease 1.6s;
+  }
+  body.phase-2 .corner-version, body.phase-3 .corner-version, body.phase-4 .corner-version{ opacity: 1 }
+  .corner-version .live{
+    color: #4FB477;
+    margin-inline-end: 4px;
+    animation: pulse 2s infinite;
+  }
+
+  /* ============ WHITE FLASH ============ */
+  .flash{
+    position: fixed; inset: 0;
+    background: #ffffff;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  .flash.on{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* skip hint */
+  .skip-hint{
+    position: fixed;
+    top: 18px;
+    inset-inline-end: 24px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 2px;
+    direction: ltr;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .3s ease, color .15s ease;
+    background: rgba(20,21,15,0.5);
+    padding: 6px 12px;
+    border: 1px solid rgba(232,228,217,0.08);
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+  }
+  body.phase-2 .skip-hint, body.phase-3 .skip-hint{ opacity: .5 }
+  .skip-hint:hover{ color: var(--accent); opacity: 1 }
+
+  /* ============ MOBILE — ≤ 768px ============ */
+  @media (max-width: 768px){
+    .logo-img{ width: 240px; max-width: 70vw; }
+    .bios{ font-size: 0.65rem; padding: 16px; line-height: 1.7; }
+    .splash-frame{ padding: 24px 28px; }
+    .splash-en{ font-size: 0.6rem; letter-spacing: 0.4em; }
+    .splash-line{ width: 75%; }
+    /* status bar at bottom of splash — hide on mobile (too cramped) */
+    .splash-status{ display: none; }
+    .progress-wrap{ width: min(320px, 84vw); bottom: 18%; }
+    .progress-label{ font-size: 12px; }
+    .enter{ bottom: 18%; width: 92vw; }
+    .enter-prompt .ar{ font-size: 0.75rem; }
+    .enter-prompt .en{ font-size: 0.6rem; letter-spacing: 0.4em; }
+    .enter-sub{ font-size: 10px; letter-spacing: 2px; }
+    .corner-id, .corner-version{ font-size: 9px; letter-spacing: 1px; bottom: 10px; }
+    .corner-id{ inset-inline-start: 12px; }
+    .corner-version{ inset-inline-end: 12px; }
+    .skip-hint{ top: 10px; inset-inline-end: 12px; font-size: 9px; padding: 4px 8px; }
+    body.phase-4 .splash{ padding-top: 8vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Ambient layers -->
+<div class="glow"></div>
+<div class="crt"></div>
+<div class="vignette"></div>
+
+<!-- Phase 1 — BIOS -->
+<div class="bios" id="bios"></div>
+
+<!-- Phase 2 — Splash -->
+<div class="splash">
+  <div class="splash-frame">
+    <span class="halo"></span>
+    <span class="corner-mark tr"></span>
+    <span class="corner-mark bl"></span>
+    <img src="arsann-logo.svg" alt="أرسان" class="logo-img">
+  </div>
+  <div class="splash-en">ARSANN&nbsp;&nbsp;/&nbsp;&nbsp;OS</div>
+  <div class="splash-line"></div>
+  <div class="splash-status">
+    <span class="dot"></span>
+    <span>SYSTEM ONLINE</span>
+    <span class="sep">·</span>
+    <span>ZONE A.01</span>
+    <span class="sep">·</span>
+    <span>BUILD v2.0.1</span>
+  </div>
+</div>
+
+<!-- Phase 3 — Progress -->
+<div class="progress-wrap">
+  <div class="progress-label">جارٍ تحميل النظام…</div>
+  <div class="progress-track">
+    <div class="progress-fill"></div>
+  </div>
+  <div class="progress-meta">
+    <span>LOADING&nbsp;MODULES</span>
+    <span class="pct" id="pct">0%</span>
+  </div>
+</div>
+
+<!-- Phase 4 — Enter -->
+<div class="enter" id="enter">
+  <div class="enter-prompt">
+    <span class="ar">اضغط للدخول</span>
+    <span class="en">PRESS&nbsp;&nbsp;ANY&nbsp;&nbsp;KEY</span>
+  </div>
+  <div class="enter-sub"><b>DASHBOARD</b> · <b>SPINE</b> · <b>TODAY</b></div>
+</div>
+
+<!-- Corners -->
+<div class="corner-id">ARSANN-A1 · CORE × 8 · 3.6 GHz</div>
+<div class="corner-version"><span class="live">●</span> READY</div>
+
+<!-- Skip -->
+<div class="skip-hint" id="skipHint">SKIP →</div>
+
+<!-- White flash overlay -->
+<div class="flash" id="flash"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const TARGET = 'dashboard.html';
+
+  // ============ BIOS LINES ============
+  const BIOS_LINES = [
+    { t: 'ARSANN OS  v2.0.1' },
+    { t: 'COPYRIGHT © 2026 ARSANN CORP. ALL RIGHTS RESERVED.', dim: true },
+    { t: '' },
+    { t: 'CPU: ARSANN-A1 CORE × 8   3.6 GHz' },
+    { t: 'RAM: 32768 MB                                    <span class="ok">OK</span>' },
+    { t: 'STORAGE: 2048 GB NVMe SSD                        <span class="ok">OK</span>' },
+    { t: 'NETWORK: CONNECTED  192.168.1.1' },
+    { t: '' },
+    { t: 'INITIALIZING KERNEL...                           <span class="ok">OK</span>' },
+    { t: 'LOADING MODULES...                               <span class="ok">OK</span>' },
+    { t: 'MOUNTING FILESYSTEMS...                          <span class="ok">OK</span>' },
+  ];
+
+  const bios = document.getElementById('bios');
+  let lineIdx = 0;
+
+  function emitLine(){
+    if (lineIdx >= BIOS_LINES.length) {
+      // Trailing blink cursor
+      const cursor = document.createElement('div');
+      cursor.className = 'bios-line shown';
+      cursor.innerHTML = '<span class="blink"></span>';
+      bios.appendChild(cursor);
+      // Move to phase 2 after a short hold
+      setTimeout(() => enterPhase2(), 360);
+      return;
+    }
+    const l = BIOS_LINES[lineIdx];
+    const div = document.createElement('div');
+    div.className = 'bios-line shown' + (l.dim ? ' dim' : '');
+    div.innerHTML = l.t || '&nbsp;';
+    bios.appendChild(div);
+    lineIdx++;
+    setTimeout(emitLine, 80);
+  }
+
+  // ============ Phase ticks ============
+  function enterPhase2(){
+    document.body.classList.add('phase-2');
+    setTimeout(enterPhase3, 1800);  // splash holds for ~1.8s
+  }
+  function enterPhase3(){
+    document.body.classList.add('phase-3');
+    // Animate percentage counter alongside the CSS-transitioned bar
+    const pctEl = document.getElementById('pct');
+    const start = performance.now();
+    const duration = 1500;
+    function tickPct(now){
+      const t = Math.min(1, (now - start) / duration);
+      const v = Math.round(t * 100);
+      pctEl.textContent = v + '%';
+      if (t < 1) requestAnimationFrame(tickPct);
+    }
+    requestAnimationFrame(tickPct);
+    setTimeout(enterPhase4, duration + 100);
+  }
+  function enterPhase4(){
+    document.body.classList.add('phase-4');
+    bindEnter();
+  }
+
+  // ============ Enter handler ============
+  let triggered = false;
+  function trigger(){
+    if (triggered) return;
+    triggered = true;
+    const flash = document.getElementById('flash');
+    flash.classList.add('on');
+    // After flash settles, navigate
+    setTimeout(() => { window.location.href = TARGET; }, 220);
+  }
+  function bindEnter(){
+    const handler = () => trigger();
+    document.addEventListener('click', handler);
+    document.addEventListener('keydown', handler);
+    document.addEventListener('touchstart', handler, { passive: true });
+  }
+
+  // ============ Skip ============
+  const skip = document.getElementById('skipHint');
+  skip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // jump straight to phase 4 if not there yet
+    if (!document.body.classList.contains('phase-4')) {
+      document.body.classList.add('phase-2','phase-3','phase-4');
+      document.getElementById('pct').textContent = '100%';
+      bindEnter();
+    } else {
+      trigger();
+    }
+  });
+
+  // ============ Kick off ============
+  // Tiny delay so the fonts have a chance to start loading before first paint
+  setTimeout(emitLine, 150);
+
+  // Failsafe: if user revisits via back nav, never autoplay twice
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) window.location.reload();
+  });
+})();
+</script>
+
+</body>
+</html>

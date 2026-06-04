@@ -1318,7 +1318,7 @@ a{color: inherit; text-decoration: none}
     <div class="launcher-head">
       <div>
         <div class="launcher-greet" id="greetText">صباح الخير · يوم الأربعاء</div>
-        <h1 class="launcher-title">العمود <span class="accent">الفقري</span> التنفيذي.</h1>
+        <h1 class="launcher-title">المنصة <span class="accent">التنفيذية</span>.</h1>
       </div>
       <div class="launcher-meta">
         <div class="now mono" id="nowClock">—</div>
@@ -1399,6 +1399,16 @@ a{color: inherit; text-decoration: none}
       <div class="section-title" style="color:var(--ink-4)">07</div>
     </div>
     <div class="app-grid" id="grid-res"></div>
+
+    <!-- App grid: Administration (admin-only) -->
+    <div id="adminSection" style="display:none">
+      <div class="section-head" style="margin-top:32px">
+        <div class="section-title">Administration · الإدارة والصلاحيات</div>
+        <div class="section-line"></div>
+        <div class="section-title" style="color:var(--ink-4)">08</div>
+      </div>
+      <div class="app-grid" id="grid-admin"></div>
+    </div>
 
   </main>
 
@@ -1593,6 +1603,14 @@ const MODULES = [
     desc:'٤٨ موظف · ٧ إدارات', count:'48', status:'shell' },
   { id:'vault',      group:'res', icon:'m-vault',      name:'مستودع الوثائق',        sub:'Documents Vault',
     desc:'١٬٢٠٤ ملف · ٤ مجلدات', count:'1.2K', status:'shell' },
+
+  // Administration (admin-only) — gated client-side + enforced on the Worker
+  { id:'users',    group:'admin', icon:'m-people',     name:'المستخدمون والصلاحيات', sub:'Users & Permissions',
+    desc:'الأدوار · الدعوات · إعادة تعيين كلمة السر', count:'admin', pulse:'green', status:'live', url:'users.html' },
+  { id:'depts',    group:'admin', icon:'m-compliance', name:'إدارة الإدارات',        sub:'Departments',
+    desc:'إضافة · تعديل · ترتيب الإدارات', count:'7', status:'live', url:'depts-admin.html' },
+  { id:'announce', group:'admin', icon:'m-reports',    name:'الإعلانات',             sub:'Announcements',
+    desc:'إرسال إعلان للمنصّة بالكامل', count:'live', pulse:'green', status:'live', url:'announcements.html' },
 ];
 
 /* -------------- Render app grid -------------- */
@@ -1611,7 +1629,7 @@ function tileHTML(m){
     </div>`;
 }
 function renderGrid(){
-  const groups = { core:'grid-core', biz:'grid-biz', gov:'grid-gov', res:'grid-res' };
+  const groups = { core:'grid-core', biz:'grid-biz', gov:'grid-gov', res:'grid-res', admin:'grid-admin' };
   Object.keys(groups).forEach(g => {
     const el = document.getElementById(groups[g]);
     el.innerHTML = MODULES.filter(m=>m.group===g).map(tileHTML).join('');
@@ -1619,6 +1637,34 @@ function renderGrid(){
   });
 }
 renderGrid();
+
+/* -------------- Admin gating + topbar identity -------------- */
+function spineIsAdmin(){
+  try{
+    const me = JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || '{}');
+    return me.role === 'admin' || me.email === 'a.king@arsann.com';
+  }catch(_){ return false; }
+}
+(function wireIdentity(){
+  const admin = spineIsAdmin();
+  // Reveal the Administration section only for admins
+  if (admin){ const sec = document.getElementById('adminSection'); if (sec) sec.style.display = ''; }
+  // Reflect the signed-in user in the topbar chip
+  let me = {};
+  try{ me = JSON.parse(localStorage.getItem('arsan_me_v1') || localStorage.getItem('arsan_me') || '{}'); }catch(_){}
+  if (me && me.email){
+    const ava = document.querySelector('.tb-user .ava');
+    const nm  = document.querySelector('.tb-user span');
+    if (ava) ava.textContent = (me.email[0] || 'A').toUpperCase();
+    if (nm)  nm.textContent  = me.email.split('@')[0];
+  }
+  // User chip → profile
+  const chip = document.querySelector('.tb-user');
+  if (chip){ chip.style.cursor = 'pointer'; chip.title = 'الملف الشخصي'; chip.onclick = () => location.href = 'profile.html'; }
+  // Settings cog → admin lands on Users & Permissions, others on their profile
+  const cog = document.querySelector('.tb-btn[title="الإعدادات"]');
+  if (cog){ cog.onclick = () => location.href = admin ? 'users.html' : 'profile.html'; }
+})();
 
 /* -------------- Needs Your Attention -------------- */
 const ATTENTION = [
@@ -1836,7 +1882,8 @@ function closeCmdk(){ cmdkBd.classList.remove('open'); cmdkInput.value=''; }
 function renderCmdk(q){
   q = q.trim().toLowerCase();
   const items = MODULES.filter(m =>
-    !q || m.name.toLowerCase().includes(q) || m.sub.toLowerCase().includes(q) || m.id.includes(q)
+    (m.group !== 'admin' || spineIsAdmin()) &&
+    (!q || m.name.toLowerCase().includes(q) || m.sub.toLowerCase().includes(q) || m.id.includes(q))
   );
   cmdkList.innerHTML = items.map((m,i)=>`
     <div class="cmdk-item ${i===0?'active':''}" data-id="${m.id}">

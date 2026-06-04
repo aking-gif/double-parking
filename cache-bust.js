@@ -71,7 +71,7 @@
       <style>
         #arsan-update-banner{
           position:fixed; top:0; left:0; right:0; z-index:99998;
-          background:linear-gradient(135deg,#8B6F00,#B48B2A);
+          background:linear-gradient(135deg,#C9A961,#B48B2A);
           color:#fff; padding:12px 20px;
           display:flex; align-items:center; justify-content:center; gap:16px;
           font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
@@ -82,7 +82,7 @@
         @keyframes aub-slide-in { from{transform:translateY(-100%)} to{transform:translateY(0)} }
         #arsan-update-banner button{
           padding:6px 18px; border-radius:6px; border:0;
-          background:#fff; color:#8B6F00; font-weight:700;
+          background:#fff; color:#A8893A; font-weight:700;
           cursor:pointer; font-family:inherit; font-size:13px;
           transition:transform .15s;
         }
@@ -120,7 +120,7 @@
     t.textContent = msg;
     t.style.cssText = `
       position:fixed; bottom:20px; right:20px; z-index:99999;
-      background:#8B6F00; color:#fff; padding:12px 20px;
+      background:#C9A961; color:#fff; padding:12px 20px;
       border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.25);
       font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;
       font-size:13px; font-weight:500;
@@ -203,7 +203,8 @@
   // 8. Boot
   // ============================================================
   function boot(){
-    injectRefreshButton();
+    // زر "تحديث" اليدوي أُزيل من الهيدر بناءً على طلب الإدارة (فحص النسخة يبقى تلقائياً)
+    // injectRefreshButton();
     // فحص أولي بعد 2 ثانية من تحميل الصفحة
     setTimeout(checkVersion, 2000);
     // فحص دوري

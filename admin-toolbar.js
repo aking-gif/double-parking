@@ -168,7 +168,7 @@
     max-height:85vh; overflow-y:auto;
   }
   html[data-theme="dark"] .arsan-md{ background:#18191B; color:#F3F1EA }
-  .arsan-md h2{ margin:0 0 6px; font-size:18px; color:#8B6F00 }
+  .arsan-md h2{ margin:0 0 6px; font-size:18px; color:#A8893A }
   .arsan-md p.muted{ margin:0 0 18px; color:#6B7280; font-size:13px }
   .arsan-md label{
     display:block; font-size:12px; font-weight:600;
@@ -186,7 +186,7 @@
   html[data-theme="dark"] .arsan-md textarea,
   html[data-theme="dark"] .arsan-md select{ background:#141517; color:#F3F1EA; border-color:#262729 }
   .arsan-md input:focus, .arsan-md textarea:focus, .arsan-md select:focus{
-    border-color:#8B6F00; outline:none;
+    border-color:#C9A961; outline:none;
   }
   .arsan-md-err{ color:#c43; font-size:12px; min-height:16px; margin-top:8px }
   .arsan-md-actions{
@@ -198,7 +198,7 @@
     transition:.15s; border:0; cursor:pointer;
     font-family:inherit;
   }
-  .arsan-md .btn-primary{ background:#8B6F00; color:#fff }
+  .arsan-md .btn-primary{ background:#C9A961; color:#fff }
   .arsan-md .btn-primary:hover{ filter:brightness(1.1) }
   .arsan-md .btn-ghost{ background:transparent; color:#374151; border:1px solid #E7E3D8 }
   html[data-theme="dark"] .arsan-md .btn-ghost{ color:#D7D3C7; border-color:#262729 }
@@ -873,7 +873,7 @@
         <div id="ns_err" style="color:#dc2626;font-size:13px;margin-bottom:8px"></div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button id="ns_cancel" style="padding:10px 18px;border:1px solid #d1d5db;background:#fff;border-radius:8px;cursor:pointer;font-family:inherit">إلغاء</button>
-          <button id="ns_save" style="padding:10px 18px;background:#8B6F00;color:#fff;border:0;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit">حفظ</button>
+          <button id="ns_save" style="padding:10px 18px;background:#C9A961;color:#fff;border:0;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit">حفظ</button>
         </div>
       </div>`;
     document.body.appendChild(bd);

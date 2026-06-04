@@ -635,7 +635,7 @@
     }
 
     const iconIn = el('input', { type: 'text', placeholder: '📢', value: existing?.icon || '📂', maxlength: '4' });
-    const colorIn = el('input', { type: 'color', value: existing?.color || '#8B6F00', class: 'asst-color' });
+    const colorIn = el('input', { type: 'color', value: existing?.color || '#C9A961', class: 'asst-color' });
     const status = el('div', { class: 'asst-status' });
 
     const saveBtn = el('button', { class: 'asst-btn primary', onclick: async () => {

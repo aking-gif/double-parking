@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=[];var x=false;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const M=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const R=q.length-q.trimStart().length;const m=q.length-q.trimEnd().length;if(R+m>=q.length)return K;return w(`txt:${C}:${K.start+R}:${K.end-m}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;M($,E(C),B(C))},JSXFragment($,C){M($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.type==="omelette-preview-refresh"){if(typeof J.token!=="string"||!/^[0-9a-f.-]+$/.test(J.token))return;const z=Math.max(1,Math.floor((J.expiresAt||0)-Date.now()/1000));document.cookie="__Host-omelette-preview="+J.token+"; Path=/; Secure; SameSite=None; Partitioned; Max-Age="+z;return}if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
-</script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRM — Spine</title>
@@ -98,6 +95,14 @@
     font-weight: 600; font-size: 11px;
   }
   .crm-table .nm{ display: flex; align-items: center; gap: 10px }
+  /* Loading skeleton (prevents blank-flash before API resolves) */
+  .sk-shimmer{ background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface) 37%,var(--surface-2) 63%); background-size:400% 100%; animation:sk 1.4s ease infinite; border-radius:8px }
+  @keyframes sk{ 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+  .sk-row{ height:46px; margin-bottom:8px }
+  .crm-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:12px; padding:56px 24px; color:var(--ink-4) }
+  .crm-empty .ic{ width:54px; height:54px; border-radius:14px; background:var(--accent-soft); border:1px solid var(--accent-line,rgba(201,169,97,.25)); display:flex; align-items:center; justify-content:center; font-size:24px }
+  .crm-empty .ttl{ font-size:15px; font-weight:600; color:var(--ink-2) }
+  .crm-empty .hint{ font-size:12.5px; color:var(--ink-4); max-width:300px; line-height:1.7 }
   .stage-pill{
     display: inline-block; padding: 2px 8px; font-size: 10px;
     border-radius: 999px; background: var(--surface-3); color: var(--ink-2);
@@ -154,6 +159,7 @@
 .brand-mark{ width:32px !important; height:32px !important; background:transparent !important; border:none !important; display:flex; align-items:center; justify-content:center; padding:0 !important; filter:drop-shadow(0 2px 6px rgba(201,169,97,0.25)); }
 .brand-mark svg{ display:block; width:auto; height:100%; }
 </style>
+<link rel="stylesheet" href="arsann-fonts.css">
 </head>
 <body>
 
@@ -166,7 +172,7 @@
     <div>ARSANN <span style="margin:0 4px">/</span> OS <span style="margin:0 4px">/</span> <span style="color:var(--accent)">CRM</span></div>
   </div>
   <header class="topbar">
-    <div class="brand" onclick="location.href='spine.html'">
+    <div class="brand" onclick="location.href='welcome.html'">
       <div class="brand-mark" id="arsan-brand-logo"></div>
       <div class="brand-name">THE SPINE <span class="accent">/ ARSANN</span></div>
     </div>
@@ -225,10 +231,16 @@ const STAGES = [
 (async () => {
   const me = await A.ensureAuth().catch(()=>null);
   // Continue in demo mode even without auth
-  document.getElementById('meStrip').textContent = me.email || '';
+  document.getElementById('meStrip').textContent = (me && me.email) || '';
+  renderSkeleton();
   await loadAll();
   render();
 })();
+
+function renderSkeleton(){
+  const host = document.getElementById('host');
+  if (host) host.innerHTML = '<div class="card card-pad">' + Array.from({length:6}).map(()=>'<div class="sk-shimmer sk-row"></div>').join('') + '</div>';
+}
 
 async function loadAll(){
   try {
@@ -244,10 +256,6 @@ async function loadAll(){
     DATA.tickets = tk.tickets || [];
   } catch(e){}
 
-  if (!DATA.companies.length && !DATA.deals.length){
-    seedDemo();
-  }
-
   document.getElementById('cnt-co').textContent = DATA.companies.length;
   document.getElementById('cnt-ct').textContent = DATA.contacts.length;
   document.getElementById('cnt-d').textContent = DATA.deals.length;
@@ -255,37 +263,6 @@ async function loadAll(){
   document.getElementById('cnt-tk').textContent = DATA.tickets.filter(t => t.status !== 'resolved' && t.status !== 'closed').length;
 
   renderStats();
-}
-
-function seedDemo(){
-  DATA.companies = [
-    { id:'co1', name:'مجموعة الفيصل القابضة', industry:'مقاولات', size:'500+', city:'الرياض', phone:'+966 11 234 5678', website:'faisal-group.sa', dealsValue:1850000, contactsCount:4, owner:'a.king' },
-    { id:'co2', name:'شركة الإعمار للتطوير', industry:'تطوير عقاري', size:'200-500', city:'جدة', phone:'+966 12 345 6789', website:'imar-dev.sa', dealsValue:920000, contactsCount:3, owner:'a.king' },
-    { id:'co3', name:'الراجحي للاستثمار', industry:'استثمار', size:'1000+', city:'الرياض', phone:'+966 11 456 7890', website:'rajhi-inv.com', dealsValue:0, contactsCount:2, owner:'a.king' },
-    { id:'co4', name:'النخبة للمقاولات', industry:'مقاولات', size:'50-200', city:'الدمام', phone:'+966 13 567 8901', website:'nukhba.sa', dealsValue:480000, contactsCount:2, owner:'a.king' },
-    { id:'co5', name:'مكتب البناء الهندسي', industry:'استشارات هندسية', size:'10-50', city:'الرياض', phone:'+966 11 678 9012', website:'binaa-eng.sa', dealsValue:150000, contactsCount:1, owner:'a.king' }
-  ];
-  DATA.contacts = [
-    { id:'ct1', name:'محمد الفيصل', title:'المدير التنفيذي', companyId:'co1', email:'mfaisal@faisal-group.sa', phone:'+966 50 123 4567', avatar:'م' },
-    { id:'ct2', name:'سارة العتيبي', title:'مدير المشتريات', companyId:'co1', email:'sara@faisal-group.sa', phone:'+966 50 234 5678', avatar:'س' },
-    { id:'ct3', name:'أحمد الإعمار', title:'مدير التطوير', companyId:'co2', email:'a.imar@imar-dev.sa', phone:'+966 50 345 6789', avatar:'أ' },
-    { id:'ct4', name:'فهد الراجحي', title:'رئيس الاستثمار', companyId:'co3', email:'fahd@rajhi-inv.com', phone:'+966 50 456 7890', avatar:'ف' },
-    { id:'ct5', name:'خالد النخبة', title:'مدير العمليات', companyId:'co4', email:'k.nukhba@nukhba.sa', phone:'+966 50 567 8901', avatar:'خ' },
-    { id:'ct6', name:'نورة الهندسي', title:'مهندسة معمارية', companyId:'co5', email:'noura@binaa-eng.sa', phone:'+966 50 678 9012', avatar:'ن' }
-  ];
-  DATA.deals = [
-    { id:'d1', title:'مشروع برج الفيصل التجاري', companyId:'co1', contactId:'ct1', value:1850000, stage:'negotiation', probability:80, expectedClose:'2026-06-30', owner:'a.king' },
-    { id:'d2', title:'مجمع سكني — الإعمار', companyId:'co2', contactId:'ct3', value:920000, stage:'proposal', probability:60, expectedClose:'2026-07-15', owner:'a.king' },
-    { id:'d3', title:'مشروع تطوير المرحلة 2', companyId:'co4', contactId:'ct5', value:480000, stage:'qualified', probability:40, expectedClose:'2026-08-20', owner:'a.king' },
-    { id:'d4', title:'استشارة هندسية ربع سنوية', companyId:'co5', contactId:'ct6', value:150000, stage:'lead', probability:20, expectedClose:'2026-09-01', owner:'a.king' },
-    { id:'d5', title:'مشروع مكتبي — الفيصل', companyId:'co1', contactId:'ct2', value:380000, stage:'won', probability:100, expectedClose:'2026-04-15', owner:'a.king' }
-  ];
-  DATA.tickets = [
-    { id:'tk1', code:'TK-2026-001', title:'تأخر في تسليم المرحلة الثالثة', companyId:'co1', priority:'urgent', status:'open', createdAt: Date.now()-1000*60*60*24*2, assignee:'a.king' },
-    { id:'tk2', code:'TK-2026-002', title:'استفسار عن شروط الدفع', companyId:'co2', priority:'medium', status:'in-progress', createdAt: Date.now()-1000*60*60*24, assignee:'a.king' },
-    { id:'tk3', code:'TK-2026-003', title:'طلب تعديل عقد', companyId:'co4', priority:'high', status:'open', createdAt: Date.now()-1000*60*60*8, assignee:'a.king' },
-    { id:'tk4', code:'TK-2026-004', title:'فاتورة الشهر السابق', companyId:'co1', priority:'low', status:'resolved', createdAt: Date.now()-1000*60*60*24*5, assignee:'a.king' }
-  ];
 }
 
 function renderStats(){
@@ -323,9 +300,17 @@ function render(){
   attachHandlers();
 }
 
+// ===== Empty state =====
+function crmEmpty(ic, ttl, hint){
+  return `<div class="card"><div class="crm-empty"><div class="ic">${ic}</div><div class="ttl">${ttl}</div>${hint?`<div class="hint">${hint}</div>`:''}</div></div>`;
+}
+const CRM_NORESULTS = () => crmEmpty('🔍','لا نتائج مطابقة','لم نعثر على ما يطابق بحثك. جرّب كلمة أخرى أو امسح البحث.');
+
 // ===== Pipeline =====
 function renderPipeline(){
+  if (!DATA.deals.length) return crmEmpty('📊','لا صفقات بعد','عند إضافة صفقاتك ستظهر هنا موزّعة على مراحل خط الأنابيب.');
   const filtered = DATA.deals.filter(d => !SEARCH || d.title.toLowerCase().includes(SEARCH));
+  if (!filtered.length) return CRM_NORESULTS();
   return `<div class="pipe">
     ${STAGES.map(s => {
       const inStage = filtered.filter(d => d.stage === s.id);
@@ -353,7 +338,9 @@ function dealCardHTML(d){
 
 // ===== Companies =====
 function renderCompanies(){
+  if (!DATA.companies.length) return crmEmpty('🏢','لا شركات بعد','أضف أول شركة لتبدأ ببناء قاعدة عملائك.');
   const list = DATA.companies.filter(c => !SEARCH || c.name.toLowerCase().includes(SEARCH) || (c.city||'').toLowerCase().includes(SEARCH));
+  if (!list.length) return CRM_NORESULTS();
   return `<div class="card"><table class="crm-table">
     <thead><tr><th>الشركة</th><th>المجال</th><th>الحجم</th><th>المدينة</th><th>صفقات نشطة</th><th>قيمة الصفقات</th></tr></thead>
     <tbody>${list.map(c => `
@@ -371,7 +358,9 @@ function renderCompanies(){
 
 // ===== Contacts =====
 function renderContacts(){
+  if (!DATA.contacts.length) return crmEmpty('👥','لا جهات اتصال بعد','جهات الاتصال المرتبطة بشركاتك ستظهر هنا.');
   const list = DATA.contacts.filter(c => !SEARCH || c.name.toLowerCase().includes(SEARCH) || (c.email||'').toLowerCase().includes(SEARCH));
+  if (!list.length) return CRM_NORESULTS();
   return `<div class="card"><table class="crm-table">
     <thead><tr><th>الاسم</th><th>المنصب</th><th>الشركة</th><th>البريد</th><th>الجوال</th></tr></thead>
     <tbody>${list.map(c => {
@@ -389,7 +378,9 @@ function renderContacts(){
 
 // ===== Deals =====
 function renderDeals(){
+  if (!DATA.deals.length) return crmEmpty('💼','لا صفقات بعد','الصفقات التي تضيفها ستظهر هنا بكل تفاصيلها.');
   const list = DATA.deals.filter(d => !SEARCH || d.title.toLowerCase().includes(SEARCH));
+  if (!list.length) return CRM_NORESULTS();
   return `<div class="card"><table class="crm-table">
     <thead><tr><th>الصفقة</th><th>الشركة</th><th>القيمة</th><th>المرحلة</th><th>احتمالية</th><th>التاريخ المتوقع</th></tr></thead>
     <tbody>${list.map(d => {
@@ -409,7 +400,9 @@ function renderDeals(){
 
 // ===== Tickets =====
 function renderTickets(){
+  if (!DATA.tickets.length) return crmEmpty('🎫','لا تذاكر دعم','عند فتح تذاكر دعم لعملائك ستظهر هنا.');
   const list = DATA.tickets.filter(t => !SEARCH || t.title.toLowerCase().includes(SEARCH) || t.code.toLowerCase().includes(SEARCH));
+  if (!list.length) return CRM_NORESULTS();
   return `<div class="card card-pad">${list.map(t => {
     const co = DATA.companies.find(c => c.id === t.companyId);
     return `<div class="ticket-row ${t.priority||''} ${t.status==='resolved'?'resolved':''}" data-tk="${t.id}">

@@ -336,7 +336,7 @@
       { icon:'📋', label:t('مركز الإعلانات','Announcements Center'), action: () => { location.href = 'announcements.html'; } },
       { icon:'🛡️', label:t('لوحة التحكم','Admin Panel'), action: () => window.ArsanUI?.showAdmin?.() },
       { icon:'👥', label:t('المستخدمون والصلاحيات','Users & Permissions'), action: () => { location.href = 'users.html'; } },
-      { icon:'🏢', label:t('إدارة الإدارات','Manage Departments'), action: () => window.ArsanAdminToolbar?.openManageDepts?.() || (location.href='index.html') },
+      { icon:'🏢', label:t('إدارة الإدارات','Manage Departments'), action: () => window.ArsanAdminToolbar?.openManageDepts?.() || (location.href='depts-admin.html') },
       { icon:'🗂️', label:t('سجل النشاط (Audit)','Audit Log'), action: () => window.ArsanAudit?.open?.() },
       { icon:'💬', label:t('مركز الرسائل','Messaging Hub'), action: () => window.ArsanMessaging?.open?.() },
       { icon:'🔗', label:t('Webhooks وتكاملات','Webhooks & Integrations'), action: () => window.ArsanWebhooks?.open?.() },

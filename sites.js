@@ -33,7 +33,7 @@
         </div>
         <div style="display:flex;gap:6px;margin-top:6px">
           <input data-mgr placeholder="مدير الموقع (إيميل)" style="flex:1;padding:6px;border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink);font-size:12px">
-          <button data-add style="background:var(--brand,#bf9b30);color:#fff;border:0;padding:6px 16px;border-radius:5px;cursor:pointer;font-weight:600">+ موقع</button>
+          <button data-add style="background:var(--accent,#C9A961);color:#1a1300;border:0;padding:6px 16px;border-radius:5px;cursor:pointer;font-weight:600">+ موقع</button>
         </div>
       </div>` : ''}
       <div data-list style="display:flex;flex-direction:column;gap:8px">
@@ -46,7 +46,7 @@
             <span style="background:${s.status==='active'?'#d3f9d8':'#ffe3e3'};color:${s.status==='active'?'#2b7a3a':'#a61e1e'};padding:2px 9px;border-radius:10px;font-size:10.5px;font-weight:600">${esc(s.status||'active')}</span>
             ${isAdmin ? `<button data-del="${esc(s.id)}" style="background:none;border:0;color:#c33;cursor:pointer;font-size:14px">×</button>` : ''}
           </div>
-        </div>`).join('') : '<div style="text-align:center;color:var(--ink-3);padding:30px">لا توجد مواقع. ${isAdmin?"أضف الموقع الأول أعلاه.":""}</div>'}
+        </div>`).join('') : `<div style="text-align:center;color:var(--ink-3);padding:30px">لا توجد مواقع.${isAdmin?' أضف الموقع الأول أعلاه.':''}</div>`}
       </div>
     </div>`;
     document.body.appendChild(bd);

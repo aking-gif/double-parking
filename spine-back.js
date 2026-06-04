@@ -85,7 +85,7 @@
     btn.title = 'العودة للعمود الفقري';
     btn.innerHTML = `
       <span class="sb-mark">A</span>
-      <span class="sb-label">العمود الفقري</span>
+      <span class="sb-label">المنصة</span>
       <span class="sb-sub">SPINE</span>
       <span class="sb-arrow">←</span>
     `;

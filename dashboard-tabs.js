@@ -676,7 +676,7 @@
   function footActions(items){
     const u = items.filter(a => normPri(a) === 'urgent').length;
     const h = items.filter(a => normPri(a) === 'high').length;
-    return `<span>${u} URGENT · ${h} HIGH PRIORITY</span><a href="spine.html#approvals">عرض في العمود الفقري ←</a>`;
+    return `<span>${u} URGENT · ${h} HIGH PRIORITY</span><a href="spine.html#approvals">عرض في المنصة ←</a>`;
   }
   function footCalendar(items){ return `<span>${items.length} EVENTS SCHEDULED</span><a href="calendar.html">فتح التقويم الكامل ←</a>`; }
   function footMail(items){ const f = items.filter(m => m.flagged || m.urgent || /urgent|action/i.test(m.tag||'')).length; return `<span>${f} FLAGGED FOR ACTION</span><a href="mail.html">فتح البريد الكامل ←</a>`; }

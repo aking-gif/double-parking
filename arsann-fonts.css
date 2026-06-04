@@ -1,0 +1,64 @@
+/* =====================================================================
+   ARSANN — Brand typeface: 29LT Zarid Slab
+   One file. Link LAST in <head> on any page to apply everywhere.
+   Maps the 8 uploaded weights and overrides the Arabic + Latin text
+   fonts. Monospace HUD labels (--font-mono) are intentionally left
+   untouched so the technical micro-labels keep their alignment.
+   ===================================================================== */
+
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Thin.otf") format("opentype");
+  font-weight: 100; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-ExtraLight.otf") format("opentype");
+  font-weight: 200; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Light.otf") format("opentype");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Regular.otf") format("opentype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Medium.otf") format("opentype");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-SemiBold.otf") format("opentype");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face{
+  font-family: "Zarid Slab";
+  src: url("fonts/29LTZaridSlab-Black.otf") format("opentype");
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+
+/* --- Re-point the design tokens at the brand face ------------------ */
+:root{
+  --font-ar: "Zarid Slab", "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+  --font-en: "Zarid Slab", "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+}
+
+/* --- Catch pages that hardcode a family on <body> (e.g. dashboard) - */
+body{
+  font-family: "Zarid Slab", "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+}
+
+/* Inputs / buttons / textareas that inherit should follow the body. */
+input, textarea, select, button{
+  font-family: inherit;
+}

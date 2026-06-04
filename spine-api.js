@@ -199,12 +199,19 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // Format a number with Arabic-locale grouping (e.g. 18500 → "18,500")
+  function fmtNum(n){
+    const v = Number(n);
+    if (!isFinite(v)) return '0';
+    return v.toLocaleString('en-US');
+  }
+
   // Export
   window.SpineAPI = {
     API_BASE, api, getToken, getMe, setMe, clearAuth,
     ensureAuth, requireLogin,
     toast, modal,
-    fmtDate, fmtTime, fmtRel,
+    fmtDate, fmtTime, fmtRel, fmtNum,
     ICONS, initials, esc
   };
 })();

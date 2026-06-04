@@ -176,6 +176,11 @@ function saveFlows(){
   try { localStorage.setItem(FLOWS_KEY, JSON.stringify(flows)); } catch(_){}
 }
 
+/* Bearer token for worker calls (non-disruptive — no login redirect). */
+function getAuthToken(){
+  return localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+}
+
 /* ----------------------------------------------------------------
    LOGOS — SVG inline
 ---------------------------------------------------------------- */
@@ -263,7 +268,10 @@ function flowHTML(f){
         <div class="flow-ic"><svg><use href="#${f.to.icon}"/></svg></div>
         <div class="flow-lbl">${f.to.name}</div>
       </div>
-      <div class="flow-toggle ${on?'on':''}" data-flow="${f.id}" title="${f.desc}"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0">
+        <span style="font-size:9px;font-family:var(--font-mono);letter-spacing:0.5px;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);padding:1px 7px;border-radius:5px">قريباً</span>
+        <div class="flow-toggle ${on?'on':''}" data-flow="${f.id}" title="${f.desc}"></div>
+      </div>
     </div>`;
 }
 
@@ -490,7 +498,7 @@ window.openConnect = function(id){
   document.getElementById('connectModal').classList.add('open');
 };
 
-window.connect = function(id){
+window.connect = async function(id){
   const it = CATALOG.find(x => x.id === id);
   let value = '';
   const inp = document.getElementById('connectKey');
@@ -498,6 +506,34 @@ window.connect = function(id){
   if (it.auth !== 'builtin' && !value) { alert('أدخل المفتاح أو الـ URL'); return; }
   connected[id] = { connected: true, since: Date.now(), value: value };
   saveState();
+
+  // Slack: persist the webhook URL to the worker (key: slack_webhook_v1) so
+  // server-side notifications actually fire. The worker's dedicated admin-only
+  // endpoint /api/slack-webhook writes to that exact key (the generic
+  // /api/kv/slack_webhook_v1 route is blocked by the KV allowlist).
+  if (id === 'slack' && value) {
+    try {
+      const tok = getAuthToken();
+      const r = await fetch(API + '/api/slack-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok },
+        body: JSON.stringify({ url: value })
+      });
+      if (r.ok) {
+        toast('✓ Slack — تم الربط والحفظ على الخادم');
+      } else {
+        const e = await r.json().catch(()=>({}));
+        toast('⚠ حُفظ محلياً، لكن تعذّر الحفظ على الخادم' + (e.error ? ' ('+e.error+')' : ' — يتطلّب صلاحية أدمن'));
+      }
+    } catch(err) {
+      toast('⚠ Slack حُفظ محلياً — تعذّر الاتصال بالخادم');
+    }
+    closeModal('connectModal');
+    renderServices();
+    updateStats();
+    return;
+  }
+
   closeModal('connectModal');
   renderServices();
   updateStats();

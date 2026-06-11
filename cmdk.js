@@ -155,7 +155,7 @@
     }
     // Pages
     const pages = [
-      { id: 'home',      title: 'الصفحة الرئيسية',     subtitle: '🏠 الإدارات', url: 'index.html' },
+      { id: 'home',      title: 'الصفحة الرئيسية',     subtitle: '🏠 الإدارات', url: 'departments.html' },
       { id: 'people',    title: 'الفريق',                subtitle: '👥 صفحة الفريق', url: 'people.html' },
       { id: 'profile',   title: 'ملفي الشخصي',          subtitle: '👤 الإعدادات الشخصية', url: 'profile.html' },
       { id: 'users',     title: 'إدارة المستخدمين',     subtitle: '🛡️ للأدمن فقط', url: 'users.html', adminOnly: true },

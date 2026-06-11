@@ -1301,14 +1301,14 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
 <!-- =================== SPINE TOPBAR =================== -->
 <header class="topbar" style="background:#0A0B0D;border-bottom:1px solid rgba(201,169,97,0.12);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;direction:rtl;position:sticky;top:20px;z-index:100;">
   <nav style="display:flex;align-items:center;gap:4px;">
-    <a href="spine.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;">الرئيسية</a>
+    <a href="departments.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;">الرئيسية</a>
     <a href="today.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;">اليوم</a>
     <a href="dashboard.html" style="color:#C9A961;text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;background:rgba(201,169,97,0.1);">إجراءات</a>
     <a href="calendar.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;">التقويم</a>
     <a href="mail.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;padding:6px 12px;border-radius:6px;">البريد</a>
   </nav>
   <div style="display:flex;align-items:center;gap:12px;">
-    <div id="arsan-brand-logo" onclick="location.href='welcome.html'" title="welcome" style="cursor:pointer;display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:0.05em;">THE SPINE</span><div style="width:1px;height:16px;background:rgba(201,169,97,0.3);"></div></div>
+    <div id="arsan-brand-logo" onclick="location.href='dashboard.html'" title="الصفحة الرئيسية" style="cursor:pointer;display:flex;align-items:center;gap:8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:0.05em;">THE SPINE</span><div style="width:1px;height:16px;background:rgba(201,169,97,0.3);"></div></div>
     <div style="width:32px;height:32px;border-radius:50%;background:rgba(201,169,97,0.15);border:1px solid rgba(201,169,97,0.3);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#C9A961;">A</div>
   </div>
 </header>
@@ -1323,11 +1323,11 @@ html[data-theme="light"] .arsan-topbar .arsan-topbar-btn{
       </span>
       <span class="dot" aria-hidden="true"></span>
       <span id="deptBreadcrumb">إدارة المشاريع</span>
-      <a href="departments.html" class="theme-toggle" id="changeDeptBtn" aria-label="اختيار الإدارة" style="text-decoration:none;margin-inline-start:auto">
+      <a href="departments.html" class="theme-toggle" id="changeDeptBtn" aria-label="تغيير الإدارة" style="text-decoration:none;margin-inline-start:auto">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
         </svg>
-        <span id="changeDeptLabel">الصفحة الرئيسية</span>
+        <span id="changeDeptLabel">تغيير الإدارة</span>
       </a>
       <button class="theme-toggle" id="langToggle" aria-label="تبديل اللغة" type="button" style="margin-inline-start:0">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -5936,8 +5936,8 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
 
     // ===== التنقّل =====
     panel.appendChild(section('التنقّل'));
-    panel.appendChild(item('🏠', 'الصفحة الرئيسية', () => { window.location.href = 'index.html'; }));
-    panel.appendChild(item('🔄', 'تغيير الإدارة', () => { window.location.href = 'index.html'; }));
+    panel.appendChild(item('🏠', 'الصفحة الرئيسية', () => { window.location.href = 'dashboard.html'; }));
+    panel.appendChild(item('🔄', 'تغيير الإدارة', () => { window.location.href = 'departments.html'; }));
     panel.appendChild(item('🌐', 'الخريطة الشاملة', showUnifiedMap));
     panel.appendChild(item('🔗', 'التبعيّات', showDepsEditor));
     panel.appendChild(item('👥', 'دليل الفريق', () => { window.location.href = 'people.html'; }));
@@ -6031,7 +6031,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   async function showNewSopModal() {
     if (!API.isLoggedIn()) { showLogin(); return; }
     const deptId = window.CURRENT_DEPT_ID;
-    if (!deptId) { alert('يُرجى اختيار الإدارة من الصفحة الرئيسية قبل المتابعة.'); return; }
+    if (!deptId) { alert('يُرجى اختيار الإدارة من صفحة الإدارات قبل المتابعة.'); return; }
     const deptCfg = (window.DEPARTMENTS_CONFIG||{})[deptId] || { name: deptId, sops: [] };
     const existingCodes = new Set((window.SOPS||[]).map(s => s.code));
     // suggest a code: take the 2-letter prefix of an existing one, or dept id upper
@@ -6126,7 +6126,7 @@ window.API_BASE = window.API_BASE || "https://arsan-api.a-king-6e1.workers.dev";
   async function showImportModal() {
     if (!API.isLoggedIn()) { showLogin(); return; }
     const deptId = window.CURRENT_DEPT_ID;
-    if (!deptId) { alert('يُرجى اختيار الإدارة من الصفحة الرئيسية قبل المتابعة.'); return; }
+    if (!deptId) { alert('يُرجى اختيار الإدارة من صفحة الإدارات قبل المتابعة.'); return; }
     const deptCfg = (window.DEPARTMENTS_CONFIG||{})[deptId] || { name: deptId };
 
     const tabs = [

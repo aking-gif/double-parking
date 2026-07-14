@@ -423,11 +423,25 @@ table.tbl tr:hover td{ background: rgba(255,255,255,0.02) }
    screen they overflow and clip mid-word. Drop the decorative telemetry
    (clock/date, session timer) and keep identity: module, breadcrumb, user. */
 @media (max-width: 560px){
-  .os-status{ gap: 10px; padding: 0 10px; font-size: 10px; letter-spacing: .06em }
+  /* The floating controls are position:fixed at top:14px, so they sit over this
+     bar's band: #spine-search-orb + the notification bell at the inline end
+     (physical left under RTL, ~110px), and #spine-back-btn at the inline start
+     (~105px). Reserve their footprint so the bar's text can never run beneath
+     them, and keep only the module identity in the clear middle — the
+     breadcrumb and user duplicate what the page header already shows. */
+  .os-status{
+    gap: 10px;
+    padding-inline: 112px 118px;
+    font-size: 10px; letter-spacing: .06em;
+    justify-content: center;
+  }
   .os-status .seg-clock,
-  .os-status .seg-session{ display: none }
-  .os-status .seg-crumb{ min-width: 0 }
-  .os-status .seg-crumb span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .os-status .seg-session,
+  .os-status .seg-crumb,
+  .os-status .seg-user{ display: none }
+  .os-status .spacer{ display: none }
+  .os-status .seg-module{ min-width: 0 }
+  .os-status .seg-module .v{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 
   /* Phone: glyph + title share row one, actions drop to a full-width row two.
      Without this the title block is crushed between the glyph and the buttons,

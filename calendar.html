@@ -364,6 +364,16 @@ async function loadEvents(){
     }
   } catch(e){}
 
+  // 3) Live Google Calendar events (worker OAuth — /api/gcal/events)
+  try {
+    const g = await A.api('/api/gcal/events?days=45').catch(() => null);
+    if (Array.isArray(g)) {
+      const seen = new Set(EVENTS.map(e => e.id));
+      g.forEach(e => { if (!seen.has(e.id)) EVENTS.push({ ...e, color: e.color || 'blue', source: 'google' }); });
+      PROVIDERS.google.connected = true;
+    }
+  } catch(e){}
+
   // No fabricated events — empty calendar shows honest empty-states until
   // real events are added or a provider (Google/Outlook) is connected.
 }

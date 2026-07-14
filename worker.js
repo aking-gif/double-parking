@@ -3809,7 +3809,24 @@ ${clipped}
   },
 
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(processAutomationsCron(env));
+    // Each job is independently gated on a Riyadh time window + a KV day stamp,
+    // so running them on the shared 15-min tick is safe. Isolated per job: a
+    // throw in one must not stop the others from firing.
+    const jobs = [
+      ["automations", processAutomationsCron],
+      ["gmail-sync", gmailAutoSyncCron],
+      ["daily-digest", dailyDigestCron],
+      ["archive", archiveCron],
+      ["weekly-digest", weeklyDigestCron],
+    ];
+    ctx.waitUntil((async () => {
+      for (const [name, fn] of jobs) {
+        try { await fn(env); }
+        catch (e) {
+          try { await autoLog(env, { type: "cron-failed", job: name, error: e.message }); } catch (_) {}
+        }
+      }
+    })());
   },
 };
 
@@ -4047,6 +4064,283 @@ async function handleAutomationsAPI(req, env, path, method) {
 }
 
 // Cron — runs on Cloudflare schedule (configure in dashboard: */15 * * * *)
+// ==================== SCHEDULED: GOOGLE SYNC + DIGESTS ====================
+// The cron fires every 15 min, so each job below is gated on a Riyadh wall-clock
+// window plus a KV "last run" stamp. The stamp is claimed BEFORE the work runs:
+// these jobs email and Slack real people, so at-most-once matters more than
+// at-least-once. A crash mid-run skips that day rather than double-sending.
+
+// Riyadh has been a fixed UTC+3 offset since 1990 (no DST), so shifting the
+// epoch and reading UTC getters is exact — and avoids depending on the
+// runtime's tz database.
+function riyadhParts(now = Date.now()) {
+  const d = new Date(now + 3 * 3600000);
+  return { date: d.toISOString().slice(0, 10), hour: d.getUTCHours(), dow: d.getUTCDay() };
+}
+
+const oauthKeyFor = (provider, email) => `oauth_${provider}_${(email || "").toLowerCase()}_v1`;
+
+// Module-level twin of the request-scoped getGoogleAccess(): the cron has no
+// request closure to borrow it from.
+async function googleAccessFor(env, email) {
+  const raw = await env.ARSAN.get(oauthKeyFor("google", email));
+  if (!raw) return { error: "google-not-connected" };
+  let tok;
+  try { tok = JSON.parse(raw); } catch (_) { return { error: "google-token-corrupt" }; }
+  if (tok.expiresAt && tok.expiresAt < Date.now() + 60000) {
+    if (!tok.refreshToken) return { error: "google-token-expired" };
+    const r = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: env.GOOGLE_CLIENT_ID,
+        client_secret: env.GOOGLE_CLIENT_SECRET,
+        refresh_token: tok.refreshToken,
+        grant_type: "refresh_token",
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!j.access_token) return { error: "google-refresh-failed" };
+    tok.accessToken = j.access_token;
+    tok.expiresAt = Date.now() + (j.expires_in || 3600) * 1000;
+    await env.ARSAN.put(oauthKeyFor("google", email), JSON.stringify(tok));
+  }
+  return { accessToken: tok.accessToken };
+}
+
+async function googleEventsFor(env, email, days = 7) {
+  const g = await googleAccessFor(env, email);
+  if (g.error) return [];
+  const r = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?" + new URLSearchParams({
+    timeMin: new Date().toISOString(),
+    timeMax: new Date(Date.now() + days * 86400000).toISOString(),
+    singleEvents: "true", orderBy: "startTime", maxResults: "25",
+  }), { headers: { Authorization: "Bearer " + g.accessToken } });
+  if (!r.ok) return [];
+  const j = await r.json().catch(() => ({}));
+  return (j.items || []).map(e => ({
+    title: e.summary || "(بدون عنوان)",
+    start: (e.start && (e.start.dateTime || e.start.date)) || null,
+  })).filter(e => e.start);
+}
+
+// Same extraction the POST /api/gmail/extract-tasks route performs, callable
+// without a session. Dedupes on emailId so re-running cannot clone tasks.
+async function extractGmailTasksFor(env, email, opts = {}) {
+  const g = await googleAccessFor(env, email);
+  if (g.error) return { error: g.error, created: [] };
+  const q = String(opts.query || "is:unread newer_than:1d").slice(0, 200);
+  const max = Math.min(parseInt(opts.max || "10", 10) || 10, 20);
+  const listRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: String(max) }), {
+    headers: { Authorization: "Bearer " + g.accessToken },
+  });
+  if (!listRes.ok) return { error: "gmail-fetch-failed", created: [] };
+  const listJson = await listRes.json().catch(() => ({}));
+  const ids = (listJson.messages || []).map(m => m.id);
+  if (!ids.length) return { emails: 0, created: [] };
+  const emails = [];
+  for (const id of ids) {
+    const mr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, {
+      headers: { Authorization: "Bearer " + g.accessToken },
+    });
+    const mj = await mr.json().catch(() => null);
+    if (!mj) continue;
+    const h = (name) => ((mj.payload && mj.payload.headers) || []).find(x => x.name === name)?.value || "";
+    emails.push({ id, subject: h("Subject"), from: h("From"), date: h("Date"), snippet: mj.snippet || "" });
+  }
+  if (!emails.length) return { emails: 0, created: [] };
+  let extracted = [];
+  if (env.ANTHROPIC_API_KEY) {
+    try {
+      const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5",
+          max_tokens: 2048,
+          system: 'أنت مساعد يستخرج المهام القابلة للتنفيذ من رسائل البريد. أعد JSON فقط: {"tasks":[{"title":"...","description":"...","priority":"normal|high|urgent","dueDate":null,"emailId":"..."}]}. استخرج فقط ما يتطلب فعلًا حقيقيًا؛ تجاهل النشرات والإشعارات الآلية. العناوين بالعربية موجزة.',
+          messages: [{ role: "user", content: JSON.stringify(emails) }],
+        }),
+      });
+      const aiJson = await aiRes.json().catch(() => ({}));
+      const text = (aiJson.content && aiJson.content[0] && aiJson.content[0].text) || "";
+      const m = text.match(/\{[\s\S]*\}/);
+      if (m) extracted = (JSON.parse(m[0]).tasks || []);
+    } catch (_) { /* fall through */ }
+  }
+  // Without a key there is no extraction model; do NOT invent tasks from raw
+  // subjects on a schedule — that is how an inbox becomes 200 junk tasks.
+  if (!extracted.length) return { emails: emails.length, created: [] };
+  const raw = await env.ARSAN.get(KEYS.tasks);
+  const list = raw ? JSON.parse(raw) : [];
+  const created = [];
+  for (const t of extracted.slice(0, 20)) {
+    if (!t.title) continue;
+    if (list.some(x => x.emailId && x.emailId === t.emailId)) continue; // dedupe by source email
+    const src = emails.find(e => e.id === t.emailId);
+    const task = {
+      id: rand(10),
+      title: String(t.title).slice(0, 200),
+      description: String(t.description || (src ? "من بريد: " + src.subject : "")).slice(0, 2000),
+      sopRef: null, dept: null,
+      assignee: email,
+      createdBy: "cron",
+      createdAt: Date.now(),
+      dueDate: t.dueDate || null,
+      priority: ["high", "urgent"].includes(t.priority) ? t.priority : "normal",
+      status: "open",
+      source: "gmail-cron",
+      emailId: t.emailId || null,
+    };
+    list.unshift(task);
+    created.push(task);
+  }
+  if (list.length > 2000) list.length = 2000;
+  await env.ARSAN.put(KEYS.tasks, JSON.stringify(list));
+  return { emails: emails.length, created };
+}
+
+// automations.html owns this key: { workflows: { <id>: {paused, at} }, log }.
+// A template is live when its id is present and not paused.
+async function autoStateGet(env) {
+  const raw = await env.ARSAN.get("automations_state");
+  if (!raw) return { workflows: {} };
+  try { const s = JSON.parse(raw); return s && s.workflows ? s : { workflows: {} }; }
+  catch (_) { return { workflows: {} }; }
+}
+function tplLive(state, id) {
+  const w = state.workflows && state.workflows[id];
+  return !!w && !w.paused;
+}
+function isOpenTask(t) {
+  return t && !["done", "closed", "cancelled"].includes(String(t.status || "").toLowerCase());
+}
+
+// Claim a once-per-day slot. Returns false if already claimed for `date`.
+async function claimDaily(env, key, date) {
+  if (await env.ARSAN.get(key) === date) return false;
+  await env.ARSAN.put(key, date);
+  return true;
+}
+
+// --- Backlog 3: Gmail → tasks, daily ~06:00 Riyadh, per connected user -------
+// The 'mail' template acts as an off switch: absent means default-on, paused
+// means the owner turned it off in the UI.
+async function gmailAutoSyncCron(env) {
+  const { date, hour } = riyadhParts();
+  if (hour !== 6) return;
+  const state = await autoStateGet(env);
+  const w = state.workflows && state.workflows.mail;
+  if (w && w.paused) return;
+  if (!await claimDaily(env, "cron_gmail_last_v1", date)) return;
+
+  const users = await loadUsers(env);
+  for (const u of users) {
+    if (u.status !== "active") continue;
+    if (!await env.ARSAN.get(oauthKeyFor("google", u.email))) continue;
+    try {
+      const r = await extractGmailTasksFor(env, u.email, { query: "is:unread newer_than:1d", max: 10 });
+      if (r.error) { await autoLog(env, { type: "gmail-sync-skipped", email: u.email, error: r.error }); continue; }
+      await autoLog(env, { type: "gmail-sync", email: u.email, emails: r.emails || 0, tasks: r.created.length });
+    } catch (e) {
+      await autoLog(env, { type: "gmail-sync-failed", email: u.email, error: e.message });
+    }
+  }
+}
+
+// --- Backlog 4: 'daily' template → digest of open tasks ----------------------
+async function dailyDigestCron(env) {
+  const { date, hour } = riyadhParts();
+  if (hour !== 7) return;
+  const state = await autoStateGet(env);
+  if (!tplLive(state, "daily")) return;
+  if (!await claimDaily(env, "cron_daily_digest_last_v1", date)) return;
+
+  const raw = await env.ARSAN.get(KEYS.tasks);
+  const tasks = (raw ? JSON.parse(raw) : []).filter(isOpenTask);
+  if (!tasks.length) { await autoLog(env, { type: "daily-digest", skipped: "no-open-tasks" }); return; }
+  const now = Date.now();
+  const overdue = tasks.filter(t => t.dueDate && new Date(t.dueDate).getTime() < now);
+  const url = await env.ARSAN.get(KEYS.slack);
+  if (url) {
+    const lines = tasks.slice(0, 10).map(t => `• ${t.title}${t.assignee ? " — " + t.assignee : ""}`).join("\n");
+    await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: `*ملخّص المهام اليومي*\nمفتوحة: ${tasks.length} · متأخرة: ${overdue.length}\n\n${lines}` }),
+    });
+  }
+  await autoLog(env, { type: "daily-digest", open: tasks.length, overdue: overdue.length, slack: !!url });
+}
+
+// --- Backlog 4: 'archive' template → archive stale inbox items ---------------
+async function archiveCron(env) {
+  const { date, hour } = riyadhParts();
+  if (hour !== 3) return;
+  const state = await autoStateGet(env);
+  if (!tplLive(state, "archive")) return;
+  if (!await claimDaily(env, "cron_archive_last_v1", date)) return;
+
+  const raw = await env.ARSAN.get("mail_inbox_v1");
+  if (!raw) return; // never seed: an absent inbox means the demo fallback, not real mail
+  let list; try { list = JSON.parse(raw); } catch (_) { return; }
+  if (!Array.isArray(list)) return;
+  const cutoff = Date.now() - 30 * 86400000;
+  let archived = 0;
+  for (const m of list) {
+    if (m.archived) continue;
+    const t = m.time ? new Date(m.time).getTime() : 0;
+    if (t && t < cutoff && m.read) { m.archived = true; m.archivedAt = Date.now(); m.archivedReason = "auto-30d"; archived++; }
+  }
+  if (archived) await env.ARSAN.put("mail_inbox_v1", JSON.stringify(list));
+  await autoLog(env, { type: "mail-archive", archived });
+}
+
+// --- Backlog 7: weekly digest, Monday 08:00 Riyadh ---------------------------
+async function weeklyDigestCron(env) {
+  const { date, hour, dow } = riyadhParts();
+  if (dow !== 1 || hour !== 8) return; // 1 = Monday
+  if (!await claimDaily(env, "cron_weekly_digest_last_v1", date)) return;
+
+  const raw = await env.ARSAN.get(KEYS.tasks);
+  const allTasks = (raw ? JSON.parse(raw) : []).filter(isOpenTask);
+  const now = Date.now();
+  const users = await loadUsers(env);
+  let sent = 0;
+
+  for (const u of users) {
+    if (u.status !== "active") continue;
+    const mine = allTasks.filter(t => (t.assignee || "").toLowerCase() === u.email.toLowerCase());
+    const overdue = mine.filter(t => t.dueDate && new Date(t.dueDate).getTime() < now);
+    const events = await googleEventsFor(env, u.email, 7).catch(() => []);
+    // Nothing to say — do not send a hollow "you have 0 things" email.
+    if (!mine.length && !events.length) continue;
+
+    const taskLines = mine.slice(0, 8).map(t => `• ${t.title}${t.dueDate ? " (استحقاق: " + String(t.dueDate).slice(0, 10) + ")" : ""}`).join("\n");
+    const evLines = events.slice(0, 8).map(e => `• ${e.title} — ${String(e.start).slice(0, 16).replace("T", " ")}`).join("\n");
+    const body = [
+      `مهامك المفتوحة: ${mine.length}${overdue.length ? ` · متأخرة: ${overdue.length}` : ""}`,
+      taskLines || "لا مهام مفتوحة.",
+      "",
+      `أحداث هذا الأسبوع: ${events.length}`,
+      evLines || "لا أحداث.",
+    ].join("\n");
+
+    try {
+      await sendUserNotification(env, {
+        email: u.email,
+        subject: "ملخّصك الأسبوعي — أرسان",
+        bodyText: body,
+        actionUrl: "https://aking-gif.github.io/double-parking/today.html",
+        actionLabel: "افتح المنصّة",
+      });
+      sent++;
+    } catch (e) {
+      await autoLog(env, { type: "weekly-digest-failed", email: u.email, error: e.message });
+    }
+  }
+  await autoLog(env, { type: "weekly-digest", recipients: sent });
+}
+
 async function processAutomationsCron(env) {
   const now = Date.now();
   let processed = 0;

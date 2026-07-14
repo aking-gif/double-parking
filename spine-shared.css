@@ -418,6 +418,33 @@ table.tbl tr:hover td{ background: rgba(255,255,255,0.02) }
 .os-status .seg svg{ width: 12px; height: 12px; opacity: .7 }
 .os-status .seg .v{ color: var(--ink); font-weight: 500 }
 .os-status .spacer{ flex: 1 }
+
+/* Phone: the bar's segments total ~650px and it does not wrap, so on a 430px
+   screen they overflow and clip mid-word. Drop the decorative telemetry
+   (clock/date, session timer) and keep identity: module, breadcrumb, user. */
+@media (max-width: 560px){
+  .os-status{ gap: 10px; padding: 0 10px; font-size: 10px; letter-spacing: .06em }
+  .os-status .seg-clock,
+  .os-status .seg-session{ display: none }
+  .os-status .seg-crumb{ min-width: 0 }
+  .os-status .seg-crumb span{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+  /* Phone: glyph + title share row one, actions drop to a full-width row two.
+     Without this the title block is crushed between the glyph and the buttons,
+     and the letter-spaced mono subtitle wraps into a tall narrow column. */
+  .topbar{ padding: 0 14px; gap: 10px }
+  .mod-head{ flex-wrap: wrap; padding: 16px 14px 12px; gap: 10px }
+  .mod-title-block{ flex: 1 1 auto; min-width: 0 }
+  .mod-title{ font-size: 18px }
+  .mod-sub{ letter-spacing: .1em; font-size: 9px }
+  .mod-actions{ flex: 1 1 100%; }
+  .mod-actions button{ flex: 1; white-space: nowrap }
+
+  /* The tactical status strip is inline-styled (hence !important) with 28px
+     side padding, which forces it onto two lines at 430px. Compressed rather
+     than hidden — it is deliberate brand chrome, not clutter. */
+  .statusbar{ padding: 6px 12px !important; font-size: 9px !important; letter-spacing: .5px !important }
+}
 .os-status .pulse-dot{
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--green);

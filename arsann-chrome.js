@@ -40,7 +40,7 @@
     const bar = document.createElement('div');
     bar.className = 'os-status';
     bar.innerHTML = `
-      <div class="seg">
+      <div class="seg seg-clock">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
         </svg>
@@ -48,25 +48,25 @@
         <span style="opacity:.5">·</span>
         <span id="os-date">—</span>
       </div>
-      <div class="seg">
+      <div class="seg seg-session">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 2 L4 6 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V6 Z"/>
         </svg>
         <span class="v">SESSION</span>
         <span id="os-session">0M</span>
       </div>
-      <div class="seg">
+      <div class="seg seg-module">
         <span class="pulse-dot"></span>
         <span class="v">${moduleName.toUpperCase()}</span>
       </div>
       <div class="spacer"></div>
-      <div class="seg" style="opacity:.7">
+      <div class="seg seg-crumb" style="opacity:.7">
         ${breadcrumb.length ? breadcrumb.map((b,i)=>{
           const isLast = i === breadcrumb.length - 1;
           return `<span class="${isLast?'v':''}" style="${isLast?'color:var(--accent)':''}">${b}</span>${isLast?'':'<span style="opacity:.4">//</span>'}`;
         }).join('') : ''}
       </div>
-      <div class="seg">
+      <div class="seg seg-user">
         <span class="v" id="os-user">${(opts.user || 'GUEST').toUpperCase()}</span>
       </div>
     `;

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Spine — منصّة أرسان التنفيذية</title>
-<meta name="description" content="المنصة التنفيذية لأرسان. إجراءات، مهام، اجتماعات، تقويم، بريد، CRM، أتمتة.">
+<meta name="description" content="العمود الفقري التنفيذي لأرسان. إجراءات، مهام، اجتماعات، تقويم، بريد، CRM، أتمتة.">
 <link rel="icon" href="arsann-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,10 +23,10 @@
     --line: rgba(255,255,255,0.06);
     --line-2: rgba(255,255,255,0.10);
     --line-3: rgba(255,255,255,0.16);
-    --accent: #C9A961;
-    --accent-2: #B89548;
-    --accent-soft: rgba(201,169,97,0.10);
-    --accent-line: rgba(201,169,97,0.25);
+    --accent: #E8A547;
+    --accent-2: #C8893E;
+    --accent-soft: rgba(232,165,71,0.12);
+    --accent-line: rgba(232,165,71,0.30);
     --green: #6BAF6B;
     --red: #D67560;
     --blue: #6A8FAE;
@@ -739,8 +739,6 @@
   .mono{ font-family: var(--mono) }
   .accent{ color: var(--accent) }
 </style>
-<script src="brand.js"></script>
-<link rel="stylesheet" href="arsann-fonts.css">
 </head>
 <body>
 
@@ -780,7 +778,7 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="welcome.html" class="brand">
-      <span class="mark" id="welcome-brand-logo"><img src="arsann-logo.svg" alt="Arsann" onerror="this.style.display='none'"></span>
+      <span class="mark"><img src="arsann-logo.svg" alt="Arsann"></span>
       <span class="divider"></span>
       <span class="name">THE SPINE</span>
     </a>
@@ -804,8 +802,8 @@
     <span>الإصدار v1.0 · جاهز للاستخدام</span>
   </div>
   <h1>
-    <span class="accent">المنصة</span>
-    <br>التنفيذية لشركة أرسان.
+    <span class="accent">العمود الفقري</span>
+    <br>التنفيذي لشركة أرسان.
   </h1>
   <p class="lede">
     إجراءات، مهام، اجتماعات، تقويم، بريد، CRM، أتمتة — كلها في مكان واحد. مساحة عمل موحّدة لفريق التنفيذ بدلاً من ١٠ أدوات متفرّقة.
@@ -844,7 +842,7 @@
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-cal"/></svg></div><div><div class="lbl">التقويم</div><div class="sub">CAL</div></div></div>
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-mail"/></svg></div><div><div class="lbl">البريد</div><div class="sub">MAIL</div></div></div>
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-crm"/></svg></div><div><div class="lbl">العملاء</div><div class="sub">CRM</div></div></div>
-        <div class="frame-tile"><div class="glyph"><svg><use href="#i-bolt"/></svg></div><div><div class="lbl">الأتمتة</div><div class="sub">AUTO</div></div></div>
+        <a class="frame-tile" href="automations.html" style="text-decoration:none;color:inherit;cursor:pointer"><div class="glyph"><svg><use href="#i-bolt"/></svg></div><div><div class="lbl">الأتمتة</div><div class="sub">AUTO</div></div></a>
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-hr"/></svg></div><div><div class="lbl">الموارد</div><div class="sub">HR</div></div></div>
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-today"/></svg></div><div><div class="lbl">اليوم</div><div class="sub">TODAY</div></div></div>
         <div class="frame-tile"><div class="glyph"><svg><use href="#i-search"/></svg></div><div><div class="lbl">البحث</div><div class="sub">⌘K</div></div></div>
@@ -869,7 +867,7 @@
     <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-cal"/></svg></div><h3>التقويم<span class="en">Calendar</span></h3></div><p>عرض شهري وأسبوعي ويومي، إنشاء أحداث، وربط Google/Microsoft Calendar.</p></div>
     <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-mail"/></svg></div><h3>البريد<span class="en">Mail</span></h3></div><p>صندوق موحّد، تحويل أي إيميل إلى مهمة أو اعتماد بضغطة، استخراج المحتوى بالذكاء الاصطناعي.</p></div>
     <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-crm"/></svg></div><h3>العملاء<span class="en">CRM</span></h3></div><p>شركات، جهات اتصال، فرص، Pipeline بنمط Kanban، وتذاكر دعم.</p></div>
-    <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-bolt"/></svg></div><h3>الأتمتة<span class="en">Automations</span></h3></div><p>Workflows بصرية، تذكيرات قبل المواعيد، تكرار المهام، Webhooks، وSlack/Email integrations.</p></div>
+    <a class="mod" href="automations.html" style="text-decoration:none;color:inherit;display:block;cursor:pointer"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-bolt"/></svg></div><h3>الأتمتة<span class="en">Automations</span></h3></div><p>Workflows بصرية، تذكيرات قبل المواعيد، تكرار المهام، Webhooks، وSlack/Email integrations.</p></a>
     <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-hr"/></svg></div><h3>الموارد البشرية<span class="en">HR</span></h3></div><p>ملفات الموظفين، الرواتب، الحضور، النماذج والأرشيف — مع أدوات الأدمن الكاملة.</p></div>
     <div class="mod"><span class="badge">LIVE</span><div class="mod-head"><div class="mod-glyph"><svg><use href="#i-today"/></svg></div><h3>اليوم<span class="en">Today</span></h3></div><p>صفحة موحّدة لكل ما يحتاج اهتمامك اليوم: مهام، اجتماعات، إيميلات، إعلانات.</p></div>
   </div>
@@ -960,12 +958,6 @@
     </div>
   </div>
 </footer>
-<script>
-(function tryInjectLogo(){
-  const el=document.getElementById('welcome-brand-logo');
-  if(el&&window.ArsanBrand&&window.ArsanBrand.logo){el.innerHTML=window.ArsanBrand.logo(28,'#C9A961');return;}
-  if(el)setTimeout(tryInjectLogo,100);
-})();
-</script>
+
 </body>
 </html>

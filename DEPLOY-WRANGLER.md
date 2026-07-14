@@ -6,36 +6,42 @@ copy-paste-into-the-dashboard ritual.
 
 The machine is already authenticated (`npm run whoami` to confirm).
 
-## Read this before the first deploy
+## The trap, and why it is now closed
 
 `wrangler deploy` makes the Worker match `wrangler.toml`. That is the point, and
 it is also the trap: **it replaces the Worker's plaintext vars and cron triggers
 with whatever the file declares.** Anything configured only in the dashboard and
-not written down here is removed on the first deploy.
+not written down here is removed on deploy.
 
-Two things this repo had to fix before that was safe:
+Two config values were sitting in exactly that blast radius and have since been
+migrated to secrets (2026-07-15), which are stored separately and survive every
+deploy:
 
-1. **`RESEND_API_KEY` is not a secret.** As of 2026-07-15 the secrets on
-   `arsan-api` are `ADMIN_BOOTSTRAP_PASSWORD`, `ANTHROPIC_API_KEY`,
-   `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SLACK_BOT_TOKEN`,
-   `SLACK_WEBHOOK_URL`. `RESEND_API_KEY` is missing from that list but the code
-   uses it, so it is a plaintext dashboard var — and `[vars]` does not list it.
-   Deploying without migrating it removes it, and outbound email fails
-   **silently**: `processAutomationsCron` guards on
-   `if (r.channels?.includes("email") && env.RESEND_API_KEY)`, so mail simply
-   stops with no error. An API key should be a secret regardless.
+- **`RESEND_API_KEY`** — used by the code, absent from both `[vars]` and the
+  secret list, so it was a plaintext dashboard var. A deploy would have deleted
+  it and outbound email would have failed **silently**: the send paths guard on
+  `&& env.RESEND_API_KEY` rather than erroring, so mail just stops. It is an API
+  key and belonged in secrets regardless.
+- **`FROM_EMAIL`** — same shape, but with a code fallback to
+  `Arsann <noreply@arsann.com>`, so it degraded rather than broke.
 
-       npx wrangler secret put RESEND_API_KEY --name arsan-api
-       # paste the key when prompted; it is never written to the repo
+Both are now secrets. Nothing else is at risk today, but the rule stands: if a
+new config value is sensitive, or must survive a deploy, put it in secrets — not
+in the dashboard.
 
-2. **`FROM_EMAIL`** is likewise absent from `[vars]`. It is not sensitive, so if
-   the dashboard has one, copy its real value into `[vars]` in `wrangler.toml`.
-   If it is dropped, the code falls back to `Arsann <noreply@arsann.com>`, which
-   may not be a verified Resend sender — in which case sends fail.
+    npx wrangler secret put SOME_NAME --name arsan-api
+    # value is prompted, never written to the repo
+
+`wrangler secret put` publishes a new version by itself — no `npm run deploy`
+needed afterward.
 
 Confirm the secret list before deploying:
 
     npm run secrets
+
+Expected as of 2026-07-15: `ADMIN_BOOTSTRAP_PASSWORD`, `ANTHROPIC_API_KEY`,
+`FROM_EMAIL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`,
+`SLACK_BOT_TOKEN`, `SLACK_WEBHOOK_URL`.
 
 ## Deploy
 

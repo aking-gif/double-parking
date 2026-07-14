@@ -2,3 +2,9 @@ node_modules/
 .wrangler/
 .wrangler-out/
 .dev.vars
+
+# A second clone of this repo appeared here on 2026-07-15 (probably a `git clone`
+# run from inside the checkout instead of one level up). It holds nothing unique
+# — same remote, same HEAD, no uncommitted or unpushed work. Ignored so that a
+# `git add -A` cannot commit it as a submodule gitlink. Safe to `rm -rf` it.
+/double-parking/

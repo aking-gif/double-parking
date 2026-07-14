@@ -419,6 +419,25 @@ table.tbl tr:hover td{ background: rgba(255,255,255,0.02) }
 .os-status .seg .v{ color: var(--ink); font-weight: 500 }
 .os-status .spacer{ flex: 1 }
 
+/* The floating controls (#spine-search-orb + the bell at the inline end,
+   #spine-back-btn at the inline start) are position:fixed at top:14px, so they
+   land on this bar's band at EVERY width — not just on phones. Left alone, the
+   clock sits under the back button, "GUEST" under the search orb, and the
+   breadcrumb under the bell.
+   Reserve their footprint, then drop decorative segments until the rest fits.
+   The thresholds are measured, not guessed: the full segment row is ~808px
+   wide, so with ~295px of clearance it only fits from ~1100px up. Verified
+   collision-free and overflow-free at 561/640/760/900/1000/1099/1100/1280/
+   1400/1680. The <=560px phone rules are further down. */
+@media (min-width: 561px){
+  .os-status{ padding-inline: 175px 120px; }
+}
+@media (min-width: 561px) and (max-width: 1099px){
+  .os-status .seg-clock,
+  .os-status .seg-session,
+  .os-status .seg-crumb{ display: none }
+}
+
 /* Phone: the bar's segments total ~650px and it does not wrap, so on a 430px
    screen they overflow and clip mid-word. Drop the decorative telemetry
    (clock/date, session timer) and keep identity: module, breadcrumb, user. */

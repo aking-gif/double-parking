@@ -7,12 +7,27 @@ account_id = "6e1bbf9595326b995e6f64e101d88b76"
 binding = "ARSAN"
 id = "8b9f150a311841d0a2409190a0ed8857"
 
+# Declared explicitly. `wrangler deploy` reconciles triggers against this file,
+# so omitting it can drop the schedule the dashboard configured — and the
+# automations, digests and Gmail sync all hang off this tick.
+[triggers]
+crons = ["*/15 * * * *"]
+
+# WARNING: this list is authoritative. `wrangler deploy` REPLACES the Worker's
+# plaintext vars with exactly what is below — any var set only in the dashboard
+# is deleted on deploy. Secrets are stored separately and are NOT affected.
 [vars]
 ADMIN_EMAIL = "a.king@arsann.com"
 EDITOR_DOMAIN = "arsann.com"
+# FROM_EMAIL is intentionally absent — see DEPLOY-WRANGLER.md. If it is set as a
+# dashboard var today, add it here with its real value BEFORE deploying, or the
+# code falls back to "Arsann <noreply@arsann.com>", which may not be a verified
+# Resend sender.
 
-# Secrets (set via: wrangler secret put SECRET_NAME)
-# ADMIN_BOOTSTRAP_PASSWORD
-# ANTHROPIC_API_KEY
-# SLACK_BOT_TOKEN
-# SLACK_WEBHOOK_URL
+# Secrets — encrypted, preserved across deploys. Set via:
+#   wrangler secret put SECRET_NAME --name arsan-api
+# Confirmed present on arsan-api as of 2026-07-15:
+#   ADMIN_BOOTSTRAP_PASSWORD, ANTHROPIC_API_KEY, GOOGLE_CLIENT_ID,
+#   GOOGLE_CLIENT_SECRET, SLACK_BOT_TOKEN, SLACK_WEBHOOK_URL
+# NOT a secret and NOT in [vars] — RESEND_API_KEY. It must be migrated to a
+# secret before the first wrangler deploy or outbound email breaks silently.

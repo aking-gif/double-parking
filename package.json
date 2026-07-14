@@ -1,0 +1,17 @@
+{
+  "name": "arsan-spine",
+  "private": true,
+  "description": "The Spine — Arsann executive OS. Frontend is static (GitHub Pages); worker.js deploys to Cloudflare.",
+  "scripts": {
+    "check": "node --check worker.js",
+    "build": "wrangler deploy --dry-run --outdir=.wrangler-out",
+    "predeploy": "npm run check",
+    "deploy": "wrangler deploy",
+    "secrets": "wrangler secret list --name arsan-api",
+    "tail": "wrangler tail arsan-api --format pretty",
+    "whoami": "wrangler whoami"
+  },
+  "devDependencies": {
+    "wrangler": "^4.87.0"
+  }
+}

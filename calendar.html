@@ -158,6 +158,23 @@
   .cal-layout{ display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
   @media (max-width: 1100px){ .cal-layout{ grid-template-columns: 1fr } }
 
+  /* ===== Phone (≤560px), RTL ===== */
+  @media (max-width: 560px){
+    .cal-toolbar{ gap: 8px }
+    .cal-title{ min-width: 0; font-size: 15px; flex: 1 1 auto }
+    .cal-views{ width: 100% }
+    .cal-views button{ flex: 1; padding: 7px 6px; font-size: 12px }
+    .cal-providers{ margin-inline-start: 0; width: 100% }
+    /* Month/week stay reachable from the switcher, so keep them usable rather
+       than hiding them: month gets denser, week scrolls instead of crushing
+       a 60px gutter + 7 columns into 430px. */
+    .month-grid .day{ min-height: 64px; padding: 4px }
+    .month-grid .day .num{ font-size: 11px; margin-bottom: 2px }
+    .month-grid .day .ev{ font-size: 9px; padding: 1px 3px }
+    #viewHost{ overflow-x: auto; -webkit-overflow-scrolling: touch }
+    .week-grid{ min-width: 620px }
+  }
+
   .ev-card{
     padding: 12px 14px;
     background: var(--surface-2);
@@ -299,7 +316,9 @@ const A = window.SpineAPI;
 
 // State
 let CUR = new Date();         // anchor date
-let VIEW = 'month';
+// A 7-column month grid is unreadable on a phone; open on the agenda list
+// instead. Only the default changes — every view stays switchable.
+let VIEW = window.matchMedia('(max-width: 560px)').matches ? 'agenda' : 'month';
 let EVENTS = [];               // all events from KV + providers
 let PROVIDERS = {              // status of each connection
   google: { connected: false, email: '', error: '' },
@@ -404,6 +423,11 @@ document.querySelectorAll('.cal-views button').forEach(b => {
     VIEW = b.dataset.v;
     render();
   };
+});
+
+// Keep the toolbar highlight in sync with the resolved default view above.
+document.querySelectorAll('.cal-views button').forEach(x => {
+  x.classList.toggle('active', x.dataset.v === VIEW);
 });
 function shift(n){
   if (VIEW === 'month'){ CUR.setMonth(CUR.getMonth()+n); }

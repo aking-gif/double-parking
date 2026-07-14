@@ -1,443 +1,421 @@
 /* =====================================================================
-   SPINE — APPLE GLASS UNIFIED THEME
-   One file. Drop after spine-shared.css on any module page.
-   Inspired by: visionOS, macOS Sonoma/Sequoia, Nexus 3.0, Controlly
+   SPINE — CLEAN EDITION SKIN
+   Drop-in replacement for spine-glass.css. Loaded after spine-shared.css
+   by: spine, calendar, mail, crm, hr, dashboard, departments, depts-admin,
+   integrations, users.
+   Design language: flat near-black panels, crisp 1px hairlines, solid
+   amber primary, no blur, no floating orbs, compact chrome.
    ===================================================================== */
 
-/* ============ AMBIENT BACKGROUND (the "scene") ============ */
+:root{
+  --bg: #0B0D0E;
+  --bg-2: #0E1112;
+  --surface: #101314;
+  --surface-2: #141819;
+  --surface-3: #191E20;
+  --line: #1E2224;
+  --line-2: #292E30;
+  --ink: #F2EFE8;
+  --ink-2: #C7C1B4;
+  --ink-3: #8A857A;
+  --ink-4: #55514A;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+/* ============ BACKGROUND — flat & calm ============ */
 html, body {
-  background:
-    radial-gradient(ellipse 1400px 700px at 15% 0%, rgba(232,165,71,.20), transparent 55%),
-    radial-gradient(ellipse 1100px 600px at 90% 100%, rgba(122,168,201,.14), transparent 55%),
-    radial-gradient(ellipse 800px 800px at 55% 45%, rgba(156,181,122,.08), transparent 65%),
-    linear-gradient(140deg, #1a1612 0%, #0f1418 45%, #08090c 100%) !important;
-  background-attachment: fixed !important;
-  background-size: cover !important;
+  background: var(--bg) !important;
+  background-image: none !important;
 }
+body::before { display: none !important; }         /* kill floating orbs */
+body::after  { content: none !important; }          /* kill grid overlays */
 
-/* Animated orbs floating in deep background */
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(circle 280px at 12% 22%, rgba(232,165,71,.28), transparent),
-    radial-gradient(circle 360px at 82% 72%, rgba(245,190,107,.20), transparent),
-    radial-gradient(circle 220px at 50% 55%, rgba(156,181,122,.16), transparent),
-    radial-gradient(circle 200px at 70% 15%, rgba(122,168,201,.18), transparent);
-  filter: blur(70px);
-  opacity: .85;
-  animation: ambient-float 28s ease-in-out infinite;
-}
-@keyframes ambient-float {
-  0%, 100% { transform: translate3d(0,0,0) scale(1); }
-  33% { transform: translate3d(-30px, 25px, 0) scale(1.06); }
-  66% { transform: translate3d(40px, -15px, 0) scale(.94); }
-}
-
-/* Lift everything above the ambient layer */
 .shell, .topbar, .mod-head, .mod-body, .os-status, .mini-map,
 .modal-bd, .login-screen, .login-shell, main, header, section {
   position: relative;
   z-index: 1;
 }
 
-/* ============ STATUS BAR + TOPBAR — heavy glass ============ */
+/* ============ STATUS BAR + TOPBAR — solid, hairline ============ */
 .os-status,
 .topbar {
-  background: rgba(255,255,255,.04) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 1px 0 rgba(0,0,0,.20) !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--line) !important;
+  box-shadow: none !important;
 }
+.os-status{ height: 32px !important; font-size: 10px !important; }
+.topbar{ height: 52px !important; }
 
-/* Brand mark — glass with gold tint */
 .brand-mark {
-  background: rgba(232,165,71,.14) !important;
-  border: 1px solid rgba(232,165,71,.50) !important;
-  backdrop-filter: blur(12px);
-  border-radius: 8px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.15),
-    0 4px 12px rgba(232,165,71,.18);
+  background: var(--accent) !important;
+  border: none !important;
+  color: #1A1408 !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
-/* Remove tactical brackets — they don't fit glass aesthetic */
 .brand-mark::before, .brand-mark::after { display: none !important; }
 
-/* Topbar nav links / chips */
 .topbar a, .topbar .chip, .topbar .nav-item, .topbar .btn-ghost {
-  background: rgba(255,255,255,.04) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 10px !important;
-  transition: all .2s cubic-bezier(.2,.7,.2,1);
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  backdrop-filter: none !important;
+  border-radius: 8px !important;
+  transition: all .15s ease;
 }
 .topbar a:hover, .topbar .chip:hover, .topbar .btn-ghost:hover {
-  background: rgba(255,255,255,.10) !important;
-  border-color: rgba(255,255,255,.20) !important;
-  transform: translateY(-1px);
+  background: var(--surface-2) !important;
+  border-color: var(--line-2) !important;
+  transform: none !important;
 }
 
-/* ============ MOD HEAD ============ */
+/* ============ MOD HEAD — compact, flat ============ */
 .mod-head {
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)) !important;
-  backdrop-filter: blur(30px) saturate(140%);
-  -webkit-backdrop-filter: blur(30px) saturate(140%);
-  border-bottom: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  background: var(--bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--line) !important;
+  box-shadow: none !important;
+  padding: 16px 24px 14px !important;
 }
 .mod-glyph {
-  background: rgba(232,165,71,.12) !important;
-  border-color: rgba(232,165,71,.40) !important;
-  backdrop-filter: blur(10px);
-  border-radius: 10px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 4px 12px rgba(0,0,0,.20);
+  background: var(--accent-soft) !important;
+  border: 1px solid var(--accent-line) !important;
+  color: var(--accent) !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  width: 34px !important; height: 34px !important;
 }
 .mod-title {
-  font-family: var(--font-en) !important;
-  letter-spacing: -0.02em !important;
+  font-size: 20px !important;
   font-weight: 600 !important;
-  color: rgba(255,255,255,.95) !important;
+  letter-spacing: -0.01em !important;
+  color: var(--ink) !important;
 }
 .mod-sub {
-  font-family: var(--font-mono) !important;
-  letter-spacing: 0.16em !important;
-  color: rgba(255,255,255,.5) !important;
+  letter-spacing: 0.14em !important;
+  color: var(--ink-3) !important;
+  margin-top: 2px !important;
 }
+.mod-body{ padding: 20px 24px !important; }
 
-/* ============ CARDS — frosted glass ============ */
+/* ============ CARDS — flat panels ============ */
 .card,
 .panel,
 .box,
 .surface,
 .section-card {
-  background: rgba(255,255,255,.04) !important;
-  backdrop-filter: blur(40px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
-  border-radius: 16px !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
   overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 8px 32px rgba(0,0,0,.25),
-    0 1px 2px rgba(0,0,0,.15) !important;
+  box-shadow: none !important;
 }
-/* Remove tactical brackets/corners — clash with glass */
 .card::before, .card::after,
 .panel::before, .panel::after { display: none !important; }
-
-.card-head, .panel-head {
-  border-bottom: 1px solid rgba(255,255,255,.06) !important;
-  background: rgba(255,255,255,.02) !important;
+.bracket-card::before, .bracket-card::after,
+.bracket-card > .br-bl, .bracket-card > .br-br { display: none !important; }
+.bracket-card{
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
 }
 
-/* Hover lift */
+.card-head, .panel-head {
+  border-bottom: 1px solid var(--line) !important;
+  background: var(--surface-2) !important;
+}
+
 .card.interactive:hover,
 .card.clickable:hover,
 .panel.interactive:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255,255,255,.16) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    0 12px 40px rgba(0,0,0,.30);
+  transform: none !important;
+  border-color: var(--line-2) !important;
+  box-shadow: none !important;
+  background: var(--surface-2) !important;
 }
 
-/* ============ INPUTS / FIELDS ============ */
+.glass{
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line) !important;
+}
+
+/* ============ INPUTS ============ */
 .input, input.input, select.input, textarea.input,
 input[type="text"], input[type="email"], input[type="search"],
 input[type="password"], input[type="number"], input[type="tel"],
 textarea, select {
-  background: rgba(255,255,255,.04) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 10px !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--line-2) !important;
+  backdrop-filter: none !important;
+  border-radius: var(--radius) !important;
   color: var(--ink) !important;
-  transition: all .2s;
+  transition: border-color .15s;
 }
 .input:focus, input:focus, textarea:focus, select:focus {
   outline: 0 !important;
-  background: rgba(232,165,71,.06) !important;
-  border-color: rgba(232,165,71,.6) !important;
-  box-shadow: 0 0 0 3px rgba(232,165,71,.15);
+  background: var(--bg) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(232,165,71,.12);
 }
-::placeholder { color: rgba(255,255,255,.35) !important; }
+::placeholder { color: var(--ink-4) !important; }
 
-/* ============ BUTTONS — glass ============ */
+/* ============ BUTTONS ============ */
 .btn,
 .mod-actions button,
 button.action,
 button.cta {
-  background: rgba(255,255,255,.05) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 10px !important;
-  font-family: var(--font-en) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--line-2) !important;
+  backdrop-filter: none !important;
+  border-radius: var(--radius) !important;
+  font-family: var(--font-ar) !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  padding: 9px 16px !important;
-  transition: all .2s cubic-bezier(.2,.7,.2,1);
-  color: var(--ink) !important;
+  padding: 8px 14px !important;
+  transition: all .15s ease;
+  color: var(--ink-2) !important;
 }
 .btn:hover,
 .mod-actions button:hover,
 button.action:hover {
-  background: rgba(255,255,255,.10) !important;
-  border-color: rgba(255,255,255,.20) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  background: var(--surface-2) !important;
+  border-color: var(--accent-line) !important;
+  color: var(--accent) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-/* Primary — gold gradient */
 .btn.primary,
 .btn-primary,
 .mod-actions button.primary,
 button.primary {
-  background: linear-gradient(180deg, #f5be6b, #e8a547) !important;
-  border-color: rgba(245,190,107,.6) !important;
-  color: #0a0b0d !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.30),
-    0 4px 14px rgba(232,165,71,.35) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #1A1408 !important;
+  box-shadow: none !important;
   font-weight: 600 !important;
 }
-.btn.primary:hover, .btn-primary:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.40),
-    0 6px 20px rgba(232,165,71,.50) !important;
-  transform: translateY(-1px);
+.btn.primary:hover, .btn-primary:hover,
+.mod-actions button.primary:hover {
+  background: #F0B25C !important;
+  border-color: #F0B25C !important;
+  color: #1A1408 !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
-/* Danger */
 .btn.danger, .btn-danger {
-  background: linear-gradient(180deg, #e88577, #d86b5c) !important;
-  border-color: rgba(232,133,119,.6) !important;
-  color: #fff !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.20),
-    0 4px 14px rgba(216,107,92,.35) !important;
+  background: transparent !important;
+  border-color: rgba(216,107,92,.4) !important;
+  color: var(--red) !important;
+  box-shadow: none !important;
+}
+.btn.danger:hover, .btn-danger:hover{
+  background: rgba(216,107,92,.10) !important;
 }
 
 /* ============ PILLS / CHIPS ============ */
 .pill, .chip, .tag, .badge {
-  background: rgba(255,255,255,.06) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 999px !important;
-  font-family: var(--font-en) !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-  font-size: 11px !important;
-  padding: 4px 10px !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--line-2) !important;
+  backdrop-filter: none !important;
+  border-radius: 6px !important;
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-size: 9.5px !important;
+  padding: 3px 8px !important;
 }
-.pill.green, .chip.green, .tag.green, .badge.green,
-.pill.success, .chip.success {
-  background: rgba(156,181,122,.18) !important;
-  color: #c8dba0 !important;
-  border-color: rgba(156,181,122,.40) !important;
+.pill.green, .chip.green, .tag.green, .badge.green, .pill.success, .chip.success {
+  background: rgba(95,168,107,.10) !important;
+  color: #8FC49A !important;
+  border-color: rgba(95,168,107,.35) !important;
 }
-.pill.orange, .pill.gold, .chip.gold, .tag.gold, .badge.gold,
-.pill.warning {
-  background: rgba(232,165,71,.18) !important;
-  color: #f5be6b !important;
-  border-color: rgba(232,165,71,.40) !important;
+.pill.orange, .pill.gold, .chip.gold, .tag.gold, .badge.gold, .pill.warning {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent-line) !important;
 }
-.pill.red, .chip.red, .tag.red, .badge.red,
-.pill.danger {
-  background: rgba(216,107,92,.18) !important;
-  color: #f0a094 !important;
-  border-color: rgba(216,107,92,.40) !important;
+.pill.red, .chip.red, .tag.red, .badge.red, .pill.danger {
+  background: rgba(216,107,92,.10) !important;
+  color: #E09488 !important;
+  border-color: rgba(216,107,92,.35) !important;
 }
-.pill.blue, .chip.blue, .tag.blue, .badge.blue,
-.pill.info {
-  background: rgba(122,168,201,.18) !important;
-  color: #a8c8e0 !important;
-  border-color: rgba(122,168,201,.40) !important;
+.pill.blue, .chip.blue, .tag.blue, .badge.blue, .pill.info {
+  background: rgba(110,155,196,.10) !important;
+  color: #9CBEDD !important;
+  border-color: rgba(110,155,196,.35) !important;
 }
 
-/* ============ TABS — segmented glass ============ */
+/* ============ TABS — flat segmented ============ */
 .tabs {
   display: inline-flex !important;
-  background: rgba(255,255,255,.04) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 12px !important;
-  padding: 4px !important;
-  gap: 0 !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--line-2) !important;
+  backdrop-filter: none !important;
+  border-radius: 9px !important;
+  padding: 3px !important;
+  gap: 2px !important;
+  margin-bottom: 18px;
 }
 .tab {
-  border-radius: 8px !important;
+  border-radius: 7px !important;
   border-bottom: 0 !important;
-  padding: 8px 16px !important;
-  font-family: var(--font-en) !important;
+  padding: 7px 14px !important;
+  font-family: var(--font-ar) !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   font-size: 13px !important;
   background: transparent !important;
-  color: var(--ink-2) !important;
+  color: var(--ink-3) !important;
   font-weight: 500 !important;
-  transition: all .2s;
+  transition: all .15s;
 }
-.tab:hover { background: rgba(255,255,255,.06) !important; color: var(--ink) !important; }
+.tab:hover { background: var(--surface-2) !important; color: var(--ink) !important; }
 .tab.active {
-  background: rgba(232,165,71,.95) !important;
-  color: #0a0b0d !important;
+  background: var(--accent) !important;
+  color: #1A1408 !important;
   border-bottom: 0 !important;
-  box-shadow: 0 2px 8px rgba(232,165,71,.30);
+  box-shadow: none !important;
+  font-weight: 600 !important;
 }
+.tab .cnt{ background: rgba(0,0,0,0.18) !important; color: inherit !important; border-radius: 5px; }
 
 /* ============ TABLES ============ */
 table {
-  background: rgba(255,255,255,.02) !important;
-  backdrop-filter: blur(30px);
-  border-radius: 14px !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  border-radius: var(--radius-lg) !important;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.08) !important;
+  border: 1px solid var(--line) !important;
 }
 thead, th {
-  background: rgba(255,255,255,.04) !important;
-  border-bottom: 1px solid rgba(255,255,255,.10) !important;
-  color: var(--ink-2) !important;
-  font-family: var(--font-en) !important;
-  letter-spacing: 0.05em !important;
+  background: var(--surface-2) !important;
+  border-bottom: 1px solid var(--line-2) !important;
+  color: var(--ink-3) !important;
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
-  font-size: 11px !important;
+  font-size: 10px !important;
 }
-td, tr {
-  border-color: rgba(255,255,255,.05) !important;
-}
-tbody tr:hover {
-  background: rgba(255,255,255,.04) !important;
-}
+td, tr { border-color: var(--line) !important; }
+tbody tr:hover { background: var(--surface-2) !important; }
 
 /* ============ MODAL ============ */
 .modal-bd, .modal-backdrop, .overlay {
-  background: rgba(0,0,0,.40) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0,0,0,.6) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 .modal, .dialog {
-  background: rgba(20,20,24,.70) !important;
-  backdrop-filter: blur(60px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  border-radius: 20px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 30px 80px rgba(0,0,0,.50) !important;
+  background: var(--surface-2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5) !important;
 }
-.modal-head, .dialog-head { border-bottom: 1px solid rgba(255,255,255,.08) !important; }
-.modal-foot, .dialog-foot { border-top: 1px solid rgba(255,255,255,.08) !important; }
+.modal-head, .dialog-head { border-bottom: 1px solid var(--line) !important; }
+.modal-foot, .dialog-foot { border-top: 1px solid var(--line) !important; }
 
-/* ============ MINI MAP / SIDEBAR ============ */
-.mini-map, .sidebar {
-  background: rgba(255,255,255,.06) !important;
-  backdrop-filter: blur(40px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  border-radius: 12px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 8px 24px rgba(0,0,0,.25);
+/* ============ MINI MAP — retire the HUD toy ============ */
+.mini-map { display: none !important; }
+
+.sidebar {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: none !important;
 }
 
 /* ============ EMPTY STATE ============ */
 .empty .icon, .empty-state .icon {
-  background: rgba(255,255,255,.04) !important;
-  border: 1px solid rgba(255,255,255,.08);
-  backdrop-filter: blur(20px);
-  border-radius: 16px !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--line-2) !important;
+  backdrop-filter: none !important;
+  border-radius: 12px !important;
 }
 
-/* ============ FOCUS RINGS ============ */
+/* ============ FOCUS ============ */
 button:focus-visible, a:focus-visible, .btn:focus-visible {
   outline: 0;
-  box-shadow:
-    0 0 0 3px rgba(232,165,71,.30),
-    0 4px 12px rgba(0,0,0,.20);
+  box-shadow: 0 0 0 3px rgba(232,165,71,.25);
 }
 
 /* ============ SCROLLBARS ============ */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.10) !important;
+  background: var(--surface-3) !important;
   border-radius: 999px !important;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(232,165,71,.50) !important;
+  background: var(--ink-4) !important;
   background-clip: content-box;
 }
 
-/* ============ APP LAUNCHER GRID (index.html) ============ */
+/* ============ APP LAUNCHER TILES ============ */
 .app-tile, .dept-card, .launcher-item {
-  background: rgba(255,255,255,.04) !important;
-  backdrop-filter: blur(40px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(160%) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-  border-radius: 18px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 8px 24px rgba(0,0,0,.20) !important;
-  transition: all .25s cubic-bezier(.2,.7,.2,1) !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  transition: border-color .15s ease, background .15s ease !important;
 }
 .app-tile:hover, .dept-card:hover, .launcher-item:hover {
-  transform: translateY(-3px) scale(1.02) !important;
-  border-color: rgba(232,165,71,.40) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
-    0 16px 40px rgba(0,0,0,.30),
-    0 0 0 1px rgba(232,165,71,.20) !important;
+  transform: none !important;
+  border-color: var(--accent-line) !important;
+  background: var(--surface-2) !important;
+  box-shadow: none !important;
 }
 
-/* ============ LOGIN / AUTH GATE ============ */
+/* ============ LOGIN ============ */
 .login-card, .auth-card {
-  background: rgba(20,20,24,.60) !important;
-  backdrop-filter: blur(60px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  border-radius: 24px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 30px 80px rgba(0,0,0,.40) !important;
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4) !important;
 }
 
-/* ============ TOOLTIPS / DROPDOWNS / MENUS ============ */
+/* ============ DROPDOWNS / MENUS / TOASTS ============ */
 .tooltip, .dropdown, .menu, .popover, .context-menu {
-  background: rgba(20,20,24,.85) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  border-radius: 12px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 16px 48px rgba(0,0,0,.40) !important;
+  background: var(--surface-2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45) !important;
 }
-
-/* ============ NOTIFICATION BELL / TOAST ============ */
 .toast, .notification, .alert {
-  background: rgba(20,20,24,.80) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  border-radius: 14px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 16px 48px rgba(0,0,0,.40) !important;
+  background: var(--surface-2) !important;
+  backdrop-filter: none !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45) !important;
 }
 
 /* ============ TYPOGRAPHY ============ */
 h1, h2, h3, .heading {
-  font-family: var(--font-en) !important;
-  letter-spacing: -0.02em !important;
+  font-family: var(--font-ar) !important;
+  letter-spacing: -0.01em !important;
 }
-
-/* Disable any heavy old shadows that clash */
-.card, .panel, .box {
-  text-shadow: none !important;
-}
+.card, .panel, .box { text-shadow: none !important; }

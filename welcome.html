@@ -10,29 +10,48 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* CLEAN EDITION tokens — same palette spine-glass.css applies to the other
+     pages. Surfaces move from translucent white to flat hex so panels read as
+     solid cards with 1px hairlines rather than frosted glass. */
   :root{
-    --bg: #0A0E0F;
-    --bg-2: #0E1314;
-    --surface: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.06);
-    --surface-3: rgba(255,255,255,0.08);
-    --ink: #F4F1EA;
-    --ink-2: #B8B2A4;
-    --ink-3: #7A7568;
-    --ink-4: #4A4640;
-    --line: rgba(255,255,255,0.06);
-    --line-2: rgba(255,255,255,0.10);
-    --line-3: rgba(255,255,255,0.16);
+    --bg: #15181B;
+    --bg-2: #1C2125;
+    --surface: #1C2125;
+    --surface-2: #22282D;
+    --surface-3: #2A3137;
+    --ink: #F5F2EB;
+    --ink-2: #CFC9BC;
+    --ink-3: #99938C;
+    --ink-4: #625D54;
+    --line: #2B3238;
+    --line-2: #394148;
+    --line-3: #394148;
     --accent: #E8A547;
     --accent-2: #C8893E;
     --accent-soft: rgba(232,165,71,0.12);
     --accent-line: rgba(232,165,71,0.30);
-    --green: #6BAF6B;
-    --red: #D67560;
-    --blue: #6A8FAE;
+    --on-accent: #1A1408;
+    /* Matched to spine-shared.css rather than the handoff README — see the note
+       in today.html. The live CLEAN pages render #9CB57A / #7AA8C9. */
+    --green: #9CB57A;
+    --red: #D86B5C;
+    --blue: #7AA8C9;
     --font: 'IBM Plex Sans Arabic', system-ui, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, monospace;
   }
+
+  /* CLEAN EDITION: flat panels, hairlines, no frosted glass, no floating orbs.
+     Mirrors what spine-glass.css does for the other ten pages. Placed here as
+     an override rather than editing 24 call sites individually.
+     Note the surfaces above are now opaque, so a backdrop blur behind them
+     renders nothing anyway — dropping it is a straight perf win. */
+  .cta-card .glow{ display: none !important; }
+  *{ backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .statusbar, .topbar{
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+  }
+
   *{ box-sizing: border-box; margin: 0; padding: 0 }
   html, body{
     background: var(--bg);

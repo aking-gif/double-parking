@@ -17,8 +17,17 @@
   --line-2: #394148;
   --ink: #F5F2EB;
   --ink-2: #CFC9BC;
-  --ink-3: #99938C;
-  --ink-4: #625D54;
+  /* Both tiers lifted for legibility (measured, WCAG 2.1 vs the four surfaces):
+     ink-3 #99938C scored 4.34 on --surface-3, just under the 4.5 AA bar for
+     small text; it now clears 4.5 on every surface.
+     ink-4 #625D54 scored 2.02–2.73 everywhere — roughly half the AA bar — while
+     being used for placeholders, empty-state hints, timestamps and counts. It
+     now clears the 3:1 floor (3.70 on --surface).
+     Deliberately NOT pushed to 4.5: that lands on #9A9791, which is brighter
+     than ink-3 and inverts the four-tier scale. Text that must meet AA should
+     use ink-3; ink-4 stays the dimmest tier. */
+  --ink-3: #9C968F;
+  --ink-4: #7C7871;
   --radius: 9px;
   --radius-lg: 14px;
 }
@@ -169,7 +178,9 @@ textarea, select {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px rgba(232,165,71,.12);
 }
-::placeholder { color: var(--ink-4) !important; }
+/* Placeholders carry the only hint of what a field wants, so they use ink-3
+   (4.5:1+, AA) rather than the dimmest tier. At ink-4 they sat at 2.48:1. */
+::placeholder { color: var(--ink-3) !important; }
 
 /* ============ BUTTONS ============ */
 .btn,

@@ -4464,10 +4464,19 @@ async function processAutomationsCron(env) {
     }
   }
 
-  // Birthdays — daily check
+  // Birthdays — daily check.
+  // Gated on the 'birthday' automation template the same way the Gmail sync is
+  // gated on 'mail': absent means on (this ran unconditionally long before the
+  // template existed, so defaulting to off would silently kill it), paused
+  // means the owner switched it off in the UI. This is what makes the template
+  // toggle real rather than decorative.
+  const bdayState = await autoStateGet(env);
+  const bdayTpl = bdayState.workflows && bdayState.workflows.birthday;
+  const bdayOff = !!(bdayTpl && bdayTpl.paused);
+
   const lastBday = await env.ARSAN.get("auto_last_bday_check");
   const today = new Date().toISOString().slice(0, 10);
-  if (lastBday !== today) {
+  if (!bdayOff && lastBday !== today) {
     const users = await loadUsers(env);
     const slackUrl = await env.ARSAN.get("slack_webhook_v1");
     const send = async (text) => {

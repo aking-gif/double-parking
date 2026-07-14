@@ -581,7 +581,9 @@ window.SpineModules = (function(){
       `,
       mount(){
         const KEY = 'calendar_events_v1';
-        let events = [];
+        let events = [];   // platform events — persisted to KV
+        let gevents = [];  // live Google events — never persisted (see save())
+        let gstate = null; // null = unknown, 'ok' | 'not-connected' | 'error'
 
         async function load(){
           try {
@@ -589,10 +591,51 @@ window.SpineModules = (function(){
             events = Array.isArray(data) ? data : [];
             render();
             updateOAuthStatus();
+            loadGoogle();
           } catch(e){
             const el = document.getElementById('cal-list');
             if (el) el.innerHTML = `<div style="padding:30px;text-align:center;color:var(--red);font-size:13px">⚠️ ${e.message}</div>`;
           }
+        }
+
+        // Live Google events. Kept out of `events` so save() can never write
+        // them into KV — they'd duplicate against the next fetch and go stale.
+        async function loadGoogle(){
+          try {
+            const r = await fetch(_API()+'/api/gcal/events?days=7', {headers:{'Authorization':'Bearer '+_tok()}});
+            if (r.status === 428){ gstate = 'not-connected'; gevents = []; render(); return; }
+            if (!r.ok){ gstate = 'error'; gevents = []; render(); return; }
+            const raw = await r.json();
+            // Google sends all-day events as a bare date ("2026-07-17"), which
+            // Date parses as UTC midnight — in Riyadh (+3) that would render as
+            // 03:00. Parse those as local midnight instead.
+            const toTs = (v) => {
+              if (!v) return 0;
+              const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+              return m ? new Date(+m[1], +m[2]-1, +m[3]).getTime() : new Date(v).getTime();
+            };
+            // The worker returns ISO strings for start/end and an array of
+            // attendee emails; this module works in epoch ms with a count.
+            gevents = (Array.isArray(raw) ? raw : []).map(e => ({
+              id: e.id,
+              title: e.title,
+              location: e.location || '',
+              start: toTs(e.start),
+              end: toTs(e.end),
+              kind: 'google',
+              attendees: Array.isArray(e.attendees) ? e.attendees.length : 0,
+              link: e.link || '',
+              source: 'google'
+            })).filter(e => e.start);
+            gstate = 'ok';
+            render();
+          } catch(_){ gstate = 'error'; gevents = []; render(); }
+        }
+
+        // Local + Google, deduped by id (local wins).
+        function allEvents(){
+          const seen = new Set(events.map(e => e.id));
+          return events.concat(gevents.filter(e => !seen.has(e.id)));
         }
 
         async function save(){
@@ -618,16 +661,17 @@ window.SpineModules = (function(){
         }
 
         function render(){
+          const all = allEvents();
           const now = Date.now(), wkEnd = now + 7*86400000, dayEnd = now + 86400000;
-          const upcoming = events.filter(e => (e.start||0) >= now - 3600000).sort((a,b)=>(a.start||0)-(b.start||0));
-          const wkCount = events.filter(e => (e.start||0) >= now && (e.start||0) <= wkEnd).length;
-          const tdCount = events.filter(e => {
+          const upcoming = all.filter(e => (e.start||0) >= now - 3600000).sort((a,b)=>(a.start||0)-(b.start||0));
+          const wkCount = all.filter(e => (e.start||0) >= now && (e.start||0) <= wkEnd).length;
+          const tdCount = all.filter(e => {
             const s = e.start || 0;
             return s >= now - 3600000 && s <= dayEnd;
           }).length;
           // Conflicts: events that overlap
           let conflicts = 0;
-          const sorted = [...events].sort((a,b)=>(a.start||0)-(b.start||0));
+          const sorted = [...all].sort((a,b)=>(a.start||0)-(b.start||0));
           for (let i=1; i<sorted.length; i++){
             if ((sorted[i].start||0) < ((sorted[i-1].end||sorted[i-1].start+3600000))) conflicts++;
           }
@@ -639,7 +683,10 @@ window.SpineModules = (function(){
 
           const list = document.getElementById('cal-list');
           if (!upcoming.length){
-            list.innerHTML = `<div style="padding:50px 20px;text-align:center;color:var(--ink-3);font-size:13px">لا أحداث قادمة.<br/><button id="cal-empty" style="background:var(--accent);color:#1a1300;padding:8px 18px;border-radius:8px;margin-top:14px;font-weight:600;font-size:12px">+ أنشئ أول حدث</button></div>`;
+            const gHint = gstate === 'not-connected'
+              ? `<br/><span style="font-size:12px;color:var(--ink-3)">اربط Google لعرض أحداث تقويمك.</span>`
+              : (gstate === 'error' ? `<br/><span style="font-size:12px;color:var(--orange)">تعذّر جلب أحداث Google.</span>` : '');
+            list.innerHTML = `<div style="padding:50px 20px;text-align:center;color:var(--ink-3);font-size:13px">لا أحداث قادمة.${gHint}<br/><button id="cal-empty" style="background:var(--accent);color:#1a1300;padding:8px 18px;border-radius:8px;margin-top:14px;font-weight:600;font-size:12px">+ أنشئ أول حدث</button></div>`;
             const b = document.getElementById('cal-empty'); if (b) b.onclick = openNewModal;
           } else {
             list.innerHTML = upcoming.slice(0,12).map(e => {
@@ -647,7 +694,13 @@ window.SpineModules = (function(){
               const day = d.getDate();
               const mon = d.toLocaleString('en-US',{month:'short'}).toUpperCase();
               const time = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
-              const kindClr = {meeting:'accent', deadline:'red', review:'orange', sync:'blue', external:''}[e.kind||'meeting'] || 'accent';
+              const kindClr = {meeting:'accent', deadline:'red', review:'orange', sync:'blue', google:'blue', external:''}[e.kind||'meeting'] || 'accent';
+              const isG = e.source === 'google';
+              // Google events are read-only here: deleting would only drop them
+              // until the next fetch. Link out to Google instead.
+              const right = isG
+                ? (e.link ? `<a href="${_esc(e.link)}" target="_blank" rel="noopener" style="color:var(--ink-3);padding:4px 8px;font-size:11px">↗</a>` : '')
+                : `<button class="cal-del" data-id="${_esc(e.id)}" style="background:transparent;color:var(--ink-3);padding:4px 8px;font-size:11px">✕</button>`;
               return `
                 <div class="item-row" data-id="${_esc(e.id)}">
                   <div class="when">
@@ -659,8 +712,8 @@ window.SpineModules = (function(){
                     <div class="meta">${_esc(e.location||'—')}${e.attendees?' · '+e.attendees+' حضور':''}</div>
                   </div>
                   <div class="right">
-                    <span class="tag ${kindClr}">${_esc(e.kind||'meeting')}</span>
-                    <button class="cal-del" data-id="${_esc(e.id)}" style="background:transparent;color:var(--ink-3);padding:4px 8px;font-size:11px">✕</button>
+                    <span class="tag ${kindClr}">${isG ? 'Google' : _esc(e.kind||'meeting')}</span>
+                    ${right}
                   </div>
                 </div>`;
             }).join('');
@@ -681,7 +734,7 @@ window.SpineModules = (function(){
             for (let i=0; i<7; i++){
               const d0 = startWk.getTime() + i*86400000;
               const d1 = d0 + 86400000;
-              const cnt = events.filter(e => (e.start||0) >= d0 && (e.start||0) < d1).length;
+              const cnt = all.filter(e => (e.start||0) >= d0 && (e.start||0) < d1).length;
               const dt = new Date(d0);
               const isToday = i === 0;
               wk.innerHTML += `
@@ -782,6 +835,7 @@ window.SpineModules = (function(){
                 window.removeEventListener('message', handler);
                 _toast('تم الربط ✓');
                 updateOAuthStatus();
+                loadGoogle();
               }
             });
           } catch(e){ _toast('فشل: '+e.message,'err'); }

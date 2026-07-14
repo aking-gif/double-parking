@@ -2387,6 +2387,166 @@ ${clipped}
         return json({ ok: true }, 200, req);
       }
 
+      // -------- GOOGLE LIVE (Calendar + Gmail) --------
+      // Uses the OAuth tokens stored by /api/oauth/google/callback
+      const getGoogleAccess = async (email) => {
+        const raw = await env.ARSAN.get(oauthKey("google", email));
+        if (!raw) return { error: "google-not-connected" };
+        let tok;
+        try { tok = JSON.parse(raw); } catch(_) { return { error: "google-token-corrupt" }; }
+        if (tok.expiresAt && tok.expiresAt < Date.now() + 60000) {
+          if (!tok.refreshToken) return { error: "google-token-expired" };
+          const r = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: env.GOOGLE_CLIENT_ID,
+              client_secret: env.GOOGLE_CLIENT_SECRET,
+              refresh_token: tok.refreshToken,
+              grant_type: "refresh_token",
+            }),
+          });
+          const j = await r.json().catch(() => ({}));
+          if (!j.access_token) return { error: "google-refresh-failed" };
+          tok.accessToken = j.access_token;
+          tok.expiresAt = Date.now() + (j.expires_in || 3600) * 1000;
+          await env.ARSAN.put(oauthKey("google", email), JSON.stringify(tok));
+        }
+        return { accessToken: tok.accessToken };
+      };
+
+      // GET /api/gcal/events?days=7 → live events from the user's Google Calendar
+      if (path === "/api/gcal/events" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const g = await getGoogleAccess(s.email);
+        if (g.error) return json({ error: g.error, connectUrl: "/api/oauth/google/start" }, 428, req);
+        const days = Math.min(parseInt(url.searchParams.get("days") || "7", 10) || 7, 60);
+        const timeMin = new Date().toISOString();
+        const timeMax = new Date(Date.now() + days * 86400000).toISOString();
+        const r = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?" + new URLSearchParams({
+          timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "50",
+        }), { headers: { Authorization: "Bearer " + g.accessToken } });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) return json({ error: "gcal-fetch-failed", detail: j.error && j.error.message }, 502, req);
+        const events = (j.items || []).map(e => ({
+          id: e.id,
+          title: e.summary || "(بدون عنوان)",
+          start: (e.start && (e.start.dateTime || e.start.date)) || null,
+          end: (e.end && (e.end.dateTime || e.end.date)) || null,
+          location: e.location || "",
+          link: e.htmlLink || "",
+          attendees: (e.attendees || []).map(a => a.email),
+          source: "google",
+        }));
+        return json(events, 200, req);
+      }
+
+      // POST /api/gcal/events { title, start, end, description?, location? } → create in Google Calendar
+      if (path === "/api/gcal/events" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const g = await getGoogleAccess(s.email);
+        if (g.error) return json({ error: g.error, connectUrl: "/api/oauth/google/start" }, 428, req);
+        const body = await req.json().catch(() => ({}));
+        if (!body.title || !body.start) return json({ error: "title-and-start-required" }, 400, req);
+        const ev = {
+          summary: String(body.title).slice(0, 200),
+          description: String(body.description || "").slice(0, 2000),
+          location: String(body.location || "").slice(0, 300),
+          start: { dateTime: body.start },
+          end: { dateTime: body.end || new Date(new Date(body.start).getTime() + 3600000).toISOString() },
+        };
+        const r = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + g.accessToken, "Content-Type": "application/json" },
+          body: JSON.stringify(ev),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) return json({ error: "gcal-create-failed", detail: j.error && j.error.message }, 502, req);
+        await logActivity(env, { actor: s.email, action: "gcal-create-event", target: ev.summary });
+        return json({ ok: true, id: j.id, link: j.htmlLink }, 200, req);
+      }
+
+      // POST /api/gmail/extract-tasks { query?, max? }
+      // Reads recent Gmail messages, extracts actionable tasks with Claude, saves them to /api/tasks store
+      if (path === "/api/gmail/extract-tasks" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const g = await getGoogleAccess(s.email);
+        if (g.error) return json({ error: g.error, connectUrl: "/api/oauth/google/start" }, 428, req);
+        const body = await req.json().catch(() => ({}));
+        const q = String(body.query || "is:unread newer_than:7d").slice(0, 200);
+        const max = Math.min(parseInt(body.max || "10", 10) || 10, 20);
+        const listRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: String(max) }), {
+          headers: { Authorization: "Bearer " + g.accessToken },
+        });
+        const listJson = await listRes.json().catch(() => ({}));
+        if (!listRes.ok) return json({ error: "gmail-fetch-failed", detail: listJson.error && listJson.error.message }, 502, req);
+        const ids = (listJson.messages || []).map(m => m.id);
+        if (!ids.length) return json({ ok: true, emails: 0, tasks: [] }, 200, req);
+        const emails = [];
+        for (const id of ids) {
+          const mr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, {
+            headers: { Authorization: "Bearer " + g.accessToken },
+          });
+          const mj = await mr.json().catch(() => null);
+          if (!mj) continue;
+          const h = (name) => ((mj.payload && mj.payload.headers) || []).find(x => x.name === name)?.value || "";
+          emails.push({ id, subject: h("Subject"), from: h("From"), date: h("Date"), snippet: mj.snippet || "" });
+        }
+        let extracted = [];
+        if (env.ANTHROPIC_API_KEY) {
+          try {
+            const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+              body: JSON.stringify({
+                model: "claude-haiku-4-5",
+                max_tokens: 2048,
+                system: 'أنت مساعد يستخرج المهام القابلة للتنفيذ من رسائل البريد. أعد JSON فقط: {"tasks":[{"title":"...","description":"...","priority":"normal|high|urgent","dueDate":null,"emailId":"..."}]}. استخرج فقط ما يتطلب فعلًا حقيقيًا؛ تجاهل النشرات والإشعارات الآلية. العناوين بالعربية موجزة.',
+                messages: [{ role: "user", content: JSON.stringify(emails) }],
+              }),
+            });
+            const aiJson = await aiRes.json().catch(() => ({}));
+            const text = (aiJson.content && aiJson.content[0] && aiJson.content[0].text) || "";
+            const m = text.match(/\{[\s\S]*\}/);
+            if (m) extracted = (JSON.parse(m[0]).tasks || []);
+          } catch (_) { /* fall through to heuristic */ }
+        }
+        if (!extracted.length && !env.ANTHROPIC_API_KEY) {
+          extracted = emails.map(e => ({ title: e.subject || "مهمة من البريد", description: "من: " + e.from + "\n" + e.snippet, priority: "normal", dueDate: null, emailId: e.id }));
+        }
+        const raw = await env.ARSAN.get(KEYS.tasks);
+        const list = raw ? JSON.parse(raw) : [];
+        const created = [];
+        for (const t of extracted.slice(0, 20)) {
+          if (!t.title) continue;
+          const src = emails.find(e => e.id === t.emailId);
+          if (list.some(x => x.emailId && x.emailId === t.emailId && x.title === t.title)) continue; // dedupe
+          const task = {
+            id: rand(10),
+            title: String(t.title).slice(0, 200),
+            description: String(t.description || (src ? "من بريد: " + src.subject : "")).slice(0, 2000),
+            sopRef: null, dept: null,
+            assignee: s.email,
+            createdBy: s.email,
+            createdAt: Date.now(),
+            dueDate: t.dueDate || null,
+            priority: ["high", "urgent"].includes(t.priority) ? t.priority : "normal",
+            status: "open",
+            source: "gmail",
+            emailId: t.emailId || null,
+          };
+          list.unshift(task);
+          created.push(task);
+        }
+        if (list.length > 2000) list.length = 2000;
+        await env.ARSAN.put(KEYS.tasks, JSON.stringify(list));
+        await logActivity(env, { actor: s.email, action: "gmail-extract-tasks", target: created.length + " tasks from " + emails.length + " emails" });
+        return json({ ok: true, emails: emails.length, tasks: created }, 200, req);
+      }
+
       // -------- TASKS --------
       // GET /api/tasks?sopRef=...&assignee=...&status=...
       if (path === "/api/tasks" && method === "GET") {

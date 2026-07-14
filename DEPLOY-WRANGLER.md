@@ -58,16 +58,28 @@ deleted. Check it, then deploy.
 drop the schedule. The scheduled jobs each gate themselves on a Riyadh window
 plus a KV day-stamp, so the shared 15-minute tick is safe:
 
-| Job                    | Window (Asia/Riyadh) | Gate                                  |
-|------------------------|----------------------|---------------------------------------|
-| `processAutomationsCron` | every tick         | per-item `fireAt` / `nextRun`          |
-| `archiveCron`          | 03:00                | `archive` template live                |
-| `gmailAutoSyncCron`    | 06:00                | `mail` template not paused             |
-| `dailyDigestCron`      | 07:00                | `daily` template live                  |
-| `weeklyDigestCron`     | Monday 08:00         | always                                 |
+| Job                    | Window (Asia/Riyadh) | Gate                                  | Fires today? |
+|------------------------|----------------------|---------------------------------------|--------------|
+| `processAutomationsCron` | every tick         | per-item `fireAt` / `nextRun`          | yes          |
+| birthdays (inside it)  | daily                | `birthday` template not paused         | yes          |
+| `archiveCron`          | 03:00                | `archive` template **live**            | **no**       |
+| `gmailAutoSyncCron`    | 06:00                | `mail` template not paused             | yes          |
+| `dailyDigestCron`      | 07:00                | `daily` template **live**              | **no**       |
+| `weeklyDigestCron`     | Monday 08:00         | always                                 | yes          |
 
 Each claims its KV day-stamp **before** doing the work, so a crash skips the day
 rather than double-sending to staff.
+
+**Two of these are opt-in and will do nothing until you switch them on.**
+`archiveCron` and `dailyDigestCron` require their template to be *activated* —
+and as of 2026-07-15 the `automations_state` key does not exist in KV at all,
+meaning no template has ever been activated. Activate «تذكير يومي» / «أرشفة
+تلقائية» on automations.html to arm them.
+
+The other two are opt-out: `gmailAutoSyncCron` and the birthday check run by
+default and treat their template as an off switch, because the birthday check
+predates the templates entirely — defaulting it off would have silently killed a
+working feature.
 
 ## Watch it run
 

@@ -13,13 +13,13 @@
     --bg: #0A0B0D;
     --bg-black: #000000;
     --surface: #14150f;
-    --accent: #C9A961;
-    --accent-2: #E5C988;
-    --accent-soft: rgba(201,169,97,0.15);
-    --accent-line: rgba(201,169,97,0.30);
-    --ink: #e8e4d9;
-    --ink-dim: rgba(232,228,217,0.55);
-    --ink-faint: rgba(232,228,217,0.30);
+    --accent: #E8A547;
+    --accent-2: #F0B25C;
+    --accent-soft: rgba(232,165,71,0.15);
+    --accent-line: rgba(232,165,71,0.30);
+    --ink: #F5F2EB;
+    --ink-dim: rgba(245,242,235,0.55);
+    --ink-faint: rgba(245,242,235,0.30);
     --font-ar: "IBM Plex Sans Arabic", system-ui, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
   }
@@ -59,7 +59,7 @@
   }
   .glow{
     position: fixed; inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(201,169,97,0.08) 0%, rgba(201,169,97,0.025) 30%, transparent 65%);
+    background: radial-gradient(circle at 50% 50%, rgba(232,165,71,0.08) 0%, rgba(232,165,71,0.025) 30%, transparent 65%);
     pointer-events: none;
     z-index: 1;
     opacity: 0;
@@ -102,7 +102,7 @@
   }
   .bios-line.dim{ color: var(--accent); opacity: .55 }
   .bios-line.shown.dim{ opacity: .55 }
-  .bios-line .ok{ color: #4FB477 }
+  .bios-line .ok{ color: #9CB57A }
   .bios-line .blink{
     display: inline-block;
     width: 8px; height: 14px;
@@ -151,11 +151,11 @@
     /* The SVG's paths default to black fill (no `fill` set on <path>).
        Step 1 of the filter chain normalizes any source color to pure black
        (brightness(0) + saturate(100%)), then the invert/sepia chain shifts
-       that to gold (~#C9A961). Final drop-shadow gives the ambient glow. */
+       that to gold (~#E8A547). Final drop-shadow gives the ambient glow. */
     filter:
       brightness(0) saturate(100%)
       invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
-      drop-shadow(0 0 28px rgba(201,169,97,0.42));
+      drop-shadow(0 0 28px rgba(232,165,71,0.42));
     opacity: 0;
   }
   body.phase-2 .logo-img, body.phase-3 .logo-img, body.phase-4 .logo-img{
@@ -165,15 +165,15 @@
     0%   { opacity: 0; transform: scale(0.88); filter:
              brightness(0) saturate(100%)
              invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
-             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(12px); }
+             drop-shadow(0 0 28px rgba(232,165,71,0.42)) blur(12px); }
     60%  { opacity: 1; transform: scale(1.03); filter:
              brightness(0) saturate(100%)
              invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
-             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(0px); }
+             drop-shadow(0 0 28px rgba(232,165,71,0.42)) blur(0px); }
     100% { opacity: 1; transform: scale(1); filter:
              brightness(0) saturate(100%)
              invert(72%) sepia(38%) saturate(540%) hue-rotate(2deg) brightness(92%) contrast(91%)
-             drop-shadow(0 0 28px rgba(201,169,97,0.42)) blur(0px); }
+             drop-shadow(0 0 28px rgba(232,165,71,0.42)) blur(0px); }
   }
   .splash-en{
     font-family: var(--font-mono);
@@ -183,7 +183,7 @@
     font-weight: 500;
     text-transform: uppercase;
     direction: ltr;
-    text-shadow: 0 0 20px rgba(201,169,97,0.3);
+    text-shadow: 0 0 20px rgba(232,165,71,0.3);
     opacity: 0;
     transform: translateY(8px);
     transition: opacity .8s ease .35s, transform .8s ease .35s;
@@ -200,7 +200,7 @@
     width: 60%;
     max-width: 580px;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, #C9A961 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, #E8A547 50%, transparent 100%);
     background-size: 200% 100%;
     background-position: -100% 0;
     box-shadow: 0 0 10px var(--accent-soft);
@@ -244,8 +244,8 @@
   .splash-status .dot{
     width: 6px; height: 6px;
     border-radius: 50%;
-    background: #4FB477;
-    box-shadow: 0 0 8px #4FB477;
+    background: #9CB57A;
+    box-shadow: 0 0 8px #9CB57A;
     animation: pulse 2s infinite;
   }
   .splash-status .sep{ color: var(--ink-faint); margin: 0 -4px }
@@ -262,7 +262,7 @@
     content: '';
     position: absolute;
     inset: -40% -20%;
-    background: radial-gradient(ellipse 60% 40% at 50% 48%, rgba(201,169,97,0.13) 0%, transparent 70%);
+    background: radial-gradient(ellipse 60% 40% at 50% 48%, rgba(232,165,71,0.13) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
     opacity: 0;
@@ -309,7 +309,7 @@
   }
   .progress-track{
     height: 2px;
-    background: rgba(201,169,97,0.15);
+    background: rgba(232,165,71,0.15);
     border-radius: 999px;
     overflow: hidden;
     position: relative;
@@ -370,7 +370,7 @@
     display: block;
     font-family: var(--font-ar);
     font-size: 0.8rem;
-    color: rgba(201,169,97,0.7);
+    color: rgba(232,165,71,0.7);
     letter-spacing: 0.15em;
     font-weight: 500;
   }
@@ -378,7 +378,7 @@
     display: block;
     font-family: var(--font-mono);
     font-size: 0.7rem;
-    color: rgba(201,169,97,0.5);
+    color: rgba(232,165,71,0.5);
     letter-spacing: 0.6em;
     margin-top: 6px;
     direction: ltr;
@@ -428,7 +428,7 @@
   }
   body.phase-2 .corner-version, body.phase-3 .corner-version, body.phase-4 .corner-version{ opacity: 1 }
   .corner-version .live{
-    color: #4FB477;
+    color: #9CB57A;
     margin-inline-end: 4px;
     animation: pulse 2s infinite;
   }
@@ -463,7 +463,7 @@
     transition: opacity .3s ease, color .15s ease;
     background: rgba(20,21,15,0.5);
     padding: 6px 12px;
-    border: 1px solid rgba(232,228,217,0.08);
+    border: 1px solid rgba(245,242,235,0.08);
     border-radius: 4px;
     backdrop-filter: blur(8px);
   }

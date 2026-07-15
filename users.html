@@ -925,7 +925,12 @@ function renderDashboard() {
   Object.keys(ROLE_LABELS).forEach(r => roleCounts[r] = 0);
   USERS.forEach(u => { if (roleCounts[u.role] !== undefined) roleCounts[u.role]++; });
   const maxRole = Math.max(1, ...Object.values(roleCounts));
-  const roleColors = { admin:"#7B9DC4", "dept-manager":"#c084fc", editor:"#60a5fa", contributor:"#2dd4bf", viewer:"#888" };
+  // Categorical palette for the role-distribution bars. Was Tailwind defaults
+  // (purple #c084fc, teal #2dd4bf) plus #7B9DC4, this page's retired accent —
+  // off-brand and clashing. These five are the CLEAN hues, well separated
+  // (amber ~45deg, green ~80, blue ~200, red ~10, neutral) and each clears 3:1
+  // against the surfaces, which is the WCAG floor for graphic elements.
+  const roleColors = { admin:"#E8A547", "dept-manager":"#7AA8C9", editor:"#9CB57A", contributor:"#D86B5C", viewer:"#9C968F" };
   $("#role-dist").innerHTML = Object.entries(ROLE_LABELS).map(([k,v]) => `
     <div class="role-row">
       <div class="rbad">${roleBadge(k)}</div>
@@ -1118,7 +1123,7 @@ function showDeliveryModal({ title, email, url, notify }) {
 
           ${url ? `
             <div style="background:#f9f6ef;border:1px solid #e5dcc0;border-radius:10px;padding:14px;margin-bottom:14px">
-              <div style="font-size:12px;color:#3D5A80;font-weight:600;margin-bottom:8px">🔗 الرابط (احتياطي — للنسخ اليدوي):</div>
+              <div style="font-size:12px;color:#7AA8C9;font-weight:600;margin-bottom:8px">🔗 الرابط (احتياطي — للنسخ اليدوي):</div>
               <div style="display:flex;gap:8px;align-items:center">
                 <input id="del-url" type="text" readonly value="${url}" style="flex:1;padding:8px 10px;border:1px solid #d8cba8;border-radius:6px;font-size:12px;font-family:monospace;background:#fff" onclick="this.select()"/>
                 <button onclick="navigator.clipboard.writeText(document.getElementById('del-url').value);this.textContent='✓ نُسخ'" style="background:#3D5A80;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">📋 نسخ</button>
@@ -1138,7 +1143,7 @@ function showDeliveryModal({ title, email, url, notify }) {
           ` : ''}
         </div>
         <div style="padding:14px 24px;background:#fafafa;border-top:1px solid #eee;display:flex;justify-content:flex-end">
-          <button onclick="document.getElementById('mdl-delivery').remove()" style="background:#3D5A80;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer">إغلاق</button>
+          <button onclick="document.getElementById('mdl-delivery').remove()" style="background:#2A3137;color:#F5F2EB;border:1px solid #394148;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer">إغلاق</button>
         </div>
       </div>
     </div>`;

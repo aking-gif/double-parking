@@ -63,7 +63,7 @@ html, body{
 }
 body{
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(201,169,97,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 20% 0%, rgba(232,165,71,0.04) 0%, transparent 50%),
     radial-gradient(circle at 90% 100%, rgba(103,137,197,0.03) 0%, transparent 50%);
 }
 body::after{
@@ -163,7 +163,7 @@ a{color:inherit;text-decoration:none}
 .tb-search-orb{
   position:relative;width:36px;height:36px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  color:var(--accent);background:rgba(201,169,97,0.06);
+  color:var(--accent);background:rgba(232,165,71,0.06);
   border:1px solid var(--accent-line);cursor:pointer;
   transition:all .2s;
 }
@@ -433,7 +433,7 @@ a{color:inherit;text-decoration:none}
 
 /* ============ FOCUS MODE ============ */
 .focus{
-  background:linear-gradient(135deg, rgba(201,169,97,0.08) 0%, rgba(184,149,72,0.04) 100%);
+  background:linear-gradient(135deg, rgba(232,165,71,0.08) 0%, rgba(200,137,62,0.04) 100%);
   border:1px solid var(--accent-line);
   border-radius:var(--radius-lg);
   padding:28px 28px 26px;
@@ -443,8 +443,8 @@ a{color:inherit;text-decoration:none}
 .focus::before{
   content:'';position:absolute;inset:0;
   background-image:
-    linear-gradient(rgba(201,169,97,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201,169,97,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(232,165,71,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,165,71,0.04) 1px, transparent 1px);
   background-size:32px 32px;pointer-events:none;
 }
 .focus-head{
@@ -480,7 +480,7 @@ a{color:inherit;text-decoration:none}
   font-weight:600;font-size:13px;
   transition:all .15s;
 }
-.focus-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,169,97,0.3)}
+.focus-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,165,71,0.3)}
 .focus-btn.ghost{
   background:transparent;border:1px solid var(--line-3);color:var(--ink-2);
 }
@@ -571,7 +571,7 @@ a{color:inherit;text-decoration:none}
 .tl-row:last-child .tl-hour,
 .tl-row:last-child .tl-slot{border-bottom:0}
 .tl-hour.now{color:var(--accent);font-weight:600;background:var(--accent-soft)}
-.tl-slot.now{background:rgba(201,169,97,0.04)}
+.tl-slot.now{background:rgba(232,165,71,0.04)}
 .tl-slot.now::before{
   content:'';position:absolute;top:0;bottom:0;
   inset-inline-start:0;width:2px;background:var(--accent);
@@ -587,7 +587,7 @@ a{color:inherit;text-decoration:none}
 .tl-event:hover{border-color:var(--line-3);background:var(--surface-3)}
 .tl-event.meet{
   border-color:var(--accent-line);
-  background:rgba(201,169,97,0.05);
+  background:rgba(232,165,71,0.05);
 }
 .tl-event.task{border-inline-start:2px solid var(--blue)}
 .tl-event.deadline{border-inline-start:2px solid var(--red)}
@@ -1007,7 +1007,7 @@ function updateFocus(){
   actionsEl.style.display='flex';
   etaEl.textContent=t.estMinutes?`≈ ${t.estMinutes} MIN`:'';
   document.getElementById('focusStart').onclick=()=>{
-    card.style.background='linear-gradient(135deg, rgba(201,169,97,0.18) 0%, rgba(184,149,72,0.08) 100%)';
+    card.style.background='linear-gradient(135deg, rgba(232,165,71,0.18) 0%, rgba(200,137,62,0.08) 100%)';
     card.style.transform='scale(1.005)';
     setTimeout(()=>card.style.transform='',300);
   };

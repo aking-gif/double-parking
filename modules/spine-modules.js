@@ -1351,10 +1351,102 @@ window.SpineModules = (function(){
     ]
   }); }
 
+  function compliance(){
+    const sc = s => (s>=80?'green':s>=50?'orange':'red');
+    return {
+      body:`
+        <div class="stat-row" id="cp-stats">${Array.from({length:4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join('')}</div>
+        <div class="two-col">
+          <div class="card"><div class="card-head"><h3>الامتثال حسب المستخدم</h3><span class="meta mono" id="cp-ucount">—</span></div><div id="cp-users"><div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div></div>
+          <div class="card"><div class="card-head"><h3>حسب الإدارة</h3></div><div class="bars" id="cp-depts" style="padding:18px"></div></div>
+        </div>`,
+      mount(){
+        (async()=>{
+          let d;
+          try { d = await _mfetch('/api/compliance'); }
+          catch(err){
+            document.getElementById('cp-users').innerHTML = `<div style="padding:48px;text-align:center;color:var(--ink-3);font-size:13px">${err.code===403?'هذه الوحدة متاحة للمشرفين فقط.':err.code===401?'سجّل الدخول لعرض البيانات.':'تعذّر تحميل البيانات.'}</div>`;
+            return;
+          }
+          const users = Array.isArray(d.userScores)?d.userScores:[];
+          const depts = Array.isArray(d.deptScores)?d.deptScores:[];
+          document.getElementById('cp-stats').innerHTML = [
+            {k:'Overall', v:(d.overall!=null?d.overall+'%':'—'), cls:(d.overall!=null?sc(d.overall):null)},
+            {k:'Users', v:users.length},
+            {k:'Departments', v:depts.length},
+            {k:'محدّث', v:_mrel(d.generatedAt)},
+          ].map(s=>`<div class="stat"><div class="k">${_mesc(s.k)}</div><div class="v"${s.cls?` style="color:var(--${s.cls})"`:''}>${_mesc(String(s.v))}</div></div>`).join('');
+          document.getElementById('cp-ucount').textContent = users.length + ' مستخدم';
+          const ub = document.getElementById('cp-users');
+          ub.innerHTML = !users.length ? '<div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">لا توجد بيانات امتثال بعد.</div>'
+            : '<table class="tbl"><thead><tr><th>المستخدم</th><th>الدور</th><th>النقاط</th></tr></thead><tbody>' + users.slice(0,40).map(u=>`<tr><td class="name">${_mesc(u.name||u.email||'—')}</td><td><span style="font-family:var(--font-en);font-size:11px">${_mesc(u.role||'—')}</span></td><td>${tag((u.score!=null?u.score+'%':'—'), sc(u.score||0))}</td></tr>`).join('') + '</tbody></table>';
+          const db = document.getElementById('cp-depts');
+          db.innerHTML = !depts.length ? '<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:12px">—</div>'
+            : depts.slice(0,12).map(dp=>`<div class="bar-r"><span class="lbl">${_mesc(dp.name||dp.dept||dp.id||'—')}</span><div class="track"><div class="fill" style="width:${Math.round((dp.score||0))}%;background:var(--${sc(dp.score||0)})"></div></div><span class="v">${dp.score!=null?dp.score:'—'}</span></div>`).join('');
+        })();
+      }
+    };
+  }
+
+  function reports(){
+    const sc = s => (s>=80?'green':s>=50?'orange':'red');
+    return {
+      body:`
+        <div class="stat-row" id="rp-stats">${Array.from({length:4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join('')}</div>
+        <div class="card"><div class="card-head"><h3>ملخّص تنفيذي · حسب الموقع</h3><span class="meta mono" id="rp-count">—</span></div><div id="rp-body"><div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div></div>`,
+      mount(){
+        (async()=>{
+          let s;
+          try { s = await _mfetch('/api/exec/summary'); }
+          catch(err){ document.getElementById('rp-body').innerHTML = `<div style="padding:48px;text-align:center;color:var(--ink-3);font-size:13px">${err.code===401?'سجّل الدخول لعرض التقرير.':'تعذّر تحميل التقرير.'}</div>`; return; }
+          const sites=s.sites||{}, sops=s.sops||{}, tasks=s.tasks||{}, appr=s.approvals||{};
+          document.getElementById('rp-stats').innerHTML = [
+            {k:'Sites', v:(sites.active!=null?sites.active:'—')+' / '+(sites.total!=null?sites.total:'—')},
+            {k:'SOPs Active', v:(sops.active!=null?sops.active:'—')+' / '+(sops.total!=null?sops.total:'—')},
+            {k:'Task Compliance', v:(tasks.compliance!=null?tasks.compliance+'%':'—'), cls:(tasks.compliance!=null?sc(tasks.compliance):null)},
+            {k:'Pending Approvals', v:(appr.pending!=null?appr.pending:'—'), cls:(appr.pending?'orange':null)},
+          ].map(x=>`<div class="stat"><div class="k">${_mesc(x.k)}</div><div class="v"${x.cls?` style="color:var(--${x.cls})"`:''}>${_mesc(String(x.v))}</div></div>`).join('');
+          const per = Array.isArray(s.perSite)?s.perSite:[];
+          document.getElementById('rp-count').textContent = per.length + ' موقع';
+          const b = document.getElementById('rp-body');
+          b.innerHTML = !per.length ? '<div style="padding:48px;text-align:center;color:var(--ink-3);font-size:13px">لا توجد مواقع مسجّلة بعد.</div>'
+            : '<table class="tbl"><thead><tr><th>الموقع</th><th>المدينة</th><th>المهام</th><th>مكتملة</th><th>النقاط</th></tr></thead><tbody>' + per.slice(0,50).map(p=>`<tr><td class="name">${_mesc(p.name||p.id||'—')}</td><td>${_mesc(p.city||'—')}</td><td><span class="mono">${p.tasks!=null?p.tasks:'—'}</span></td><td><span class="mono">${p.completed!=null?p.completed:'—'}</span></td><td>${p.score!=null?tag(p.score+'%', sc(p.score)):'—'}</td></tr>`).join('') + '</tbody></table>';
+        })();
+      }
+    };
+  }
+
+  function decisions(){
+    const m = liveModule({
+      endpoint:'/api/decisions', title:'سجل القرارات', countLabel:'قرار', empty:'لا توجد قرارات مسجّلة بعد.',
+      actions:`<button class="primary" id="decNew">+ قرار</button>`,
+      stats:l=>[{k:'Total',v:l.length},{k:'Approved',v:l.filter(d=>d.status==='approved').length,cls:'green'},{k:'Pending',v:l.filter(d=>d.status==='pending').length,cls:'orange'},{k:'Deferred',v:l.filter(d=>d.status==='deferred').length}],
+      columns:[
+        {label:'الرقم',cell:d=>`<span class="mono" style="color:var(--accent);font-size:11px">${_mesc(d.id||'—')}</span>`},
+        {label:'القرار',cell:d=>`<span class="name">${_mesc(d.title||'—')}</span>`},
+        {label:'الإدارة',cell:d=>_mesc(d.dept||'—')},
+        {label:'الحالة',cell:d=>tag(d.status==='approved'?'معتمد':d.status==='deferred'?'مؤجّل':d.status==='rejected'?'مرفوض':'معلّق', d.status==='approved'?'green':d.status==='rejected'?'red':'orange')},
+        {label:'التاريخ',cell:d=>`<span class="mono">${_mrel(d.createdAt)}</span>`},
+      ]
+    });
+    const origMount = m.mount;
+    m.mount = function(){
+      origMount.call(this);
+      const btn = document.getElementById('decNew');
+      if (btn) btn.onclick = async () => {
+        const title = prompt('عنوان القرار:'); if (!title) return;
+        try { await fetch(_MAPI()+'/api/decisions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify({title})}); origMount.call(this); }
+        catch(e){ alert('تعذّر حفظ القرار'); }
+      };
+    };
+    return m;
+  }
+
   return {
     sops, meetings, tasks,
     calendar, mail, crm,
     approvals, people, vendors, budget, risks, kpis, vault,
+    compliance, reports, decisions,
     _features
   };
 })();

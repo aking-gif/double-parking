@@ -2802,6 +2802,38 @@ ${clipped}
         return json({ ok: true, approval: list[idx] }, 200, req);
       }
 
+      // -------- DECISIONS LOG --------
+      // GET /api/decisions  → [{id,title,status,dept,note,createdBy,createdAt}]
+      if (path === "/api/decisions" && method === "GET") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const raw = await env.ARSAN.get("decisions_v1");
+        return json(raw ? JSON.parse(raw) : [], 200, req);
+      }
+      // POST /api/decisions  { title, status?, dept?, note? }
+      if (path === "/api/decisions" && method === "POST") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const body = await req.json().catch(() => ({}));
+        if (!body.title) return json({ error: "title-required" }, 400, req);
+        const raw = await env.ARSAN.get("decisions_v1");
+        const list = raw ? JSON.parse(raw) : [];
+        const dec = {
+          id: "DEC-" + rand(6),
+          title: String(body.title).slice(0, 300),
+          status: ["approved","pending","deferred","rejected"].includes(body.status) ? body.status : "pending",
+          dept: body.dept || null,
+          note: String(body.note || "").slice(0, 2000),
+          createdBy: s.email,
+          createdAt: Date.now(),
+        };
+        list.unshift(dec);
+        if (list.length > 1000) list.length = 1000;
+        await env.ARSAN.put("decisions_v1", JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "decision-log", decisionId: dec.id, title: dec.title });
+        return json({ ok: true, decision: dec }, 200, req);
+      }
+
       // ============================================================
       // ===== GOVERNANCE LAYER (Lifecycle / Chains / Migration) =====
       // ============================================================

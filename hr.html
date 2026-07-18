@@ -61,7 +61,7 @@
   .pay-summary{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px }
   @media (max-width: 700px){ .pay-summary{ grid-template-columns: 1fr } }
 
-  /* Honest "demo data" notice — gold dimmed */
+  /* Honest info note — gold dimmed (used for real-data estimate disclosures) */
   .demo-banner{
     display: flex; align-items: center; gap: 10px;
     background: rgba(232,165,71,0.08);
@@ -75,6 +75,17 @@
     letter-spacing: 0.05em; background: rgba(232,165,71,0.15);
     border: 1px solid rgba(232,165,71,0.32); padding: 2px 7px; border-radius: 5px;
   }
+
+  /* Honest empty state — matches gold/black card styling */
+  .empty-state{ text-align: center; padding: 48px 20px; }
+  .empty-state .es-ic{
+    width: 54px; height: 54px; border-radius: 14px; background: var(--accent-soft);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .empty-state .es-ic svg{ width: 26px; height: 26px }
+  .empty-state .es-title{ font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px }
+  .empty-state .es-sub{ font-size: 12.5px; color: var(--ink-3); line-height: 1.7; max-width: 380px; margin: 0 auto }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -133,13 +144,13 @@
 const A = window.SpineAPI;
 
 let TAB = 'employees';
-let IS_DEMO = false;
+let ME = null;
 let DATA = { employees: [], attendance: {}, payroll: [], leaves: [], templates: [], archive: [] };
 
 (async () => {
-  const me = await A.ensureAuth().catch(()=>null);
-  if (me) document.getElementById('meStrip').textContent = me.email || '';
-  // Load data even without auth (demo mode)
+  ME = await A.ensureAuth().catch(()=>null);
+  if (ME) document.getElementById('meStrip').textContent = ME.email || '';
+  // Load real data only — an honest empty state is shown when unavailable or unauthenticated
   await loadAll();
   render();
 })();
@@ -154,55 +165,29 @@ async function loadAll(){
     DATA.employees = Array.isArray(emp) ? emp : (emp.employees || emp.list || []);
     DATA.leaves = Array.isArray(lv) ? lv : (lv?.leaves || lv?.list || []);
   } catch(e){}
-  if (!DATA.employees.length){ seedDemo(); IS_DEMO = true; }
   renderStats();
 }
 
-function seedDemo(){
-  DATA.employees = [
-    { id:'e1', name:'خالد المطيري', title:'مدير المشاريع', dept:'العمليات', email:'k.mutairi@arsann.com', phone:'+966 50 111 2222', salary:18500, joinDate:'2022-03-15', status:'active', avatar:'خ' },
-    { id:'e2', name:'سارة العتيبي', title:'محاسب أول', dept:'المالية', email:'s.otaibi@arsann.com', phone:'+966 50 222 3333', salary:14200, joinDate:'2023-01-20', status:'active', avatar:'س' },
-    { id:'e3', name:'محمد الشهري', title:'مهندس مدني', dept:'الهندسة', email:'m.shahri@arsann.com', phone:'+966 50 333 4444', salary:16800, joinDate:'2021-09-10', status:'active', avatar:'م' },
-    { id:'e4', name:'نورة الدوسري', title:'مسؤول الموارد البشرية', dept:'الموارد البشرية', email:'n.dosari@arsann.com', phone:'+966 50 444 5555', salary:12500, joinDate:'2024-05-01', status:'active', avatar:'ن' },
-    { id:'e5', name:'فهد الزهراني', title:'مشرف موقع', dept:'العمليات', email:'f.zahrani@arsann.com', phone:'+966 50 555 6666', salary:11000, joinDate:'2023-11-12', status:'active', avatar:'ف' },
-    { id:'e6', name:'هند القحطاني', title:'مساعد إداري', dept:'الإدارة العامة', email:'h.qahtani@arsann.com', phone:'+966 50 666 7777', salary:8500, joinDate:'2024-08-15', status:'active', avatar:'ه' },
-    { id:'e7', name:'عبدالله السعيد', title:'مدير المشتريات', dept:'المشتريات', email:'a.saeed@arsann.com', phone:'+966 50 777 8888', salary:17200, joinDate:'2022-07-20', status:'active', avatar:'ع' }
-  ];
-  DATA.leaves = [
-    { id:'l1', empId:'e1', type:'سنوية', from:'2026-05-20', to:'2026-06-02', days:14, status:'pending', reason:'سفر عائلي' },
-    { id:'l2', empId:'e3', type:'مرضية', from:'2026-04-25', to:'2026-04-26', days:2, status:'approved', reason:'مرض' },
-    { id:'l3', empId:'e5', type:'اضطرارية', from:'2026-04-29', to:'2026-04-29', days:1, status:'pending', reason:'ظرف عائلي' }
-  ];
-  DATA.templates = [
-    { id:'t1', name:'عقد عمل (سعودي)', desc:'نموذج عقد عمل وفق نظام العمل', icon:'📋' },
-    { id:'t2', name:'عقد عمل (مقيم)', desc:'نموذج عقد للموظف غير السعودي', icon:'📋' },
-    { id:'t3', name:'خطاب تعريف', desc:'خطاب تعريف للجهات الخارجية', icon:'📄' },
-    { id:'t4', name:'خطاب راتب', desc:'إفادة راتب للبنوك والسفارات', icon:'💵' },
-    { id:'t5', name:'إنذار أول', desc:'إنذار رسمي للمخالفات الإدارية', icon:'⚠️' },
-    { id:'t6', name:'قرار ترقية', desc:'قرار ترقية موظف', icon:'⬆️' },
-    { id:'t7', name:'إخلاء طرف', desc:'نموذج إخلاء طرف عند انتهاء الخدمة', icon:'🚪' },
-    { id:'t8', name:'مكافأة نهاية الخدمة', desc:'احتساب مكافأة نهاية الخدمة', icon:'🎁' }
-  ];
-  DATA.archive = [
-    { id:'a1', name:'عقد عمل — خالد المطيري', type:'pdf', size:'248 KB', date:'2022-03-15' },
-    { id:'a2', name:'الهوية الوطنية — سارة العتيبي', type:'pdf', size:'156 KB', date:'2023-01-20' },
-    { id:'a3', name:'شهادة بكالوريوس — محمد الشهري', type:'pdf', size:'1.2 MB', date:'2021-09-10' },
-    { id:'a4', name:'سجل الرواتب — يناير 2026', type:'xlsx', size:'82 KB', date:'2026-01-31' },
-    { id:'a5', name:'سجل الرواتب — فبراير 2026', type:'xlsx', size:'84 KB', date:'2026-02-28' },
-    { id:'a6', name:'تقرير حضور Q1 2026', type:'pdf', size:'412 KB', date:'2026-04-01' },
-    { id:'a7', name:'إخلاء طرف — موظف سابق', type:'pdf', size:'196 KB', date:'2025-12-15' }
-  ];
+// Honest empty-state block — matches the page's gold/black card styling
+function emptyState(title, sub){
+  return `<div class="card" style="border-style:dashed"><div class="empty-state">
+    <div class="es-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="es-title">${A.esc(title)}</div>
+    ${sub ? `<div class="es-sub">${A.esc(sub)}</div>` : ''}
+  </div></div>`;
 }
 
 function renderStats(){
-  const totalSalary = DATA.employees.reduce((s,e) => s+(e.salary||0), 0);
+  const emp = DATA.employees;
+  const hasEmp = emp.length > 0;
+  const totalSalary = emp.reduce((s,e) => s+(e.salary||0), 0);
   const pendingLeaves = DATA.leaves.filter(l => l.status === 'pending').length;
   document.getElementById('stats').innerHTML = `
-    <div class="stat-mini"><div class="v accent">${DATA.employees.length}</div><div class="l">إجمالي الموظفين</div></div>
-    <div class="stat-mini"><div class="v green">${DATA.employees.filter(e => e.status==='active').length}</div><div class="l">نشط</div></div>
-    <div class="stat-mini"><div class="v">${A.fmtNum(totalSalary)}</div><div class="l">إجمالي الرواتب (ر.س)</div></div>
+    <div class="stat-mini"><div class="v accent">${emp.length}</div><div class="l">إجمالي الموظفين</div></div>
+    <div class="stat-mini"><div class="v green">${emp.filter(e => e.status==='active').length}</div><div class="l">نشط</div></div>
+    <div class="stat-mini"><div class="v">${hasEmp ? A.fmtNum(totalSalary) : '—'}</div><div class="l">إجمالي الرواتب (ر.س)</div></div>
     <div class="stat-mini"><div class="v ${pendingLeaves>0?'red':''}">${pendingLeaves}</div><div class="l">إجازات معلّقة</div></div>
-    <div class="stat-mini"><div class="v">${new Set(DATA.employees.map(e => e.dept)).size}</div><div class="l">إدارات</div></div>
+    <div class="stat-mini"><div class="v">${hasEmp ? new Set(emp.map(e => e.dept)).size : 0}</div><div class="l">إدارات</div></div>
   `;
 }
 
@@ -227,8 +212,12 @@ function render(){
 }
 
 function renderEmployees(){
+  if (!DATA.employees.length){
+    return ME
+      ? emptyState('لا توجد بيانات موظفين بعد', 'أضف أول موظف عبر زر «+ موظف جديد» لتظهر القائمة هنا.')
+      : emptyState('لا توجد بيانات موظفين', 'سجّل الدخول لعرض بيانات الموظفين الفعلية.');
+  }
   return `<div>
-    ${IS_DEMO ? '<div class="demo-banner"><span class="dot"></span><span>بيانات تجريبية — أضف موظفين فعليين لتحل محل هذه الأسماء</span><span class="soon">DEMO</span></div>' : ''}
     <div class="card"><table class="hr-table">
     <thead><tr><th>الاسم</th><th>المنصب</th><th>الإدارة</th><th>تاريخ الالتحاق</th><th>الراتب (ر.س)</th><th>الحالة</th></tr></thead>
     <tbody>${DATA.employees.map(e => `
@@ -245,40 +234,19 @@ function renderEmployees(){
 }
 
 function renderAttendance(){
-  const today = new Date();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-  const days = Array.from({length:daysInMonth}, (_,i) => i+1);
-  // Generate deterministic mock attendance
-  const codes = ['p','p','p','p','p','p','l','p','p','p','a','p','p','v','p','h','h','p','p','p','p','p','l','p','p','p','p','p','p','p','p'];
-  return `<div>
-    <div class="demo-banner"><span class="dot"></span><span>بيانات تجريبية — الحضور الفعلي سيتوفر قريباً</span><span class="soon">قريباً</span></div>
-    <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3)">
-      <span><span class="att-cell p" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> حاضر</span>
-      <span><span class="att-cell l" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> متأخر</span>
-      <span><span class="att-cell a" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> غائب</span>
-      <span><span class="att-cell v" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> إجازة</span>
-      <span><span class="att-cell h" style="display:inline-block;width:14px;height:14px;vertical-align:-3px"></span> عطلة</span>
-    </div>
-    <div class="att-grid" style="grid-template-columns:200px repeat(${daysInMonth}, 1fr)">
-      <div class="lbl">الموظف</div>
-      ${days.map(d => `<div class="day">${d}</div>`).join('')}
-      ${DATA.employees.map((e, ei) => `
-        <div class="nm"><div class="av">${A.esc(e.avatar||e.name[0])}</div><span style="font-size:11.5px">${A.esc(e.name)}</span></div>
-        ${days.map((d, di) => {
-          const c = codes[(di + ei) % codes.length];
-          return `<div class="att-cell ${c}" title="${e.name} - يوم ${d}">${c}</div>`;
-        }).join('')}
-      `).join('')}
-    </div>
-  </div>`;
+  // No attendance data source is connected yet — show an honest state instead of fabricating records.
+  return emptyState('سجل الحضور غير متوفر بعد', 'لم يتم ربط نظام الحضور والانصراف بعد. ستظهر بيانات الحضور الفعلية هنا عند توفرها.');
 }
 
 function renderPayroll(){
+  if (!DATA.employees.length){
+    return emptyState('لا توجد بيانات رواتب بعد', 'أضف موظفين لعرض ملخص الرواتب المحسوب من رواتبهم الفعلية.');
+  }
   const total = DATA.employees.reduce((s,e) => s+(e.salary||0), 0);
   const taxes = total * 0.10;
   const net = total - taxes;
   return `<div>
-    <div class="demo-banner"><span class="dot"></span><span>بيانات تجريبية — الرواتب محسوبة تقديرياً</span><span class="soon">قريباً</span></div>
+    <div class="demo-banner"><span class="dot"></span><span>الرواتب الأساسية من بيانات الموظفين الفعلية — البدلات والاستقطاعات محسوبة تقديرياً</span><span class="soon">تقديري</span></div>
     <div class="pay-summary">
       <div class="card card-pad" style="text-align:center"><div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">الإجمالي</div><div style="font-size:24px;font-weight:600;font-family:var(--font-en)">${A.fmtNum(total)}</div></div>
       <div class="card card-pad" style="text-align:center"><div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">الاستقطاعات (10%)</div><div style="font-size:24px;font-weight:600;font-family:var(--font-en);color:var(--red)">${A.fmtNum(taxes)}</div></div>
@@ -309,11 +277,15 @@ function renderPayroll(){
 }
 
 function renderLeaves(){
-  return `<div>
-    <div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+  const header = `<div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:13px;color:var(--ink-3)">${DATA.leaves.filter(l=>l.status==='pending').length} طلب يحتاج اعتماد</div>
       <button class="btn primary" id="newLeave">+ طلب إجازة</button>
-    </div>
+    </div>`;
+  if (!DATA.leaves.length){
+    return `<div>${header}${emptyState('لا توجد طلبات إجازة', 'ستظهر طلبات الإجازة هنا عند تقديمها.')}</div>`;
+  }
+  return `<div>
+    ${header}
     <div class="card"><table class="hr-table">
       <thead><tr><th>الموظف</th><th>النوع</th><th>من</th><th>إلى</th><th>الأيام</th><th>السبب</th><th>الحالة</th><th></th></tr></thead>
       <tbody>${DATA.leaves.map(l => {
@@ -336,11 +308,15 @@ function renderLeaves(){
 }
 
 function renderTemplates(){
-  return `<div>
-    <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+  const header = `<div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:13px;color:var(--ink-3)">${DATA.templates.length} نموذج جاهز</div>
       <button class="btn ghost">+ نموذج جديد</button>
-    </div>
+    </div>`;
+  if (!DATA.templates.length){
+    return `<div>${header}${emptyState('لا توجد نماذج بعد', 'لم تتم إضافة أي نماذج مستندات حتى الآن.')}</div>`;
+  }
+  return `<div>
+    ${header}
     <div class="tpl-grid">${DATA.templates.map(t => `
       <div class="tpl-card" data-tpl="${t.id}">
         <div class="ic" style="font-size:18px">${t.icon}</div>
@@ -357,7 +333,7 @@ function renderArchive(){
       <input class="input" placeholder="بحث في الأرشيف..." style="max-width:300px"/>
       <button class="btn ghost" onclick="window.SpineAPI.toast('رفع الملفات سيكون متاحاً قريباً')">📤 رفع ملف</button>
     </div>
-    ${DATA.archive.map(a => `
+    ${DATA.archive.length ? DATA.archive.map(a => `
       <div class="arc-row" data-arc="${a.id}">
         <div class="ic">${a.type==='pdf'?'📕':a.type==='xlsx'?'📊':'📄'}</div>
         <div class="nm">${A.esc(a.name)}</div>
@@ -365,7 +341,7 @@ function renderArchive(){
         <div class="meta">${a.date}</div>
         <button class="btn ghost text-sm" onclick="event.stopPropagation();window.SpineAPI.toast('رفع الملفات سيكون متاحاً قريباً')">⬇</button>
       </div>
-    `).join('')}
+    `).join('') : emptyState('الأرشيف فارغ', 'لا توجد مستندات محفوظة بعد.')}
   </div>`;
 }
 

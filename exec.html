@@ -230,6 +230,31 @@ function timeAgo(ts){
   return Math.floor(s/86400)+' يوم';
 }
 
+/* Honest error state — shown when live data can't be loaded. Never fabricates KPIs. */
+function renderError(){
+  // KPI tiles render as neutral placeholders, never invented numbers
+  const subs = ['موقع نشط', 'الإجراءات النشطة', 'درجة الامتثال', 'مهمة قيد التنفيذ', 'مهمة فائتة', 'اعتمادات معلّقة'];
+  document.querySelectorAll('.kpi-row .kpi').forEach((card, i) => {
+    card.className = 'kpi';
+    const v = card.querySelector('.val'); v.classList.remove('skeleton'); v.textContent = '—';
+    const sub = card.querySelector('.sub'); if (sub) sub.textContent = '';
+  });
+
+  const errHtml = '<div class="empty">تعذّر تحميل الملخص التنفيذي.<br><button class="back" id="exec-retry" style="margin-top:12px;padding:7px 16px">إعادة المحاولة</button></div>';
+  document.getElementById('sites-cnt').textContent = '—';
+  document.getElementById('sites-block').innerHTML = errHtml;
+  document.getElementById('alerts-cnt').textContent = '—';
+  document.getElementById('alerts-dot').style.display = 'none';
+  document.getElementById('alerts-block').innerHTML = '<div class="empty">تعذّر تحميل التنبيهات</div>';
+  document.getElementById('sop-intel').innerHTML = '<div class="empty">تعذّر تحميل البيانات</div>';
+  document.getElementById('task-exec').innerHTML = '<div class="empty">تعذّر تحميل البيانات</div>';
+  document.getElementById('feed-cnt').textContent = '—';
+  document.getElementById('feed-block').innerHTML = '<div class="empty">تعذّر تحميل سجل النشاط</div>';
+
+  const retry = document.getElementById('exec-retry');
+  if (retry) retry.onclick = () => render();
+}
+
 /* Main render */
 async function render(){
   let s, audit, sops, tasks;
@@ -241,9 +266,9 @@ async function render(){
       api('/api/tasks').catch(()=>({tasks:[]}))
     ]);
   } catch(e){
-    // Demo fallback if API unavailable
-    s = { sites:{active:3,total:5}, sops:{active:12,total:18}, tasks:{compliance:87,completed:24,overdue:3}, users:{total:7,active:6} };
-    audit = {activity:[]}; sops = {sops:{}}; tasks = {tasks:[]};
+    // Honest error state — never fabricate executive figures
+    renderError();
+    return;
   }
 
   // KPI Row

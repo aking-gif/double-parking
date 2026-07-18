@@ -9,189 +9,191 @@
 window.SpineModules = (function(){
 
   /* =========== Sample data =========== */
-  const SAMPLE_SOPS = [
-    { code:'OPS-001', dept:'العمليات', title:'استلام وتسليم المناوبة اليومية', updated:'منذ يومين', status:'active', edits:14 },
-    { code:'OPS-002', dept:'العمليات', title:'إغلاق الموقع آخر اليوم', updated:'منذ أسبوع', status:'active', edits:8 },
-    { code:'PROC-014', dept:'المشتريات', title:'سير اعتماد طلبات الشراء فوق ٥٠٬٠٠٠ ر.س', updated:'أمس', status:'review', edits:22 },
-    { code:'HR-007', dept:'الموارد البشرية', title:'إجراء التوظيف الكامل من الإعلان للعرض', updated:'منذ ٣ أيام', status:'active', edits:11 },
-    { code:'FIN-021', dept:'المالية', title:'إقفال الشهر المحاسبي', updated:'منذ ٥ أيام', status:'active', edits:6 },
-    { code:'PRJ-033', dept:'المشاريع', title:'بدء مشروع جديد — Stage Gate 0', updated:'منذ يوم', status:'active', edits:18 },
-    { code:'EXEC-002', dept:'التنفيذية', title:'دورة التخطيط الاستراتيجي السنوية', updated:'منذ شهر', status:'active', edits:4 },
-    { code:'BIZ-009', dept:'تطوير الأعمال', title:'قياس وتأهيل الفرص التجارية', updated:'منذ أسبوعين', status:'review', edits:9 },
-  ];
-
-  const SAMPLE_MEETINGS = [
-    { day:'29', month:'APR', time:'10:00', title:'اجتماع المجلس التنفيذي — الربع الثاني', type:'مجلس', attendees:7, status:'upcoming' },
-    { day:'29', month:'APR', time:'14:00', title:'مراجعة أداء قسم المشاريع — الأسبوعية', type:'مراجعة', attendees:5, status:'upcoming' },
-    { day:'30', month:'APR', time:'09:30', title:'اجتماع تخطيط ميزانية Q3', type:'تخطيط', attendees:4, status:'upcoming' },
-    { day:'01', month:'MAY', time:'11:00', title:'اجتماع موردين — العقد الإطاري', type:'خارجي', attendees:8, status:'upcoming' },
-    { day:'28', month:'APR', time:'15:00', title:'فريق العمليات — التسليم اليومي', type:'تشغيلي', attendees:12, status:'past' },
-    { day:'27', month:'APR', time:'10:00', title:'مراجعة سياسة الامتثال السنوية', type:'حوكمة', attendees:6, status:'past' },
-  ];
-
   function tag(label, klass){ return `<span class="tag ${klass||''}">${label}</span>`; }
 
   /* =========== SOPs (live) =========== */
   function sops(){
     return {
-      actions: `<button>استيراد</button><button>تصدير</button><button class="primary">+ إجراء جديد</button>`,
+      actions: `<button id="sopFull">المنصّة الكاملة</button><button class="primary" id="sopNew">+ إجراء جديد</button>`,
       body: `
         <div class="stat-row">
-          <div class="stat"><div class="k">Total SOPs</div><div class="v">427</div><div class="delta up">+12 this month</div></div>
-          <div class="stat"><div class="k">Departments</div><div class="v">7</div><div class="delta">across the org</div></div>
-          <div class="stat"><div class="k">Pending Review</div><div class="v" style="color:var(--orange)">8</div><div class="delta">needs approval</div></div>
-          <div class="stat"><div class="k">Last Edit</div><div class="v" style="font-size:18px">منذ ساعتين</div><div class="delta">PROC-014 by m.salem</div></div>
+          <div class="stat"><div class="k">Total SOPs</div><div class="v" id="sp-total">—</div><div class="delta">عبر كل الإدارات</div></div>
+          <div class="stat"><div class="k">Departments</div><div class="v" id="sp-depts">—</div><div class="delta">إدارة</div></div>
+          <div class="stat"><div class="k">Pending Review</div><div class="v" id="sp-review" style="color:var(--orange)">—</div><div class="delta">بانتظار الاعتماد</div></div>
+          <div class="stat"><div class="k">Last Edit</div><div class="v" id="sp-last" style="font-size:16px">—</div><div class="delta" id="sp-last-by">—</div></div>
         </div>
 
         <div class="two-col-3">
           <div class="card">
-            <div class="card-head"><h3>أحدث الإجراءات</h3><span class="meta mono">8 of 427</span></div>
-            <table class="tbl">
-              <thead><tr><th>الكود</th><th>العنوان</th><th>الإدارة</th><th>الحالة</th><th>آخر تحديث</th></tr></thead>
-              <tbody>
-                ${SAMPLE_SOPS.map(s => `
-                  <tr>
-                    <td><span class="mono" style="color:var(--accent);font-size:11px">${s.code}</span></td>
-                    <td class="name">${s.title}</td>
-                    <td>${s.dept}</td>
-                    <td>${tag(s.status==='active'?'نشط':'مراجعة', s.status==='active'?'green':'orange')}</td>
-                    <td><span class="mono">${s.updated}</span></td>
-                  </tr>`).join('')}
-              </tbody>
-            </table>
+            <div class="card-head"><h3>أحدث الإجراءات</h3><span class="meta mono" id="sp-recent-count">—</span></div>
+            <div id="sp-recent"><div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div>
           </div>
-
           <div class="card">
             <div class="card-head"><h3>التوزيع حسب الإدارة</h3></div>
-            <div class="bars">
-              ${[
-                ['العمليات', 92], ['المشاريع', 78], ['المالية', 64],
-                ['المشتريات', 58], ['الموارد البشرية', 51], ['التنفيذية', 48], ['تطوير الأعمال', 36]
-              ].map(([n,v])=>`
-                <div class="bar-r"><span class="lbl">${n}</span><div class="track"><div class="fill" style="width:${v}%"></div></div><span class="v">${v}</span></div>
-              `).join('')}
-            </div>
+            <div class="bars" id="sp-dist"></div>
           </div>
         </div>
 
         <div style="margin-top:24px">
           <div class="card">
             <div class="card-head"><h3>روابط سريعة</h3></div>
-            <div style="padding:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <div style="padding:18px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
               <a href="dashboard.html" style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px;display:block">
                 <div style="font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en)">منصّة SOPs الكاملة</div>
                 <div style="font-size:13px;color:var(--ink);margin-top:6px;font-weight:500">افتح dashboard التفصيلي →</div>
               </a>
-              <a href="dashboard.html?dept=operations" style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px;display:block">
-                <div style="font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en)">إدارة العمليات</div>
-                <div style="font-size:13px;color:var(--ink);margin-top:6px;font-weight:500">٩٢ إجراء →</div>
-              </a>
-              <a href="dashboard.html?dept=projects" style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px;display:block">
-                <div style="font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en)">إدارة المشاريع</div>
-                <div style="font-size:13px;color:var(--ink);margin-top:6px;font-weight:500">٧٨ إجراء →</div>
+              <a href="departments.html" style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px;display:block">
+                <div style="font-size:11px;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en)">الإدارات</div>
+                <div style="font-size:13px;color:var(--ink);margin-top:6px;font-weight:500">إدارة الأقسام →</div>
               </a>
             </div>
           </div>
         </div>
-      `
+      `,
+      mount(){
+        const API = window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
+        const tok = () => localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+        const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const set = (id,v)=>{ const x=document.getElementById(id); if(x) x.textContent=v; };
+        const rel = ts => { if(!ts) return '—'; const m=Math.round((Date.now()-ts)/60000); if(m<1)return 'الآن'; if(m<60)return 'قبل '+m+' د'; const h=Math.round(m/60); if(h<24)return 'قبل '+h+' س'; return 'قبل '+Math.round(h/24)+' ي'; };
+
+        async function load(){
+          const recent = document.getElementById('sp-recent');
+          const dist   = document.getElementById('sp-dist');
+          let data = null;
+          try { const r = await fetch(API+'/api/bootstrap', {headers:{'Authorization':'Bearer '+tok()}}); if (r.ok) data = await r.json(); } catch(e){}
+          if (!data || typeof data.sops !== 'object'){
+            recent.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);font-size:13px">تعذّر تحميل الإجراءات.</div>';
+            return;
+          }
+          const sops = data.sops || {};
+          const nameMap = {}; (data.customDepts || []).forEach(d => { if (d && d.id) nameMap[d.id] = d.name || d.nameAr || d.id; });
+          const all = [], perDept = {};
+          Object.keys(sops).forEach(dept => {
+            const items = sops[dept] || {};
+            const codes = Object.keys(items);
+            perDept[dept] = codes.length;
+            codes.forEach(code => { const s = items[code] || {}; all.push(Object.assign({ _dept:dept, _code:code }, s)); });
+          });
+          const total = all.length;
+          const review = all.filter(s => s.status==='review' || s.status==='draft').length;
+          set('sp-total', total);
+          set('sp-depts', Object.keys(perDept).length);
+          set('sp-review', review);
+          const sorted = all.filter(s => s.updatedAt).sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+          if (sorted[0]){ set('sp-last', rel(sorted[0].updatedAt)); set('sp-last-by', (nameMap[sorted[0]._dept]||sorted[0]._dept) + (sorted[0].updatedBy ? (' · '+String(sorted[0].updatedBy).split('@')[0]) : '')); }
+          else { set('sp-last','—'); set('sp-last-by','—'); }
+
+          if (!total){
+            set('sp-recent-count','0');
+            recent.innerHTML = '<div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">لا توجد إجراءات مسجّلة بعد.<br/><a href="dashboard.html" style="color:var(--accent)">افتح المنصّة الكاملة</a></div>';
+            dist.innerHTML = '';
+            return;
+          }
+          set('sp-recent-count', Math.min(all.length,8) + ' of ' + all.length);
+          const recentList = (sorted.length ? sorted : all).slice(0, 8);
+          recent.innerHTML = '<table class="tbl"><thead><tr><th>الكود</th><th>العنوان</th><th>الإدارة</th><th>الحالة</th><th>آخر تحديث</th></tr></thead><tbody>' +
+            recentList.map(s => `<tr>
+              <td><span class="mono" style="color:var(--accent);font-size:11px">${esc(s.code||s._code)}</span></td>
+              <td class="name">${esc(s.title||'—')}</td>
+              <td>${esc(nameMap[s._dept]||s._dept)}</td>
+              <td>${tag(s.status==='active'||s.status==='approved'?'نشط':s.status==='review'?'مراجعة':(s.status||'—'), s.status==='active'||s.status==='approved'?'green':'orange')}</td>
+              <td><span class="mono">${rel(s.updatedAt)}</span></td>
+            </tr>`).join('') + '</tbody></table>';
+
+          const entries = Object.keys(perDept).map(d => [nameMap[d]||d, perDept[d]]).sort((a,b) => b[1]-a[1]);
+          const max = Math.max(1, ...entries.map(e => e[1]));
+          dist.innerHTML = entries.map(([n,v]) => `<div class="bar-r"><span class="lbl">${esc(n)}</span><div class="track"><div class="fill" style="width:${Math.round(v/max*100)}%"></div></div><span class="v">${v}</span></div>`).join('');
+        }
+
+        const full = document.getElementById('sopFull'); if (full) full.onclick = () => location.href = 'dashboard.html';
+        const nb   = document.getElementById('sopNew');  if (nb)   nb.onclick   = () => location.href = 'dashboard.html';
+        load();
+      }
     };
   }
 
   /* =========== Meetings (live) =========== */
   function meetings(){
-    const upcoming = SAMPLE_MEETINGS.filter(m => m.status==='upcoming');
-    const past = SAMPLE_MEETINGS.filter(m => m.status==='past');
-
     return {
-      actions: `<button>التقويم</button><button>المحاضر</button><button class="primary">+ اجتماع جديد</button>`,
+      actions: `<button id="mtOpenCal">التقويم</button><button class="primary" id="mtNew">+ اجتماع جديد</button>`,
       body: `
         <div class="stat-row">
-          <div class="stat"><div class="k">This Week</div><div class="v">12</div><div class="delta up">+3 vs last wk</div></div>
-          <div class="stat"><div class="k">Decisions Made</div><div class="v">7</div><div class="delta">in last 30d</div></div>
-          <div class="stat"><div class="k">Action Items</div><div class="v" style="color:var(--orange)">28</div><div class="delta">11 overdue</div></div>
-          <div class="stat"><div class="k">Avg Duration</div><div class="v" style="font-size:22px">52<span style="font-size:13px;color:var(--ink-3)"> min</span></div><div class="delta down">↓ 8 min vs Q1</div></div>
+          <div class="stat"><div class="k">Today</div><div class="v" id="mt-today">—</div><div class="delta">اجتماعات اليوم</div></div>
+          <div class="stat"><div class="k">This Week</div><div class="v" id="mt-week">—</div><div class="delta">خلال ٧ أيام</div></div>
+          <div class="stat"><div class="k">Next</div><div class="v" id="mt-next" style="font-size:18px">—</div><div class="delta" id="mt-next-ttl">—</div></div>
+          <div class="stat"><div class="k">Source</div><div class="v" style="font-size:16px">Google</div><div class="delta">Calendar</div></div>
         </div>
-
-        <div class="two-col-3">
-          <div class="card">
-            <div class="card-head"><h3>الاجتماعات القادمة</h3><span class="meta mono">${upcoming.length} upcoming</span></div>
-            <div>
-              ${upcoming.map(m=>`
-                <div class="item-row">
-                  <div class="when">
-                    <div class="day">${m.day}</div>
-                    <div class="month">${m.month} · ${m.time}</div>
-                  </div>
-                  <div class="body">
-                    <div class="ttl">${m.title}</div>
-                    <div class="meta">${m.attendees} attendees · ${m.type}</div>
-                  </div>
-                  <div class="right">
-                    ${tag(m.type, 'accent')}
-                    <button style="background:var(--surface-3);color:var(--ink-2);border-radius:6px;padding:5px 10px;font-size:11px">انضم</button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head"><h3>المحاضر الأخيرة</h3></div>
-            <div>
-              ${past.map(m=>`
-                <div class="item-row">
-                  <div class="when">
-                    <div class="day" style="color:var(--ink-3)">${m.day}</div>
-                    <div class="month">${m.month}</div>
-                  </div>
-                  <div class="body">
-                    <div class="ttl" style="font-size:12.5px">${m.title}</div>
-                    <div class="meta">${m.attendees} حضروا · محضر مكتمل</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
+        <div class="card">
+          <div class="card-head"><h3>الاجتماعات القادمة</h3><span class="meta mono" id="mt-count">—</span></div>
+          <div id="mt-list"><div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div>
         </div>
+      `,
+      mount(){
+        const API = window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
+        const tok = () => localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+        const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const fmtT = ms => new Date(ms).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const set = (id,v)=>{ const x=document.getElementById(id); if(x) x.textContent=v; };
+        const startOfToday=()=>{ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); };
+        const endOfToday=()=>{ const d=new Date(); d.setHours(23,59,59,999); return d.getTime(); };
+        const isAllDay = e => typeof e.start==='string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start);
 
-        <div style="margin-top:24px" class="two-col">
-          <div class="card">
-            <div class="card-head"><h3>قرارات اتُّخذت في آخر اجتماع</h3><span class="meta mono">3 decisions</span></div>
-            <div style="padding:0">
-              ${[
-                ['DEC-104','اعتماد توسعة موقع الخبر — مرحلة أولى','accept'],
-                ['DEC-105','تأجيل قرار الموردين الجدد للأسبوع القادم','defer'],
-                ['DEC-106','الموافقة على ميزانية تدريب الموارد البشرية','accept'],
-              ].map(([code,ttl,kind])=>`
-                <div class="item-row">
-                  <div class="when" style="width:60px"><span class="mono" style="color:var(--accent);font-size:11px">${code}</span></div>
-                  <div class="body"><div class="ttl" style="font-size:12.5px">${ttl}</div></div>
-                  <div class="right">${tag(kind==='accept'?'معتمد':'مؤجّل', kind==='accept'?'green':'orange')}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h3>مهام الإجراء (Action Items)</h3><span class="meta mono">11 overdue</span></div>
-            <div>
-              ${[
-                ['تحديث وثيقة العقد الإطاري للمورد رقم ٣','m.salem','2d overdue','red'],
-                ['إعداد تقرير المخاطر للمراجعة','a.fahad','due tomorrow','orange'],
-                ['حجز قاعة اجتماع المجلس القادم','noor.k','done','green'],
-                ['تواصل مع المراجع الخارجي','o.zaid','due in 3d','blue'],
-              ].map(([t,who,when,k])=>`
-                <div class="item-row">
-                  <div class="body">
-                    <div class="ttl" style="font-size:12.5px">${t}</div>
-                    <div class="meta">${who}</div>
-                  </div>
-                  <div class="right">${tag(when, k)}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      `
+        async function load(){
+          const list = document.getElementById('mt-list');
+          let events = null, notConnected = false;
+          try {
+            const r = await fetch(API+'/api/gcal/events?days=14', {headers:{'Authorization':'Bearer '+tok()}});
+            if (r.ok){ const j = await r.json(); if (Array.isArray(j)) events = j; }
+            else if (r.status === 428){ notConnected = true; }
+          } catch(e){}
+
+          if (notConnected){
+            set('mt-today','—'); set('mt-week','—'); set('mt-next','—'); set('mt-next-ttl','—'); set('mt-count','—');
+            list.innerHTML = '<div style="padding:48px;text-align:center;color:var(--ink-3);font-size:13px">تقويم Google غير مرتبط.<br/><a href="integrations.html" style="color:var(--accent)">اربط التقويم</a> لعرض اجتماعاتك.</div>';
+            return;
+          }
+          if (!Array.isArray(events)){
+            set('mt-count','—');
+            list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);font-size:13px">تعذّر تحميل التقويم.</div>';
+            return;
+          }
+
+          const now = Date.now();
+          const evs = events
+            .filter(e => !isAllDay(e))
+            .map(e => Object.assign({ _ms: Date.parse(e.start) }, e))
+            .filter(e => Number.isFinite(e._ms))
+            .sort((a,b) => a._ms - b._ms);
+          const upcoming = evs.filter(e => e._ms >= now);
+
+          set('mt-today', evs.filter(e => e._ms>=startOfToday() && e._ms<=endOfToday()).length);
+          set('mt-week',  evs.filter(e => e._ms>=now && e._ms<=now+7*86400000).length);
+          set('mt-count', upcoming.length + ' upcoming');
+          if (upcoming[0]){ set('mt-next', fmtT(upcoming[0]._ms)); set('mt-next-ttl', upcoming[0].title || '—'); }
+          else { set('mt-next','—'); set('mt-next-ttl','لا اجتماعات قادمة'); }
+
+          if (!upcoming.length){
+            list.innerHTML = '<div style="padding:48px;text-align:center;color:var(--ink-3);font-size:13px">لا اجتماعات قادمة في تقويمك.</div>';
+            return;
+          }
+          list.innerHTML = upcoming.slice(0,20).map(e => {
+            const d = new Date(e._ms);
+            const day = d.toLocaleDateString('en-GB',{day:'2-digit'});
+            const mon = d.toLocaleDateString('en-GB',{month:'short'}).toUpperCase();
+            const who = (e.attendees && e.attendees.length) ? (' · ' + e.attendees.length + ' حضور') : '';
+            return `<div class="item-row">
+              <div class="when"><div class="day">${day}</div><div class="month">${mon} · ${fmtT(e._ms)}</div></div>
+              <div class="body"><div class="ttl">${esc(e.title||'(بدون عنوان)')}</div><div class="meta">${esc(e.location||'')}${who}</div></div>
+              <div class="right">${e.link?`<a href="${esc(e.link)}" target="_blank" rel="noopener" style="background:var(--surface-3);color:var(--ink-2);border-radius:6px;padding:5px 10px;font-size:11px">فتح</a>`:''}</div>
+            </div>`;
+          }).join('');
+        }
+
+        const nb = document.getElementById('mtNew');     if (nb) nb.onclick = () => { if (typeof navigate==='function') navigate('calendar'); };
+        const oc = document.getElementById('mtOpenCal');  if (oc) oc.onclick = () => { if (typeof navigate==='function') navigate('calendar'); };
+        load();
+      }
     };
   }
 

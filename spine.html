@@ -1628,7 +1628,7 @@ window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";
   ov.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if (e.key==='Enter') tryLogin(); }));
 })();
 </script>
-<script src="modules/spine-modules.js?v=4"></script>
+<script src="modules/spine-modules.js?v=5"></script>
 <script>
 'use strict';
 
@@ -1636,9 +1636,9 @@ window.API_BASE = "https://arsan-api.a-king-6e1.workers.dev";
 const MODULES = [
   // Core (6)
   { id:'sops',       group:'core', icon:'m-sops',       name:'الإجراءات التشغيلية', sub:'Standard Operating Procedures',
-    desc:'٤٢٧ إجراء عبر ٧ إدارات', count:'427', pulse:'green', featured:true, status:'live' },
+    desc:'الإجراءات التشغيلية عبر الإدارات', count:'', pulse:'green', featured:true, status:'live' },
   { id:'meetings',   group:'core', icon:'m-meet',       name:'الاجتماعات',           sub:'Meetings & Minutes',
-    desc:'١٢ اجتماع هذا الأسبوع', count:'12', pulse:'green', status:'live' },
+    desc:'اجتماعاتك من تقويم Google', count:'live', pulse:'green', status:'live' },
   { id:'tasks',      group:'core', icon:'m-tasks',      name:'المهام والمشاريع',     sub:'Tasks & Projects',
     desc:'مرتبط بالـ Worker · live', count:'live', pulse:'green', status:'live' },
   { id:'calendar',   group:'core', icon:'m-cal',        name:'التقويم',              sub:'Calendar & Events',
@@ -1646,43 +1646,43 @@ const MODULES = [
   { id:'mail',       group:'core', icon:'m-meet',       name:'البريد',               sub:'Mail & Templates',
     desc:'مسوّدات + قوالب جاهزة', count:'live', pulse:'green', status:'live' },
   { id:'approvals',  group:'core', icon:'m-approvals',  name:'الاعتمادات',           sub:'Approval Workflows',
-    desc:'٣ بانتظار توقيعك الآن', count:'3', pulse:'red', status:'shell' },
+    desc:'مسارات الاعتماد والتواقيع', count:'', status:'shell' },
   { id:'automations',group:'core', icon:'m-auto',       name:'الأتمتة',              sub:'Automations & Workflows',
     desc:'تذكيرات · تكرار · إيميل→مهمّة', count:'live', pulse:'green', status:'live', url:'automations.html' },
   { id:'integrations',group:'core', icon:'m-auto',      name:'التكاملات',             sub:'Integrations Hub',
-    desc:'Google · Microsoft · Slack · Zoom · AI', count:'9', pulse:'green', status:'live', url:'integrations.html' },
+    desc:'Google · Microsoft · Slack · Zoom · AI', count:'', pulse:'green', status:'live', url:'integrations.html' },
 
   // Business (3) — NEW
   { id:'crm',        group:'biz', icon:'m-people',     name:'إدارة العملاء (CRM)',   sub:'Clients & Pipeline',
     desc:'متّصل بالـ Worker', count:'live', pulse:'green', status:'live' },
   { id:'vendors',    group:'biz', icon:'m-vendors',    name:'الموردون والعقود',       sub:'Vendors & Contracts',
-    desc:'٣٤ مورد · ١٢ عقد نشط', count:'34', status:'shell' },
+    desc:'الموردون والعقود', count:'', status:'shell' },
   { id:'budget',     group:'biz', icon:'m-budget',     name:'الميزانية والإنفاق',     sub:'Budget & Finance',
-    desc:'٧٢٪ من ميزانية Q2', count:'72%', status:'shell' },
+    desc:'الميزانية والإنفاق', count:'', status:'shell' },
 
   // Governance (5)
   { id:'decisions',  group:'gov', icon:'m-decisions',  name:'سجل القرارات',          sub:'Decisions Log',
-    desc:'٢٠٤ قرار موثّق · ٣ معلّقة', count:'204', status:'shell' },
+    desc:'سجل القرارات الموثّقة', count:'', status:'shell' },
   { id:'risks',      group:'gov', icon:'m-risks',      name:'المخاطر',               sub:'Risks & Issues',
-    desc:'١٨ مخاطرة · ٢ حرجة', count:'18', pulse:'red', status:'shell' },
+    desc:'المخاطر والقضايا', count:'', status:'shell' },
   { id:'kpis',       group:'gov', icon:'m-kpi',        name:'لوحة المؤشرات',         sub:'KPIs Dashboard',
-    desc:'٢٤ مؤشر تنفيذي', count:'24', status:'shell' },
+    desc:'مؤشرات الأداء التنفيذية', count:'', status:'shell' },
   { id:'compliance', group:'gov', icon:'m-compliance', name:'الامتثال والتدقيق',     sub:'Compliance & Audit',
-    desc:'٨٧٪ جاهزية · تدقيق Q2', count:'87%', status:'shell' },
+    desc:'الامتثال والتدقيق', count:'', status:'shell' },
   { id:'reports',    group:'gov', icon:'m-reports',    name:'تقارير المجلس',         sub:'Board Reports',
-    desc:'تقرير الربع — مسودة', count:'8', status:'shell' },
+    desc:'تقارير المجلس', count:'', status:'shell' },
 
   // Resources (2)
   { id:'people',     group:'res', icon:'m-people',     name:'الفريق والصلاحيات',     sub:'People & Org',
-    desc:'٤٨ موظف · ٧ إدارات', count:'48', status:'shell' },
+    desc:'الفريق والصلاحيات', count:'', status:'shell' },
   { id:'vault',      group:'res', icon:'m-vault',      name:'مستودع الوثائق',        sub:'Documents Vault',
-    desc:'١٬٢٠٤ ملف · ٤ مجلدات', count:'1.2K', status:'shell' },
+    desc:'مستودع الوثائق', count:'', status:'shell' },
 
   // Administration (admin-only) — gated client-side + enforced on the Worker
   { id:'users',    group:'admin', icon:'m-people',     name:'المستخدمون والصلاحيات', sub:'Users & Permissions',
     desc:'الأدوار · الدعوات · إعادة تعيين كلمة السر', count:'admin', pulse:'green', status:'live', url:'users.html' },
   { id:'depts',    group:'admin', icon:'m-compliance', name:'إدارة الإدارات',        sub:'Departments',
-    desc:'إضافة · تعديل · ترتيب الإدارات', count:'7', status:'live', url:'depts-admin.html' },
+    desc:'إضافة · تعديل · ترتيب الإدارات', count:'', status:'live', url:'depts-admin.html' },
   { id:'announce', group:'admin', icon:'m-reports',    name:'الإعلانات',             sub:'Announcements',
     desc:'إرسال إعلان للمنصّة بالكامل', count:'live', pulse:'green', status:'live', url:'announcements.html' },
 ];

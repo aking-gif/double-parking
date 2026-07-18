@@ -217,24 +217,20 @@ input:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
   });
 
 
-  function seedPeopleDemo() {
-    return [
-      { id:'p1', email:'k.mutairi@arsann.com', name:'خالد المطيري', title:'مدير المشاريع', dept:'العمليات', status:'active' },
-      { id:'p2', email:'s.otaibi@arsann.com', name:'سارة العتيبي', title:'محاسب أول', dept:'المالية', status:'active' },
-      { id:'p3', email:'m.shahri@arsann.com', name:'محمد الشهري', title:'مهندس مدني', dept:'الهندسة', status:'active' },
-      { id:'p4', email:'n.dosari@arsann.com', name:'نورة الدوسري', title:'مسؤول الموارد البشرية', dept:'الموارد البشرية', status:'active' },
-      { id:'p5', email:'f.zahrani@arsann.com', name:'فهد الزهراني', title:'مشرف موقع', dept:'العمليات', status:'active' },
-      { id:'p6', email:'h.qahtani@arsann.com', name:'هند القحطاني', title:'مساعد إداري', dept:'الإدارة العامة', status:'active' },
-      { id:'p7', email:'a.saeed@arsann.com', name:'عبدالله السعيد', title:'مدير المشتريات', dept:'المشتريات', status:'active' }
-    ];
+  function renderEmptyState(message){
+    allPeople = [];
+    document.getElementById('deptChips').innerHTML = '';
+    document.getElementById('count').textContent = '0';
+    document.getElementById('grid').innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div>${escapeHtml(message)}</div>
+    </div>`;
   }
 
   async function init(){
-    if (!token()){ 
-      // No auth token — show demo data
-      allPeople = seedPeopleDemo();
-      renderChips();
-      renderGrid();
+    if (!token()){
+      // Not authenticated — prompt to sign in, never fabricate people
+      renderEmptyState('سجّل الدخول لعرض الفريق');
       return;
     }
     try {
@@ -242,10 +238,13 @@ input:focus{outline:none;border-color:var(--accent);background:var(--surface-3)}
       if (Array.isArray(data) && data.length > 0) {
         allPeople = data;
       } else {
-        allPeople = seedPeopleDemo();
+        // Authenticated but no team members returned — honest empty state
+        renderEmptyState('لا يوجد أعضاء فريق بعد');
+        return;
       }
     } catch(e) {
-      allPeople = seedPeopleDemo();
+      renderEmptyState('تعذّر تحميل الفريق');
+      return;
     }
     renderChips();
     renderGrid();

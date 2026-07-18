@@ -309,7 +309,7 @@ body.motion-off .detail-card::before{ display:none; }
 <!-- STATUS BAR -->
 <div class="statusbar">
   <div class="seg"><span class="dot"></span><b>SYSTEM ONLINE</b></div>
-  <div class="seg hide-sm"><b>ZONES</b> <span id="zoneCount" class="accent">8</span></div>
+  <div class="seg hide-sm"><b>ZONES</b> <span id="zoneCount" class="accent">0</span></div>
   <div class="seg hide-sm"><b>BUILD</b> <span>v1.0.0</span></div>
   <div class="seg hide-sm"><b>LATENCY</b> <span id="latency" class="accent">42ms</span></div>
   <div class="spacer"></div>
@@ -368,24 +368,24 @@ body.motion-off .detail-card::before{ display:none; }
   <!-- STATS -->
   <div class="stats">
     <div class="stat">
-      <div class="stat-num" id="totalZones">8</div>
+      <div class="stat-num" id="totalZones">0</div>
       <div class="stat-label">إجمالي المناطق · TOTAL ZONES</div>
-      <div class="stat-delta">RIYADH · JEDDAH · EAST · NORTH</div>
+      <div class="stat-delta">—</div>
     </div>
     <div class="stat">
-      <div class="stat-num green" id="onlineCount">6</div>
+      <div class="stat-num green" id="onlineCount">0</div>
       <div class="stat-label">تعمل الآن · ONLINE</div>
-      <div class="stat-delta up">↑ 75% uptime</div>
+      <div class="stat-delta">—</div>
     </div>
     <div class="stat">
-      <div class="stat-num orange" id="maintCount">1</div>
+      <div class="stat-num orange" id="maintCount">0</div>
       <div class="stat-label">صيانة · MAINTENANCE</div>
-      <div class="stat-delta">scheduled · 2h remaining</div>
+      <div class="stat-delta">—</div>
     </div>
     <div class="stat">
-      <div class="stat-num red" id="offlineCount">1</div>
+      <div class="stat-num red" id="offlineCount">0</div>
       <div class="stat-label">معطّلة · OFFLINE</div>
-      <div class="stat-delta down">↓ DMM-WHS-003 · 14m</div>
+      <div class="stat-delta">—</div>
     </div>
   </div>
 
@@ -404,11 +404,11 @@ body.motion-off .detail-card::before{ display:none; }
 
   <!-- FILTERS -->
   <div class="filters">
-    <button class="fil on" data-f="all">الكل <span class="ct" id="ctAll">8</span></button>
-    <button class="fil" data-f="online">تعمل <span class="ct" id="ctOnline">6</span></button>
-    <button class="fil" data-f="maintenance">صيانة <span class="ct" id="ctMaint">1</span></button>
-    <button class="fil" data-f="offline">معطّلة <span class="ct" id="ctOffline">1</span></button>
-    <button class="fil" data-f="alerts">تنبيهات <span class="ct" id="ctAlerts">2</span></button>
+    <button class="fil on" data-f="all">الكل <span class="ct" id="ctAll">0</span></button>
+    <button class="fil" data-f="online">تعمل <span class="ct" id="ctOnline">0</span></button>
+    <button class="fil" data-f="maintenance">صيانة <span class="ct" id="ctMaint">0</span></button>
+    <button class="fil" data-f="offline">معطّلة <span class="ct" id="ctOffline">0</span></button>
+    <button class="fil" data-f="alerts">تنبيهات <span class="ct" id="ctAlerts">0</span></button>
     <div class="fil-spacer"></div>
     <button class="fil-add" type="button">+ موقع جديد</button>
     <span id="sites-btn" hidden></span>
@@ -434,126 +434,10 @@ body.motion-off .detail-card::before{ display:none; }
 </div>
 
 <script>
-let IS_DEMO = true;
-let ZONES = [
-  {
-    code:'ZONE A.01', city:'RIYADH', name:'مكتب الرياض الرئيسي', state:'online',
-    glyph:'A.01', est:2019, area:'2,400 م²', manager:'أحمد القحطاني',
-    staff:48, opsToday:24, doneToday:18, alerts:0,
-    progress:75, lastActivity:'تم اعتماد عقد توريد · م. القحطاني', when:'منذ ٢د',
-    region:'الرياض',
-    metrics:{ uptime:'99.8%', avgResp:'12m', sla:'A+', issues:0 },
-    feed:[
-      { t:'14:42', msg:'اعتماد عقد توريد المواد · SAR 420K', src:'APR', kind:'ok' },
-      { t:'14:18', msg:'انتهاء صيانة المصعد الرئيسي', src:'MNT', kind:'ok' },
-      { t:'13:55', msg:'بدء اجتماع مجلس الإدارة الأسبوعي', src:'MTG', kind:'' },
-      { t:'13:30', msg:'إغلاق ٣ تذاكر دعم فني', src:'IT', kind:'ok' },
-      { t:'12:10', msg:'تسجيل دخول ٤٢ موظف · حضور كامل', src:'HR', kind:'' },
-    ]
-  },
-  {
-    code:'ZONE A.02', city:'JEDDAH', name:'مكتب جدة الإقليمي', state:'online',
-    glyph:'A.02', est:2021, area:'1,100 م²', manager:'سلمى الحربي',
-    staff:24, opsToday:14, doneToday:11, alerts:0,
-    progress:79, lastActivity:'إرسال تقرير المبيعات الأسبوعي', when:'منذ ٨د',
-    region:'مكة المكرمة',
-    metrics:{ uptime:'99.5%', avgResp:'18m', sla:'A', issues:0 },
-    feed:[
-      { t:'14:34', msg:'إرسال تقرير المبيعات إلى الإدارة', src:'SALES', kind:'ok' },
-      { t:'13:20', msg:'استقبال وفد عميل جديد · ٣ ساعات', src:'CRM', kind:'' },
-      { t:'12:05', msg:'مراجعة عقد إيجار المعرض', src:'LEGAL', kind:'' },
-      { t:'10:48', msg:'بدء فعاليات يوم العميل', src:'EVT', kind:'' },
-    ]
-  },
-  {
-    code:'ZONE B.01', city:'DAMMAM', name:'مستودع الدمام المركزي', state:'offline',
-    glyph:'B.01', est:2020, area:'5,800 م²', manager:'خالد المطيري',
-    staff:15, opsToday:0, doneToday:0, alerts:2,
-    progress:0, lastActivity:'انقطاع الاتصال بالنظام المركزي', when:'منذ ١٤د',
-    region:'الشرقية',
-    alertMsg:'NETWORK FAILURE · ENG TEAM DISPATCHED',
-    alertKind:'',
-    metrics:{ uptime:'87.2%', avgResp:'45m', sla:'C', issues:3 },
-    feed:[
-      { t:'14:30', msg:'انقطاع الاتصال بالخادم الرئيسي', src:'NET', kind:'alert' },
-      { t:'14:31', msg:'تصعيد تلقائي · فريق الشبكات', src:'AUTO', kind:'warn' },
-      { t:'14:35', msg:'تأكيد وصول الفريق التقني · ٢٠د', src:'IT', kind:'warn' },
-      { t:'13:12', msg:'إغلاق جلسة المناوبة الأولى', src:'OPS', kind:'' },
-      { t:'12:00', msg:'استلام شحنة ١٢ حاوية', src:'LOG', kind:'ok' },
-    ]
-  },
-  {
-    code:'ZONE A.03', city:'MAKKAH', name:'فرع مكة المكرمة', state:'online',
-    glyph:'A.03', est:2022, area:'850 م²', manager:'محمد العتيبي',
-    staff:18, opsToday:11, doneToday:8, alerts:0,
-    progress:73, lastActivity:'استلام طلب توريد ٣ موردين', when:'منذ ٢١د',
-    region:'مكة المكرمة',
-    metrics:{ uptime:'99.9%', avgResp:'9m', sla:'A+', issues:0 },
-    feed:[
-      { t:'14:21', msg:'استلام طلبات توريد · ٣ موردين', src:'PROC', kind:'ok' },
-      { t:'13:00', msg:'إكمال جرد المخزون الأسبوعي', src:'INV', kind:'ok' },
-      { t:'10:30', msg:'استقبال وفد من الإدارة العامة', src:'EVT', kind:'' },
-    ]
-  },
-  {
-    code:'ZONE B.02', city:'KHOBAR', name:'موقع الخبر التشغيلي', state:'maintenance',
-    glyph:'B.02', est:2023, area:'3,200 م²', manager:'فهد الدوسري',
-    staff:32, opsToday:8, doneToday:8, alerts:1,
-    progress:100, lastActivity:'صيانة دورية مجدولة للأنظمة', when:'منذ ٤٥د',
-    region:'الشرقية',
-    alertMsg:'SCHEDULED MAINTENANCE · 2H REMAINING',
-    alertKind:'warn',
-    metrics:{ uptime:'98.4%', avgResp:'22m', sla:'A', issues:1 },
-    feed:[
-      { t:'13:55', msg:'بدء صيانة دورية للأنظمة', src:'MNT', kind:'warn' },
-      { t:'13:30', msg:'إكمال جميع مهام اليوم قبل الصيانة', src:'OPS', kind:'ok' },
-      { t:'11:00', msg:'إخطار الفرق بالصيانة المجدولة', src:'AUTO', kind:'' },
-    ]
-  },
-  {
-    code:'ZONE A.04', city:'RIYADH-E', name:'مشروع الرياض الشرق', state:'online',
-    glyph:'A.04', est:2024, area:'18,000 م²', manager:'عبدالله العتيبي',
-    staff:127, opsToday:42, doneToday:31, alerts:1,
-    progress:74, lastActivity:'اكتمال صب الأساس · القطاع ٤', when:'منذ ٥د',
-    region:'الرياض',
-    alertMsg:'MATERIAL DELAY · Q2 MITIGATION ACTIVE',
-    alertKind:'',
-    metrics:{ uptime:'96.1%', avgResp:'32m', sla:'B+', issues:2 },
-    feed:[
-      { t:'14:40', msg:'اكتمال صب الأساس · القطاع الرابع', src:'CONS', kind:'ok' },
-      { t:'14:15', msg:'وصول مورد بديل · شركة الخليج', src:'PROC', kind:'ok' },
-      { t:'13:48', msg:'تصعيد تأخر التوريد للمجلس', src:'RISK', kind:'alert' },
-      { t:'12:30', msg:'مفتشي السلامة · جولة كاملة', src:'HSE', kind:'' },
-      { t:'09:15', msg:'تسجيل دخول الفرق الميدانية · ١١٤', src:'HR', kind:'ok' },
-    ]
-  },
-  {
-    code:'ZONE C.01', city:'TABUK', name:'موقع تبوك الشمالي', state:'online',
-    glyph:'C.01', est:2025, area:'4,600 م²', manager:'سعد القحطاني',
-    staff:22, opsToday:9, doneToday:6, alerts:0,
-    progress:67, lastActivity:'تحديث خطة الأسبوع القادم', when:'منذ ١س',
-    region:'تبوك',
-    metrics:{ uptime:'99.2%', avgResp:'15m', sla:'A', issues:0 },
-    feed:[
-      { t:'13:18', msg:'تحديث خطة العمل · الأسبوع ٢١', src:'PLAN', kind:'' },
-      { t:'11:25', msg:'إكمال تدريب السلامة الشهري', src:'HSE', kind:'ok' },
-      { t:'10:00', msg:'استقبال شحنة معدات جديدة', src:'LOG', kind:'ok' },
-    ]
-  },
-  {
-    code:'ZONE D.01', city:'NEOM', name:'مكتب نيوم المتقدّم', state:'online',
-    glyph:'D.01', est:2026, area:'1,800 م²', manager:'أ. نورة الراشد',
-    staff:14, opsToday:6, doneToday:5, alerts:0,
-    progress:83, lastActivity:'اجتماع تنسيق مع فريق نيوم', when:'منذ ١٢د',
-    region:'تبوك',
-    metrics:{ uptime:'100%', avgResp:'7m', sla:'A+', issues:0 },
-    feed:[
-      { t:'14:28', msg:'اجتماع تنسيق مع فريق نيوم · مكتمل', src:'MTG', kind:'ok' },
-      { t:'13:00', msg:'تقديم العرض الفني للمشروع', src:'BD', kind:'ok' },
-      { t:'11:30', msg:'مراجعة عقد الشراكة الاستراتيجية', src:'LEGAL', kind:'' },
-    ]
-  },
-];
+let IS_DEMO = false;
+// Zones are populated exclusively from the real /api/sites endpoint (see loadSites()).
+// No fabricated/demo data is ever used — an empty list renders an honest empty state.
+let ZONES = [];
 
 const STATE_LABEL = { online:'تعمل', maintenance:'صيانة', offline:'معطّلة' };
 const STATE_EN = { online:'ONLINE', maintenance:'MAINTENANCE', offline:'OFFLINE' };
@@ -669,8 +553,8 @@ function renderGrid(){
     ? filtered.map(({z,i}) => zoneCard(z,i)).join('')
     : `<div style="grid-column:1/-1;text-align:center;padding:56px 24px;color:var(--ink-3)">
         <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--ink-4);text-transform:uppercase;margin-bottom:10px">NO SITES</div>
-        <div style="font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px">لا توجد مواقع بعد</div>
-        <div style="font-size:12.5px;color:var(--ink-4);max-width:340px;margin:0 auto;line-height:1.7">أضف أول موقع تشغيلي من لوحة الأدمن لتظهر بطاقته هنا — أو بدّل مصدر البيانات إلى «تجريبي» من الإعدادات.</div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px">لا توجد مواقع مسجّلة بعد</div>
+        <div style="font-size:12.5px;color:var(--ink-4);max-width:340px;margin:0 auto;line-height:1.7">أضف أول موقع تشغيلي من زر «+ موقع جديد» لتظهر بطاقته هنا.</div>
       </div>`;
   // Animate progress bars
   setTimeout(() => {
@@ -796,56 +680,27 @@ function mapSiteToZone(s, i){
     feed: []
   };
 }
-function applyDemoBadge(){
-  const lbl = document.getElementById('liveLabel');
-  if (lbl) lbl.textContent = IS_DEMO
-    ? 'بيانات تجريبية · DEMO DATA'
-    : 'LIVE OPERATIONS · جارٍ المراقبة';
-}
 async function loadSites(){
-  const mode = window.SITES_MODE || 'auto';
-  // Capture the original hardcoded zones once, so we can restore them in demo/auto modes
-  if (!window.__DEMO_ZONES) window.__DEMO_ZONES = ZONES.slice();
-
-  if (mode === 'demo'){
-    ZONES = window.__DEMO_ZONES.slice();
-    IS_DEMO = true;
-    applyDemoBadge(); renderMap(); updateCounts(); renderGrid();
-    return;
-  }
-
-  let gotLive = false;
+  // Only real data from /api/sites is ever rendered. On empty or error we show
+  // an honest empty state — never fabricated zones.
   try {
     const r = await fetch(API_BASE + '/api/sites', { headers:{ 'Authorization':'Bearer ' + SITE_TOK() }});
     if (!r.ok) throw new Error('http');
     const data = await r.json();
     const list = (data && data.sites) || [];
-    if (list.length){
-      ZONES = list.map(mapSiteToZone);
-      IS_DEMO = false;
-      gotLive = true;
-    }
-  } catch(_){ /* network/auth error — handled below */ }
-
-  if (!gotLive){
-    if (mode === 'live'){
-      // Live-only: show the real (empty) state instead of demo data
-      ZONES = [];
-      IS_DEMO = false;
-    } else {
-      // Auto: fall back to the hardcoded demo zones
-      ZONES = window.__DEMO_ZONES.slice();
-      IS_DEMO = true;
-    }
+    ZONES = list.map(mapSiteToZone);
+  } catch(_){
+    // network/auth error — render the honest empty state, not demo data
+    ZONES = [];
   }
-  applyDemoBadge();
+  IS_DEMO = false;
   renderMap();
   updateCounts();
   renderGrid();
 }
 window.reloadSites = loadSites;
 
-// Initial render (demo first for instant paint), then swap to real data if available
+// Initial render of the empty state, then loadSites() fills in real data from /api/sites
 renderMap();
 updateCounts();
 renderGrid();

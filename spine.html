@@ -1397,11 +1397,6 @@ a{color: inherit; text-decoration: none}
         </h2>
         <div class="cockpit-stats">
           <div class="cs">
-            <div class="k">Open Tasks</div>
-            <div class="v" id="csOpen">—</div>
-            <div class="delta" id="csOpenD">المهام المفتوحة</div>
-          </div>
-          <div class="cs">
             <div class="k">Overdue</div>
             <div class="v red" id="csOverdue">—</div>
             <div class="delta" id="csOverdueD">المتأخرة</div>
@@ -1410,6 +1405,11 @@ a{color: inherit; text-decoration: none}
             <div class="k">Due Today</div>
             <div class="v orange" id="csDueToday">—</div>
             <div class="delta" id="csDueTodayD">تستحق اليوم</div>
+          </div>
+          <div class="cs">
+            <div class="k">Done Today</div>
+            <div class="v green" id="csDone">—</div>
+            <div class="delta" id="csDoneD">أُنجزت اليوم</div>
           </div>
           <div class="cs">
             <div class="k">Meetings Today</div>
@@ -1813,20 +1813,23 @@ function spineIsAdmin(){
   // 1 / 2 / many — keep Arabic number-noun agreement natural
   function taskWord(n, sing, dual, plur){ return n === 1 ? sing : n === 2 ? dual : plur; }
 
+  const updatedMs = t => { const n = typeof t.updatedAt === 'number' ? t.updatedAt : Date.parse(t.updatedAt); return Number.isFinite(n) ? n : null; };
+
   function renderCockpit(tasks){
-    const open     = tasks.filter(isActive).length;
-    const overdue  = tasks.filter(isOverdue).length;
-    const dueToday = tasks.filter(isDueToday).length;
+    const open      = tasks.filter(isActive).length;
+    const overdue   = tasks.filter(isOverdue).length;
+    const dueToday  = tasks.filter(isDueToday).length;
+    const doneToday = tasks.filter(t => t.status === 'done' && isTodayMs(updatedMs(t))).length;
     // Set value + dim it when it's zero (a calm all-clear, not a wall of alarms)
     const setStat = (id,v) => { const x = $(id); if (x){ x.textContent = v; x.classList.toggle('is-zero', Number(v) === 0); } };
     const set = (id,v) => { const x = $(id); if (x) x.textContent = v; };
-    setStat('csOpen', open);
     setStat('csOverdue', overdue);
     setStat('csDueToday', dueToday);
+    setStat('csDone', doneToday);
     setStat('csMeetings', meetingsToday);
-    set('csOpenD', tasks.length + ' إجمالاً');
     set('csOverdueD', overdue ? 'تحتاج إجراء' : 'لا متأخرات');
     set('csDueTodayD', dueToday ? 'قبل نهاية اليوم' : '—');
+    set('csDoneD', open + ' ' + taskWord(open, 'مهمة مفتوحة', 'مهمتان مفتوحتان', 'مهام مفتوحة'));
     set('csMeetingsD', nextMeeting ? ('التالي ' + fmtTime(nextMeeting._ms)) : 'اجتماعات اليوم');
     // Headline = one prioritized triage line (leads with what needs you), NOT a
     // restatement of the tiles. Meeting time is appended when there is one.

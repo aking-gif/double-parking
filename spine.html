@@ -445,6 +445,20 @@ a{color: inherit; text-decoration: none}
 .atten .marker.red{ background: var(--red); box-shadow: 0 0 8px var(--red) }
 .atten .marker.orange{ background: var(--orange) }
 .atten .marker.blue{ background: var(--blue) }
+.atten .marker.accent{ background: var(--accent); box-shadow: 0 0 8px var(--accent-line) }
+/* Source tag on attention rows (calendar / inbox / manual) */
+.atten-src{
+  margin-inline-start: auto;
+  align-self: center;
+  flex-shrink: 0;
+  font-family: var(--font-ar);
+  font-size: 10px;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
 .atten .body{
   flex: 1;
   display: flex; flex-direction: column; gap: 2px;
@@ -1792,21 +1806,22 @@ function spineIsAdmin(){
   function setOffline(on){ const b = $('cockpitOffline'); if (b) b.hidden = !on; }
 
   /* ---- meetings (Google Calendar, with public fallback) ---- */
-  let meetingsToday = 0, nextMeeting = null;
+  let meetingsToday = 0, nextMeeting = null, todayEvents = [];
   async function loadMeetings(){
     let events = null;
     try { events = await apiGet('/api/gcal/events?days=7'); }          // live Google Calendar
     catch(_){ try { events = await apiGet('/api/calendar/events'); }   // graceful fallback
              catch(__){ events = null; } }
-    meetingsToday = 0; nextMeeting = null;
+    meetingsToday = 0; nextMeeting = null; todayEvents = [];
     if (!Array.isArray(events)) return;
     const now = Date.now();
     events.forEach(e => {
       const ms = eventStartMs(e);
       if (ms == null) return;
-      if (isTodayMs(ms)) meetingsToday++;
+      if (isTodayMs(ms)){ meetingsToday++; todayEvents.push(Object.assign({ _ms: ms }, e)); }
       if (ms >= now && (!nextMeeting || ms < nextMeeting._ms)) nextMeeting = Object.assign({ _ms: ms }, e);
     });
+    todayEvents.sort((a,b) => a._ms - b._ms);
   }
 
   /* ---- cockpit stats ---- */
@@ -1855,94 +1870,90 @@ function spineIsAdmin(){
     }
   }
 
-  /* ---- attention list ---- */
-  function taskRow(t, marker, metaText){
-    return '' +
-      '<div class="atten" data-id="' + esc(t.id) + '" data-kind="task">' +
-        '<div class="atten-row">' +
-          '<span class="marker ' + marker + '"></span>' +
-          '<div class="body">' +
-            '<div class="ttl">' + esc(t.title || 'مهمة') + '</div>' +
-            '<div class="meta">' + esc(metaText) + '</div>' +
-          '</div>' +
-          '<button class="atten-done" data-id="' + esc(t.id) + '" title="وضع علامة: أنجزت">أنجزت</button>' +
-        '</div>' +
-      '</div>';
+  /* ---- attention feed: real signals from calendar + inbox + manual captures.
+     Deliberately NOT the task backlog (that lives in the tiles above) and NOT
+     the mock-fallback endpoints (/api/mail, /api/calendar) which fabricate demo
+     rows when empty. Each source is best-effort; a failing one is just skipped. */
+  let inboxUnread = [], manualItems = [];
+
+  async function loadInbox(){
+    inboxUnread = [];
+    try {
+      const list = await apiGet('/api/kv/mail_inbox_v1');   // real inbox (empty when none)
+      if (Array.isArray(list)) inboxUnread = list.filter(m => m && !m.read);
+    } catch(_){ /* best-effort */ }
   }
-  function meetingRow(ev){
-    const meta = (isTodayMs(ev._ms) ? 'اليوم ' : '') + fmtTime(ev._ms) + (ev.location ? (' · ' + ev.location) : '');
+  async function loadManual(){
+    manualItems = [];
+    try {
+      const list = await apiGet('/api/kv/inbox_v1');         // quick-capture items the user added
+      if (Array.isArray(list)) manualItems = list.filter(Boolean);
+    } catch(_){ /* best-effort */ }
+  }
+
+  const MANUAL_TYPE  = { task:'مهمة', note:'ملاحظة', idea:'فكرة', decision:'قرار', meeting:'اجتماع', risk:'مخاطرة' };
+  const MANUAL_ROUTE = { task:'tasks', decision:'decisions', risk:'risks', meeting:'calendar' };
+
+  function timeAgo(v){
+    const t = typeof v === 'number' ? v : Date.parse(v);
+    if (!Number.isFinite(t)) return '';
+    const m = Math.round((Date.now() - t) / 60000);
+    if (m < 1)  return 'الآن';
+    if (m < 60) return 'قبل ' + m + ' د';
+    const h = Math.round(m / 60); if (h < 24) return 'قبل ' + h + ' س';
+    return 'قبل ' + Math.round(h / 24) + ' ي';
+  }
+
+  function attenRow(o){  // {kind, marker, src, title, meta, nav}
     return '' +
-      '<div class="atten" data-kind="meeting">' +
+      '<div class="atten" data-kind="' + o.kind + '"' + (o.nav ? ' data-nav="' + o.nav + '"' : '') + '>' +
         '<div class="atten-row">' +
-          '<span class="marker blue"></span>' +
+          '<span class="marker ' + o.marker + '"></span>' +
           '<div class="body">' +
-            '<div class="ttl">' + esc(ev.title || 'اجتماع') + '</div>' +
-            '<div class="meta">' + esc(meta) + '</div>' +
+            '<div class="ttl">' + esc(o.title) + '</div>' +
+            '<div class="meta">' + esc(o.meta) + '</div>' +
           '</div>' +
+          '<span class="atten-src">' + esc(o.src) + '</span>' +
         '</div>' +
       '</div>';
   }
 
-  function renderAttention(tasks){
+  function renderAttention(){
     const host = $('attenList');
     if (!host) return;
-    // Priority order: overdue → urgent → next meeting → due today
-    const overdue  = tasks.filter(isOverdue).sort((a,b) => dueMs(a) - dueMs(b));
-    const urgent   = tasks.filter(t => isActive(t) && !isOverdue(t) && isUrgent(t));
-    const dueToday = tasks.filter(t => isDueToday(t) && !isUrgent(t));  // urgent already shown above
     const rows = [];
-    overdue.forEach(t => rows.push(taskRow(t, 'red',
-      'متأخرة · ' + fmtDueMeta(dueMs(t)) + (t.assignee ? (' · ' + String(t.assignee).split('@')[0]) : ''))));
-    urgent.forEach(t => rows.push(taskRow(t, 'orange',
-      (t.priority === 'critical' ? 'حرجة' : 'عاجلة') + (dueMs(t) != null ? (' · ' + fmtDueMeta(dueMs(t))) : ''))));
-    if (nextMeeting) rows.push(meetingRow(nextMeeting));
-    dueToday.forEach(t => rows.push(taskRow(t, 'orange', 'تستحق اليوم')));
+    // 1) Calendar — today's meetings (earliest first)
+    todayEvents.slice(0, 3).forEach(ev => rows.push(attenRow({
+      kind:'meeting', marker:'blue', src:'تقويم', nav:'calendar',
+      title: ev.title || 'اجتماع',
+      meta: fmtTime(ev._ms) + (ev.location ? (' · ' + ev.location) : '')
+    })));
+    // 2) Inbox — unread mail
+    inboxUnread.slice(0, 4).forEach(m => rows.push(attenRow({
+      kind:'mail', marker:'orange', src:'بريد', nav:'mail',
+      title: m.subject || '(بدون عنوان)',
+      meta: (m.from || '') + (m.time ? (' · ' + timeAgo(m.time)) : '')
+    })));
+    // 3) Manual — items the user captured themselves
+    manualItems.slice(0, 3).forEach(it => rows.push(attenRow({
+      kind:'manual', marker:'accent', src: MANUAL_TYPE[it.type] || 'يدوي', nav: MANUAL_ROUTE[it.type] || '',
+      title: it.title || it.description || 'عنصر',
+      meta: timeAgo(it.createdAt)
+    })));
 
-    const badge = $('attenCount'); if (badge) badge.textContent = rows.length;
-    if (!rows.length){
+    const feed = rows.slice(0, 7);
+    const badge = $('attenCount'); if (badge) badge.textContent = feed.length;
+    if (!feed.length){
       host.innerHTML = '<div class="atten-empty">كل شيء تحت السيطرة ✓</div>';
       return;
     }
-    host.innerHTML = rows.join('');
-
+    host.innerHTML = feed.join('');
     host.querySelectorAll('.atten').forEach(el => {
-      const kind = el.dataset.kind;
+      const nav = el.dataset.nav;
       const row = el.querySelector('.atten-row');
-      if (row) row.addEventListener('click', e => {
-        if (e.target.closest('.atten-done')) return;
-        if (typeof navigate === 'function') navigate(kind === 'meeting' ? 'calendar' : 'tasks');
-      });
+      if (nav && row) row.addEventListener('click', () => { if (typeof navigate === 'function') navigate(nav); });
+      el.style.cursor = nav ? 'pointer' : 'default';
     });
-    host.querySelectorAll('.atten-done').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        btn.disabled = true; btn.textContent = '…';
-        try {
-          await patchTask(id, { status: 'done' });
-          const row = btn.closest('.atten');
-          if (row){
-            row.style.transition = 'opacity .25s, transform .25s';
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(12px)';
-            setTimeout(() => { row.remove(); afterDone(); }, 250);
-          }
-        } catch(err){
-          btn.disabled = false; btn.textContent = 'أنجزت';
-        }
-      });
-    });
-  }
-
-  function afterDone(){
-    // Reflect removal immediately, then re-pull authoritative data.
-    const host = $('attenList');
-    if (host){
-      const remaining = host.querySelectorAll('.atten').length;
-      const badge = $('attenCount'); if (badge) badge.textContent = remaining;
-      if (!remaining) host.innerHTML = '<div class="atten-empty">كل شيء تحت السيطرة ✓</div>';
-    }
-    load();
   }
 
   async function load(){
@@ -1955,9 +1966,10 @@ function spineIsAdmin(){
     }
     if (!Array.isArray(tasks)) tasks = (tasks && tasks.tasks) || [];
     setOffline(false);
-    await loadMeetings();  // best-effort; never throws
+    // Attention sources gathered in parallel — each is best-effort
+    await Promise.all([ loadMeetings(), loadInbox(), loadManual() ]);
     renderCockpit(tasks);
-    renderAttention(tasks);
+    renderAttention();
   }
 
   load();

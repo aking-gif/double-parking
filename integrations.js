@@ -4,7 +4,6 @@
 (function(){
 'use strict';
 
-const STORAGE_KEY = 'arsan_integrations_v1';
 const FLOWS_KEY = 'arsan_flows_v1';
 const API = window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
 
@@ -159,18 +158,29 @@ const FLOWS = [
 
 /* ----------------------------------------------------------------
    STATE
+
+   `serverStatus` is the SINGLE SOURCE OF TRUTH for connection badges
+   and the CONNECTED count. It is populated ONLY from real server
+   signals (see loadConnectionStatus). We never read/write connection
+   state from localStorage — a client-side toggle must never make a
+   service look "connected" when the server hasn't confirmed it.
+
+   `flows` (the "coming soon" internal-flow toggles) stays local; those
+   are UI preferences, not a claim about an external connection.
 ---------------------------------------------------------------- */
-let connected = {};
+let serverStatus = {};   // { [serviceId]: { connected, since?, email?, provider? } }
 let flows = {};
 
-function loadState(){
-  try { connected = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(_){ connected = {}; }
+/* Which real server signal backs each service. Services NOT listed here
+   have no server-side verification available → they default to
+   not-connected (honest default). */
+const OAUTH_PROVIDER = {
+  gmail:'google', gcal:'google', gdrive:'google', gdocs:'google',
+  outlook:'microsoft', teams:'microsoft', onedrive:'microsoft'
+};
+
+function loadFlows(){
   try { flows = JSON.parse(localStorage.getItem(FLOWS_KEY) || '{}'); } catch(_){ flows = {}; }
-  // Claude is built-in, always connected
-  if (!connected.claude) connected.claude = { connected:true, since: Date.now(), builtin:true };
-}
-function saveState(){
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(connected)); } catch(_){}
 }
 function saveFlows(){
   try { localStorage.setItem(FLOWS_KEY, JSON.stringify(flows)); } catch(_){}
@@ -179,6 +189,54 @@ function saveFlows(){
 /* Bearer token for worker calls (non-disruptive — no login redirect). */
 function getAuthToken(){
   return localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+}
+
+/* ----------------------------------------------------------------
+   REAL CONNECTION STATUS — from the worker, never localStorage.
+     • /api/oauth/status   → google + microsoft (per-user, real tokens)
+     • /api/slack-webhook   → whether a Slack webhook is configured
+   Anything we can't verify server-side stays not-connected.
+---------------------------------------------------------------- */
+async function loadConnectionStatus(){
+  serverStatus = {};
+  const tok = getAuthToken();
+  if (!tok) return;  // not signed in → nothing is verified → all not-connected
+
+  const auth = { 'Authorization': 'Bearer ' + tok };
+
+  // OAuth providers (Google / Microsoft) → real per-user connection state.
+  try {
+    const r = await fetch(API + '/api/oauth/status', { headers: auth });
+    if (r.ok) {
+      const d = await r.json();
+      Object.entries(OAUTH_PROVIDER).forEach(([id, provider]) => {
+        const p = d && d[provider];
+        if (p && p.connected) {
+          serverStatus[id] = {
+            connected: true,
+            provider,
+            email: p.email || '',
+            since: p.connectedAt || null
+          };
+        }
+      });
+    }
+  } catch(_){ /* leave unverified services not-connected */ }
+
+  // Slack → connected only if the server actually has a webhook stored.
+  // Endpoint is admin-only; a 403/!ok means we can't confirm → not-connected.
+  try {
+    const r = await fetch(API + '/api/slack-webhook', { headers: auth });
+    if (r.ok) {
+      const d = await r.json().catch(()=>({}));
+      if (d && d.url) serverStatus.slack = { connected: true, provider: 'slack', value: d.url };
+    }
+  } catch(_){ /* not-connected */ }
+}
+
+/* True only when the SERVER confirms the connection. */
+function isConnected(id){
+  return !!(serverStatus[id] && serverStatus[id].connected);
 }
 
 /* ----------------------------------------------------------------
@@ -206,31 +264,30 @@ function logoHTML(it){
    RENDER — SERVICES
 ---------------------------------------------------------------- */
 function tileHTML(it){
-  const isConnected = !!(connected[it.id] && connected[it.id].connected);
-  const status = isConnected ? 'connected' : (it.status === 'beta' ? 'beta' : '');
-  const since = isConnected && connected[it.id].since
-    ? new Date(connected[it.id].since).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'})
+  const isConn = isConnected(it.id);
+  const since = isConn && serverStatus[it.id].since
+    ? new Date(serverStatus[it.id].since).toLocaleDateString('ar-EG', {year:'numeric', month:'short', day:'numeric'})
     : '';
   return `
-    <div class="icard ${isConnected?'connected':''}" data-id="${it.id}">
+    <div class="icard ${isConn?'connected':''}" data-id="${it.id}">
       <div class="icard-head">
         <div class="ilogo">${logoHTML(it)}</div>
         <div class="itxt">
           <div class="nm">${it.name}</div>
           <div class="sub">${it.sub}</div>
         </div>
-        ${isConnected ? '<span class="istatus connected">● متصل</span>' :
-          (it.builtin ? '<span class="istatus connected">● مدمج</span>' : '')}
+        ${isConn ? '<span class="istatus connected">● متصل</span>' :
+          (it.builtin ? '<span class="istatus">● مدمج</span>' : '<span class="istatus">● غير مرتبط</span>')}
       </div>
       <div class="idesc">${it.desc}</div>
       <div class="itags">
         ${it.tags.map(t=>`<span class="itag">${t}</span>`).join('')}
       </div>
       <div class="icard-foot">
-        <span class="icard-meta">${since ? 'منذ ' + since : (it.builtin ? 'جاهز للاستخدام' : 'غير متصل')}</span>
-        <button class="btn ${isConnected?'':'primary'}" onclick="event.stopPropagation();openConnect('${it.id}')">
-          ${isConnected ? 'إدارة' : (it.builtin ? 'استخدام' : 'ربط')}
-          ${!isConnected ? '<svg width="12" height="12"><use href="#i-link"/></svg>' : ''}
+        <span class="icard-meta">${since ? 'منذ ' + since : (it.builtin ? 'جاهز للاستخدام' : 'غير مرتبط')}</span>
+        <button class="btn ${isConn?'':'primary'}" onclick="event.stopPropagation();openConnect('${it.id}')">
+          ${isConn ? 'إدارة' : (it.builtin ? 'استخدام' : 'ربط')}
+          ${!isConn ? '<svg width="12" height="12"><use href="#i-link"/></svg>' : ''}
         </button>
       </div>
     </div>`;
@@ -418,7 +475,8 @@ function getInboundToken(){
 window.openConnect = function(id){
   const it = CATALOG.find(x => x.id === id);
   if (!it) return;
-  const isConnected = !!(connected[id] && connected[id].connected);
+  const isConn = isConnected(id);
+  const st = serverStatus[id] || {};
   document.getElementById('connectName').textContent = it.name;
   document.getElementById('connectSub').textContent = it.sub;
   document.getElementById('connectLogo').innerHTML = logoHTML(it);
@@ -442,35 +500,34 @@ window.openConnect = function(id){
   if (it.builtin) {
     body += `<div class="note"><strong style="color:var(--accent)">مدمج</strong> — هذه الخدمة جاهزة للاستخدام مباشرة بدون إعدادات.</div>`;
   } else if (it.auth === 'oauth') {
-    body += `<div class="note warn">
-      <span class="lbl">OAuth — قريباً</span>
-      OAuth الآمن تحت التطوير. نسخة Beta متاحة الآن لإدخال API Key يدوياً.
-    </div>`;
-    if (!isConnected) {
-      body += `<div class="field" style="margin-top:14px">
-        <label>API Key (مؤقتاً)</label>
-        <input id="connectKey" placeholder="أدخل المفتاح..." type="password">
+    // Real OAuth is the only honest connect path. No fake "enter an API key".
+    if (!isConn) {
+      body += `<div class="note">
+        سيتم فتح نافذة تسجيل دخول ${OAUTH_PROVIDER[id] === 'microsoft' ? 'Microsoft' : 'Google'} الآمنة (OAuth) لإتمام الربط.
+        الحالة تُقرأ من الخادم — لن تظهر "متصل" إلا بعد نجاح الربط فعلياً.
       </div>`;
     }
   } else if (it.auth === 'webhook') {
     body += `<div class="field">
       <label>Webhook URL</label>
-      <input id="connectKey" placeholder="https://hooks.slack.com/services/..." value="${isConnected ? (connected[id].value || '') : ''}">
+      <input id="connectKey" placeholder="https://hooks.slack.com/services/..." value="${isConn ? (st.value || '') : ''}">
     </div>
     <div class="note">
       احصل على الرابط من Slack: Apps → Incoming Webhooks → Add → اختر القناة.
+      يُحفظ الرابط على الخادم، والحالة تُقرأ منه.
     </div>`;
   } else if (it.auth === 'apikey') {
-    body += `<div class="field">
-      <label>API Key</label>
-      <input id="connectKey" placeholder="sk-..." type="password" value="${isConnected ? '••••••••' : ''}">
+    // No server-side endpoint verifies these third-party keys yet, so we do
+    // NOT claim a connection. Be explicit rather than fake a "connected" state.
+    body += `<div class="note warn">
+      <span class="lbl">غير متاح بعد</span>
+      لا يتوفر تحقق من الخادم لهذه الخدمة حالياً، لذلك لا يمكن تأكيد الربط. سيتم تفعيلها قريباً.
     </div>`;
   }
 
-  if (isConnected) {
+  if (isConn) {
     body += `<div class="note" style="margin-top:16px">
-      <strong style="color:var(--green)">✓ متصل</strong> منذ
-      ${new Date(connected[id].since).toLocaleString('ar-EG')}
+      <strong style="color:var(--green)">✓ متصل</strong>${st.email ? ' — ' + st.email : ''}${st.since ? ' · منذ ' + new Date(st.since).toLocaleString('ar-EG') : ''}
     </div>`;
   }
 
@@ -479,18 +536,21 @@ window.openConnect = function(id){
   const foot = document.getElementById('connectFoot');
   if (it.builtin) {
     foot.innerHTML = `<button class="btn ghost" onclick="closeModal('connectModal')">إغلاق</button>`;
-  } else if (isConnected) {
+  } else if (isConn) {
     foot.innerHTML = `
       <button class="btn ghost" onclick="closeModal('connectModal')">إلغاء</button>
       <button class="btn danger" onclick="disconnect('${id}')">قطع الاتصال</button>
-      ${it.auth !== 'oauth' ? `<button class="btn primary" onclick="connect('${id}')">حفظ التغييرات</button>` : ''}
+      ${it.auth === 'webhook' ? `<button class="btn primary" onclick="connect('${id}')">حفظ التغييرات</button>` : ''}
     `;
+  } else if (it.auth === 'apikey') {
+    // Nothing to submit — no honest connect path available yet.
+    foot.innerHTML = `<button class="btn ghost" onclick="closeModal('connectModal')">إغلاق</button>`;
   } else {
     foot.innerHTML = `
       <button class="btn ghost" onclick="closeModal('connectModal')">إلغاء</button>
       <button class="btn primary" onclick="connect('${id}')">
         <svg width="14" height="14"><use href="#i-link"/></svg>
-        ${it.auth === 'oauth' ? 'ربط (Beta)' : 'ربط'}
+        ${it.auth === 'oauth' ? 'ربط عبر ' + (OAUTH_PROVIDER[id] === 'microsoft' ? 'Microsoft' : 'Google') : 'ربط'}
       </button>
     `;
   }
@@ -500,52 +560,80 @@ window.openConnect = function(id){
 
 window.connect = async function(id){
   const it = CATALOG.find(x => x.id === id);
-  let value = '';
-  const inp = document.getElementById('connectKey');
-  if (inp) value = inp.value.trim();
-  if (it.auth !== 'builtin' && !value) { alert('أدخل المفتاح أو الـ URL'); return; }
-  connected[id] = { connected: true, since: Date.now(), value: value };
-  saveState();
+  const tok = getAuthToken();
 
-  // Slack: persist the webhook URL to the worker (key: slack_webhook_v1) so
-  // server-side notifications actually fire. The worker's dedicated admin-only
-  // endpoint /api/slack-webhook writes to that exact key (the generic
-  // /api/kv/slack_webhook_v1 route is blocked by the KV allowlist).
-  if (id === 'slack' && value) {
+  // OAuth services → start the REAL OAuth flow. Connection state comes back
+  // from the server on /api/oauth/status; we never fabricate it locally.
+  if (it.auth === 'oauth') {
+    const provider = OAUTH_PROVIDER[id];
+    if (!tok) { toast('سجّل الدخول أولاً لبدء الربط'); return; }
     try {
-      const tok = getAuthToken();
+      const r = await fetch(API + '/api/oauth/' + provider + '/start', { headers: { 'Authorization': 'Bearer ' + tok } });
+      const d = await r.json().catch(()=>({}));
+      if (r.ok && d.authUrl) {
+        window.open(d.authUrl, 'oauth', 'width=520,height=660');
+        toast('أكمل تسجيل الدخول في النافذة المنبثقة');
+      } else {
+        toast(d.message || d.error || 'تعذّر بدء الربط — راجع إعدادات OAuth على الخادم');
+      }
+    } catch(err) {
+      toast('تعذّر الاتصال بالخادم');
+    }
+    return;
+  }
+
+  // Slack webhook → persist the URL to the worker (real, admin-only). The
+  // badge is then re-read from the server via loadConnectionStatus().
+  if (id === 'slack') {
+    let value = '';
+    const inp = document.getElementById('connectKey');
+    if (inp) value = inp.value.trim();
+    if (!value) { alert('أدخل الـ URL'); return; }
+    try {
       const r = await fetch(API + '/api/slack-webhook', {
         method: 'POST',
         headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok },
         body: JSON.stringify({ url: value })
       });
       if (r.ok) {
-        toast('✓ Slack — تم الربط والحفظ على الخادم');
+        toast('✓ Slack — تم الحفظ على الخادم');
       } else {
         const e = await r.json().catch(()=>({}));
-        toast('⚠ حُفظ محلياً، لكن تعذّر الحفظ على الخادم' + (e.error ? ' ('+e.error+')' : ' — يتطلّب صلاحية أدمن'));
+        toast('⚠ تعذّر الحفظ على الخادم' + (e.error ? ' ('+e.error+')' : ' — يتطلّب صلاحية أدمن'));
       }
     } catch(err) {
-      toast('⚠ Slack حُفظ محلياً — تعذّر الاتصال بالخادم');
+      toast('⚠ تعذّر الاتصال بالخادم');
     }
     closeModal('connectModal');
+    await loadConnectionStatus();
     renderServices();
     updateStats();
     return;
   }
 
-  closeModal('connectModal');
-  renderServices();
-  updateStats();
-  // Toast
-  toast(`✓ ${it.name} تم ربطها بنجاح`);
+  // Any other auth type has no honest server-verified connect path.
+  toast('ربط ' + it.name + ' غير متاح بعد');
 };
 
-window.disconnect = function(id){
+window.disconnect = async function(id){
   if (!confirm('قطع الاتصال؟')) return;
-  delete connected[id];
-  saveState();
+  const it = CATALOG.find(x => x.id === id);
+  const tok = getAuthToken();
+  try {
+    if (it && it.auth === 'oauth') {
+      await fetch(API + '/api/oauth/' + OAUTH_PROVIDER[id] + '/disconnect', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + tok }
+      });
+    } else if (id === 'slack') {
+      await fetch(API + '/api/slack-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok },
+        body: JSON.stringify({ url: '' })
+      });
+    }
+  } catch(_){ /* fall through to re-read real state */ }
   closeModal('connectModal');
+  await loadConnectionStatus();
   renderServices();
   updateStats();
 };
@@ -579,7 +667,9 @@ function toast(msg){
    STATS + TABS
 ---------------------------------------------------------------- */
 function updateStats(){
-  const conn = Object.values(connected).filter(x => x.connected).length;
+  // Count ONLY server-confirmed connections (built-in Claude is not a
+  // "connection", so it is intentionally excluded from this count).
+  const conn = Object.values(serverStatus).filter(x => x && x.connected).length;
   document.getElementById('connectedCount').textContent = conn;
   document.getElementById('availableCount').textContent = CATALOG.length;
   document.getElementById('flowsCount').textContent = Object.values(flows).filter(Boolean).length;
@@ -601,12 +691,16 @@ function setupTabs(){
 /* ----------------------------------------------------------------
    BOOT
 ---------------------------------------------------------------- */
-function boot(){
-  loadState();
+async function boot(){
+  loadFlows();
   document.getElementById('inboundToken').textContent = getInboundToken();
-  renderServices();
+  renderServices();          // initial paint (all not-connected until server responds)
   renderFlows();
   setupTabs();
+  updateStats();
+  // Fetch REAL connection status from the worker, then re-render honestly.
+  await loadConnectionStatus();
+  renderServices();
   updateStats();
   // Pre-fetch webhooks count
   loadWebhooks();

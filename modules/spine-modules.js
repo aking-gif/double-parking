@@ -1228,7 +1228,7 @@ window.SpineModules = (function(){
       body: `
         <div class="stat-row" id="lm-stats">${Array.from({length:cfg.statCount||4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join('')}</div>
         <div class="card">
-          <div class="card-head"><h3>${_mesc(cfg.title||'')}</h3><span class="meta mono" id="lm-count">—</span></div>
+          <div class="card-head"><h3>${_mesc(cfg.title||'')}</h3><div style="display:flex;align-items:center;gap:12px"><input id="lm-search" placeholder="بحث…" style="display:none;background:var(--bg-2);border:1px solid var(--line);border-radius:7px;padding:6px 12px;color:var(--ink);font-family:inherit;font-size:12px;width:160px;outline:none"><span class="meta mono" id="lm-count">—</span></div></div>
           <div id="lm-body"><div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div>
         </div>`,
       mount(){
@@ -1258,9 +1258,25 @@ window.SpineModules = (function(){
           }
           if (cfg.render){ bodyEl.innerHTML = cfg.render(list); return; }
           const cols = cfg.columns || [];
-          bodyEl.innerHTML = `<table class="tbl"><thead><tr>${cols.map(c=>`<th>${_mesc(c.label)}</th>`).join('')}</tr></thead><tbody>${
-            list.slice(0, cfg.limit||60).map(row => `<tr>${cols.map(c=>`<td>${c.cell(row)}</td>`).join('')}</tr>`).join('')
-          }</tbody></table>`;
+          const renderRows = (items) => {
+            bodyEl.innerHTML = items.length
+              ? `<table class="tbl"><thead><tr>${cols.map(c=>`<th>${_mesc(c.label)}</th>`).join('')}</tr></thead><tbody>${items.slice(0, cfg.limit||200).map(row => `<tr>${cols.map(c=>`<td>${c.cell(row)}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+              : `<div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">لا نتائج مطابقة.</div>`;
+          };
+          renderRows(list);
+          // Live search/filter (shown once the list is worth filtering)
+          const searchEl = document.getElementById('lm-search');
+          if (searchEl && list.length > 5){
+            searchEl.style.display = '';
+            const strip = h => { try { return String(h).replace(/<[^>]*>/g,' '); } catch(_){ return ''; } };
+            const idx = list.map(r => ({ r, t: cols.map(c => strip(c.cell(r))).join(' ').toLowerCase() }));
+            searchEl.addEventListener('input', e => {
+              const q = e.target.value.trim().toLowerCase();
+              const f = q ? idx.filter(o => o.t.includes(q)).map(o => o.r) : list;
+              countEl.textContent = f.length + (cfg.countLabel ? (' ' + cfg.countLabel) : '');
+              renderRows(f);
+            });
+          }
         })();
       }
     };

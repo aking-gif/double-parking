@@ -1904,41 +1904,68 @@ function spineIsAdmin(){
     return 'قبل ' + Math.round(h / 24) + ' ي';
   }
 
-  function attenRow(o){  // {kind, marker, src, title, meta, nav}
+  // KV writes for inline clearing (mark mail read / dismiss a manual item)
+  async function apiSend(path, method, body){
+    const url = API + path;
+    const r = await fetch(url, {
+      method,
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+tok()},
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    if (!r.ok){ console.error('[cockpit] ' + method + ' failed', url, '→', r.status); throw new Error('HTTP ' + r.status); }
+    return r.json().catch(() => ({}));
+  }
+  async function markMailRead(id){
+    const list = await apiGet('/api/kv/mail_inbox_v1');
+    if (Array.isArray(list)){ const it = list.find(x => x && x.id === id); if (it) it.read = true; await apiSend('/api/kv/mail_inbox_v1', 'PUT', list); }
+  }
+  async function dismissManual(id){
+    const list = await apiGet('/api/kv/inbox_v1');
+    if (Array.isArray(list)) await apiSend('/api/kv/inbox_v1', 'PUT', list.filter(x => x && x.id !== id));
+  }
+
+  function feedRow(o){  // {kind, id, marker, title, meta, nav, act, actLabel}
     return '' +
-      '<div class="atten" data-kind="' + o.kind + '"' + (o.nav ? ' data-nav="' + o.nav + '"' : '') + '>' +
+      '<div class="atten" data-kind="' + o.kind + '"' + (o.id ? ' data-id="' + esc(o.id) + '"' : '') + (o.nav ? ' data-nav="' + o.nav + '"' : '') + '>' +
         '<div class="atten-row">' +
           '<span class="marker ' + o.marker + '"></span>' +
           '<div class="body">' +
             '<div class="ttl">' + esc(o.title) + '</div>' +
             '<div class="meta">' + esc(o.meta) + '</div>' +
           '</div>' +
-          '<span class="atten-src">' + esc(o.src) + '</span>' +
+          (o.act ? '<button class="atten-done" title="' + esc(o.act) + '">' + esc(o.act) + '</button>'
+                 : '<span class="atten-src">' + esc(o.src || '') + '</span>') +
         '</div>' +
       '</div>';
   }
 
-  function renderAttention(){
+  function renderAttention(tasks){
     const host = $('attenList');
     if (!host) return;
     const rows = [];
-    // 1) Calendar — today's meetings (earliest first)
-    todayEvents.slice(0, 3).forEach(ev => rows.push(attenRow({
+    // 1) Overdue tasks — the one slice of the backlog that genuinely needs action now
+    tasks.filter(isOverdue).sort((a,b) => dueMs(a) - dueMs(b)).slice(0, 3).forEach(t => rows.push(feedRow({
+      kind:'task', id:t.id, marker:'red', act:'أنجزت',
+      title: t.title || 'مهمة',
+      meta: 'مهمة متأخرة · ' + fmtDueMeta(dueMs(t)) + (t.assignee ? (' · ' + String(t.assignee).split('@')[0]) : '')
+    })));
+    // 2) Calendar — today's meetings (earliest first)
+    todayEvents.slice(0, 3).forEach(ev => rows.push(feedRow({
       kind:'meeting', marker:'blue', src:'تقويم', nav:'calendar',
       title: ev.title || 'اجتماع',
-      meta: fmtTime(ev._ms) + (ev.location ? (' · ' + ev.location) : '')
+      meta: 'تقويم · ' + fmtTime(ev._ms) + (ev.location ? (' · ' + ev.location) : '')
     })));
-    // 2) Inbox — unread mail
-    inboxUnread.slice(0, 4).forEach(m => rows.push(attenRow({
-      kind:'mail', marker:'orange', src:'بريد', nav:'mail',
+    // 3) Inbox — unread mail
+    inboxUnread.slice(0, 3).forEach(m => rows.push(feedRow({
+      kind:'mail', id:m.id, marker:'orange', nav:'mail', act:'تمّت',
       title: m.subject || '(بدون عنوان)',
-      meta: (m.from || '') + (m.time ? (' · ' + timeAgo(m.time)) : '')
+      meta: 'بريد · ' + (m.from || '') + (m.time ? (' · ' + timeAgo(m.time)) : '')
     })));
-    // 3) Manual — items the user captured themselves
-    manualItems.slice(0, 3).forEach(it => rows.push(attenRow({
-      kind:'manual', marker:'accent', src: MANUAL_TYPE[it.type] || 'يدوي', nav: MANUAL_ROUTE[it.type] || '',
+    // 4) Manual — items the user captured themselves
+    manualItems.slice(0, 3).forEach(it => rows.push(feedRow({
+      kind:'manual', id:it.id, marker:'accent', nav: MANUAL_ROUTE[it.type] || '', act:'تم',
       title: it.title || it.description || 'عنصر',
-      meta: timeAgo(it.createdAt)
+      meta: (MANUAL_TYPE[it.type] || 'يدوي') + (it.createdAt ? (' · ' + timeAgo(it.createdAt)) : '')
     })));
 
     const feed = rows.slice(0, 7);
@@ -1949,11 +1976,39 @@ function spineIsAdmin(){
     }
     host.innerHTML = feed.join('');
     host.querySelectorAll('.atten').forEach(el => {
-      const nav = el.dataset.nav;
+      const nav = el.dataset.nav, kind = el.dataset.kind, id = el.dataset.id;
       const row = el.querySelector('.atten-row');
-      if (nav && row) row.addEventListener('click', () => { if (typeof navigate === 'function') navigate(nav); });
+      if (row) row.addEventListener('click', e => {
+        if (e.target.closest('.atten-done')) return;
+        if (nav && typeof navigate === 'function') navigate(nav);
+      });
       el.style.cursor = nav ? 'pointer' : 'default';
+      const btn = el.querySelector('.atten-done');
+      if (btn) btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        btn.disabled = true; const orig = btn.textContent; btn.textContent = '…';
+        try {
+          if (kind === 'task')        await patchTask(id, { status: 'done' });
+          else if (kind === 'mail')   await markMailRead(id);
+          else if (kind === 'manual') await dismissManual(id);
+          el.style.transition = 'opacity .25s, transform .25s';
+          el.style.opacity = '0'; el.style.transform = 'translateX(12px)';
+          setTimeout(() => { el.remove(); afterAction(); }, 250);
+        } catch(err){ btn.disabled = false; btn.textContent = orig; }
+      });
     });
+  }
+
+  function afterAction(){
+    // Reflect the removal immediately, then re-pull authoritative data
+    // (a completed task also ticks the Done Today tile up).
+    const host = $('attenList');
+    if (host){
+      const remaining = host.querySelectorAll('.atten').length;
+      const badge = $('attenCount'); if (badge) badge.textContent = remaining;
+      if (!remaining) host.innerHTML = '<div class="atten-empty">كل شيء تحت السيطرة ✓</div>';
+    }
+    load();
   }
 
   async function load(){
@@ -1969,7 +2024,7 @@ function spineIsAdmin(){
     // Attention sources gathered in parallel — each is best-effort
     await Promise.all([ loadMeetings(), loadInbox(), loadManual() ]);
     renderCockpit(tasks);
-    renderAttention();
+    renderAttention(tasks);
   }
 
   load();

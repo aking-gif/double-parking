@@ -1205,9 +1205,156 @@ window.SpineModules = (function(){
     };
   }
 
+  /* =================================================================
+     Generic live-data module — real fetch, solid table, honest states
+     ================================================================= */
+  const _MAPI = () => window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
+  const _MTOK = () => localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+  const _mesc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const _mrel = ts => { if(ts==null) return '—'; const t = typeof ts==='number'?ts:Date.parse(ts); if(!Number.isFinite(t)) return '—'; const m=Math.round((Date.now()-t)/60000); if(m<1)return 'الآن'; if(m<60)return 'قبل '+m+' د'; const h=Math.round(m/60); if(h<24)return 'قبل '+h+' س'; return 'قبل '+Math.round(h/24)+' ي'; };
+  const _muser = e => _mesc(String(e||'').split('@')[0] || '—');
+
+  async function _mfetch(endpoint){
+    const r = await fetch(_MAPI()+endpoint, {headers:{'Authorization':'Bearer '+_MTOK()}});
+    if (r.status===401 || r.status===403){ const e=new Error('auth'); e.code=r.status; throw e; }
+    if (!r.ok){ const e=new Error('http'); e.code=r.status; throw e; }
+    return r.json();
+  }
+
+  // cfg: { endpoint, title, countLabel, statCount, empty, toList(raw), stats(list), columns:[{label,cell}], render(list), limit }
+  function liveModule(cfg){
+    return {
+      actions: cfg.actions || '',
+      body: `
+        <div class="stat-row" id="lm-stats">${Array.from({length:cfg.statCount||4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join('')}</div>
+        <div class="card">
+          <div class="card-head"><h3>${_mesc(cfg.title||'')}</h3><span class="meta mono" id="lm-count">—</span></div>
+          <div id="lm-body"><div style="padding:44px;text-align:center;color:var(--ink-3);font-size:13px">جارٍ التحميل…</div></div>
+        </div>`,
+      mount(){
+        const statsEl = document.getElementById('lm-stats');
+        const bodyEl  = document.getElementById('lm-body');
+        const countEl = document.getElementById('lm-count');
+        const emptyStats = () => { statsEl.innerHTML = Array.from({length:cfg.statCount||4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join(''); };
+        (async () => {
+          let raw;
+          try { raw = await _mfetch(cfg.endpoint); }
+          catch(err){
+            emptyStats(); countEl.textContent = '—';
+            const msg = (err.code===403) ? 'هذه الوحدة متاحة للمشرفين فقط.'
+                      : (err.code===401) ? 'سجّل الدخول لعرض البيانات.'
+                      : 'تعذّر تحميل البيانات.';
+            const col = (err.code===401||err.code===403) ? 'var(--ink-3)' : 'var(--red)';
+            bodyEl.innerHTML = `<div style="padding:48px;text-align:center;color:${col};font-size:13px">${msg}</div>`;
+            return;
+          }
+          const list = cfg.toList ? cfg.toList(raw) : (Array.isArray(raw) ? raw : []);
+          const stats = cfg.stats ? cfg.stats(list) : [{k:'Total', v:list.length}];
+          statsEl.innerHTML = stats.map(s => `<div class="stat"><div class="k">${_mesc(s.k)}</div><div class="v"${s.cls?` style="color:var(--${s.cls})"`:''}>${s.v==null?'—':_mesc(String(s.v))}</div>${s.delta?`<div class="delta">${_mesc(s.delta)}</div>`:''}</div>`).join('');
+          countEl.textContent = list.length + (cfg.countLabel ? (' ' + cfg.countLabel) : '');
+          if (!list.length){
+            bodyEl.innerHTML = `<div style="padding:52px 24px;text-align:center;color:var(--ink-3);font-size:13px">${_mesc(cfg.empty||'لا توجد بيانات بعد.')}</div>`;
+            return;
+          }
+          if (cfg.render){ bodyEl.innerHTML = cfg.render(list); return; }
+          const cols = cfg.columns || [];
+          bodyEl.innerHTML = `<table class="tbl"><thead><tr>${cols.map(c=>`<th>${_mesc(c.label)}</th>`).join('')}</tr></thead><tbody>${
+            list.slice(0, cfg.limit||60).map(row => `<tr>${cols.map(c=>`<td>${c.cell(row)}</td>`).join('')}</tr>`).join('')
+          }</tbody></table>`;
+        })();
+      }
+    };
+  }
+  const _arr = (raw, key) => Array.isArray(raw) ? raw : (raw && Array.isArray(raw[key]) ? raw[key] : (raw && Array.isArray(raw.list) ? raw.list : (raw && Array.isArray(raw.items) ? raw.items : [])));
+
+  function approvals(){ return liveModule({
+    endpoint:'/api/approvals', title:'طلبات الاعتماد', countLabel:'طلب', empty:'لا توجد طلبات اعتماد حالياً.',
+    stats:l=>[{k:'Total',v:l.length},{k:'Pending',v:l.filter(a=>a.status==='pending').length,cls:'orange'},{k:'Approved',v:l.filter(a=>a.status==='approved').length,cls:'green'},{k:'Rejected',v:l.filter(a=>a.status==='rejected'||a.status==='declined').length,cls:'red'}],
+    columns:[
+      {label:'المرجع',cell:a=>`<span class="mono" style="color:var(--accent);font-size:11px">${_mesc(a.sopRef||a.id||'—')}</span>`},
+      {label:'الإدارة',cell:a=>_mesc(a.dept||'—')},
+      {label:'مقدّم الطلب',cell:a=>`<span style="font-family:var(--font-en);font-size:11px">${_muser(a.requestedBy||a.createdBy)}</span>`},
+      {label:'الحالة',cell:a=>tag(a.status==='approved'?'معتمد':a.status==='pending'?'معلّق':a.status==='rejected'?'مرفوض':(a.status||'—'), a.status==='approved'?'green':a.status==='pending'?'orange':'red')},
+      {label:'التاريخ',cell:a=>`<span class="mono">${_mrel(a.createdAt||a.ts)}</span>`},
+    ]
+  }); }
+
+  function people(){ return liveModule({
+    endpoint:'/api/people', title:'الفريق والصلاحيات', countLabel:'عضو', empty:'لا يوجد أعضاء فريق بعد.',
+    stats:l=>[{k:'Members',v:l.length},{k:'Departments',v:new Set(l.map(p=>p.dept).filter(Boolean)).size},{k:'Admins',v:l.filter(p=>p.role==='admin').length,cls:'accent'},{k:'Active',v:l.filter(p=>p.status!=='disabled'&&p.disabled!==true).length,cls:'green'}],
+    columns:[
+      {label:'الاسم',cell:p=>`<span class="name">${_mesc(p.name||p.email||'—')}</span>`},
+      {label:'المسمّى',cell:p=>_mesc(p.title||p.jobTitle||'—')},
+      {label:'الإدارة',cell:p=>_mesc(p.dept||p.department||'—')},
+      {label:'البريد',cell:p=>`<span style="font-family:var(--font-en);font-size:11px;color:var(--ink-2)">${_mesc(p.email||'—')}</span>`},
+      {label:'الدور',cell:p=>tag(p.role==='admin'?'مشرف':(p.role||'عضو'), p.role==='admin'?'accent':'')},
+    ]
+  }); }
+
+  function vendors(){ return liveModule({
+    endpoint:'/api/kv/vendors_v1', title:'الموردون والعقود', countLabel:'مورد', empty:'لا يوجد موردون مسجّلون بعد.',
+    toList:r=>_arr(r,'vendors'),
+    stats:l=>[{k:'Vendors',v:l.length},{k:'Active',v:l.filter(v=>v.status==='active').length,cls:'green'},{k:'Contracts',v:l.reduce((s,v)=>s+(Array.isArray(v.contracts)?v.contracts.length:(v.contract?1:0)),0)},{k:'Expiring',v:l.filter(v=>v.expiring||v.expiresSoon).length,cls:'orange'}],
+    columns:[
+      {label:'المورد',cell:v=>`<span class="name">${_mesc(v.name||v.title||'—')}</span>`},
+      {label:'الفئة',cell:v=>_mesc(v.category||v.type||'—')},
+      {label:'العقد',cell:v=>`<span class="mono" style="font-size:11px">${_mesc(v.contract||v.contractRef||'—')}</span>`},
+      {label:'الحالة',cell:v=>tag(v.status==='active'?'نشط':(v.status||'—'), v.status==='active'?'green':'orange')},
+    ]
+  }); }
+
+  function budget(){ return liveModule({
+    endpoint:'/api/kv/expenses_v1', title:'الميزانية والإنفاق', countLabel:'بند', empty:'لا توجد بيانات إنفاق مسجّلة بعد.',
+    toList:r=>_arr(r,'expenses'),
+    stats:l=>{const t=l.reduce((s,e)=>s+(Number(e.amount)||0),0); return [{k:'Entries',v:l.length},{k:'Total',v:t?t.toLocaleString('en-US'):'—'},{k:'Departments',v:new Set(l.map(e=>e.dept).filter(Boolean)).size},{k:'Pending',v:l.filter(e=>e.status==='pending').length,cls:'orange'}];},
+    columns:[
+      {label:'البند',cell:e=>`<span class="name">${_mesc(e.title||e.name||'—')}</span>`},
+      {label:'الإدارة',cell:e=>_mesc(e.dept||'—')},
+      {label:'المبلغ',cell:e=>`<span class="mono">${e.amount!=null?Number(e.amount).toLocaleString('en-US'):'—'}</span>`},
+      {label:'الحالة',cell:e=>tag(e.status||'—', e.status==='approved'?'green':e.status==='pending'?'orange':'')},
+    ]
+  }); }
+
+  function risks(){ return liveModule({
+    endpoint:'/api/kv/risks_v1', title:'سجل المخاطر', countLabel:'مخاطرة', empty:'لا توجد مخاطر مسجّلة بعد.',
+    toList:r=>_arr(r,'risks'),
+    stats:l=>[{k:'Risks',v:l.length},{k:'Critical',v:l.filter(r=>r.level==='critical'||r.severity==='high').length,cls:'red'},{k:'Open',v:l.filter(r=>r.status!=='closed'&&r.status!=='resolved'&&r.status!=='mitigated').length,cls:'orange'},{k:'Mitigated',v:l.filter(r=>r.status==='mitigated'||r.status==='resolved').length,cls:'green'}],
+    columns:[
+      {label:'المخاطرة',cell:r=>`<span class="name">${_mesc(r.title||r.name||'—')}</span>`},
+      {label:'المستوى',cell:r=>tag(r.level||r.severity||'—', (r.level==='critical'||r.severity==='high')?'red':'orange')},
+      {label:'الحالة',cell:r=>tag(r.status||'—', (r.status==='resolved'||r.status==='mitigated')?'green':'orange')},
+      {label:'المسؤول',cell:r=>`<span style="font-family:var(--font-en);font-size:11px">${_muser(r.owner)}</span>`},
+    ]
+  }); }
+
+  function kpis(){ return liveModule({
+    endpoint:'/api/kv/kpis_v1', title:'مؤشرات الأداء', countLabel:'مؤشر', empty:'لا توجد مؤشرات مُعرّفة بعد.',
+    toList:r=>_arr(r,'kpis'),
+    stats:l=>[{k:'KPIs',v:l.length},{k:'On Track',v:l.filter(k=>k.status==='on-track'||k.status==='green').length,cls:'green'},{k:'At Risk',v:l.filter(k=>k.status==='at-risk'||k.status==='amber').length,cls:'orange'},{k:'Off Track',v:l.filter(k=>k.status==='off-track'||k.status==='red').length,cls:'red'}],
+    columns:[
+      {label:'المؤشر',cell:k=>`<span class="name">${_mesc(k.name||k.title||'—')}</span>`},
+      {label:'القيمة',cell:k=>`<span class="mono">${_mesc(k.value!=null?String(k.value):'—')}${k.unit?(' '+_mesc(k.unit)):''}</span>`},
+      {label:'الهدف',cell:k=>`<span class="mono">${_mesc(k.target!=null?String(k.target):'—')}</span>`},
+      {label:'الحالة',cell:k=>tag(k.status||'—', (k.status==='on-track'||k.status==='green')?'green':(k.status==='off-track'||k.status==='red')?'red':'orange')},
+    ]
+  }); }
+
+  function vault(){ return liveModule({
+    endpoint:'/api/kv/docs_v1', title:'مستودع الوثائق', countLabel:'ملف', empty:'لا توجد وثائق بعد.',
+    toList:r=>_arr(r,'docs'),
+    stats:l=>[{k:'Documents',v:l.length},{k:'Folders',v:new Set(l.map(d=>d.folder||d.category).filter(Boolean)).size},{k:'Recent',v:l.filter(d=>d.updatedAt&&(Date.now()-(typeof d.updatedAt==='number'?d.updatedAt:Date.parse(d.updatedAt))<7*864e5)).length},{k:'Shared',v:l.filter(d=>d.shared).length}],
+    columns:[
+      {label:'الملف',cell:d=>`<span class="name">${_mesc(d.name||d.title||'—')}</span>`},
+      {label:'المجلد',cell:d=>_mesc(d.folder||d.category||'—')},
+      {label:'الحجم',cell:d=>`<span class="mono">${_mesc(d.size||'—')}</span>`},
+      {label:'آخر تحديث',cell:d=>`<span class="mono">${_mrel(d.updatedAt)}</span>`},
+    ]
+  }); }
+
   return {
     sops, meetings, tasks,
     calendar, mail, crm,
+    approvals, people, vendors, budget, risks, kpis, vault,
     _features
   };
 })();

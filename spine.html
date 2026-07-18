@@ -385,6 +385,8 @@ a{color: inherit; text-decoration: none}
 .cs .v.green{ color: var(--green) }
 .cs .v.orange{ color: var(--orange) }
 .cs .v.red{ color: var(--red) }
+/* Calm all-clear: a zero value reads as "clear", not as an alarm */
+.cs .v.is-zero{ color: var(--ink-4); opacity: .55 }
 .cs .delta{
   font-size: 11px;
   color: var(--ink-3);
@@ -1808,26 +1810,45 @@ function spineIsAdmin(){
   }
 
   /* ---- cockpit stats ---- */
+  // 1 / 2 / many — keep Arabic number-noun agreement natural
+  function taskWord(n, sing, dual, plur){ return n === 1 ? sing : n === 2 ? dual : plur; }
+
   function renderCockpit(tasks){
     const open     = tasks.filter(isActive).length;
     const overdue  = tasks.filter(isOverdue).length;
     const dueToday = tasks.filter(isDueToday).length;
+    // Set value + dim it when it's zero (a calm all-clear, not a wall of alarms)
+    const setStat = (id,v) => { const x = $(id); if (x){ x.textContent = v; x.classList.toggle('is-zero', Number(v) === 0); } };
     const set = (id,v) => { const x = $(id); if (x) x.textContent = v; };
-    set('csOpen', open);
-    set('csOverdue', overdue);
-    set('csDueToday', dueToday);
-    set('csMeetings', meetingsToday);
+    setStat('csOpen', open);
+    setStat('csOverdue', overdue);
+    setStat('csDueToday', dueToday);
+    setStat('csMeetings', meetingsToday);
     set('csOpenD', tasks.length + ' إجمالاً');
     set('csOverdueD', overdue ? 'تحتاج إجراء' : 'لا متأخرات');
     set('csDueTodayD', dueToday ? 'قبل نهاية اليوم' : '—');
     set('csMeetingsD', nextMeeting ? ('التالي ' + fmtTime(nextMeeting._ms)) : 'اجتماعات اليوم');
+    // Headline = one prioritized triage line (leads with what needs you), NOT a
+    // restatement of the tiles. Meeting time is appended when there is one.
     const h = $('cockpitHeadline');
     if (h){
-      const parts = [ open + ' مهمة مفتوحة' ];
-      if (overdue)  parts.push('<span style="color:var(--red)">' + overdue + ' متأخرة</span>');
-      if (dueToday) parts.push('<span style="color:var(--orange)">' + dueToday + ' تستحق اليوم</span>');
-      parts.push(meetingsToday + ' اجتماع اليوم');
-      h.innerHTML = parts.join(' · ');
+      let lead;
+      if (overdue > 0){
+        lead = '<span style="color:var(--red)">' + overdue + ' ' +
+               taskWord(overdue, 'مهمة متأخرة', 'مهمتان متأخرتان', 'مهام متأخرة') +
+               '</span> بانتظار إجراءك';
+      } else if (dueToday > 0){
+        lead = '<span style="color:var(--orange)">' + dueToday + ' ' +
+               taskWord(dueToday, 'مهمة تستحق', 'مهمتان تستحقان', 'مهام تستحق') +
+               ' اليوم</span>';
+      } else if (open > 0){
+        lead = open + ' ' + taskWord(open, 'مهمة مفتوحة', 'مهمتان مفتوحتان', 'مهام مفتوحة') +
+               ' · لا متأخرات';
+      } else {
+        lead = 'كل المهام تحت السيطرة <span style="color:var(--green)">✓</span>';
+      }
+      const meet = nextMeeting ? (' · أول اجتماع ' + fmtTime(nextMeeting._ms)) : '';
+      h.innerHTML = lead + meet;
     }
   }
 

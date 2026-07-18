@@ -1807,15 +1807,16 @@ function spineIsAdmin(){
 
   /* ---- meetings (Google Calendar, with public fallback) ---- */
   let meetingsToday = 0, nextMeeting = null, todayEvents = [];
+  const isAllDay = e => typeof e.start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.start);  // date-only = all-day
   async function loadMeetings(){
     let events = null;
-    try { events = await apiGet('/api/gcal/events?days=7'); }          // live Google Calendar
-    catch(_){ try { events = await apiGet('/api/calendar/events'); }   // graceful fallback
-             catch(__){ events = null; } }
+    try { events = await apiGet('/api/gcal/events?days=7'); }   // live Google Calendar ONLY
+    catch(_){ events = null; }                                  // no mock fallback — real data or nothing
     meetingsToday = 0; nextMeeting = null; todayEvents = [];
     if (!Array.isArray(events)) return;
     const now = Date.now();
     events.forEach(e => {
+      if (isAllDay(e)) return;                 // skip birthdays / holidays / OOO — not real meetings
       const ms = eventStartMs(e);
       if (ms == null) return;
       if (isTodayMs(ms)){ meetingsToday++; todayEvents.push(Object.assign({ _ms: ms }, e)); }
@@ -1874,7 +1875,7 @@ function spineIsAdmin(){
      Deliberately NOT the task backlog (that lives in the tiles above) and NOT
      the mock-fallback endpoints (/api/mail, /api/calendar) which fabricate demo
      rows when empty. Each source is best-effort; a failing one is just skipped. */
-  let inboxUnread = [], manualItems = [];
+  let inboxUnread = [], mentions = [];
 
   async function loadInbox(){
     inboxUnread = [];
@@ -1883,16 +1884,18 @@ function spineIsAdmin(){
       if (Array.isArray(list)) inboxUnread = list.filter(m => m && !m.read);
     } catch(_){ /* best-effort */ }
   }
-  async function loadManual(){
-    manualItems = [];
+  async function loadMentions(){
+    // Things directed at you (assignments / @-mentions). The quick-capture store
+    // (inbox_v1) is not readable via the API (forbidden-key), so mentions is the
+    // readable "needs your personal attention" source.
+    mentions = [];
     try {
-      const list = await apiGet('/api/kv/inbox_v1');         // quick-capture items the user added
-      if (Array.isArray(list)) manualItems = list.filter(Boolean);
+      const list = await apiGet('/api/mentions');
+      if (Array.isArray(list)) mentions = list.filter(m => m && !m.read);
     } catch(_){ /* best-effort */ }
   }
 
-  const MANUAL_TYPE  = { task:'مهمة', note:'ملاحظة', idea:'فكرة', decision:'قرار', meeting:'اجتماع', risk:'مخاطرة' };
-  const MANUAL_ROUTE = { task:'tasks', decision:'decisions', risk:'risks', meeting:'calendar' };
+  const MENTION_ROUTE = { task:'tasks' };
 
   function timeAgo(v){
     const t = typeof v === 'number' ? v : Date.parse(v);
@@ -1919,9 +1922,8 @@ function spineIsAdmin(){
     const list = await apiGet('/api/kv/mail_inbox_v1');
     if (Array.isArray(list)){ const it = list.find(x => x && x.id === id); if (it) it.read = true; await apiSend('/api/kv/mail_inbox_v1', 'PUT', list); }
   }
-  async function dismissManual(id){
-    const list = await apiGet('/api/kv/inbox_v1');
-    if (Array.isArray(list)) await apiSend('/api/kv/inbox_v1', 'PUT', list.filter(x => x && x.id !== id));
+  async function markMentionRead(id){
+    await apiSend('/api/mentions/' + encodeURIComponent(id) + '/read', 'POST');
   }
 
   function feedRow(o){  // {kind, id, marker, title, meta, nav, act, actLabel}
@@ -1961,11 +1963,11 @@ function spineIsAdmin(){
       title: m.subject || '(بدون عنوان)',
       meta: 'بريد · ' + (m.from || '') + (m.time ? (' · ' + timeAgo(m.time)) : '')
     })));
-    // 4) Manual — items the user captured themselves
-    manualItems.slice(0, 3).forEach(it => rows.push(feedRow({
-      kind:'manual', id:it.id, marker:'accent', nav: MANUAL_ROUTE[it.type] || '', act:'تم',
-      title: it.title || it.description || 'عنصر',
-      meta: (MANUAL_TYPE[it.type] || 'يدوي') + (it.createdAt ? (' · ' + timeAgo(it.createdAt)) : '')
+    // 4) Mentions — things directed at you (assignments / @-mentions)
+    mentions.slice(0, 3).forEach(m => rows.push(feedRow({
+      kind:'mention', id:m.id, marker:'accent', nav: MENTION_ROUTE[m.kind] || '', act:'تم',
+      title: m.message || 'إشارة',
+      meta: 'إشارة' + (m.from ? (' · ' + String(m.from).split('@')[0]) : '') + (m.ts ? (' · ' + timeAgo(m.ts)) : '')
     })));
 
     const feed = rows.slice(0, 7);
@@ -1988,9 +1990,9 @@ function spineIsAdmin(){
         e.stopPropagation();
         btn.disabled = true; const orig = btn.textContent; btn.textContent = '…';
         try {
-          if (kind === 'task')        await patchTask(id, { status: 'done' });
-          else if (kind === 'mail')   await markMailRead(id);
-          else if (kind === 'manual') await dismissManual(id);
+          if (kind === 'task')         await patchTask(id, { status: 'done' });
+          else if (kind === 'mail')    await markMailRead(id);
+          else if (kind === 'mention') await markMentionRead(id);
           el.style.transition = 'opacity .25s, transform .25s';
           el.style.opacity = '0'; el.style.transform = 'translateX(12px)';
           setTimeout(() => { el.remove(); afterAction(); }, 250);
@@ -2022,7 +2024,7 @@ function spineIsAdmin(){
     if (!Array.isArray(tasks)) tasks = (tasks && tasks.tasks) || [];
     setOffline(false);
     // Attention sources gathered in parallel — each is best-effort
-    await Promise.all([ loadMeetings(), loadInbox(), loadManual() ]);
+    await Promise.all([ loadMeetings(), loadInbox(), loadMentions() ]);
     renderCockpit(tasks);
     renderAttention(tasks);
   }

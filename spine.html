@@ -549,6 +549,56 @@ a{color: inherit; text-decoration: none}
 .atten-action.primary{ background: var(--accent); color: #1a1300; border-color: var(--accent) }
 .atten-action.primary:hover{ filter: brightness(1.1) }
 
+/* Live "أنجزت" (done) button on task rows */
+.atten-done{
+  margin-inline-start: auto;
+  align-self: center;
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  color: var(--accent);
+  font-family: var(--font-ar);
+  font-size: 11px;
+  font-weight: 600;
+  transition: background .15s, color .15s, opacity .15s;
+}
+.atten-done:hover{ background: var(--accent); color: #1a1300 }
+.atten-done:disabled{ opacity: .55; cursor: default }
+
+/* Clean empty state — no placeholder rows */
+.atten-empty{
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 32px 12px;
+}
+
+/* Subtle offline badge on the cockpit (does not disturb layout) */
+.cockpit-offline{
+  position: absolute;
+  top: 14px; inset-inline-end: 14px;
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(216,107,92,0.12);
+  border: 1px solid rgba(216,107,92,0.35);
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.cockpit-offline::before{
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+.cockpit-offline[hidden]{ display: none }
+
 
 /* ============================================================
    APP GRID
@@ -1338,32 +1388,31 @@ a{color: inherit; text-decoration: none}
     <!-- COCKPIT strip -->
     <section class="cockpit">
       <div class="cockpit-main">
+        <span class="cockpit-offline" id="cockpitOffline" hidden>غير متصل — إعادة المحاولة قريباً</span>
         <div class="cockpit-label">Cockpit · حالة المنشأة الآن</div>
-        <h2 class="cockpit-headline">
-          الامتثال التشغيلي عند <span style="color:var(--accent)">87%</span> ·
-          ٣ قرارات تنتظر مراجعتك ·
-          مشروع <span style="color:var(--ink)">الرياض-الشرق</span> ضمن المسار.
+        <h2 class="cockpit-headline" id="cockpitHeadline">
+          جارٍ تحميل حالة المنشأة…
         </h2>
         <div class="cockpit-stats">
           <div class="cs">
-            <div class="k">Compliance</div>
-            <div class="v">87<span style="font-size:14px;color:var(--ink-3)">%</span></div>
-            <div class="delta up">↑ 3.2 vs last wk</div>
-          </div>
-          <div class="cs">
             <div class="k">Open Tasks</div>
-            <div class="v">142</div>
-            <div class="delta down">↓ 11 since Mon</div>
+            <div class="v" id="csOpen">—</div>
+            <div class="delta" id="csOpenD">المهام المفتوحة</div>
           </div>
           <div class="cs">
-            <div class="k">Decisions Due</div>
-            <div class="v orange">3</div>
-            <div class="delta">awaiting you</div>
+            <div class="k">Overdue</div>
+            <div class="v red" id="csOverdue">—</div>
+            <div class="delta" id="csOverdueD">المتأخرة</div>
           </div>
           <div class="cs">
-            <div class="k">Critical Risks</div>
-            <div class="v red">2</div>
-            <div class="delta">1 escalated</div>
+            <div class="k">Due Today</div>
+            <div class="v orange" id="csDueToday">—</div>
+            <div class="delta" id="csDueTodayD">تستحق اليوم</div>
+          </div>
+          <div class="cs">
+            <div class="k">Meetings Today</div>
+            <div class="v" id="csMeetings">—</div>
+            <div class="delta" id="csMeetingsD">اجتماعات اليوم</div>
           </div>
         </div>
       </div>
@@ -1371,7 +1420,7 @@ a{color: inherit; text-decoration: none}
       <div class="cockpit-side">
         <div class="cockpit-side-head">
           <div class="ttl">Needs Your Attention</div>
-          <span class="badge mono">5</span>
+          <span class="badge mono" id="attenCount">—</span>
         </div>
         <div class="atten-list" id="attenList"></div>
       </div>
@@ -1675,146 +1724,222 @@ function spineIsAdmin(){
   if (cog){ cog.onclick = () => location.href = admin ? 'users.html' : 'profile.html'; }
 })();
 
-/* -------------- Needs Your Attention -------------- */
-const ATTENTION = [
-  {
-    id:'A1', marker:'red', target:'approvals', progress:30, prog_color:'red',
-    title:'عقد توريد المواد — قسم المشاريع',
-    meta:'SAR 420K · pending 3d',
-    prog_lbl:'3 of 10 days · stalled',
-    detail:{
-      'الجهة':'مجموعة الخليج للمقاولات',
-      'المبلغ':'SAR 420,000',
-      'المدّة':'٩٠ يوماً',
-      'الحالة':'بانتظار توقيعك · ٣ أيام',
-      'الموافقات السابقة':'المدير التشغيلي ✓ · المالي ✓ · القانوني ✓',
-      'الخطوة التالية':'توقيعك → إصدار أمر شراء'
-    },
-    actions:[{label:'اعتمد', primary:true, act:'approve'},{label:'افتح الملف', act:'open'},{label:'أرسل للمراجعة', act:'review'}]
-  },
-  {
-    id:'A2', marker:'orange', target:'decisions', progress:65, prog_color:'orange',
-    title:'قرار توسعة موقع الخبر',
-    meta:'decision-log · DEC-104',
-    prog_lbl:'2 of 3 inputs received',
-    detail:{
-      'نوع القرار':'استراتيجي · توسعة جغرافية',
-      'المساحة المقترحة':'٤٠٠٠ م²',
-      'التكلفة التقديرية':'SAR 1.2M',
-      'الإدخالات المنتظرة':'دراسة السوق (مكتملة)، التحليل المالي (مكتمل)، التقييم القانوني',
-      'الموعد المستهدف':'٢٠ مايو ٢٠٢٦'
-    },
-    actions:[{label:'افتح سجل القرار', primary:true, act:'open'},{label:'اطلب الإدخال المتبقي', act:'request'}]
-  },
-  {
-    id:'A3', marker:'red', target:'risks', progress:15, prog_color:'red',
-    title:'مخاطر تأخير تسليم Q2',
-    meta:'risk-register · escalated',
-    prog_lbl:'mitigation: 15%',
-    detail:{
-      'المشروع':'الرياض-الشرق المرحلة الثانية',
-      'مستوى المخاطرة':'عالي · متصاعد',
-      'التأثير المالي':'SAR 280K (غرامة محتملة)',
-      'السبب الجذري':'تأخر توريد المواد من المورد الرئيسي',
-      'التخفيف الحالي':'تأمين مورد بديل (15% تقدم)',
-      'المسؤول':'م. عبدالله العتيبي'
-    },
-    actions:[{label:'فتح خطة التخفيف', primary:true, act:'open'},{label:'تصعيد للمجلس', act:'escalate'}]
-  },
-  {
-    id:'A4', marker:'blue', target:'meetings', progress:50, prog_color:'blue',
-    title:'اجتماع المجلس · غداً 10:00',
-    meta:'agenda not finalized',
-    prog_lbl:'agenda 50% · 4h to go',
-    detail:{
-      'الموعد':'الخميس ٢١ مايو · ١٠:٠٠ ص',
-      'المكان':'قاعة المجلس · المقر الرئيسي',
-      'الحضور':'٧ أعضاء · ٤ مؤكدون',
-      'بنود جاهزة':'تقرير Q1، تحديث المشاريع',
-      'بنود ناقصة':'الميزانية المعدّلة، توسعة الخبر',
-      'الوثائق':'٣ مرفقات · يحتاج مراجعتك'
-    },
-    actions:[{label:'أكمل الأجندة', primary:true, act:'agenda'},{label:'افتح الدعوة', act:'open'}]
-  },
-  {
-    id:'A5', marker:'orange', target:'reports', progress:60, prog_color:'orange',
-    title:'تقرير الربع للمجلس',
-    meta:'due in 5d · draft 60%',
-    prog_lbl:'draft 60% · 5 days',
-    detail:{
-      'النوع':'تقرير ربع سنوي · Q1 2026',
-      'الموعد النهائي':'٢٥ مايو ٢٠٢٦',
-      'المسوّدة الحالية':'٦٠٪ · ١٢ صفحة من ٢٠',
-      'الأقسام المكتملة':'الملخص التنفيذي، الأداء المالي، إنجازات المشاريع',
-      'الأقسام المتبقية':'المخاطر، التوقعات، التوصيات',
-      'المراجعة':'بانتظار إدخالات من المدير المالي'
-    },
-    actions:[{label:'افتح المسوّدة', primary:true, act:'open'},{label:'اطلب الإدخال المتبقي', act:'request'}]
+/* -------------- Cockpit + Needs Your Attention — LIVE --------------
+   Computes the four cockpit stats (Open Tasks, Overdue, Due Today,
+   Meetings Today) and the priority-ordered attention list from
+   /api/tasks + Google Calendar. No hardcoded demo numbers. */
+(function SpineCockpit(){
+  const API = window.API_BASE || 'https://arsan-api.a-king-6e1.workers.dev';
+  const tok = () => localStorage.getItem('arsan_token_v1') || localStorage.getItem('arsan_token') || '';
+  const REFRESH_MS = 120000;   // auto-refresh every 2 minutes
+  const TIMEOUT_MS = 8000;     // treat >8s as a failure
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  async function apiGet(path){
+    const url = API + path;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    try {
+      const r = await fetch(url, {
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+tok()},
+        signal: ctl.signal
+      });
+      if (!r.ok){ console.error('[cockpit] GET failed', url, '→', r.status); const e = new Error('HTTP '+r.status); e.status = r.status; throw e; }
+      return r.json();
+    } catch(err){
+      if (err.name === 'AbortError') console.error('[cockpit] GET timed out (>'+TIMEOUT_MS+'ms)', url);
+      else if (err.status === undefined) console.error('[cockpit] GET error', url, '→', err.message);
+      throw err;
+    } finally { clearTimeout(timer); }
   }
-];
 
-function renderAttention(){
-  const host = document.getElementById('attenList');
-  if (!host) return;
-  host.innerHTML = ATTENTION.map(a => `
-    <div class="atten" data-id="${a.id}" data-target="${a.target}">
-      <div class="atten-row">
-        <span class="marker ${a.marker}"></span>
-        <div class="body">
-          <div class="ttl">${a.title}</div>
-          <div class="meta">${a.meta}</div>
-        </div>
-        <span class="atten-chev">▾</span>
-      </div>
-      <div class="atten-prog">
-        <span class="lbl mono">${a.prog_lbl}</span>
-        <span class="bar ${a.prog_color}" style="width:0%"></span>
-      </div>
-      <div class="atten-detail">
-        ${Object.entries(a.detail).map(([k,v]) => `<div class="atten-detail-row"><span class="k">${k}</span><b>${v}</b></div>`).join('')}
-        <div class="atten-detail-actions">
-          ${a.actions.map(act => `<button class="atten-action ${act.primary?'primary':''}" data-act="${act.act}" data-id="${a.id}">${act.label}</button>`).join('')}
-        </div>
-      </div>
-    </div>
-  `).join('');
-
-  // Animate progress bars in
-  setTimeout(() => {
-    host.querySelectorAll('.atten').forEach((el, i) => {
-      const a = ATTENTION[i];
-      const bar = el.querySelector('.bar');
-      if (bar) bar.style.width = a.progress + '%';
+  async function patchTask(id, body){
+    const url = API + '/api/tasks/' + encodeURIComponent(id);
+    const r = await fetch(url, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+tok()},
+      body: JSON.stringify(body)
     });
-  }, 200);
+    if (!r.ok){ console.error('[cockpit] PATCH failed', url, '→', r.status); throw new Error('HTTP '+r.status); }
+    return r.json();
+  }
 
-  // Click to expand (but not on action buttons or chevron-only)
-  host.querySelectorAll('.atten').forEach(el => {
-    el.querySelector('.atten-row').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const expanded = el.classList.toggle('expanded');
-      // Close others
-      if (expanded) host.querySelectorAll('.atten').forEach(other => { if (other !== el) other.classList.remove('expanded'); });
+  /* ---- date + task helpers ---- */
+  function startOfToday(){ const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+  function endOfToday(){ const d = new Date(); d.setHours(23,59,59,999); return d.getTime(); }
+  const dueMs = t => {
+    if (t.dueDate == null) return null;
+    const n = typeof t.dueDate === 'number' ? t.dueDate : Date.parse(t.dueDate);
+    return Number.isFinite(n) ? n : null;
+  };
+  const isActive   = t => t.status !== 'done' && t.status !== 'cancelled';
+  const isUrgent   = t => t.priority === 'high' || t.priority === 'critical' || t.priority === 'urgent';
+  const isOverdue  = t => { const m = dueMs(t); return isActive(t) && m != null && m < startOfToday(); };
+  const isDueToday = t => { const m = dueMs(t); return isActive(t) && m != null && m >= startOfToday() && m <= endOfToday(); };
+  const isTodayMs  = ms => ms != null && ms >= startOfToday() && ms <= endOfToday();
+  const eventStartMs = e => { if (!e || !e.start) return null; const n = Date.parse(e.start); return Number.isFinite(n) ? n : null; };
+  const fmtTime = ms => new Date(ms).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  function fmtDueMeta(ms){
+    const days = Math.round((ms - startOfToday()) / 86400000);
+    if (days < 0)  return 'متأخرة ' + Math.abs(days) + ' يوم';
+    if (days === 0) return 'تستحق اليوم';
+    return 'خلال ' + days + ' يوم';
+  }
+
+  function setOffline(on){ const b = $('cockpitOffline'); if (b) b.hidden = !on; }
+
+  /* ---- meetings (Google Calendar, with public fallback) ---- */
+  let meetingsToday = 0, nextMeeting = null;
+  async function loadMeetings(){
+    let events = null;
+    try { events = await apiGet('/api/gcal/events?days=7'); }          // live Google Calendar
+    catch(_){ try { events = await apiGet('/api/calendar/events'); }   // graceful fallback
+             catch(__){ events = null; } }
+    meetingsToday = 0; nextMeeting = null;
+    if (!Array.isArray(events)) return;
+    const now = Date.now();
+    events.forEach(e => {
+      const ms = eventStartMs(e);
+      if (ms == null) return;
+      if (isTodayMs(ms)) meetingsToday++;
+      if (ms >= now && (!nextMeeting || ms < nextMeeting._ms)) nextMeeting = Object.assign({ _ms: ms }, e);
     });
-    // Action buttons
-    el.querySelectorAll('.atten-action').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+  }
+
+  /* ---- cockpit stats ---- */
+  function renderCockpit(tasks){
+    const open     = tasks.filter(isActive).length;
+    const overdue  = tasks.filter(isOverdue).length;
+    const dueToday = tasks.filter(isDueToday).length;
+    const set = (id,v) => { const x = $(id); if (x) x.textContent = v; };
+    set('csOpen', open);
+    set('csOverdue', overdue);
+    set('csDueToday', dueToday);
+    set('csMeetings', meetingsToday);
+    set('csOpenD', tasks.length + ' إجمالاً');
+    set('csOverdueD', overdue ? 'تحتاج إجراء' : 'لا متأخرات');
+    set('csDueTodayD', dueToday ? 'قبل نهاية اليوم' : '—');
+    set('csMeetingsD', nextMeeting ? ('التالي ' + fmtTime(nextMeeting._ms)) : 'اجتماعات اليوم');
+    const h = $('cockpitHeadline');
+    if (h){
+      const parts = [ open + ' مهمة مفتوحة' ];
+      if (overdue)  parts.push('<span style="color:var(--red)">' + overdue + ' متأخرة</span>');
+      if (dueToday) parts.push('<span style="color:var(--orange)">' + dueToday + ' تستحق اليوم</span>');
+      parts.push(meetingsToday + ' اجتماع اليوم');
+      h.innerHTML = parts.join(' · ');
+    }
+  }
+
+  /* ---- attention list ---- */
+  function taskRow(t, marker, metaText){
+    return '' +
+      '<div class="atten" data-id="' + esc(t.id) + '" data-kind="task">' +
+        '<div class="atten-row">' +
+          '<span class="marker ' + marker + '"></span>' +
+          '<div class="body">' +
+            '<div class="ttl">' + esc(t.title || 'مهمة') + '</div>' +
+            '<div class="meta">' + esc(metaText) + '</div>' +
+          '</div>' +
+          '<button class="atten-done" data-id="' + esc(t.id) + '" title="وضع علامة: أنجزت">أنجزت</button>' +
+        '</div>' +
+      '</div>';
+  }
+  function meetingRow(ev){
+    const meta = (isTodayMs(ev._ms) ? 'اليوم ' : '') + fmtTime(ev._ms) + (ev.location ? (' · ' + ev.location) : '');
+    return '' +
+      '<div class="atten" data-kind="meeting">' +
+        '<div class="atten-row">' +
+          '<span class="marker blue"></span>' +
+          '<div class="body">' +
+            '<div class="ttl">' + esc(ev.title || 'اجتماع') + '</div>' +
+            '<div class="meta">' + esc(meta) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderAttention(tasks){
+    const host = $('attenList');
+    if (!host) return;
+    // Priority order: overdue → urgent → next meeting → due today
+    const overdue  = tasks.filter(isOverdue).sort((a,b) => dueMs(a) - dueMs(b));
+    const urgent   = tasks.filter(t => isActive(t) && !isOverdue(t) && isUrgent(t));
+    const dueToday = tasks.filter(t => isDueToday(t) && !isUrgent(t));  // urgent already shown above
+    const rows = [];
+    overdue.forEach(t => rows.push(taskRow(t, 'red',
+      'متأخرة · ' + fmtDueMeta(dueMs(t)) + (t.assignee ? (' · ' + String(t.assignee).split('@')[0]) : ''))));
+    urgent.forEach(t => rows.push(taskRow(t, 'orange',
+      (t.priority === 'critical' ? 'حرجة' : 'عاجلة') + (dueMs(t) != null ? (' · ' + fmtDueMeta(dueMs(t))) : ''))));
+    if (nextMeeting) rows.push(meetingRow(nextMeeting));
+    dueToday.forEach(t => rows.push(taskRow(t, 'orange', 'تستحق اليوم')));
+
+    const badge = $('attenCount'); if (badge) badge.textContent = rows.length;
+    if (!rows.length){
+      host.innerHTML = '<div class="atten-empty">كل شيء تحت السيطرة ✓</div>';
+      return;
+    }
+    host.innerHTML = rows.join('');
+
+    host.querySelectorAll('.atten').forEach(el => {
+      const kind = el.dataset.kind;
+      const row = el.querySelector('.atten-row');
+      if (row) row.addEventListener('click', e => {
+        if (e.target.closest('.atten-done')) return;
+        if (typeof navigate === 'function') navigate(kind === 'meeting' ? 'calendar' : 'tasks');
+      });
+    });
+    host.querySelectorAll('.atten-done').forEach(btn => {
+      btn.addEventListener('click', async e => {
         e.stopPropagation();
-        const target = el.dataset.target;
-        const act = btn.dataset.act;
-        // For now, just navigate to the target module
-        if (act === 'approve' || act === 'open' || act === 'agenda') {
-          if (typeof navigate === 'function') navigate(target);
-        } else {
-          btn.textContent = '✓ ' + btn.textContent;
-          btn.style.opacity = '.6';
-          setTimeout(() => { btn.style.opacity=''; }, 1200);
+        const id = btn.dataset.id;
+        btn.disabled = true; btn.textContent = '…';
+        try {
+          await patchTask(id, { status: 'done' });
+          const row = btn.closest('.atten');
+          if (row){
+            row.style.transition = 'opacity .25s, transform .25s';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(12px)';
+            setTimeout(() => { row.remove(); afterDone(); }, 250);
+          }
+        } catch(err){
+          btn.disabled = false; btn.textContent = 'أنجزت';
         }
       });
     });
-  });
-}
-renderAttention();
+  }
+
+  function afterDone(){
+    // Reflect removal immediately, then re-pull authoritative data.
+    const host = $('attenList');
+    if (host){
+      const remaining = host.querySelectorAll('.atten').length;
+      const badge = $('attenCount'); if (badge) badge.textContent = remaining;
+      if (!remaining) host.innerHTML = '<div class="atten-empty">كل شيء تحت السيطرة ✓</div>';
+    }
+    load();
+  }
+
+  async function load(){
+    let tasks;
+    try {
+      tasks = await apiGet('/api/tasks');
+    } catch(err){
+      setOffline(true);   // subtle badge; keep last-known UI; retry next cycle
+      return;
+    }
+    if (!Array.isArray(tasks)) tasks = (tasks && tasks.tasks) || [];
+    setOffline(false);
+    await loadMeetings();  // best-effort; never throws
+    renderCockpit(tasks);
+    renderAttention(tasks);
+  }
+
+  load();
+  setInterval(load, REFRESH_MS);
+  window.SpineCockpit = { reload: load };
+})();
 
 /* -------------- Navigation -------------- */
 function navigate(id){

@@ -1038,6 +1038,7 @@ window.SpineModules = (function(){
   function crm(){
     return {
       actions: `
+        <button id="crmImportBtn" style="background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-2);font-size:12px">استيراد Zoho</button>
         <button id="crmStagesBtn" style="background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-2);font-size:12px">عرض الـ Pipeline</button>
         <button class="primary" id="crmNewBtn">+ عميل جديد</button>
       `,
@@ -1199,6 +1200,91 @@ window.SpineModules = (function(){
           filter = b.dataset.f;
           render();
         });
+
+        // ---- Zoho CRM import (CSV export → clients) ----
+        function parseCSV(text){
+          const rows=[]; let row=[], cur='', q=false;
+          for (let i=0;i<text.length;i++){ const ch=text[i];
+            if (q){ if (ch==='"'){ if (text[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=ch; }
+            else { if (ch==='"') q=true; else if (ch===','){ row.push(cur); cur=''; } else if (ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; } else if (ch!=='\r') cur+=ch; }
+          }
+          if (cur!=='' || row.length){ row.push(cur); rows.push(row); }
+          return rows.filter(r => r.length && r.some(c => c.trim()!==''));
+        }
+        function mapStage(z){ const s=String(z||'').toLowerCase();
+          if (s.includes('won')) return 'won';
+          if (s.includes('lost')) return 'lost';
+          if (s.includes('negotia')||s.includes('review')) return 'negotiation';
+          if (s.includes('proposal')||s.includes('quote')||s.includes('value prop')) return 'proposal';
+          if (s.includes('qualif')||s.includes('needs analysis')||s.includes('decision')) return 'qualified';
+          return 'lead';
+        }
+        function pick(o, names){ for (const n of names){ const k=Object.keys(o).find(h=>h.toLowerCase().trim()===n.toLowerCase()); if (k && o[k]!=null && String(o[k]).trim()!=='') return String(o[k]).trim(); } return ''; }
+        function toClients(rows){
+          if (rows.length < 2) return [];
+          const headers = rows[0].map(h=>h.trim());
+          const out=[];
+          for (let i=1;i<rows.length;i++){
+            const o={}; headers.forEach((h,j)=> o[h]=rows[i][j]);
+            const first=pick(o,['First Name']), last=pick(o,['Last Name']);
+            const person=(first||last)?((first+' '+last).trim()):'';
+            const name=pick(o,['Account Name','Deal Name','Company','Company Name','Potential Name']) || person || pick(o,['Email']) || '—';
+            const amount=pick(o,['Amount','Deal Amount','Potential Amount','Annual Revenue','Value']);
+            const stageRaw=pick(o,['Stage','Deal Stage','Sales Stage']);
+            const close=pick(o,['Closing Date','Close Date','Modified Time','Created Time']);
+            const cd=close?Date.parse(close):NaN;
+            const extra=[pick(o,['Email']),pick(o,['Phone','Mobile']),pick(o,['Title'])].filter(Boolean).join(' · ');
+            out.push({
+              id:'zoho_'+(pick(o,['Record Id','Deal Id','Id'])||(''+Date.now()+'_'+i)),
+              name, contact: pick(o,['Contact Name']) || person || pick(o,['Email']),
+              industry: pick(o,['Industry']),
+              stage: stageRaw ? mapStage(stageRaw) : 'lead',
+              value: amount ? (parseFloat(amount.replace(/[^0-9.]/g,''))||0) : 0,
+              notes: [pick(o,['Description']),extra].filter(Boolean).join(' — '),
+              lastContact: Number.isFinite(cd)?cd:Date.now(), createdAt: Date.now(), source:'zoho',
+            });
+          }
+          return out;
+        }
+        function openImport(){
+          const bd=document.createElement('div');
+          bd.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+          bd.innerHTML=`<div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:24px;max-width:520px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)">
+            <h3 style="font-size:16px;margin-bottom:6px;color:var(--ink)">استيراد من Zoho CRM</h3>
+            <p style="font-size:12px;color:var(--ink-3);margin-bottom:16px;line-height:1.7">صدّر من Zoho أي وحدة (Deals / Accounts / Contacts) كملف <b>CSV</b>، ثم ارفعه هنا. تُطابَق الأعمدة تلقائياً (Account Name, Amount, Stage, Contact Name…) وتُضاف للعملاء.</p>
+            <input id="imp-file" type="file" accept=".csv,text/csv" style="width:100%;padding:10px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-size:12px;margin-bottom:12px"/>
+            <div id="imp-prev" style="font-size:12px;color:var(--green);min-height:20px;margin-bottom:6px"></div>
+            <div id="imp-err" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:8px"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="imp-cancel" style="background:var(--surface-2);color:var(--ink-2);padding:9px 16px;border-radius:8px;font-size:13px">إلغاء</button>
+              <button id="imp-go" style="background:var(--accent);color:#1a1300;padding:9px 18px;border-radius:8px;font-weight:600;font-size:13px;opacity:.5" disabled>استورد</button>
+            </div></div>`;
+          document.body.appendChild(bd);
+          let parsed=[];
+          const close=()=>bd.remove();
+          bd.onclick=e=>{ if(e.target===bd) close(); };
+          bd.querySelector('#imp-cancel').onclick=close;
+          bd.querySelector('#imp-file').onchange=async(e)=>{
+            const f=e.target.files[0]; if(!f) return;
+            bd.querySelector('#imp-err').textContent='';
+            try{ const text=await f.text(); parsed=toClients(parseCSV(text));
+              bd.querySelector('#imp-prev').textContent = parsed.length ? ('✓ تم التعرّف على '+parsed.length+' سجل — جاهز للاستيراد.') : '';
+              if(!parsed.length) bd.querySelector('#imp-err').textContent='لم يُعثر على سجلات صالحة في الملف.';
+              const go=bd.querySelector('#imp-go'); go.disabled=!parsed.length; go.style.opacity=parsed.length?'1':'.5';
+            }catch(err){ bd.querySelector('#imp-err').textContent='تعذّرت قراءة الملف.'; }
+          };
+          bd.querySelector('#imp-go').onclick=async()=>{
+            if(!parsed.length) return;
+            const btn=bd.querySelector('#imp-go'); btn.disabled=true; btn.textContent='…';
+            try{
+              const seen=new Set(clients.map(c=>c.id));
+              const fresh=parsed.filter(c=>!seen.has(c.id));
+              clients = fresh.concat(clients);
+              await save(); render(); close();
+            }catch(err){ btn.disabled=false; btn.textContent='استورد'; bd.querySelector('#imp-err').textContent='تعذّر الحفظ: '+(err.message||err); }
+          };
+        }
+        const impBtn=document.getElementById('crmImportBtn'); if (impBtn) impBtn.onclick=openImport;
 
         load();
       }

@@ -1,4 +1,4 @@
-name = "arsan-api"
+name = "double-parking"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 account_id = "6e1bbf9595326b995e6f64e101d88b76"

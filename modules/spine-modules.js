@@ -1221,10 +1221,50 @@ window.SpineModules = (function(){
     return r.json();
   }
 
-  // cfg: { endpoint, title, countLabel, statCount, empty, toList(raw), stats(list), columns:[{label,cell}], render(list), limit }
+  // Write helpers (real POST / KV PUT)
+  async function _mpost(path, body){ const r = await fetch(_MAPI()+path, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify(body)}); if(!r.ok){ const e=new Error('HTTP '+r.status); e.code=r.status; throw e; } return r.json().catch(()=>({})); }
+  async function _mkvPrepend(key, item){ let cur=[]; try{ const g=await _mfetch('/api/kv/'+key); if(Array.isArray(g)) cur=g; }catch(_){} cur.unshift(item); const r=await fetch(_MAPI()+'/api/kv/'+key, {method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify(cur)}); if(!r.ok){ const e=new Error('HTTP '+r.status); e.code=r.status; throw e; } return r.json().catch(()=>({})); }
+
+  // Generic add-record modal, styled to match the app
+  function _openModal(title, fields, onSubmit){
+    const bd = document.createElement('div');
+    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+    const inputStyle = 'width:100%;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;margin-bottom:12px;outline:none';
+    const fieldHTML = fields.map(f => {
+      const lbl = `<label style="font-size:11px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en);letter-spacing:1px;display:block;margin-bottom:5px">${_mesc(f.label)}</label>`;
+      let input;
+      if (f.type==='select') input = `<select data-k="${f.key}" style="${inputStyle}">${(f.options||[]).map(o=>`<option value="${_mesc(o.value)}">${_mesc(o.label)}</option>`).join('')}</select>`;
+      else input = `<input data-k="${f.key}" type="${f.type||'text'}" placeholder="${_mesc(f.placeholder||'')}" style="${inputStyle}"/>`;
+      return lbl + input;
+    }).join('');
+    bd.innerHTML = `<div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:24px;max-width:460px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)">
+      <h3 style="font-size:16px;margin-bottom:16px;color:var(--ink)">${_mesc(title)}</h3>
+      ${fieldHTML}
+      <div id="_mderr" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="_mdcancel" style="background:var(--surface-2);color:var(--ink-2);padding:9px 16px;border-radius:8px;font-size:13px">إلغاء</button>
+        <button id="_mdsave" style="background:var(--accent);color:#1a1300;padding:9px 18px;border-radius:8px;font-weight:600;font-size:13px">حفظ</button>
+      </div></div>`;
+    document.body.appendChild(bd);
+    const close = () => bd.remove();
+    bd.onclick = e => { if (e.target===bd) close(); };
+    bd.querySelector('#_mdcancel').onclick = close;
+    bd.querySelector('#_mdsave').onclick = async () => {
+      const values = {}; bd.querySelectorAll('[data-k]').forEach(el => values[el.dataset.k] = el.value.trim());
+      const req = fields.find(f => f.required !== false);
+      if (req && !values[req.key]){ bd.querySelector('#_mderr').textContent = 'الحقل المطلوب فارغ.'; return; }
+      const btn = bd.querySelector('#_mdsave'); btn.disabled = true; btn.textContent = '…';
+      try { await onSubmit(values); close(); }
+      catch(e){ bd.querySelector('#_mderr').textContent = e.code===403 ? 'تحتاج صلاحية مشرف.' : ('تعذّر الحفظ: '+(e.message||e)); btn.disabled = false; btn.textContent = 'حفظ'; }
+    };
+    setTimeout(() => { const fi = bd.querySelector('[data-k]'); if (fi) fi.focus(); }, 50);
+  }
+
+  // cfg: { endpoint, title, countLabel, statCount, empty, toList(raw), stats(list), columns:[{label,cell}], render(list), limit,
+  //        add:{ label, fields:[{key,label,type,placeholder,options,required}], submit(values) } }
   function liveModule(cfg){
     return {
-      actions: cfg.actions || '',
+      actions: cfg.actions || (cfg.add ? `<button class="primary" id="lm-add">+ ${_mesc(cfg.add.label||'جديد')}</button>` : ''),
       body: `
         <div class="stat-row" id="lm-stats">${Array.from({length:cfg.statCount||4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join('')}</div>
         <div class="card">
@@ -1236,7 +1276,7 @@ window.SpineModules = (function(){
         const bodyEl  = document.getElementById('lm-body');
         const countEl = document.getElementById('lm-count');
         const emptyStats = () => { statsEl.innerHTML = Array.from({length:cfg.statCount||4}).map(()=>'<div class="stat"><div class="k">—</div><div class="v">—</div></div>').join(''); };
-        (async () => {
+        async function load(){
           let raw;
           try { raw = await _mfetch(cfg.endpoint); }
           catch(err){
@@ -1264,20 +1304,25 @@ window.SpineModules = (function(){
               : `<div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">لا نتائج مطابقة.</div>`;
           };
           renderRows(list);
-          // Live search/filter (shown once the list is worth filtering)
           const searchEl = document.getElementById('lm-search');
           if (searchEl && list.length > 5){
             searchEl.style.display = '';
             const strip = h => { try { return String(h).replace(/<[^>]*>/g,' '); } catch(_){ return ''; } };
             const idx = list.map(r => ({ r, t: cols.map(c => strip(c.cell(r))).join(' ').toLowerCase() }));
-            searchEl.addEventListener('input', e => {
+            searchEl.value = '';
+            searchEl.oninput = e => {
               const q = e.target.value.trim().toLowerCase();
               const f = q ? idx.filter(o => o.t.includes(q)).map(o => o.r) : list;
               countEl.textContent = f.length + (cfg.countLabel ? (' ' + cfg.countLabel) : '');
               renderRows(f);
-            });
+            };
           }
-        })();
+        }
+        const addBtn = document.getElementById('lm-add');
+        if (addBtn && cfg.add){
+          addBtn.onclick = () => _openModal(cfg.add.title || ('إضافة ' + (cfg.add.label||'')), cfg.add.fields, async values => { await cfg.add.submit(values); await load(); });
+        }
+        load();
       }
     };
   }
@@ -1285,6 +1330,11 @@ window.SpineModules = (function(){
 
   function approvals(){ return liveModule({
     endpoint:'/api/approvals', title:'طلبات الاعتماد', countLabel:'طلب', empty:'لا توجد طلبات اعتماد حالياً.',
+    add:{ label:'طلب', title:'طلب اعتماد جديد', fields:[
+      {key:'sopRef',label:'المرجع (dept/code)',placeholder:'operations/OPS-001',required:true},
+      {key:'dept',label:'الإدارة'},
+      {key:'note',label:'ملاحظة'},
+    ], submit:v=>_mpost('/api/approvals',{sopRef:v.sopRef,dept:v.dept||null,note:v.note||''}) },
     stats:l=>[{k:'Total',v:l.length},{k:'Pending',v:l.filter(a=>a.status==='pending').length,cls:'orange'},{k:'Approved',v:l.filter(a=>a.status==='approved').length,cls:'green'},{k:'Rejected',v:l.filter(a=>a.status==='rejected'||a.status==='declined').length,cls:'red'}],
     columns:[
       {label:'المرجع',cell:a=>`<span class="mono" style="color:var(--accent);font-size:11px">${_mesc(a.sopRef||a.id||'—')}</span>`},
@@ -1310,6 +1360,12 @@ window.SpineModules = (function(){
   function vendors(){ return liveModule({
     endpoint:'/api/kv/vendors_v1', title:'الموردون والعقود', countLabel:'مورد', empty:'لا يوجد موردون مسجّلون بعد.',
     toList:r=>_arr(r,'vendors'),
+    add:{ label:'مورد', title:'مورد جديد', fields:[
+      {key:'name',label:'اسم المورد',required:true},
+      {key:'category',label:'الفئة'},
+      {key:'contract',label:'رقم العقد'},
+      {key:'status',label:'الحالة',type:'select',options:[{value:'active',label:'نشط'},{value:'pending',label:'معلّق'},{value:'inactive',label:'غير نشط'}]},
+    ], submit:v=>_mkvPrepend('vendors_v1',{id:'v_'+Date.now(),name:v.name,category:v.category||null,contract:v.contract||null,status:v.status||'active',createdAt:Date.now()}) },
     stats:l=>[{k:'Vendors',v:l.length},{k:'Active',v:l.filter(v=>v.status==='active').length,cls:'green'},{k:'Contracts',v:l.reduce((s,v)=>s+(Array.isArray(v.contracts)?v.contracts.length:(v.contract?1:0)),0)},{k:'Expiring',v:l.filter(v=>v.expiring||v.expiresSoon).length,cls:'orange'}],
     columns:[
       {label:'المورد',cell:v=>`<span class="name">${_mesc(v.name||v.title||'—')}</span>`},
@@ -1322,6 +1378,12 @@ window.SpineModules = (function(){
   function budget(){ return liveModule({
     endpoint:'/api/kv/expenses_v1', title:'الميزانية والإنفاق', countLabel:'بند', empty:'لا توجد بيانات إنفاق مسجّلة بعد.',
     toList:r=>_arr(r,'expenses'),
+    add:{ label:'بند', title:'بند إنفاق جديد', fields:[
+      {key:'title',label:'البند',required:true},
+      {key:'dept',label:'الإدارة'},
+      {key:'amount',label:'المبلغ',type:'number'},
+      {key:'status',label:'الحالة',type:'select',options:[{value:'pending',label:'معلّق'},{value:'approved',label:'معتمد'}]},
+    ], submit:v=>_mkvPrepend('expenses_v1',{id:'e_'+Date.now(),title:v.title,dept:v.dept||null,amount:v.amount?Number(v.amount):null,status:v.status||'pending',createdAt:Date.now()}) },
     stats:l=>{const t=l.reduce((s,e)=>s+(Number(e.amount)||0),0); return [{k:'Entries',v:l.length},{k:'Total',v:t?t.toLocaleString('en-US'):'—'},{k:'Departments',v:new Set(l.map(e=>e.dept).filter(Boolean)).size},{k:'Pending',v:l.filter(e=>e.status==='pending').length,cls:'orange'}];},
     columns:[
       {label:'البند',cell:e=>`<span class="name">${_mesc(e.title||e.name||'—')}</span>`},
@@ -1334,6 +1396,12 @@ window.SpineModules = (function(){
   function risks(){ return liveModule({
     endpoint:'/api/kv/risks_v1', title:'سجل المخاطر', countLabel:'مخاطرة', empty:'لا توجد مخاطر مسجّلة بعد.',
     toList:r=>_arr(r,'risks'),
+    add:{ label:'مخاطرة', title:'مخاطرة جديدة', fields:[
+      {key:'title',label:'المخاطرة',required:true},
+      {key:'level',label:'المستوى',type:'select',options:[{value:'low',label:'منخفض'},{value:'medium',label:'متوسط'},{value:'critical',label:'حرج'}]},
+      {key:'status',label:'الحالة',type:'select',options:[{value:'open',label:'مفتوح'},{value:'mitigated',label:'مُخفّف'},{value:'resolved',label:'مُغلق'}]},
+      {key:'owner',label:'المسؤول (إيميل)'},
+    ], submit:v=>_mkvPrepend('risks_v1',{id:'r_'+Date.now(),title:v.title,level:v.level||'medium',status:v.status||'open',owner:v.owner||null,createdAt:Date.now()}) },
     stats:l=>[{k:'Risks',v:l.length},{k:'Critical',v:l.filter(r=>r.level==='critical'||r.severity==='high').length,cls:'red'},{k:'Open',v:l.filter(r=>r.status!=='closed'&&r.status!=='resolved'&&r.status!=='mitigated').length,cls:'orange'},{k:'Mitigated',v:l.filter(r=>r.status==='mitigated'||r.status==='resolved').length,cls:'green'}],
     columns:[
       {label:'المخاطرة',cell:r=>`<span class="name">${_mesc(r.title||r.name||'—')}</span>`},
@@ -1346,6 +1414,13 @@ window.SpineModules = (function(){
   function kpis(){ return liveModule({
     endpoint:'/api/kv/kpis_v1', title:'مؤشرات الأداء', countLabel:'مؤشر', empty:'لا توجد مؤشرات مُعرّفة بعد.',
     toList:r=>_arr(r,'kpis'),
+    add:{ label:'مؤشر', title:'مؤشر جديد', fields:[
+      {key:'name',label:'اسم المؤشر',required:true},
+      {key:'value',label:'القيمة الحالية'},
+      {key:'target',label:'الهدف'},
+      {key:'unit',label:'الوحدة (%، ر.س…)'},
+      {key:'status',label:'الحالة',type:'select',options:[{value:'on-track',label:'على المسار'},{value:'at-risk',label:'معرّض للخطر'},{value:'off-track',label:'خارج المسار'}]},
+    ], submit:v=>_mkvPrepend('kpis_v1',{id:'k_'+Date.now(),name:v.name,value:v.value||null,target:v.target||null,unit:v.unit||null,status:v.status||'on-track',createdAt:Date.now()}) },
     stats:l=>[{k:'KPIs',v:l.length},{k:'On Track',v:l.filter(k=>k.status==='on-track'||k.status==='green').length,cls:'green'},{k:'At Risk',v:l.filter(k=>k.status==='at-risk'||k.status==='amber').length,cls:'orange'},{k:'Off Track',v:l.filter(k=>k.status==='off-track'||k.status==='red').length,cls:'red'}],
     columns:[
       {label:'المؤشر',cell:k=>`<span class="name">${_mesc(k.name||k.title||'—')}</span>`},
@@ -1358,6 +1433,11 @@ window.SpineModules = (function(){
   function vault(){ return liveModule({
     endpoint:'/api/kv/docs_v1', title:'مستودع الوثائق', countLabel:'ملف', empty:'لا توجد وثائق بعد.',
     toList:r=>_arr(r,'docs'),
+    add:{ label:'وثيقة', title:'وثيقة جديدة', fields:[
+      {key:'name',label:'اسم الوثيقة',required:true},
+      {key:'folder',label:'المجلد'},
+      {key:'url',label:'الرابط'},
+    ], submit:v=>_mkvPrepend('docs_v1',{id:'d_'+Date.now(),name:v.name,folder:v.folder||null,url:v.url||null,updatedAt:Date.now()}) },
     stats:l=>[{k:'Documents',v:l.length},{k:'Folders',v:new Set(l.map(d=>d.folder||d.category).filter(Boolean)).size},{k:'Recent',v:l.filter(d=>d.updatedAt&&(Date.now()-(typeof d.updatedAt==='number'?d.updatedAt:Date.parse(d.updatedAt))<7*864e5)).length},{k:'Shared',v:l.filter(d=>d.shared).length}],
     columns:[
       {label:'الملف',cell:d=>`<span class="name">${_mesc(d.name||d.title||'—')}</span>`},
@@ -1432,31 +1512,23 @@ window.SpineModules = (function(){
     };
   }
 
-  function decisions(){
-    const m = liveModule({
-      endpoint:'/api/decisions', title:'سجل القرارات', countLabel:'قرار', empty:'لا توجد قرارات مسجّلة بعد.',
-      actions:`<button class="primary" id="decNew">+ قرار</button>`,
-      stats:l=>[{k:'Total',v:l.length},{k:'Approved',v:l.filter(d=>d.status==='approved').length,cls:'green'},{k:'Pending',v:l.filter(d=>d.status==='pending').length,cls:'orange'},{k:'Deferred',v:l.filter(d=>d.status==='deferred').length}],
-      columns:[
-        {label:'الرقم',cell:d=>`<span class="mono" style="color:var(--accent);font-size:11px">${_mesc(d.id||'—')}</span>`},
-        {label:'القرار',cell:d=>`<span class="name">${_mesc(d.title||'—')}</span>`},
-        {label:'الإدارة',cell:d=>_mesc(d.dept||'—')},
-        {label:'الحالة',cell:d=>tag(d.status==='approved'?'معتمد':d.status==='deferred'?'مؤجّل':d.status==='rejected'?'مرفوض':'معلّق', d.status==='approved'?'green':d.status==='rejected'?'red':'orange')},
-        {label:'التاريخ',cell:d=>`<span class="mono">${_mrel(d.createdAt)}</span>`},
-      ]
-    });
-    const origMount = m.mount;
-    m.mount = function(){
-      origMount.call(this);
-      const btn = document.getElementById('decNew');
-      if (btn) btn.onclick = async () => {
-        const title = prompt('عنوان القرار:'); if (!title) return;
-        try { await fetch(_MAPI()+'/api/decisions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify({title})}); origMount.call(this); }
-        catch(e){ alert('تعذّر حفظ القرار'); }
-      };
-    };
-    return m;
-  }
+  function decisions(){ return liveModule({
+    endpoint:'/api/decisions', title:'سجل القرارات', countLabel:'قرار', empty:'لا توجد قرارات مسجّلة بعد.',
+    add:{ label:'قرار', title:'قرار جديد', fields:[
+      {key:'title',label:'عنوان القرار',required:true},
+      {key:'dept',label:'الإدارة'},
+      {key:'status',label:'الحالة',type:'select',options:[{value:'pending',label:'معلّق'},{value:'approved',label:'معتمد'},{value:'deferred',label:'مؤجّل'},{value:'rejected',label:'مرفوض'}]},
+      {key:'note',label:'ملاحظة'},
+    ], submit:v=>_mpost('/api/decisions',{title:v.title,dept:v.dept||null,status:v.status||'pending',note:v.note||''}) },
+    stats:l=>[{k:'Total',v:l.length},{k:'Approved',v:l.filter(d=>d.status==='approved').length,cls:'green'},{k:'Pending',v:l.filter(d=>d.status==='pending').length,cls:'orange'},{k:'Deferred',v:l.filter(d=>d.status==='deferred').length}],
+    columns:[
+      {label:'الرقم',cell:d=>`<span class="mono" style="color:var(--accent);font-size:11px">${_mesc(d.id||'—')}</span>`},
+      {label:'القرار',cell:d=>`<span class="name">${_mesc(d.title||'—')}</span>`},
+      {label:'الإدارة',cell:d=>_mesc(d.dept||'—')},
+      {label:'الحالة',cell:d=>tag(d.status==='approved'?'معتمد':d.status==='deferred'?'مؤجّل':d.status==='rejected'?'مرفوض':'معلّق', d.status==='approved'?'green':d.status==='rejected'?'red':'orange')},
+      {label:'التاريخ',cell:d=>`<span class="mono">${_mrel(d.createdAt)}</span>`},
+    ]
+  }); }
 
   return {
     sops, meetings, tasks,

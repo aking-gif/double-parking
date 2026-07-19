@@ -2833,6 +2833,34 @@ ${clipped}
         await logAudit(env, { actor: s.email, action: "decision-log", decisionId: dec.id, title: dec.title });
         return json({ ok: true, decision: dec }, 200, req);
       }
+      // PATCH /api/decisions/:id  { title?, status?, dept?, note? }
+      if (path.match(/^\/api\/decisions\/[^\/]+$/) && method === "PATCH") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const body = await req.json().catch(() => ({}));
+        const raw = await env.ARSAN.get("decisions_v1");
+        const list = raw ? JSON.parse(raw) : [];
+        const idx = list.findIndex(d => d.id === id);
+        if (idx < 0) return json({ error: "not-found" }, 404, req);
+        ["title","status","dept","note"].forEach(k => { if (body[k] !== undefined) list[idx][k] = body[k]; });
+        list[idx].updatedAt = Date.now();
+        list[idx].updatedBy = s.email;
+        await env.ARSAN.put("decisions_v1", JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "decision-update", decisionId: id });
+        return json({ ok: true, decision: list[idx] }, 200, req);
+      }
+      // DELETE /api/decisions/:id
+      if (path.match(/^\/api\/decisions\/[^\/]+$/) && method === "DELETE") {
+        const s = await getSession(req, env);
+        if (!s) return json({ error: "unauthorized" }, 401, req);
+        const id = path.split("/")[3];
+        const raw = await env.ARSAN.get("decisions_v1");
+        const list = (raw ? JSON.parse(raw) : []).filter(d => d.id !== id);
+        await env.ARSAN.put("decisions_v1", JSON.stringify(list));
+        await logAudit(env, { actor: s.email, action: "decision-delete", decisionId: id });
+        return json({ ok: true }, 200, req);
+      }
 
       // ============================================================
       // ===== GOVERNANCE LAYER (Lifecycle / Chains / Migration) =====

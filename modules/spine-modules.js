@@ -1224,17 +1224,58 @@ window.SpineModules = (function(){
   // Write helpers (real POST / KV PUT)
   async function _mpost(path, body){ const r = await fetch(_MAPI()+path, {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify(body)}); if(!r.ok){ const e=new Error('HTTP '+r.status); e.code=r.status; throw e; } return r.json().catch(()=>({})); }
   async function _mkvPrepend(key, item){ let cur=[]; try{ const g=await _mfetch('/api/kv/'+key); if(Array.isArray(g)) cur=g; }catch(_){} cur.unshift(item); const r=await fetch(_MAPI()+'/api/kv/'+key, {method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()}, body:JSON.stringify(cur)}); if(!r.ok){ const e=new Error('HTTP '+r.status); e.code=r.status; throw e; } return r.json().catch(()=>({})); }
+  async function _mpatch(path, body){ const r=await fetch(_MAPI()+path,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()},body:JSON.stringify(body)}); if(!r.ok){const e=new Error('HTTP '+r.status);e.code=r.status;throw e;} return r.json().catch(()=>({})); }
+  async function _mdelete(path){ const r=await fetch(_MAPI()+path,{method:'DELETE',headers:{'Authorization':'Bearer '+_MTOK()}}); if(!r.ok){const e=new Error('HTTP '+r.status);e.code=r.status;throw e;} return r.json().catch(()=>({})); }
+  async function _mkvUpdate(key, id, patch){ let cur=[]; try{const g=await _mfetch('/api/kv/'+key); if(Array.isArray(g)) cur=g;}catch(_){} const i=cur.findIndex(x=>x&&x.id===id); if(i>=0) cur[i]=Object.assign({},cur[i],patch,{updatedAt:Date.now()}); const r=await fetch(_MAPI()+'/api/kv/'+key,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()},body:JSON.stringify(cur)}); if(!r.ok){const e=new Error('HTTP '+r.status);e.code=r.status;throw e;} return r.json().catch(()=>({})); }
+  async function _mkvRemove(key, id){ let cur=[]; try{const g=await _mfetch('/api/kv/'+key); if(Array.isArray(g)) cur=g;}catch(_){} cur=cur.filter(x=>x&&x.id!==id); const r=await fetch(_MAPI()+'/api/kv/'+key,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_MTOK()},body:JSON.stringify(cur)}); if(!r.ok){const e=new Error('HTTP '+r.status);e.code=r.status;throw e;} return r.json().catch(()=>({})); }
 
-  // Generic add-record modal, styled to match the app
-  function _openModal(title, fields, onSubmit){
+  // Row detail drawer — shows all fields; Edit/Delete when the module declares cfg.crud
+  function _openDetail(row, cfg, reload){
+    const bd = document.createElement('div');
+    bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:390;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+    const keys = Object.keys(row).filter(k => k[0]!=='_' && typeof row[k]!=='object' && typeof row[k]!=='function');
+    const rowsHTML = keys.map(k => {
+      let v = row[k];
+      if (v!=null && /at$/i.test(k) && (typeof v==='number' || /^\d{4}-\d/.test(String(v)))) v = _mrel(v);
+      return `<div style="display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.06)"><span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px">${_mesc(k)}</span><b style="color:var(--ink);font-weight:500;font-size:13px;text-align:end;max-width:65%;overflow-wrap:anywhere">${_mesc(String(v==null?'—':v))}</b></div>`;
+    }).join('');
+    const canEdit = !!(cfg.crud && (cfg.crud.kv || cfg.crud.update) && cfg.add);
+    const canDel  = !!(cfg.crud && (cfg.crud.kv || cfg.crud.remove));
+    bd.innerHTML = `<div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:22px;max-width:480px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:15px;color:var(--ink)">${_mesc(cfg.detailTitle||'التفاصيل')}</h3><button id="_dtclose" style="width:26px;height:26px;border-radius:6px;background:var(--surface-2);color:var(--ink-3);font-size:15px">×</button></div>
+      <div>${rowsHTML}</div>
+      <div style="display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+        ${canDel?'<button id="_dtdel" style="background:rgba(216,107,92,.12);border:1px solid rgba(216,107,92,.35);color:var(--red);padding:8px 14px;border-radius:8px;font-size:12px">حذف</button>':''}
+        <div style="flex:1"></div>
+        ${canEdit?'<button id="_dtedit" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:8px;font-size:12px">تعديل</button>':''}
+      </div></div>`;
+    document.body.appendChild(bd);
+    const close = () => bd.remove();
+    bd.onclick = e => { if (e.target===bd) close(); };
+    bd.querySelector('#_dtclose').onclick = close;
+    const del = bd.querySelector('#_dtdel');
+    if (del) del.onclick = async () => {
+      if (!confirm('حذف هذا العنصر نهائياً؟')) return;
+      del.disabled = true; del.textContent = '…';
+      try { if (cfg.crud.kv) await _mkvRemove(cfg.crud.kv, row.id); else await cfg.crud.remove(row); close(); await reload(); }
+      catch(e){ del.disabled = false; del.textContent = 'حذف'; alert(e.code===403?'تحتاج صلاحية مشرف':'تعذّر الحذف'); }
+    };
+    const edit = bd.querySelector('#_dtedit');
+    if (edit) edit.onclick = () => { close(); _openModal('تعديل', cfg.add.fields, async values => { if (cfg.crud.kv) await _mkvUpdate(cfg.crud.kv, row.id, values); else await cfg.crud.update(row, values); await reload(); }, row); };
+  }
+
+  // Generic add/edit-record modal, styled to match the app. prefill = existing values (edit mode)
+  function _openModal(title, fields, onSubmit, prefill){
+    prefill = prefill || {};
     const bd = document.createElement('div');
     bd.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
     const inputStyle = 'width:100%;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;margin-bottom:12px;outline:none';
     const fieldHTML = fields.map(f => {
       const lbl = `<label style="font-size:11px;color:var(--ink-3);text-transform:uppercase;font-family:var(--font-en);letter-spacing:1px;display:block;margin-bottom:5px">${_mesc(f.label)}</label>`;
+      const pv = prefill[f.key];
       let input;
-      if (f.type==='select') input = `<select data-k="${f.key}" style="${inputStyle}">${(f.options||[]).map(o=>`<option value="${_mesc(o.value)}">${_mesc(o.label)}</option>`).join('')}</select>`;
-      else input = `<input data-k="${f.key}" type="${f.type||'text'}" placeholder="${_mesc(f.placeholder||'')}" style="${inputStyle}"/>`;
+      if (f.type==='select') input = `<select data-k="${f.key}" style="${inputStyle}">${(f.options||[]).map(o=>`<option value="${_mesc(o.value)}"${String(o.value)===String(pv)?' selected':''}>${_mesc(o.label)}</option>`).join('')}</select>`;
+      else input = `<input data-k="${f.key}" type="${f.type||'text'}" placeholder="${_mesc(f.placeholder||'')}" value="${pv!=null?_mesc(String(pv)):''}" style="${inputStyle}"/>`;
       return lbl + input;
     }).join('');
     bd.innerHTML = `<div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:24px;max-width:460px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)">
@@ -1299,9 +1340,12 @@ window.SpineModules = (function(){
           if (cfg.render){ bodyEl.innerHTML = cfg.render(list); return; }
           const cols = cfg.columns || [];
           const renderRows = (items) => {
-            bodyEl.innerHTML = items.length
-              ? `<table class="tbl"><thead><tr>${cols.map(c=>`<th>${_mesc(c.label)}</th>`).join('')}</tr></thead><tbody>${items.slice(0, cfg.limit||200).map(row => `<tr>${cols.map(c=>`<td>${c.cell(row)}</td>`).join('')}</tr>`).join('')}</tbody></table>`
-              : `<div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">لا نتائج مطابقة.</div>`;
+            if (!items.length){ bodyEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink-3);font-size:13px">لا نتائج مطابقة.</div>`; return; }
+            const shown = items.slice(0, cfg.limit||200);
+            bodyEl.innerHTML = `<table class="tbl"><thead><tr>${cols.map(c=>`<th>${_mesc(c.label)}</th>`).join('')}</tr></thead><tbody>${shown.map((row,i) => `<tr data-i="${i}" style="cursor:pointer">${cols.map(c=>`<td>${c.cell(row)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+            if (cfg.detail !== false){
+              bodyEl.querySelectorAll('tbody tr').forEach(tr => { tr.onclick = () => { const r = shown[+tr.dataset.i]; if (r) _openDetail(r, cfg, load); }; });
+            }
           };
           renderRows(list);
           const searchEl = document.getElementById('lm-search');
@@ -1359,7 +1403,7 @@ window.SpineModules = (function(){
 
   function vendors(){ return liveModule({
     endpoint:'/api/kv/vendors_v1', title:'الموردون والعقود', countLabel:'مورد', empty:'لا يوجد موردون مسجّلون بعد.',
-    toList:r=>_arr(r,'vendors'),
+    toList:r=>_arr(r,'vendors'), crud:{kv:'vendors_v1'}, detailTitle:'تفاصيل المورد',
     add:{ label:'مورد', title:'مورد جديد', fields:[
       {key:'name',label:'اسم المورد',required:true},
       {key:'category',label:'الفئة'},
@@ -1377,7 +1421,7 @@ window.SpineModules = (function(){
 
   function budget(){ return liveModule({
     endpoint:'/api/kv/expenses_v1', title:'الميزانية والإنفاق', countLabel:'بند', empty:'لا توجد بيانات إنفاق مسجّلة بعد.',
-    toList:r=>_arr(r,'expenses'),
+    toList:r=>_arr(r,'expenses'), crud:{kv:'expenses_v1'}, detailTitle:'تفاصيل البند',
     add:{ label:'بند', title:'بند إنفاق جديد', fields:[
       {key:'title',label:'البند',required:true},
       {key:'dept',label:'الإدارة'},
@@ -1395,7 +1439,7 @@ window.SpineModules = (function(){
 
   function risks(){ return liveModule({
     endpoint:'/api/kv/risks_v1', title:'سجل المخاطر', countLabel:'مخاطرة', empty:'لا توجد مخاطر مسجّلة بعد.',
-    toList:r=>_arr(r,'risks'),
+    toList:r=>_arr(r,'risks'), crud:{kv:'risks_v1'}, detailTitle:'تفاصيل المخاطرة',
     add:{ label:'مخاطرة', title:'مخاطرة جديدة', fields:[
       {key:'title',label:'المخاطرة',required:true},
       {key:'level',label:'المستوى',type:'select',options:[{value:'low',label:'منخفض'},{value:'medium',label:'متوسط'},{value:'critical',label:'حرج'}]},
@@ -1413,7 +1457,7 @@ window.SpineModules = (function(){
 
   function kpis(){ return liveModule({
     endpoint:'/api/kv/kpis_v1', title:'مؤشرات الأداء', countLabel:'مؤشر', empty:'لا توجد مؤشرات مُعرّفة بعد.',
-    toList:r=>_arr(r,'kpis'),
+    toList:r=>_arr(r,'kpis'), crud:{kv:'kpis_v1'}, detailTitle:'تفاصيل المؤشر',
     add:{ label:'مؤشر', title:'مؤشر جديد', fields:[
       {key:'name',label:'اسم المؤشر',required:true},
       {key:'value',label:'القيمة الحالية'},
@@ -1432,7 +1476,7 @@ window.SpineModules = (function(){
 
   function vault(){ return liveModule({
     endpoint:'/api/kv/docs_v1', title:'مستودع الوثائق', countLabel:'ملف', empty:'لا توجد وثائق بعد.',
-    toList:r=>_arr(r,'docs'),
+    toList:r=>_arr(r,'docs'), crud:{kv:'docs_v1'}, detailTitle:'تفاصيل الوثيقة',
     add:{ label:'وثيقة', title:'وثيقة جديدة', fields:[
       {key:'name',label:'اسم الوثيقة',required:true},
       {key:'folder',label:'المجلد'},
@@ -1513,7 +1557,8 @@ window.SpineModules = (function(){
   }
 
   function decisions(){ return liveModule({
-    endpoint:'/api/decisions', title:'سجل القرارات', countLabel:'قرار', empty:'لا توجد قرارات مسجّلة بعد.',
+    endpoint:'/api/decisions', title:'سجل القرارات', countLabel:'قرار', empty:'لا توجد قرارات مسجّلة بعد.', detailTitle:'تفاصيل القرار',
+    crud:{ update:(row,v)=>_mpatch('/api/decisions/'+row.id,{title:v.title,dept:v.dept||null,status:v.status,note:v.note||''}), remove:(row)=>_mdelete('/api/decisions/'+row.id) },
     add:{ label:'قرار', title:'قرار جديد', fields:[
       {key:'title',label:'عنوان القرار',required:true},
       {key:'dept',label:'الإدارة'},
